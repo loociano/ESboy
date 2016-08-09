@@ -1,0 +1,950 @@
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ +                                                                   +
+ *     The Definitive Guide to ROM Hacking for Complete Beginners    *
+ +                                                                   +
+ *                              v1.00                                *
+ +                                                                   +
+ *                            by InVerse                             *
+ +                                                                   +
+ *                             02/28/03                              *
+ +                                                                   +
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ 
+
+ Introduction:
+ 
+ The purpose of this guide is to supply neophytes to the ROM hacking
+ realm with pointers to find the information they desire. This guide
+ will NOT teach you how to ROM hack, it will show you where to find
+ information on ROM hacking, how to get started and what mistakes to
+ avoid.
+ 
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+
+ Table of Contents:
+
+    I. Introduction
+   II. Table of Contents
+  III. Document History
+   IV. Index
+    V. Section One      -   The Basics
+   VI. Section Two      -   Getting Started
+  VII. Section Three    -   Editing Graphics
+ VIII. Section Four     -   Editing Text
+   IX. Section Five     -   Editing Other Things
+    X. Section Six      -   Translating
+   XI. Section Seven    -   Advanced ROM Hacking
+  XII. Section Eight    -   Assembly
+ XIII. Section Nine     -   Miscellaneous
+  XIV. Section Ten      -   Tools
+   XV. Section Eleven   -   Etiquette
+  XVI  Section Twelve   -   The Scene
+ XVII. Resources
+XVIII. Conclusion
+  XIX. Credits
+   XX. Contact Info
+
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+
+ Document History:
+
+ 02/28/03 - v1.00 - Initial Release
+
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+
+ Section One - The Basics
+ 
+ 0101: What is a ROM?
+ 0102: What is ROM hacking? 
+ 0103: Why do people ROM hack?
+ 0104: What type of people ROM hack?
+ 0105: What is the most important quality of a ROM hacker?
+ 0106: Is ROM hacking legal?
+
+ Section Two - Getting Started
+
+ 0201: How do I hack a ROM?
+ 0202: What tools do I need?
+ 0203: So what do I do first?
+ 0204: What's the most important thing I should know before starting?
+ 0205: Why won't xxxxx program work?
+ 0206: What about utilities for Mac OS, Unix, etc?
+
+ Section Three - Editing Graphics
+
+ 0301: How do I edit graphics?
+ 0302: Why are the graphics all scrambled?
+ 0303: Why can't I find the graphics I want to hack?
+ 0304: How do I edit the title screen of a ROM?
+ 0305: Why are the colors all wrong?
+ 0306: How do I change the color of the graphics?
+ 0307: Why don't my changes show up?
+
+ Section Four - Editing Text
+
+ 0401: How do I edit text?
+ 0402: What is a table?
+ 0403: How do I make a table?
+ 0404: What if the text I want to edit is in Japanese?
+ 0405: How do I get more space for my text?
+ 0406: Why can't I find the text I want to edit?
+ 0407: What is a script?
+ 0408: How do I extract/insert a script?
+ 0409: How do I build a custom script dumper?
+
+ Section Five - Editing Other Things
+
+ 0501: How do I edit levels?
+ 0502: How do I edit statistics?
+ 0503: How do I edit items?
+ 0504: How do I hack save states?
+ 0505: How do I make Game Genie codes permanent?
+  
+ Section Six - Translating
+
+ 0601: How do I translate Japanese?
+ 0602: Can I use an online translator?
+ 0603: How can I find a script translator?
+ 0604: How can I view Japanese characters on my computer?
+ 0605: How can I type in Japanese?
+ 0606: What are the different type of Japanese characters?
+  
+ Section Seven - Advanced ROM Hacking
+
+ 0701: What is an ISO?
+ 0702: How do I hack Playstation games?
+ 0703: How do I hack games for newer systems?
+ 0704: How do I hack PC games? 
+
+ Section Eight - Assembly
+
+ 0801: What is assembly language?
+ 0802: What is assembly hacking? 
+ 0803: How do I learn assembly language?
+
+ Section Nine - Miscellaneous
+
+ 0901: Why are hacks/translations distributed as IPS patches?
+ 0902: What should I pick for my first translation project?
+ 0903: Why are there so many unfinished hacks for a certain game?
+
+ Section Ten - Tools
+ 
+ 1001: What graphics hacking tools should I use?
+ 1002: What text hacking tools should I use?
+ 1003: What emulators are good for hacking?
+
+ Section Eleven - Etiquette
+
+ 1101: How can I ask for help without getting flamed?
+ 1102: How can I start a ROM hacking group?
+ 1103: How can I get someone to translate a particular game?
+ 1104: Why shouldn't I e-mail a ROM to a ROM hacker?
+ 
+ Section Twelve - The Scene
+ 
+ 1201: What is "The Scene"?
+ 1202: Who is a member of "The Scene"?
+ 1203: How can I join "The Scene"?
+ 1204: What are the benefits of "The Scene"?
+ 1205: What are these people talking about?
+ 1206: How do I quit the scene?
+
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ Section One - The Basics
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+
+ 0101: What is a ROM?
+
+ A ROM is a copy of the program from a console cartridge. In other
+ words, it's the actual game. ROMs can be run by emulators to allow
+ you to play console games on your computer.
+
+
+ 0102: What is ROM hacking?
+
+ ROM hacking involves editing a ROM for various purposes. The term
+ 'hacking' derives from the original computer related definition of
+ the word which means to explore technology. ROM hacking does not
+ involve breaking the ROM's security so as to deface its web page or
+ steal its credit card.
+
+ ROM hacking might involve translating the text from one language to
+ another, editing the graphics, fixing a glitch in the coding of the
+ game or any other number of possible changes.
+
+
+ 0103: Why do people ROM hack?
+
+ The prominent (and only valid) reason is because they enjoy it. Yes,
+ they want to see the game they're hacking playable in English. Yes,
+ some of them like the attention they get from working on a high level
+ project. But if you don't enjoy facing and overcoming the challenges
+ involved in ROM hacking, you're never going to successfully complete
+ a project.
+
+
+ 0104: What type of people ROM hack?
+
+ Literally all kinds. I've met ROM hackers of every race and from 6 of
+ the 7 continents. I've met ROM hackers who grew up in gangs and ROM
+ hackers who are attending ivy league colleges. In other words, there
+ is no one certain type of person that makes a good ROM hacker. The
+ one quality that all good ROM hackers possess is enjoyment of 
+ figuring out how something works and learning new things.
+ 
+
+ 0105: What is the most important quality of a ROM hacker?
+
+ Above all else, a ROM hacker must be patient. Without patience, you
+ won't accomplish much. The work is often tedious and boring, but if
+ you stick it out, you'll be highly rewarded.
+
+
+ 0106: Is ROM hacking legal?
+
+ This is a gray area, but for the most part it's not. ROMs contain
+ copyrighted material, thus editing it is infringing on the copyright.
+ ROM hackers get around this by releasing patches instead of actual
+ edited ROMs. The patches don't contain any information copyrighted by
+ the game's publisher, only a set of changes made by the ROM hacker.
+
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ Section Two - Getting Started
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+
+ 0201: How do I hack a ROM?
+
+ First, you have to decide what type of hack you want to do. Do you
+ want to hack the text of a game? Do you want to change the graphics?
+ Are you interested in designing entire new levels? Once you've
+ decided what to do, then you can figure out how to do it.
+
+
+ 0202: What tools do I need?
+
+ This will depend on what you intend to do. In general, you'll need
+ a hex editor & a tile editor. You can do quite well with just these
+ two things to start. When your hacking skills improve, you'll want to
+ include thing such as table makers, script dumpers and others. If
+ your goal is to create new levels, you'll need a level editor for
+ the game you're wanting to hack.
+
+
+ 0203: So what do I do first?
+
+ Play around. Open the ROM up in your hex editor & graphics editor and
+ look around. Experiment with different things and see what happens.
+ Don't expect to make some awesome new game on your first attempt,
+ because it's not going to happen.
+
+
+ 0204: What's the most important thing I should know before starting?
+
+ Always (and I mean ALWAYS) back up your work. You never know when you
+ might make a mistake that screws up all of your previous work. Keep
+ multiple copies of your hack because you might screw something up and
+ not even notice until you've changed several other things. And don't
+ just keep a copy on your hard drive, back up to a floppy disk or CD.
+ It's also a good idea to store a copy of your progress somewhere on
+ the Internet just in case your house burns down or something and you
+ lose your hard drive *and* backups. Many a project has went -poof-
+ due to some hapless ROM hacker not properly backing up his work.
+
+ 0205: Why won't xxxxx program work?
+ 
+ Many ROM hacking utilities were written in DOS, which is no longer
+ supported by Windows XP. If your operating system is XP, that could
+ be the reason. Some utilities might work under a DOS emulator such as
+ DOS Box but, for the most part, you'll just have to find another tool
+ to get the job done. There are Win32 programs that can accomplish
+ most ROM hacking tasks, you'll just have to adapt to them.
+ 
+ Alternatively, if you're getting a strange error. Make sure you're
+ using the program according to the readme file. Try redownloading the
+ file to make sure you didn't get a corrupt download. Also, some 
+ programs require additional files (extenders for DOS, DLLs for
+ Windows) so make sure you have all of these. Required files will be
+ listed in the documentation of the utility on most occasions.
+
+
+ 0206: What about utilities for Mac OS, Unix, etc?
+ 
+ There are very few ROM hacking tools for Mac OS or Unix. By 'very few'
+ I mean almost none. The only reason for this is that nobody has 
+ bothered to write any. There's nothing about Mac OS or Unix that make
+ it difficult to ROM hack, it's just that more programmers use Win/DOS
+ systems, so nobody wrote tools for anything else. You can try a
+ Windows emulator if you want to ROM hack from a non-Windows OS.
+ 
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ Section Three - Editing Graphics
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ 
+ 0301: How do I edit graphics?
+
+ You'll need to use a tile editor for this. (See Section Eleven - 
+ Tools for recommendations on tile editors.)
+ 
+
+ 0302: Why are the graphics all scrambled?
+
+ That's just how the graphics are stored in the ROM. There is no way
+ to put them in order. You'll have to search and experiment to get
+ things right. (See 0105)
+
+
+ 0303: Why can't I find the graphics I want to hack?
+
+ If you've searched the ROM and can't find the graphics you want to
+ hack, chances are they're compressed. While it's certainly possible
+ to uncompress graphics, it's not a simple task and not something a
+ beginning ROM hacker should attempt. Set that project off to the side
+ and work on something else until you've mastered the basic skills.
+ Then you can worry about learning assembly. (See Section Nine)
+
+
+ 0304: How do I edit the title screen of a ROM?
+ 
+ As long as the title screen isn't compressed, you edit it exactly
+ like you would any other graphic, just that it's bigger. Consult
+ "Title Screen Hacking Made Easy" by InVerse for more on this
+ topic.
+ 
+ 
+ 0305: Why are the colors all wrong?
+
+ Every game uses a different palette and there's no way for most
+ graphic editors to know what that palette is. Some utilities will
+ allow you to load a palette from a save state but most of the time,
+ you'll simply have to adjust the palette by hand. Remember, though,
+ these changes aren't permanent. You have to hack the palette within
+ the ROM in order to save color changes.
+
+ 
+ 0306: How do I change the color of the graphics?
+ 
+ Some emulators and utilities will allow you to modify the palette
+ within that program but this isn't a permanent change. For this, you
+ will have to do some palette hacking. Try The Palette Hacking Doc by
+ Toma for NES palette hacking or SNES Palette Format by Jay.
+ 
+
+ 0307: Why don't my changes show up?
+ 
+ First, make sure you've saved the changes in your editor. This may
+ sound obvious, but almost everyone (myself included) has forgotten to
+ click save at one time or another and then wondered why nothing had
+ changed. 
+ 
+ Also, if you're reloading from a save state, keep in mind that some
+ of the information you are hacking may be stored in that save state.
+ This means you'll have to do something to flush the memory in order
+ to see your new graphics. In some games, this might be as simple as
+ going to an inventory or pause screen. Others might require you to
+ enter another area. Sometimes, you'll simply have to die and start
+ that level over again to see your changes.
+ 
+ Another possibility is that your ROM is set as read only. Check the
+ attributes and make sure read only isn't selected.
+ 
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ VIII. Section Four - Editing Text
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+
+ 0401: How do I edit text?
+
+ You open the ROM in a hex editor, along with the appropriate table,
+ and edit away. (See Section Eleven - Tools for a recommendation of
+ hex editors.)
+
+
+ 0402: What is a table?
+
+ A table is a file that tells a hex editor what font characters
+ correspond with what hex values. Tables are only readable by hex
+ editors that are specifically designed for ROM hacking purposes.
+
+
+ 0403: How do I make a table?
+
+ It's a relatively simple process but still goes beyond the scope of
+ this FAQ. Consult the document The Definitive Guide to ROM Hacking
+ Tables by InVerse or Tables for Dummies by satsu.
+
+
+ 0404: What if the text I want to edit is in Japanese?
+
+ You edit it just like you do English text. You'll need a table that
+ includes Japanese characters if you want to see them in the hex
+ editor. For information on translating Japanese, see Section Ten.
+
+
+ 0405: How do I get more space for my text?
+ 
+ You'll quickly find out that you can't simply add more text to a ROM.
+ In order to make more room for your text, you'll have to learn to
+ hack pointers. Consult the document The Mad Hacker's Guide to
+ Pointers by The Mad Hacker.
+
+
+ 0406: Why can't I find the text I want to edit?
+
+ There are 2 possibilities. First, if you can find some but not all of
+ the text, perhaps the game uses more than one font. This can result
+ in needing more than one table. Consult The Definitive Guide to ROM
+ Hacking Tables by InVerse for more information on this.
+
+ Secondly, it's possible that the ROM you chose has a compressed
+ script. If this is the case, it will require assembly level hacking
+ to decompress the script. This isn't something a novice is likely to
+ grasp, so I recommend putting the project aside until you've mastered
+ the basics of ROM hacking. Then you can try more advanced subjects.
+ (See Section Nine)
+
+
+ 0407: What is a script?
+
+ A script is a file containing all of the text from a game. Rather
+ than hacking the text directly in a hex editor, you can extract a
+ script, change the text as you see fit in a word processing program,
+ then reinsert the script.
+
+
+ 0408: How do I extract/insert a script?
+
+ If your ROM's script uses a consistent format, you can use one of the
+ prebuilt script dumpers. If there are any strange features in your
+ ROM's script, you might have to build a custom script dumper. (See
+ Section Eleven - Tools.)
+
+
+ 0409: How do I build a custom script dumper?
+
+ This will require knowledge of C, Visual Basic or some other
+ programming language and involves more than just ROM hacking.
+
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ IX. Section Five - Editing Other Things
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ 
+ 0501: How do I edit levels?
+ 
+ Some popular (and a few unpopular) games have utilities specifically
+ built to edit the levels, so first check for one of those. If the
+ game you want to edit doesn't have a level editor already, you'll
+ have to figure out the level format yourself by corrupting the ROM.
+ Consult Basic ROM Corruption by InVerse for more details.
+ 
+ 
+ 0502: How do I edit statistics?
+ 
+ As with levels, a few popular games have utilities specifically for
+ this purpose. If the game doesn't have such a tool, you'll have to
+ search for the location of the statistics via ROM corruption. Consult
+ Basic ROM Corruption by InVerse for more details.
+ 
+ 
+ 0503: How do I edit items?
+ 
+ If you're wanting to edit the statistics of items, see 0502. If
+ you're wanting to edit what items your character currently has in a
+ game, see 0504.
+ 
+
+ 0504: How do I hack save states?
+
+ Save state editing is a bit more precise than other types of editing.
+ Consult Hacking RPG Inventories by The Spook for more details.
+
+
+ 0505: How do I make Game Genie codes permanent?
+
+ This involves hex editing the ROM. Consult Game Genie Doc by SnowBro
+ for more details.
+ 
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ X. Section Six - Translating
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+
+ 0601: How do I translate Japanese?
+
+ You aren't going to learn Japanese from a tutorial. If you are
+ interested in learning the language, consult section XVIII References
+ for a list of sites that provide educational information concerning
+ the Japanese language. If you're just interested in getting the
+ Japanese in your project translated, you might be best served by
+ locating a Japanese speaker willing to translate for you.
+
+
+ 0602: Can I use an online translator?
+
+ You could, but your script would likely come out horribly mangled.
+ Online translators are far from accurate. For example, using the most
+ popular online translator, BabelFish, the sentence "Let's go in the
+ room." translates to "That with everyone you will try going in the
+ room." Now if it does such a bad job with a simple sentence, imagine
+ how badly it will mangle an entire script. Online translators are
+ fine when you want to translate individual item names or the
+ occasional short sentence but relying on them to translate a game
+ script for you is pointless.
+
+
+ 0603: How can I find a script translator?
+
+ Your best bet is to post on ROM hacking related messageboards asking
+ for a translator. Don't just say "I want to hack such and such game
+ and need a translator." though, because you're unlikely to receive
+ much help. You need to show evidence that you're capable of handling
+ the project. Do some initial hacking to show that you know what
+ you're doing. Change some dialogue text and show off your work with
+ screen shots. The text you hack in doesn't need to be correct, it
+ just needs to show that you're capable of hacking the ROM. Also, it
+ helps to have your script dumped (see 0408) so you can inform a
+ prospective translator of just how much text needs to be translated.
+
+
+ 0604: How can I view Japanese characters on my computer?
+
+ Some programs have built in support. For example, in Internet
+ Explorer, there is a Japanese (Auto-Select) option under Encoding
+ in the View menu. Other programs will require you to install a
+ Japanese font. There are also programs you can run that will allow
+ you to view Japanese in just about any program. (See Section 10 -
+ Tools for more information.)
+
+
+ 0605: How can I type in Japanese?
+
+ In Windows XP or 2000, you can enable the native IME by going to
+ Control Panel and selecting Regional and Language Options. Click Add
+ and select Japanese as the Input Language. This will add Japanese as
+ an installed service. You can then set the Language Bar and Key
+ Settings button to allow you to type in Japanese.
+ 
+ If you're using Windows 95 or 98, you can download a Global Input
+ Method Editor from Microsoft's website (http://www.microsoft.com).
+
+ Macintosh users can select Japanese from the keyboard menu. There
+ are IME's for Unix as well. Your best bet is to check the website
+ for your particular flavor to find the best method to accomplish
+ this.
+ 
+ Another option is to download a Japanese word processing program.
+ (See Section 10 - Tools for more information.)
+ 
+ 
+ 0606: What are the different types of Japanese characters?
+ 
+ There are four basic types of Japanese characters that you'll have to
+ deal with while ROM hacking. The most prevalent are hiragana and
+ katakana, collectively referred to as kana. Kana is the written
+ version of the Japanese spoken language. In other words, much like
+ Romanic alphabets, each kana has a specific sound that it makes.
+ Hiragana characters generally correspond to native Japanese words.
+ Katakana are usually used to write non-native words and names. For
+ each sound in the Japanese "alphabet", there is a corresponding
+ hiragana and katakana character.
+ 
+ Next up is kanji. Kanji are the big, complicated characters that most
+ people associate with Japanese (though kanji is used in Chinese and
+ Korean as well.) Each kanji represents a specific word or idea. There
+ are several thousand kanji. Finally, there is romaji which is when
+ Japanese words are written using Romanic characters. You'll probably
+ never actually encounter romaji in a game, but if you spend any time
+ on ROM hacking messageboards or chat rooms, you'll likely encounter
+ it.
+
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ XI. Section Seven - Advanced ROM Hacking
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+
+ 0701: What is an ISO?
+ 
+ An ISO is an image taken from a CD, much as a ROM is an image taken
+ from a cartridge. Referring to an ISO as a "Playstation ROM" will
+ likely get you ridiculed.
+ 
+
+ 0702: How do I hack Playstation games?
+ 
+ There have been a few complete Playstation translations, so interest
+ in hacking for PSX is on the rise. Since you're dealing with a CD
+ instead of a ROM, some things will obviously be different. The basics
+ are still the same, though. You'll still be hex editing the text,
+ using relative searching to locate it, etc. Consult "The PlayStation
+ Translation Doc" by Cless for more information.
+
+ 
+ 0703: How do I hack games for newer systems?
+
+ There have been translation projects involving Saturn, Dreamcast and
+ PS2 games, among others. As of this writing, no complete translations
+ have been released for any of these systems, however. Once again, the
+ basics are going to be the same but you'll just have to experiment on
+ your own to figure out anything special regarding a certain system.
+ 
+ 
+ 0704: How do I hack PC games?
+ 
+ Once again, the basics of ROM hacking apply to PC games. Search the
+ web and you'll likely find some tutorials regarding hacking PC games.
+ 
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ XII. Section Eight - Assembly
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ 
+ 0801: What is assembly language?
+
+ No matter what language a game was originally written in, when it is
+ compiled, it's converted to machine language. Using a disassembler,
+ you can convert a ROM into assembly language. Each processor type
+ has its own flavor of assembly, hence NES, SNES, etc will use
+ different types of assembly.
+
+ 
+ 0802: What is assembly hacking? 
+
+ Assembly hacking is when you hack a ROM by disassembling it and
+ rewriting portions of the assembly code. This will give you much
+ greater control over the changes, since you'll be able to see
+ exactly what is happening within the game.
+
+ 
+ 0803: How do I learn assembly language?
+ 
+ You're not going to learn Assembly language from a single tutorial
+ like you will with most ROM hacking techniques. You'll have to read
+ what documents exist and then start breaking a ROM in order to really
+ learn Assembly. Try "6502 Microprocessor" (commonly named 6502.txt)
+ or "A 65816 Primer" by Brett Tabke. Once you learn one assembly
+ language, it will generally be easier to learn others. The basic
+ principles are the same, the implementation just differs.
+ 
+ 
+ 0804: What assembly language do various consoles use?
+ 
+ Nintendo                        Sega
+ --------                        ----
+ NES.............6502          Master System........z80
+ SNES...........65816          Genesis............68000
+ N64.............MIPS          Saturn...............SH2
+ Gamecube........MIPS          Dreamcast............SH4
+ Gameboy..........z80          GameGear.............z80
+ GBA.........ARM7TDMI
+ 
+ Other                         Sony
+ -----                         ----
+ MSX..............z80          PSX.................MIPS
+ X-Box............x86          PS2.................MIPS
+ TG16............6280
+ NGPC..........93c141
+  
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ XIII. Section Nine - Miscellaneous
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+
+ 0901: Why are hacks/translations distributed as IPS patches?
+
+ As was previously mentioned, ROMs are copyrighted files and it is
+ illegal to distribute them. It's also illegal to modify them. If a
+ ROM hacker were to distribute hacked ROMs, they would be in danger of
+ having their website shut down. An IPS patch doesn't contain any
+ copyrighted data from the ROM, it simply contains a list of changes
+ that need to be applied to an unhacked ROM in order to convert it to
+ your hack. IPS files are also much smaller than ROMs, so it saves on
+ bandwidth to distribute IPS patches. Not to mention, most sites that
+ carry translations refuse to post hacked ROMs, so if you want the
+ word to get out about your work, you'll need to distribute it in IPS
+ form.
+
+
+ 0902: What should I pick for my first translation project?
+ 
+ Well, the obvious answer is "something easy". It's usually easiest
+ to start with an NES or Gameboy action or puzzle game. There's also
+ nothing wrong with doing a text hack of a game already in English
+ just to get the experience of various techniques without having to
+ complicate things by dealing with a language you don't understand.
+ It's really not a good idea to choose a big RPG as your initial
+ project, though. Get some experience first, then move on to bigger
+ and better things.
+ 
+ 
+ 0903: Why are there so many unfinished hacks for a certain game?
+
+ If there are multiple unfinished patches for a single game, it's
+ likely that there are problems with the game that make it difficult
+ to hack. That doesn't mean that it's impossible to translate that
+ particular game, just that nobody who has the skills to accomplish it
+ has sat down and worked on it. Many games, mostly RPGs, have taken
+ several years of effort to actually complete a translation. A lot of
+ the time, new ROM hackers will pick up a big RPG with grandiose ideas
+ of translating it and garnering instant fame. Then they run into the
+ same problem that everyone else who attempted it encountered, or else
+ they just get overwhelmed by the shear size of such an endeavor, and
+ give up. If there are multiple patches for a single game, it's
+ probably safe to say that it would be a bad choice for a first
+ project.
+ 
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ XIV. Section Ten - Tools
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ 
+ 1001: What graphics hacking tools should I use?
+
+ Tile Layer Pro is hands down the best tile editor for just about
+ everything you'll need to do. Tile Mod is another popular graphics
+ editor that can do a few things TLP can't. YY-Chr is also worth a
+ look. There are many editors that can accomplish most hacking, so
+ just use the one that you're most comfortable with.
+
+
+ 1002: What text hacking tools should I use?
+
+ For hex editing, Hexposure is the king. Unfortunately, it's a DOS
+ application, so if you're using Windows XP, you'll have to go with
+ Hexecute or Translhextion. For script dumping, ROM Juice is probably
+ the only really decent general extractor and Gizmo is probably the
+ best inserter. In general, however, it's usually better to use a
+ custom built tool.
+
+
+ 1003: What emulators are good for hacking?
+ 
+ It's not good for much else, but Nesticle has a pattern editor that
+ will allow you to do a certain amount of graphics hacking directly in
+ an NES ROM. FCE Ultra and Nesten both feature debuggers for NES.
+ SNES9X LT is a version of the popular SNES emulator with a debugger
+ built in. No$GB is another popular emulator, this one for Gameboy,
+ that features a debugger. Many other systems have emulators with
+ debuggers as well. Check the documentation to find out which ones.
+ 
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ XV. Section Eleven - Etiquette
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+
+ 1101: How can I ask for help without getting flamed?
+
+ One of the biggest problems a neophyte to ROM hacking has is an
+ unfamiliarity with how to go about obtaining help when a problem is
+ encountered. Most will simply post a question on a messageboard or
+ e-mail a ROM hacker without first considering their actions.
+ 
+ To avoid being flamed on a messageboard, first make sure you've read
+ any documents regarding the subject you're asking about, to make sure
+ your question isn't answered there. Secondly, read through the board
+ and make sure nobody else has asked the same question. One of the
+ main reasons people get flamed is because they ask a question that
+ has already been answered several times. Finally, be specific. Don't
+ just say "How do I hack Metroid?", state exactly what you're trying
+ to do and what problem you're having. Explain what you've tried so
+ far and then ask for assistance. And don't expect to get an answer.
+ Nobody is obligated to help you and getting pissed off because you
+ don't immediately get the answer you need isn't going to do any good.
+ 
+ Also, never e-mail a ROM hacker asking for help unless they've made
+ it clear that it is ok to do so. If you have a specific question
+ regarding something they've written or a hack they've released, then
+ it may be okay to ask them about it, unless their website or 
+ documentation says not to do so. Don't e-mail a ROM hacker asking for
+ help with a utility they didn't write or a system they haven't hacked
+ for, however. Doing so will most likely get you ignored and/or flamed
+ and you don't need to piss off the people whose assistance you need.
+ 
+
+ 1102: How can I start a ROM hacking group?
+
+ One of the biggest neophyte mistakes is to attempt to start a new
+ ROM hacking group to accomplish some project you've thought up. First
+ of all, no experienced ROM hacker is going to join a group founded
+ by someone who's never released a ROM hack. Secondly, unless you plan
+ to do a significant portion of the work (and no, managing a team does
+ not count) then most ROM hackers will avoid your attempt to start a
+ group because it looks like you're wanting to take credit for their
+ hard work. If you really want to start a ROM hacking group, then show
+ some progress on a project of your own and then solicit people to
+ help you with it. It's generally easier to find an existing group and
+ offer your services to them, however.
+
+
+ 1103: How can I get someone to translate a particular game?
+ 
+ Asking someone to translate a particular game rarely ever works. Most
+ ROM hackers work only on games they enjoy. Asking someone to
+ translate a game, even if it's a sequel or similar to another game
+ they've hacked, is most likely only going to annoy them. The best
+ way you can go about getting a particular game translated is to build
+ a shrine, of sorts, to it. Post screen shots, summarize the game, in
+ short, show people why that particular game really needs to be
+ translated. Then link your shrine on a few general ROM hacking
+ forums and hope for the best.
+
+ 
+ 1104: Why shouldn't I e-mail a ROM to a ROM hacker?
+ 
+ A sure fire way to gain hatred from the ROM hacking elite is to send
+ them ROMs via e-mail and ask them to translate it. For starters, most
+ ROM hackers know exactly where to get any ROM they could ever want.
+ Sending a ROM via e-mail can be a problem for multiple reasons. First
+ of all, just because you have a 'leet broadband connection doesn't
+ mean that your recipient does. They could be on a very slow dialup
+ and a large file such as a ROM could clog up their bandwidth for a
+ significant amount of time, thus turning them against you before they
+ have even read your request. Just because you CAN send large files
+ via e-mail doesn't mean you should. That's not the purpose of e-mail.
+ You can use a car to slaughter cattle as well, but that doesn't mean
+ it's a good idea. Secondly, you have no idea where a ROM hacker might
+ be checking their mail from. It's almost a guarantee that the ROM
+ you're sending is copyrighted material, and some people don't
+ appreciate unwittingly downloading illegal files on someone else's
+ computer or in their laptop at a local cafe. In short, never e-mail a
+ ROM without explicit permission from the recipient.
+
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ XVI. The Scene
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ 
+ 1201: What is "The Scene"?
+
+ "The Scene" (which you'll often see written in bold) refers to a
+ large subset of ROM hackers who communicate via IRC and various
+ messageboards. "The Scene" is like a family. A fat, lazy, annoying
+ family of assholes, most of whom hate each other.
+
+
+ 1202: Who is a member of "The Scene"?
+
+ Just about anyone who participates in a "Scene" related chat room or
+ messageboard is a part of the scene. If someone denies being a part
+ of "The Scene", they probably are, particularly if that denial occurs
+ in/on a "Scene" related chat room or messageboard.
+
+ 
+ 1203: How can I join "The Scene"?
+
+ Just start hanging around various ROM hacking messageboards and chat
+ rooms and you'll eventually become trapped in "The Scene". Some
+ people will claim there is a membership fee that must be paid in
+ hentai but that has been unconfirmed as of this writing. Any ability
+ or knowledge in regards to ROM hacking is completely irrelevant.
+
+
+ 1204: What are the benefits of "The Scene"?
+
+ Well, if you're into lame cartoon pornography, jokes about sexual
+ orientation and the occasional reach around, then "The Scene" is for
+ you. If you actually hope to make progress in your ROM hacking, then
+ there are no benefits.
+
+
+ 1205: What are these people talking about?
+
+ Hell if I know, consult "The Emulation Dictionary" by satsu.
+
+ 
+ 1206: How do I quit the scene?
+ 
+ First, get frustrated with some minor thing. Then post on all the
+ messageboards about how you're quitting "The Scene". Wait for a day
+ or two and then start working on your projects again, after a week or
+ so, start posting on the messageboards again. This might not make
+ sense now, but it will after you've been around "The Scene" for a few
+ weeks.
+ 
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ XVII. Resources
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+
+ General ROM Hacking Information
+ ------- --- ------- -----------
+ The Repository - http://www.romhacking.com
+ Zophar's Domain - http://www.zophar.net
+ CTC - http://www.confederatedtranslationcompany.com
+ 
+
+ Translation Archives
+ ----------- --------
+ The Whirlpool - http://donut.parodius.com
+ RPGd - http://rpgd.emulationworld.com
+
+ 
+ Non-Translation Hacks
+ --------------- -----
+ Acmlm's ROM Hack Domain - http://acmlm.overclocked.org
+ Challenge Games - http://www.cg-games.net
+ RuSteD ROM Hacks - http://bmf.rustedmagick.com
+
+
+ Japanese Information
+ -------- -----------
+ Japanese Online - http://www.learn-japanese.com
+ Jim Breen's Page - http://www.csse.monash.edu.au/~jwb/japanese.html
+ The Japanese Page - http://www.thejapanesepage.com
+ Japanese Online - http://www.japanese-online.com/
+ 
+ 
+ My Websites
+ -- --------
+ Suicidal Translations - http://www.pigtails.net/ST
+ Anywayz... 21st Century Parasite - http://www.anywayz.org
+
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ XVIII. Conclusion:
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ 
+ Above all else, remember that this is a hobby and nothing more. Too
+ many people (myself included) get caught up in the politics of "the
+ scene" and forget that it's all about video games. So whatever you
+ do, don't forget that. I mean, what's the point of a hobby if you're
+ not having fun?
+
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ XIX. Credits:
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+
+ There are entirely too many people to credit/thank for the existence
+ of this document.
+ 
+ Thanks to:
+ 
+ SnowBro for writing many of the tools that made ROM hacking what it
+ is today.
+ 
+ Klarth for providing various answers in this document, particularly
+ in regards to the Advanced ROM Hacking and Assembly sections.
+ 
+ Neil_ for providing information, inspiration, entertaining and a
+ general respite from the ignorance that is "The Scene".
+ 
+ Musashi for helping me out when I first got started, providing the
+ translation for several of my earlier projects and hacking several
+ great games himself.
+ 
+ Anybody who has ever written a utility or tutorial, translated a
+ script, answered a ROM hacking question on a messageboard or released
+ a quality hack or translation.
+ 
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ XX. Contact Info:
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ 
+ I'm not an exceptional ROM hacker. I wrote this document in hopes of
+ helping some people learn to ROM hack and to save time in answering
+ the same questions over and over again on messageboards. If you have
+ questions regarding ROM hacking, you're going to get a lot more help
+ by asking on a messageboard than you will by e-mailing me. If you 
+ find an error in this document, then contact me and I'll most likely
+ fix it. Do NOT under ANY circumstances e-mail me asking to translate
+ a game and if you e-mail me a ROM, you will suffer horribly. If you
+ can comply with these rules, my e-mail address is 
+ inverse@pigtails.net
+ 
+ The most recent copy of this file can always be found at my website
+ Suicidal Translations (http://www.pigtails.net/ST) along with other
+ documents and utilities I've written and my own ROM translations.
+
+ -InVerse
+
+ *-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-=*=-=-*
+ 02/28/01     -     ROM Hacking for Complete Beginners     -     v1.00

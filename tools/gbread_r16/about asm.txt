@@ -1,0 +1,187 @@
+Through the "Insert ASM" option, one can insert ASM directly into the file,
+at certain locations. 
+
+But before that...you must know the ASM you are inserting.
+Ultimately, you should be able to tell what the code you are putting in does.
+You can use one of the many GB/C ASM resources available to learn more.
+
+Allowed words:
+Any of these language words:
+adc, add, and, bit, ccf, cp, cpl, daa, dec, di, ei, halt, inc, jp, jr, ld, ldd
+ldhl, ldi, ldio, nop, or, pop, push, res, ret, reti, rl, rla, rlc, rlca, rr,
+rra, rrc, rrca, rst, sbc, scf, set, sla, sra, srl, stop, sub, sub, swap, swap,
+xor
+
+As well as these directives (for data):
+db, dw
+
+Numbers:
+Several different formats are supported:
+Regular numbers (no prefix): 34, 103
+Binary numbers (%) : %1101, %10001001
+Hex numbers ($) : $3F, $FF45
+Octal numbers (&) : &77, &34
+
+Any place where a number is accepted, an expression can be created. So, you
+can do something like:
+
+ld bc,TableBase + ($44 << 3)
+
+Supported operations, in order of precedence (high to low):
+~ (One's complement), - (Negative sign), ! (Unary boolean not)
+* (Multiply) / (Divide) % (Mod)
++ (Add) - (Subtract)
+<< (left shift) >> (right shift)
+< (Less) > (Greater) <= (Less or equal) >= (Greater or equal)
+== (equivalence operator)
+& (binary and)
+^ (binary xor)
+| (binary or)
+&& (boolean and)
+|| (boolean or)
+? : (conditional expression)
+
+Boolean operations return either a 1 (true), or 0 (false). A number evaluates
+to true if it's not equal to 0.
+
+Parenthesis can be used to group operations together.
+
+The final result of any expression will be truncated to fit into instructions,
+so be careful to know what type of number will be produced in the end
+
+Ex: ld a,$5000 + $34
+THe second argument takes a byte, so in the end, $5034 will be truncated to
+$34.
+
+Labels/Variables:
+Label and variable names have to start with a letter, and can contain letters,
+numbers, or underscores. Don't redefine a label or variable (or register) that
+already exists.
+
+Registers:
+Depending on the instruction, you'll be able to use the register singles
+(b, c, d, e, h, l, [hl], a), register doubles (bc, de, hl, af, sp), and so
+on.
+
+Features:
+Variable definition:
+Define certain values, using ([name] equ [value]), or ([name] = [value])
+Ex: 
+var2 equ $3456
+var3 = $234
+Variables have no limit in themselves, but will be extended (or truncated) to
+fit the instruction that you use them in (either to the size of a byte, or a
+short).
+
+Label definition:
+You can define temporary labels while you're typing (for the purpose of call
+/jp/jr, for example), or use labels that you've already defined.
+Ex:
+label1:
+ldi [hl],a
+dec bc
+ld a,b
+or c
+jr label1
+
+Data definition:
+You can specify data to insert, at any place. Start with the size of data (db,
+dw, dd, dq), then the list of data being inserted, separated by commas.
+Variables and expressions can also be used in these definitions.
+Ex:
+db $23,$34,VAR_NAME
+dw $3149,$4794,$15F
+dd $43245628
+dq $993F6523B7D63468
+
+db : Byte
+dw : Word (16-bit)
+dd : Dword (32-bit)
+dq : Qword (64-bit)
+
+As with instructions, if numbers are too wide or too
+short, they will be extended or truncated to fit. For example,
+
+db $6534
+
+will be interpreted as
+
+db $34
+
+.
+
+Comments:
+Append single line comments to lines with #, or ;.
+Ex:
+
+#This is a comment.
+ld a,b ;This is also a comment.
+
+C-style comments are also fine.
+
+//This is a single line comment.
+
+/* This is a
+multiline comment.*/
+
+Instructions:
+Just type the appropriate instruction in the proper place.
+Instruction Format:
+[inst] [arg1],[arg2]
+There are certain instructions that will be written differently, depending on
+what you are used to working with in other assemblers.
+
+Load Increase/Decrease A,[HL]/[HL],A
+ldd a,[hl] ldd [hl],a
+ldi a,[hl] ldi [hl],a
+
+Load [Location],A/A,[Location]
+This instruction will use the shorter form of the instruction (E0/F0)
+depending on whether the called location resides in [$FF00-$FFFF] or not.
+To make it explicit, use ldio:
+
+ldio a,[$34] -> ld a,[$FF34]
+
+Load HL, SP + Offset
+ldhl sp,x
+
+Load [$FFCC],A/A,[$FFCC]
+ld [c],a ld a,[c]
+
+Stop
+When converting to bytecode, a NOP will be inserted after it, to allow for the
+behavior of the processor after executing this instruction.
+
+Jump Relative
+Sometimes a jump will be possible, and sometimes it won't, like when the
+offset being jumped to lies outside of the range of jr. For this
+instruction, you can use a label, or an offset, to specify where to jump to.
+
+Macros:
+When you need to encapsulate some code to be inserted anywhere, instead of
+copying/pasting all over the place, you can make a macro to use. To do so:
+MacroName: MACRO
+...instructions...
+ENDM
+
+THe macroname follows the same rules as labels. Macros start and end with
+MACRO and ENDM, respectively. To use a macro, just type its name.
+
+MacroName
+
+You can also include arguments along with the macros. These arguments are
+expressions, and will be evaluated as such. Up to 9 arguments, separated by
+commas, are allowed.
+
+MacroName $10, $20 >> 3, (34 + (%1101 << 4)) * $40
+
+To access an argument inside a macro, use \1, \2, ... \9, for the 1st arg, the
+2nd arg, and so on. Each argument is evaluated as if it has parentheses around
+it, so do not worry about including parentheses around an argument in a macro
+call.
+
+MacroName: MACRO
+ld a,\1
+ld b,\2 << 3
+db \3, \4 * 1000
+ENDM

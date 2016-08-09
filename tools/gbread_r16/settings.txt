@@ -1,0 +1,10 @@
+[Main]
+bWordWrap=False
+
+[Disassembler]
+bPrintOffsets=True
+bPrintBytes=True
+bPrintComments=False
+eOffsetFormat=BankOffset
+eNumberFormat=Hex
+bHideDefinedData=False
