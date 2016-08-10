@@ -1,4 +1,4 @@
-import Loader from '../lib/Loader';
+import Loader from '../src/Loader';
 import assert from 'assert';
 import should from 'should';
 
@@ -11,11 +11,12 @@ describe('Loader', function() {
 
   });
 
-  it('should fail if file does not exist', () => {
+  it('should not fail if file does not exist', () => {
 
     (function(){
       new Loader().load('./roms/nope.gb');
-    }).should.throw();
+    }).should.not.throw();
 
   });
+
 });
