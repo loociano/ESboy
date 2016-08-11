@@ -43,4 +43,11 @@ describe('CPU', function() {
     assert(cpu.isChecksumCorrect());
   });
 
+  it('should read first instruction', () => {
+
+    assert.equal(cpu.PC, '0x100', 'PC should start at 0x100');
+    assert.equal(cpu.nextCommand(), 'NOP', 'Tetris starts with NOP.');
+
+  });
+
 });
