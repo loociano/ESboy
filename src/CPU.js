@@ -18,6 +18,7 @@ export default class CPU {
     this.ADDR_ROM_SIZE = 0x148;
     this.ADDR_RAM_SIZE = 0x149;
     this.ADDR_DESTINATION_CODE = 0x14a;
+    this.ADDR_COMPLEMENT_CHECK = 0x14d;
 
     // Values
     this.IS_GB_COLOR = 0x80;
@@ -140,5 +141,21 @@ export default class CPU {
   getNintendoGraphicBuffer() {
     return this.romBufferAt(this.ADDR_NINTENDO_GRAPHIC_START,
       this.ADDR_NINTENDO_GRAPHIC_END + 1);
+  }
+
+  isChecksumCorrect() {
+    let addr = this.ADDR_TITLE_START;
+    let count = 0;
+    while(addr <= this.ADDR_COMPLEMENT_CHECK){
+      count += this.romByteAt(addr);
+      addr++;
+    }
+    count += 25;
+
+    const countStr = count.toString(2);
+    const lastIndex = countStr.length - 1;
+    const leastByte = countStr.substring(lastIndex - 8, lastIndex);
+
+    return parseInt(leastByte, 2) === 0; 
   }
 }
