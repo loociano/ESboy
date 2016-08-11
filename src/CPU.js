@@ -8,6 +8,8 @@ export default class CPU {
     this.rom = this.loader.rom;
 
     // Addresses
+    this.ADDR_NINTENDO_GRAPHIC_START = 0x104;
+    this.ADDR_NINTENDO_GRAPHIC_END = 0x133;
     this.ADDR_TITLE_START = 0x134;
     this.ADDR_TITLE_END = 0x142;
     this.ADDR_IS_GB_COLOR = 0x143;
@@ -69,6 +71,15 @@ export default class CPU {
     return this.rom[address];
   }
 
+  /**
+   * @param {number} start
+   * @param {number} end
+   * @returns {any}
+   */
+  romBufferAt(start, end){
+    return this.rom.slice(start, end);
+  }
+
   isGameSuperGB() {
     return this.romByteAt(this.ADDR_IS_SGB);
   }
@@ -121,5 +132,13 @@ export default class CPU {
       throw new Error('Destination code unknown');
     }
 
+  }
+
+  /**
+   * @returns {number|any} Buffer with nintendo graphic
+   */
+  getNintendoGraphicBuffer() {
+    return this.romBufferAt(this.ADDR_NINTENDO_GRAPHIC_START,
+      this.ADDR_NINTENDO_GRAPHIC_END + 1);
   }
 }
