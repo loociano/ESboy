@@ -39,4 +39,8 @@ describe('CPU', function() {
     assert(cpu.getNintendoGraphicBuffer().equals(buf), 'Nintendo Graphic Buffer must match.');
   });
 
+  it('should compute the checksum', () => {
+    assert(cpu.isChecksumCorrect());
+  });
+
 });
