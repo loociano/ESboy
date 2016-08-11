@@ -8,6 +8,7 @@ export default class CPU {
     this.rom = this.loader.rom;
 
     // Addresses
+    this.ADDR_GAME_START = 0x100;
     this.ADDR_NINTENDO_GRAPHIC_START = 0x104;
     this.ADDR_NINTENDO_GRAPHIC_END = 0x133;
     this.ADDR_TITLE_START = 0x134;
@@ -49,6 +50,24 @@ export default class CPU {
     // Destination codes
     this.JAPANESE = 0x0;
     this.NON_JAPANESE = 0x1;
+
+    this.commands = {
+      0x00: 'NOP'
+    };
+
+    this.PC = this.ADDR_GAME_START;
+  }
+
+  /**
+   * @param opcode
+   * @returns {string} command given the opcode
+   */
+  getCommand(opcode){
+    if (this.commands[opcode] != null){
+      return this.commands[opcode];
+    } else {
+      console.error(`Command not found for opcode ${opcode}`);
+    }
   }
 
   /** @return {string} game title */
@@ -151,5 +170,12 @@ export default class CPU {
       addr++;
     }
     return (count + 25 & 0xff) === 0;
+  }
+
+  /**
+   * @return {string} next command
+   */
+  nextCommand() {
+    return this.getCommand(this.romByteAt(this.PC));
   }
 }
