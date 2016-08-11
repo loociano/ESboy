@@ -178,7 +178,13 @@ export default class CPU {
   }
 
   /**
-   * @return {boolean} true if computed checksum is correct.
+   * Computes ROM checksum and verifies if correct.
+   *
+   * Checksum is computed by summing all bytes in the cartridge
+   * from 0x134 to 0x14d plus 25. Checksum is correct if the least
+   * significant byte is 0x00.
+   *
+   * @return {boolean} true if checksum is correct.
    */
   isChecksumCorrect() {
     let addr = this.ADDR_TITLE_START;
