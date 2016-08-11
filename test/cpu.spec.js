@@ -26,16 +26,7 @@ describe('CPU', function() {
 
   it('should read the nintendo graphic buffer', () => {
 
-    const buf = new Buffer(48);
-    buf.writeUIntBE(0xCEED6666CC0D, 0, 6);
-    buf.writeUIntBE(0x000B03730083, 6, 6);
-    buf.writeUIntBE(0x000C000D0008, 12, 6);
-    buf.writeUIntBE(0x111F8889000E, 18, 6);
-    buf.writeUIntBE(0xDCCC6EE6DDDD, 24, 6);
-    buf.writeUIntBE(0xD999BBBB6763, 30, 6);
-    buf.writeUIntBE(0x6E0EECCCDDDC, 36, 6);
-    buf.writeUIntBE(0x999FBBB9333E, 42, 6);
-
+    const buf = new Buffer('CEED6666CC0D000B03730083000C000D0008111F8889000EDCCC6EE6DDDDD999BBBB67636E0EECCCDDDC999FBBB9333E', 'hex');
     assert(cpu.getNintendoGraphicBuffer().equals(buf), 'Nintendo Graphic Buffer must match.');
   });
 
