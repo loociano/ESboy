@@ -10,7 +10,7 @@ export default class Loader {
     try {
       this.rom = fs.readFileSync(filename);
     } catch (e){
-      console.log('File not found');
+      console.error('File not found');
     }
   }
 }
