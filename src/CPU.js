@@ -100,10 +100,16 @@ export default class CPU {
     return this.rom.slice(start, end);
   }
 
+  /**
+   * @returns {boolean} true if ROM is for Super Game Boy
+   */
   isGameSuperGB() {
     return this.romByteAt(this.ADDR_IS_SGB);
   }
 
+  /**
+   * @returns {string} cartridge type
+   */
   getCartridgeType() {
     switch(this.romByteAt(this.ADDR_CARTRIDGE_TYPE)){
       case this.ROM_ONLY:
@@ -113,6 +119,9 @@ export default class CPU {
     }
   }
 
+  /**
+   * @returns {string} ROM size
+   */
   getRomSize() {
     switch(this.romByteAt(this.ADDR_ROM_SIZE)){
       case this._32KB = 0: return '32KB';
@@ -130,6 +139,9 @@ export default class CPU {
     }
   }
 
+  /**
+   * @returns {string} RAM size
+   */
   getRAMSize() {
     switch(this.romByteAt(this.ADDR_RAM_SIZE)){
       case this.RAM_NONE: return 'None';
@@ -142,6 +154,9 @@ export default class CPU {
     }
   }
 
+  /**
+   * @returns {string} destination code
+   */
   getDestinationCode() {
 
     if (this.romByteAt(this.ADDR_DESTINATION_CODE) === this.JAPANESE){
@@ -162,6 +177,9 @@ export default class CPU {
       this.ADDR_NINTENDO_GRAPHIC_END + 1);
   }
 
+  /**
+   * @return {boolean} true if computed checksum is correct.
+   */
   isChecksumCorrect() {
     let addr = this.ADDR_TITLE_START;
     let count = 0;
