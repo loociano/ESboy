@@ -35,10 +35,50 @@ describe('CPU', function() {
     assert(cpu.isChecksumCorrect());
   });
 
-  it('should read first instruction', () => {
+  it('should start with PC, SP and registers at right values', () => {
 
-    assert.equal(cpu.PC, '0x100', 'PC should start at 0x100');
+    assert.equal(cpu.PC, 0x100, 'Program Counter should start at 0x100');
     assert.equal(cpu.nextCommand(), 'NOP', 'Tetris starts with NOP.');
+
+    assert.equal(cpu.AF, 0x0001, 'Register AF must start as 0x0001');
+    assert.equal(cpu.F, 0xb0, 'Register F must start as 0xb0');
+    assert.equal(cpu.BC, 0x0013, 'Register BC must start as 0x0013');
+    assert.equal(cpu.DE, 0x00d8, 'Register DE must start as 0x00d8');
+    assert.equal(cpu.HL, 0x014d, 'Register HL must start as 0x014d');
+    assert.equal(cpu.SP, 0xfffe, 'Stack Pointer must start as 0xfffe');
+
+    // Starting values at addresses
+    assert.equal(cpu.opcodeAt(0xff05), 0x00);
+    assert.equal(cpu.opcodeAt(0xff06), 0x00);
+    assert.equal(cpu.opcodeAt(0xff07), 0x00);
+    assert.equal(cpu.opcodeAt(0xff10), 0x80);
+    assert.equal(cpu.opcodeAt(0xff11), 0xbf);
+    assert.equal(cpu.opcodeAt(0xff12), 0xf3);
+    assert.equal(cpu.opcodeAt(0xff14), 0xbf);
+    assert.equal(cpu.opcodeAt(0xff16), 0x3f);
+    assert.equal(cpu.opcodeAt(0xff17), 0x00);
+    assert.equal(cpu.opcodeAt(0xff19), 0xbf);
+    assert.equal(cpu.opcodeAt(0xff1a), 0x7f);
+    assert.equal(cpu.opcodeAt(0xff1b), 0xff);
+    assert.equal(cpu.opcodeAt(0xff1c), 0x9f);
+    assert.equal(cpu.opcodeAt(0xff1e), 0xbf);
+    assert.equal(cpu.opcodeAt(0xff20), 0xff);
+    assert.equal(cpu.opcodeAt(0xff21), 0x00);
+    assert.equal(cpu.opcodeAt(0xff22), 0x00);
+    assert.equal(cpu.opcodeAt(0xff23), 0xbf);
+    assert.equal(cpu.opcodeAt(0xff24), 0x77);
+    assert.equal(cpu.opcodeAt(0xff25), 0xf3);
+    assert.equal(cpu.opcodeAt(0xff26), 0xf1);
+    assert.equal(cpu.opcodeAt(0xff40), 0x91);
+    assert.equal(cpu.opcodeAt(0xff42), 0x00);
+    assert.equal(cpu.opcodeAt(0xff43), 0x00);
+    assert.equal(cpu.opcodeAt(0xff45), 0x00);
+    assert.equal(cpu.opcodeAt(0xff47), 0xfc);
+    assert.equal(cpu.opcodeAt(0xff48), 0xff);
+    assert.equal(cpu.opcodeAt(0xff49), 0xff);
+    assert.equal(cpu.opcodeAt(0xff4a), 0x00);
+    assert.equal(cpu.opcodeAt(0xff4b), 0x00);
+    assert.equal(cpu.opcodeAt(0xffff), 0x00);
 
   });
 
