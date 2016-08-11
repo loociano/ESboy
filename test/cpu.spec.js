@@ -4,6 +4,10 @@ import assert from 'assert';
 
 describe('CPU', function() {
 
+  let loader = new Loader();
+  loader.load('./roms/tetris.gb');
+  let cpu = new CPU(loader);
+
   it('should fail without loader', () => {
     (function(){
       let cpu = new CPU();
@@ -11,11 +15,6 @@ describe('CPU', function() {
   });
 
   it('should read the game header', () => {
-
-    let loader = new Loader();
-    loader.load('./roms/tetris.gb');
-    let cpu = new CPU(loader);
-
     assert.equal(cpu.getGameTitle(), 'TETRIS', 'should read title');
     assert.equal(cpu.isGameInColor(), false, 'should not be gb color');
     assert.equal(cpu.isGameSuperGB(), false, 'should not be super GB');
@@ -26,10 +25,6 @@ describe('CPU', function() {
   });
 
   it('should read the nintendo graphic buffer', () => {
-
-    let loader = new Loader();
-    loader.load('./roms/tetris.gb');
-    let cpu = new CPU(loader);
 
     const buf = new Buffer(48);
     buf.writeUIntBE(0xCEED6666CC0D, 0, 6);
