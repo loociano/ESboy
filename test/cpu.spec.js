@@ -22,6 +22,7 @@ describe('CPU', function() {
     assert.equal(cpu.getCartridgeType(), 'ROM ONLY');
     assert.equal(cpu.getRomSize(), '32KB');
     assert.equal(cpu.getRAMSize(), 'None');
+    assert.equal(cpu.getDestinationCode(), 'Japanese');
 
   });
 

@@ -15,6 +15,7 @@ export default class CPU {
     this.ADDR_CARTRIDGE_TYPE = 0x147;
     this.ADDR_ROM_SIZE = 0x148;
     this.ADDR_RAM_SIZE = 0x149;
+    this.ADDR_DESTINATION_CODE = 0x14a;
 
     // Values
     this.IS_GB_COLOR = 0x80;
@@ -41,8 +42,11 @@ export default class CPU {
     this.RAM_8KB = 0x2;
     this.RAM_32KB = 0x3;
     this.RAM_128KB = 0x4;
-  }
 
+    // Destination codes
+    this.JAPANESE = 0x0;
+    this.NON_JAPANESE = 0x1;
+  }
 
   /** @return {string} game title */
   getGameTitle(){
@@ -105,5 +109,17 @@ export default class CPU {
       default:
         throw new Error('RAM size unknown');
     }
+  }
+
+  getDestinationCode() {
+
+    if (this.romByteAt(this.ADDR_DESTINATION_CODE) === this.JAPANESE){
+      return 'Japanese';
+    } else if (this.romByteAt(this.ADDR_DESTINATION_CODE) === this.NON_JAPANESE){
+      return 'Non-Japanese';
+    } else {
+      throw new Error('Destination code unknown');
+    }
+
   }
 }
