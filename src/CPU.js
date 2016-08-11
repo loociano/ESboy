@@ -150,12 +150,6 @@ export default class CPU {
       count += this.romByteAt(addr);
       addr++;
     }
-    count += 25;
-
-    const countStr = count.toString(2);
-    const lastIndex = countStr.length - 1;
-    const leastByte = countStr.substring(lastIndex - 8, lastIndex);
-
-    return parseInt(leastByte, 2) === 0; 
+    return (count + 25 & 0xff) === 0;
   }
 }
