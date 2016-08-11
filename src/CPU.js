@@ -124,16 +124,16 @@ export default class CPU {
    */
   getRomSize() {
     switch(this.romByteAt(this.ADDR_ROM_SIZE)){
-      case this._32KB = 0: return '32KB';
-      case this._64KB = 1: return '64KB';
-      case this._128KB = 2: return '128KB';
-      case this._256KB = 3: return '256KB';
-      case this._512KB = 4: return '512KB';
-      case this._1MB = 5: return '1MB';
-      case this._1_1MB = 0x52: return '1.1MB';
-      case this._1_2MB = 0x53: return '1.2MB';
-      case this._1_5MB = 0x54: return '1.5MB';
-      case this._2MB = 6: return '2MB';
+      case this._32KB: return '32KB';
+      case this._64KB: return '64KB';
+      case this._128KB: return '128KB';
+      case this._256KB: return '256KB';
+      case this._512KB: return '512KB';
+      case this._1MB: return '1MB';
+      case this._1_1MB: return '1.1MB';
+      case this._1_2MB: return '1.2MB';
+      case this._1_5MB: return '1.5MB';
+      case this._2MB: return '2MB';
       default:
         throw new Error('Rom size unknown');
     }
