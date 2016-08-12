@@ -315,11 +315,13 @@ export default class CPU {
 
     const command = this.getCommand(this.nextCommand());
 
-    let param;
     if(command === this.jp){
-      param = this.byteAt(++this.PC) + (this.byteAt(++this.PC) << 8);
+      const param = this.byteAt(++this.PC) + (this.byteAt(++this.PC) << 8);
+      command.call(this, param);
+      return;
     }
-    command(param);
+
+    command.call(this);
     this.PC++;
   }
 
@@ -329,6 +331,7 @@ export default class CPU {
    */
   jp(jump_to){
     console.info(`JP 0x${jump_to.toString(16)}`);
+    this.PC = jump_to;
   }
 
   /**
