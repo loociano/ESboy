@@ -289,14 +289,14 @@ export default class CPU {
    * @return {number} next opcode
    */
   nextCommand() {
-    return this.opcodeAt(this.PC);
+    return this.byteAt(this.PC);
   }
 
   /**
    * @param {number} addr
    * @return {number} opcode
    */
-  opcodeAt(addr) {
+  byteAt(addr) {
 
     if (addr > this.ADDR_MAX || addr < 0){
       throw new Error(`Cannot read memory address 0x${addr.toString(16)}`);
@@ -308,13 +308,16 @@ export default class CPU {
     return this.memory[addr];
   }
 
+  /**
+   * Executes the next command and increases the PC.
+   */
   execute() {
 
     const command = this.getCommand(this.nextCommand());
 
     let param;
     if(command === this.jp){
-      param = this.opcodeAt(++this.PC) + (this.opcodeAt(++this.PC) << 8);
+      param = this.byteAt(++this.PC) + (this.byteAt(++this.PC) << 8);
     }
     command(param);
     this.PC++;
