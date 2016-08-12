@@ -92,6 +92,11 @@ describe('CPU', function() {
     assert.equal(cpu.nextCommand(), 0xc3, 'c3 5001; JP 0x0150');
     cpu.execute();
     assert.equal(cpu.PC, 0x150);
+    assert.equal(cpu.nextCommand(), 0xc3, 'c3 8b02; JP 0x028b');
+    cpu.execute();
+    assert.equal(cpu.PC, 0x028b);
+    assert.equal(cpu.nextCommand(), 0xaf, 'af; XOR A');
+
   });
 
 });
