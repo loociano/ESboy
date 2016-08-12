@@ -54,7 +54,8 @@ export default class CPU {
     this.NON_JAPANESE = 0x1;
 
     this.commands = {
-      0x00: 'NOP'
+      0x00: this.nop,
+      0xc3: this.jp
     };
 
     this.PC = this.ADDR_GAME_START;
@@ -285,10 +286,10 @@ export default class CPU {
   }
 
   /**
-   * @return {string} next command
+   * @return {number} next opcode
    */
   nextCommand() {
-    return this.getCommand(this.romByteAt(this.PC));
+    return this.opcodeAt(this.PC);
   }
 
   /**
@@ -305,5 +306,32 @@ export default class CPU {
       return this.romByteAt(addr);
     }
     return this.memory[addr];
+  }
+
+  execute() {
+
+    const command = this.getCommand(this.nextCommand());
+
+    let param;
+    if(command === this.jp){
+      param = this.opcodeAt(++this.PC) + (this.opcodeAt(++this.PC) << 8);
+    }
+    command(param);
+    this.PC++;
+  }
+
+  /**
+   * Jumps to address
+   * @param {number} 16 bits
+   */
+  jp(jump_to){
+    console.info(`JP 0x${jump_to.toString(16)}`);
+  }
+
+  /**
+   * Does nothing
+   */
+  nop(){
+    console.info('NOP');
   }
 }
