@@ -38,8 +38,6 @@ describe('CPU', function() {
   it('should start with PC, SP and registers at right values', () => {
 
     assert.equal(cpu.PC, 0x100, 'Program Counter should start at 0x100');
-    assert.equal(cpu.nextCommand(), 'NOP', 'Tetris starts with NOP.');
-
     assert.equal(cpu.A, 0x01, 'Accumulator must start as 0x01 for GB');
     assert.equal(cpu.AF(), 0x01, 'Register AF must start as 0x0001');
     assert.equal(cpu.F, 0xb0, 'Flag register must start as 0xb0');
@@ -85,6 +83,14 @@ describe('CPU', function() {
     assert.equal(cpu.opcodeAt(0xff4a), 0x00);
     assert.equal(cpu.opcodeAt(0xff4b), 0x00);
     assert.equal(cpu.opcodeAt(0xffff), 0x00);
+  });
+
+  it('should execute instructions', () => {
+
+    assert.equal(cpu.nextCommand(), 0x00, 'Tetris starts with NOP (0x00)');
+    cpu.execute();
+    assert.equal(cpu.nextCommand(), 0xc3, 'c3 5001; JP 0x0150');
+    cpu.execute();
   });
 
 });
