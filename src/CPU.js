@@ -20,6 +20,8 @@ export default class CPU {
     this.ADDR_RAM_SIZE = 0x149;
     this.ADDR_DESTINATION_CODE = 0x14a;
     this.ADDR_COMPLEMENT_CHECK = 0x14d;
+    this.ADDR_ROM_MAX = 0x7fff;
+    this.ADDR_MAX = 0xffff;
 
     // Values
     this.IS_GB_COLOR = 0x80;
@@ -56,6 +58,85 @@ export default class CPU {
     };
 
     this.PC = this.ADDR_GAME_START;
+    this.SP = this.ADDR_MAX - 1;
+    this.A = 0x01;
+    this.B = 0x00;
+    this.C = 0x13;
+    this.D = 0x00;
+    this.E = 0xd8;
+    this.F = 0xb0;
+    this.H = 0x01;
+    this.L = 0x4d;
+
+    this.memory = new Buffer(this.ADDR_MAX + 1);
+    this._initMemory();
+  }
+
+  /**
+   * @private
+   */
+  _initMemory() {
+    this.memory.fill(0); // Buffers are created with random data
+
+    this.memory[0xff05] = 0x00;
+    this.memory[0xff06] = 0x00;
+    this.memory[0xff07] = 0x00;
+    this.memory[0xff10] = 0x80;
+    this.memory[0xff11] = 0xbf;
+    this.memory[0xff12] = 0xf3;
+    this.memory[0xff14] = 0xbf;
+    this.memory[0xff16] = 0x3f;
+    this.memory[0xff17] = 0x00;
+    this.memory[0xff19] = 0xbf;
+    this.memory[0xff1a] = 0x7f;
+    this.memory[0xff1b] = 0xff;
+    this.memory[0xff1c] = 0x9f;
+    this.memory[0xff1e] = 0xbf;
+    this.memory[0xff20] = 0xff;
+    this.memory[0xff21] = 0x00;
+    this.memory[0xff22] = 0x00;
+    this.memory[0xff23] = 0xbf;
+    this.memory[0xff24] = 0x77;
+    this.memory[0xff25] = 0xf3;
+    this.memory[0xff26] = 0xf1;
+    this.memory[0xff40] = 0x91;
+    this.memory[0xff42] = 0x00;
+    this.memory[0xff43] = 0x00;
+    this.memory[0xff45] = 0x00;
+    this.memory[0xff47] = 0xfc;
+    this.memory[0xff48] = 0xff;
+    this.memory[0xff49] = 0xff;
+    this.memory[0xff4a] = 0x00;
+    this.memory[0xff4b] = 0x00;
+    this.memory[0xffff] = 0x00;
+  }
+
+  /**
+   * @returns {number} Register AF
+   */
+  AF(){
+    return this.A;
+  }
+
+  /**
+   * @returns {number} Register BC
+   */
+  BC(){
+    return (this.B << 8) + this.C;
+  }
+
+  /**
+   * @returns {number} Register DE
+   */
+  DE(){
+    return (this.D << 8) + this.E;
+  }
+
+  /**
+   * @returns {number} Register HL
+   */
+  HL(){
+    return (this.H << 8) + this.L;
   }
 
   /**
@@ -201,5 +282,21 @@ export default class CPU {
    */
   nextCommand() {
     return this.getCommand(this.romByteAt(this.PC));
+  }
+
+  /**
+   * @param {number} addr
+   * @return {number} opcode
+   */
+  opcodeAt(addr) {
+
+    if (addr > this.ADDR_MAX || addr < 0){
+      throw new Error(`Cannot read memory address 0x${addr.toString(16)}`);
+    }
+
+    if (addr <= this.ADDR_ROM_MAX){
+      return this.romByteAt(addr);
+    }
+    return this.memory[addr];
   }
 }
