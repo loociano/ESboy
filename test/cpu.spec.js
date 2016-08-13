@@ -119,8 +119,16 @@ describe('CPU', function() {
 
   it('should XOR register A', () => {
     cpu.A = 0x11;
-    cpu.xor(cpu.A);
-    assert.equal(cpu.A, 0x00);
+    cpu.xor_a();
+    assert.equal(cpu.A, cpu.A ^ cpu.A);
+    assert.equal(cpu.F(), 0b1000, 'Z=1, N=0, H=0, C=0');
+  });
+
+  it('should XOR register A with n', () => {
+    cpu.A = 0x11;
+    const expected = cpu.A ^ 0x11;
+    cpu.xor_n(0x11);
+    assert.equal(cpu.A, expected);
     assert.equal(cpu.F(), 0b1000, 'Z=1, N=0, H=0, C=0');
   });
 
