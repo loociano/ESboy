@@ -1,3 +1,5 @@
+import Logger from './logger';
+
 export default class CPU {
 
   constructor(loader) {
@@ -148,7 +150,7 @@ export default class CPU {
     if (this.commands[opcode] != null){
       return this.commands[opcode];
     } else {
-      console.error(`Command not found for opcode ${opcode}`);
+      Logger.error(`Command not found for opcode ${opcode}`);
     }
   }
 
@@ -330,7 +332,7 @@ export default class CPU {
    * @param {number} 16 bits
    */
   jp(jump_to){
-    console.info(`JP 0x${jump_to.toString(16)}`);
+    Logger.info(`JP 0x${jump_to.toString(16)}`);
     this.PC = jump_to;
   }
 
@@ -338,6 +340,6 @@ export default class CPU {
    * Does nothing
    */
   nop(){
-    console.info('NOP');
+    Logger.info('NOP');
   }
 }

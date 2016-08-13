@@ -1,8 +1,12 @@
 import Loader from '../src/Loader';
 import assert from 'assert';
 import should from 'should';
+import config from '../src/config';
 
 describe('Loader', function() {
+
+  config.TEST = false;
+
   it('should read a file without error', () => {
 
     (function(){

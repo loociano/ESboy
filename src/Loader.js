@@ -1,4 +1,5 @@
 import fs from 'fs';
+import Logger from './logger';
 
 export default class Loader {
 
@@ -10,7 +11,7 @@ export default class Loader {
     try {
       this.rom = fs.readFileSync(filename);
     } catch (e){
-      console.error('File not found');
+      Logger.error('File not found');
     }
   }
 }

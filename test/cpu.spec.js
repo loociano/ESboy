@@ -1,10 +1,12 @@
 import Loader from '../src/Loader';
 import CPU from '../src/CPU';
 import assert from 'assert';
+import config from '../src/config';
 
 describe('CPU', function() {
 
   let loader = new Loader();
+  config.TEST = false;
   loader.load('./roms/tetris.gb');
   let cpu = new CPU(loader);
 
