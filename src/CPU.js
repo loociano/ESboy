@@ -379,6 +379,9 @@ export default class CPU {
     } else {
       this.setZ(0); // TODO: verify
     }
+    this.setN(0);
+    this.setH(0);
+    this.setC(0);
   }
 
   getZ(){
