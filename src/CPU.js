@@ -372,16 +372,20 @@ export default class CPU {
     Logger.info('NOP');
   }
 
+  /**
+   * XOR register A with n, result in A.
+   * @param {number} byte n
+   */
   xor(n){
     this.A ^= n;
+    this.resetFlags();
     if (this.A === 0){
       this.setZ(1);
-    } else {
-      this.setZ(0); // TODO: verify
     }
-    this.setN(0);
-    this.setH(0);
-    this.setC(0);
+  }
+
+  resetFlags(){
+    this.setZ(0); this.setN(0); this.setH(0); this.setC(0);
   }
 
   getZ(){
@@ -389,10 +393,13 @@ export default class CPU {
   }
 
   setZ(value){
-    if (value != 0 || value != 1) {
+    if (value === 1){
+      this._F |= 0x80;
+    } else if (value === 0) {
+      this._F &= 0x7f;
+    } else {
       Logger.error(`Cannot set flag Z with ${value}`);
     }
-    this._F &= ((value << 7) & 0xff);
   }
 
   getN(){
