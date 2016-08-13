@@ -157,6 +157,15 @@ export default class CPU {
   }
 
   /**
+   * Main loop method.
+   */
+  start(){
+    while(true){
+      this.execute();
+    }
+  }
+
+  /**
    * @param opcode
    * @returns {string} command given the opcode
    */
