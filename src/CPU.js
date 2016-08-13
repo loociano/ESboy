@@ -391,4 +391,46 @@ export default class CPU {
     }
     this._F &= ((value << 7) & 0xff);
   }
+
+  getN(){
+    return (this._F & 0x40) >> 6;
+  }
+
+  setN(value){
+    if (value === 1){
+      this._F |= 0x40;
+    } else if (value === 0) {
+      this._F &= 0xbf;
+    } else {
+      Logger.error(`Cannot set flag N with ${value}`);
+    }
+  }
+
+  getH() {
+    return (this._F & 0x20) >> 5;
+  }
+
+  setH(value) {
+    if (value === 1){
+      this._F |= 0x20;
+    } else if (value === 0) {
+      this._F &= 0xdf;
+    } else {
+      Logger.error(`Cannot set flag H with ${value}`);
+    }
+  }
+
+  getC() {
+    return (this._F & 0x10) >> 4;
+  }
+
+  setC(value) {
+    if (value === 1){
+      this._F |= 0x10;
+    } else if (value === 0){
+      this._F &= 0xef;
+    } else {
+      Logger.error(`Cannot set flag C with ${value}`);
+    }
+  }
 }

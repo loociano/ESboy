@@ -126,10 +126,26 @@ describe('CPU', function() {
   });
 
   it('should set Flag Z', () => {
-    cpu.setZ(1);
-    assert.equal(cpu.getZ(), 1);
-    cpu.setZ(0);
-    assert.equal(cpu.getZ(), 0);
+    testSetGetFlag(cpu, cpu.setZ, cpu.getZ);
+  });
+
+  it('should set Flag N', () => {
+    testSetGetFlag(cpu, cpu.setN, cpu.getN);
+  });
+
+  it('should set Flag H', () => {
+    testSetGetFlag(cpu, cpu.setH, cpu.getH);
+  });
+
+  it('should set Flag C', () => {
+    testSetGetFlag(cpu, cpu.setC, cpu.getC);
   });
 
 });
+
+function testSetGetFlag(cpu, setFn, getFn){
+  setFn.call(cpu, 1);
+  assert.equal(getFn.call(cpu), 1, 'Flag=1');
+  setFn.call(cpu, 0);
+  assert.equal(getFn.call(cpu), 0, 'Flag=0');
+}
