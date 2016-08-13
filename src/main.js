@@ -1,3 +1,5 @@
-import CPU from './CPU';
+const canvas = document.getElementById('screen');
+const ctx = canvas.getContext('2d');
 
-new CPU('./roms/tetris.gb').start();
+ctx.fillStyle = 'black';
+ctx.fillRect(10, 10, 100, 100);

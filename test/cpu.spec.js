@@ -4,7 +4,7 @@ import config from '../src/config';
 
 describe('CPU', function() {
 
-  config.TEST = false;
+  config.TEST = true;
   let cpu;
 
   beforeEach(function() {

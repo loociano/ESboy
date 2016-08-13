@@ -1,4 +1,5 @@
 import {app, BrowserWindow, Menu, remote} from 'electron';
+import CPU from './CPU';
 
 let win;
 
@@ -6,8 +7,8 @@ function createWindow() {
   win = new BrowserWindow({
     width: 256,
     height: 256,
-    resizable: false,
-    maximizable: false
+    resizable: true,
+    maximizable: true
   });
 
   win.loadURL(`file://${__dirname}/../src/index.html`);
@@ -31,6 +32,8 @@ function createWindow() {
   win.on('closed', () => {
     win = null;
   });
+
+  new CPU('./roms/tetris.gb').start();
 }
 
 app.on('ready', createWindow);

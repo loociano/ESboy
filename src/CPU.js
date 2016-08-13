@@ -166,8 +166,12 @@ export default class CPU {
    * Main loop method.
    */
   start(){
-    while(true){
-      this.execute();
+    try {
+      while(true){
+        this.execute();
+      }
+    } catch(e){
+      Logger.error(e);
     }
   }
 
