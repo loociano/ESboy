@@ -101,4 +101,9 @@ describe('CPU', function() {
 
   });
 
+  it('should jump to address', () => {
+    cpu.jp(0x123);
+    assert.equal(cpu.PC, 0x123);
+  });
+
 });
