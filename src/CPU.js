@@ -342,4 +342,8 @@ export default class CPU {
   nop(){
     Logger.info('NOP');
   }
+
+  xor(n){
+    this.A ^= n;
+  }
 }
