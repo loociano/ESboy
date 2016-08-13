@@ -58,12 +58,6 @@ export default class CPU {
     this.JAPANESE = 0x0;
     this.NON_JAPANESE = 0x1;
 
-    this.commands = {
-      0x00: {fn: this.nop},
-      0xc3: {fn: this.jp},
-      0xaf: {fn: this.xor, args: [this.A]}
-    };
-
     this.PC = this.ADDR_GAME_START;
     this.SP = this.ADDR_MAX - 1;
     this.A = 0x01;
@@ -74,6 +68,12 @@ export default class CPU {
     this._F = 0xb0;
     this.H = 0x01;
     this.L = 0x4d;
+
+    this.commands = {
+      0x00: {fn: this.nop},
+      0xc3: {fn: this.jp},
+      0xaf: {fn: this.xor, args: [this.A]}
+    };
 
     this.memory = new Buffer(this.ADDR_MAX + 1);
     this._initMemory();
