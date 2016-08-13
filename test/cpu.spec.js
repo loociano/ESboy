@@ -5,10 +5,14 @@ import config from '../src/config';
 
 describe('CPU', function() {
 
-  let loader = new Loader();
   config.TEST = false;
+  const loader = new Loader();
   loader.load('./roms/tetris.gb');
-  let cpu = new CPU(loader);
+  let cpu;
+
+  beforeEach(function() {
+    cpu = new CPU(loader);
+  });
 
   it('should fail without loader', () => {
     (function(){
