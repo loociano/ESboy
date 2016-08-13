@@ -2,14 +2,14 @@
   "name": "gb-ES6",
   "version": "0.0.1",
   "description": "Game Boy emulator in EcmaScript 6",
-  "main": "index.js",
+  "main": "src/gui.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
     "build": "babel src -d lib",
     "test": "node ./node_modules/mocha/bin/_mocha --compilers js:babel-register",
-    "start": "npm run build && node ./lib/main.js"
+    "start": "npm run build && electron ./lib/gui.js"
   },
   "keywords": [],
   "author": "Luc Rubio <luc@loociano.com>",
@@ -21,5 +21,8 @@
     "chai": "^3.5.0",
     "mocha": "^3.0.2",
     "should": "^10.0.0"
+  },
+  "dependencies": {
+    "electron": "^1.3.3"
   }
 }
