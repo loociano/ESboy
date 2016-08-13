@@ -58,8 +58,9 @@ export default class CPU {
     this.NON_JAPANESE = 0x1;
 
     this.commands = {
-      0x00: this.nop,
-      0xc3: this.jp
+      0x00: {fn: this.nop},
+      0xc3: {fn: this.jp},
+      0xaf: {fn: this.xor, args: [this.A]}
     };
 
     this.PC = this.ADDR_GAME_START;
@@ -340,13 +341,13 @@ export default class CPU {
 
     const command = this.getCommand(this.nextCommand());
 
-    if(command === this.jp){
+    if(command.fn === this.jp){
       const param = this.byteAt(++this.PC) + (this.byteAt(++this.PC) << 8);
-      command.call(this, param);
+      command.fn.call(this, param);
       return;
     }
 
-    command.call(this);
+    command.fn.call(this, command.args);
     this.PC++;
   }
 
