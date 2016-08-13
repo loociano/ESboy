@@ -351,7 +351,7 @@ export default class CPU {
     const command = this.getCommand(this.nextCommand());
 
     if(command.fn === this.jp){
-      const param = this.byteAt(++this.PC) + (this.byteAt(++this.PC) << 8);
+      const param = this.byteAt(this.PC + 1) + (this.byteAt(this.PC + 2) << 8);
       command.fn.call(this, param);
       return;
     }
@@ -365,7 +365,7 @@ export default class CPU {
    * @param {number} 16 bits
    */
   jp(jump_to){
-    Logger.info(`JP ${Utils.hexStr(jump_to)}`);
+    Logger.instr(this.PC, `JP ${Utils.hexStr(jump_to)}`);
     this.PC = jump_to;
   }
 
@@ -373,7 +373,7 @@ export default class CPU {
    * Does nothing
    */
   nop(){
-    Logger.info('NOP');
+    Logger.instr(this.PC, 'NOP');
   }
 
   /**
@@ -381,6 +381,7 @@ export default class CPU {
    * @param {number} byte n
    */
   xor(n){
+    Logger.instr(this.PC, `XOR ${n}`);
     this.A ^= n;
     this.resetFlags();
     if (this.A === 0){
