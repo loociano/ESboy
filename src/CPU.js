@@ -1,13 +1,15 @@
+import fs from 'fs';
 import Logger from './logger';
 
 export default class CPU {
 
-  constructor(loader) {
-    if (loader == null) {
-      throw new Error('Missing loader');
+  constructor(filename) {
+    if (filename == null) {
+      throw new Error('Missing ROM filename');
     }
-    this.loader = loader;
-    this.rom = this.loader.rom;
+    this.rom = this._load(filename);
+
+    if (!this.rom) return;
 
     // Addresses
     this.ADDR_GAME_START = 0x100;
@@ -73,6 +75,18 @@ export default class CPU {
 
     this.memory = new Buffer(this.ADDR_MAX + 1);
     this._initMemory();
+  }
+
+  /**
+   * @param filename
+   * @private
+   */
+  _load(filename){
+    try {
+      return fs.readFileSync(filename);
+    } catch (e){
+      throw new Error('ROM was not found.');
+    }
   }
 
   /**
@@ -156,7 +170,7 @@ export default class CPU {
 
   /** @return {string} game title */
   getGameTitle(){
-    var title = this.loader.rom.slice(this.ADDR_TITLE_START, this.ADDR_TITLE_END);
+    var title = this.rom.slice(this.ADDR_TITLE_START, this.ADDR_TITLE_END);
     var length = 0;
     while(title[length] != 0){
       length++;

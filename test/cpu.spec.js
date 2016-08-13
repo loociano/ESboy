@@ -1,4 +1,3 @@
-import Loader from '../src/Loader';
 import CPU from '../src/CPU';
 import assert from 'assert';
 import config from '../src/config';
@@ -6,18 +5,26 @@ import config from '../src/config';
 describe('CPU', function() {
 
   config.TEST = false;
-  const loader = new Loader();
-  loader.load('./roms/tetris.gb');
   let cpu;
 
   beforeEach(function() {
-    cpu = new CPU(loader);
+    cpu = new CPU('./roms/tetris.gb');
   });
 
-  it('should fail without loader', () => {
-    (function(){
+  it('should handle missing ROM filename', () => {
+
+    assert.throws(() => {
       let cpu = new CPU();
-    }).should.throw();
+    }, Error);
+
+  });
+
+  it('should handle missing ROM file', () => {
+
+    assert.throws(() => {
+      let cpu = new CPU('./roms/nope.gb');
+    }, Error);
+
   });
 
   it('should read the game header', () => {
