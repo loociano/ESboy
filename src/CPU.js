@@ -70,9 +70,17 @@ export default class CPU {
     this.L = 0x4d;
 
     this.commands = {
-      0x00: {fn: this.nop},
-      0xc3: {fn: this.jp},
-      0xaf: {fn: this.xor, args: [this.A]}
+      0x00: this.nop,
+      0xc3: this.jp,
+      0xaf: this.xor_a,
+      0xa8: this.xor_b,
+      0xa9: this.xor_c,
+      0xaa: this.xor_d,
+      0xab: this.xor_e,
+      0xac: this.xor_h,
+      0xad: this.xor_l,
+      0xae: this.xor_hl,
+      0xee: this.xor_n
     };
 
     this.memory = new Buffer(this.ADDR_MAX + 1);
@@ -350,13 +358,18 @@ export default class CPU {
 
     const command = this.getCommand(this.nextCommand());
 
-    if(command.fn === this.jp){
+    if(command === this.jp){
       const param = this.byteAt(this.PC + 1) + (this.byteAt(this.PC + 2) << 8);
-      command.fn.call(this, param);
+      command.call(this, param);
       return;
     }
 
-    command.fn.call(this, command.args);
+    let param;
+    if(command === this.xor_n){
+      param = this.byteAt(++this.PC);
+    }
+
+    command.call(this, param);
     this.PC++;
   }
 
@@ -376,11 +389,21 @@ export default class CPU {
     Logger.instr(this.PC, 'NOP');
   }
 
+  xor_a(){ this._xor(this.A); }
+  xor_b(){ this._xor(this.B); }
+  xor_c(){ this._xor(this.C); }
+  xor_d(){ this._xor(this.D); }
+  xor_e(){ this._xor(this.E); }
+  xor_h(){ this._xor(this.H); }
+  xor_l(){ this._xor(this.L); }
+  xor_hl(){ this._xor(this.HL); }
+  xor_n(n){ this._xor(n); }
+
   /**
-   * XOR register A with n, result in A.
-   * @param {number} byte n
+   * @param n
+   * @private
    */
-  xor(n){
+  _xor(n){
     Logger.instr(this.PC, `XOR ${n}`);
     this.A ^= n;
     this.resetFlags();
