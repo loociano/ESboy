@@ -53,7 +53,7 @@ describe('CPU', function() {
     assert.equal(cpu.PC, 0x100, 'Program Counter should start at 0x100');
     assert.equal(cpu.A, 0x01, 'Accumulator must start as 0x01 for GB');
     assert.equal(cpu.AF(), 0x01, 'Register AF must start as 0x0001');
-    assert.equal(cpu.F, 0xb0, 'Flag register must start as 0xb0');
+    assert.equal(cpu.F(), 0b1011, 'Flag register must start as 0b1011');
     assert.equal(cpu.BC(), 0x0013, 'Register BC must start as 0x0013');
     assert.equal(cpu.DE(), 0x00d8, 'Register DE must start as 0x00d8');
     assert.equal(cpu.HL(), 0x014d, 'Register HL must start as 0x014d');
@@ -118,9 +118,19 @@ describe('CPU', function() {
   });
 
   it('should XOR register A', () => {
+
+    cpu.A = 0x11;
     const expected = cpu.A ^ cpu.A;
     cpu.xor(cpu.A);
     assert.equal(cpu.A, expected);
+    assert.equal(cpu.F(), 0b0000, 'Z=0, N=0, H=0, C=0');
+  });
+
+  it('should set Flag Z', () => {
+    cpu.setZ(1);
+    assert.equal(cpu.getZ(), 1);
+    cpu.setZ(0);
+    assert.equal(cpu.getZ(), 0);
   });
 
 });

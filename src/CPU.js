@@ -71,7 +71,7 @@ export default class CPU {
     this.C = 0x13;
     this.D = 0x00;
     this.E = 0xd8;
-    this.F = 0xb0;
+    this._F = 0xb0;
     this.H = 0x01;
     this.L = 0x4d;
 
@@ -156,6 +156,10 @@ export default class CPU {
    */
   HL(){
     return (this.H << 8) + this.L;
+  }
+
+  F(){
+    return (this._F & 0xF0) >> 4;
   }
 
   /**
@@ -370,5 +374,13 @@ export default class CPU {
 
   xor(n){
     this.A ^= n;
+  }
+
+  getZ(){
+    return this._F >> 7;
+  }
+
+  setZ(value){
+    this._F &= ((value << 7) & 0xff);
   }
 }
