@@ -173,7 +173,7 @@ export default class CPU {
     if (this.commands[opcode] != null){
       return this.commands[opcode];
     } else {
-      Logger.error(`Command not found for opcode ${opcode}`);
+      throw new Error(`[0x${this.PC.toString(16)}] 0x${opcode.toString(16)} opcode not implemented.`);
     }
   }
 
