@@ -8,7 +8,8 @@
   },
   "scripts": {
     "build": "babel src -d lib",
-    "test": "node ./node_modules/mocha/bin/_mocha --compilers js:babel-register"
+    "test": "node ./node_modules/mocha/bin/_mocha --compilers js:babel-register",
+    "start": "npm run build && node ./lib/main.js"
   },
   "keywords": [],
   "author": "Luc Rubio <luc@loociano.com>",
