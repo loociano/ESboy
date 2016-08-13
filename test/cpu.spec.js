@@ -110,4 +110,10 @@ describe('CPU', function() {
     assert.equal(cpu.PC, 0x123);
   });
 
+  it('should XOR register A', () => {
+    const expected = cpu.A ^ cpu.A;
+    cpu.xor(cpu.A);
+    assert.equal(cpu.A, expected);
+  });
+
 });
