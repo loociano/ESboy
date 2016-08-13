@@ -1,4 +1,5 @@
 import fs from 'fs';
+import Utils from './Utils';
 import Logger from './logger';
 
 export default class CPU {
@@ -174,7 +175,7 @@ export default class CPU {
     if (this.commands[opcode] != null){
       return this.commands[opcode];
     } else {
-      throw new Error(`[0x${this.PC.toString(16)}] 0x${opcode.toString(16)} opcode not implemented.`);
+      throw new Error(`[${Utils.hexStr(this.PC)}] ${Utils.hexStr(opcode)} opcode not implemented.`);
     }
   }
 
@@ -197,7 +198,7 @@ export default class CPU {
       @return {number} byte value */
   romByteAt(address) {
     if (address > this.ADDR_ROM_MAX || address < 0){
-      throw new Error(`Cannot read ROM address 0x${address.toString(16)}`);
+      throw new Error(`Cannot read ROM address ${Utils.hexStr(address)}`);
     }
     return this.rom[address];
   }
@@ -210,7 +211,7 @@ export default class CPU {
   romBufferAt(addr_start, addr_end){
     if (addr_start > this.ADDR_ROM_MAX || addr_start < 0 ||
       addr_end < addr_start || addr_end > this.ADDR_ROM_MAX){
-      throw new Error(`Cannot read ROM Buffer 0x${addr_start.toString(16)} to 0x${addr_end.toString(16)}`);
+      throw new Error(`Cannot read ROM Buffer ${Utils.hexStr(addr_start)} to ${Utils.hexStr(addr_end)}`);
     }
     return this.rom.slice(addr_start, addr_end);
   }
@@ -325,7 +326,7 @@ export default class CPU {
   byteAt(addr) {
 
     if (addr > this.ADDR_MAX || addr < 0){
-      throw new Error(`Cannot read memory address 0x${addr.toString(16)}`);
+      throw new Error(`Cannot read memory address ${Utils.hexStr(addr)}`);
     }
 
     if (addr <= this.ADDR_ROM_MAX){
@@ -356,7 +357,7 @@ export default class CPU {
    * @param {number} 16 bits
    */
   jp(jump_to){
-    Logger.info(`JP 0x${jump_to.toString(16)}`);
+    Logger.info(`JP ${Utils.hexStr(jump_to)}`);
     this.PC = jump_to;
   }
 
