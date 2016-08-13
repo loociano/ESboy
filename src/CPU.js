@@ -374,6 +374,11 @@ export default class CPU {
 
   xor(n){
     this.A ^= n;
+    if (this.A === 0){
+      this.setZ(1);
+    } else {
+      this.setZ(0); // TODO: verify
+    }
   }
 
   getZ(){
@@ -381,6 +386,9 @@ export default class CPU {
   }
 
   setZ(value){
+    if (value != 0 || value != 1) {
+      Logger.error(`Cannot set flag Z with ${value}`);
+    }
     this._F &= ((value << 7) & 0xff);
   }
 }
