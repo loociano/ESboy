@@ -259,6 +259,41 @@ export default class CPU {
   }
 
   /**
+   * Executes the next command and increases the pc.
+   */
+  execute() {
+
+    const command = this.getCommand(this.nextCommand());
+    const param = this._getInstrParams(command.param);
+
+    Logger.state(this, command.fn, command.param, param);
+
+    if(command.fn === this.jp || command.fn === this.jr_nz_n){
+      command.fn.call(this, param);
+      return;
+    }
+
+    command.fn.call(this, param);
+    this._r.pc++;
+  }
+
+  /**
+   * @param numBytes
+   * @returns {*}
+   * @private
+   */
+  _getInstrParams(numBytes){
+    let param;
+    if(numBytes > 0){
+      param = this.byteAt(++this._r.pc);
+      if (numBytes > 1){
+        param += this.byteAt(++this._r.pc) << 8;
+      }
+    }
+    return param;
+  }
+
+  /**
    * @param opcode
    * @returns {string} command given the opcode
    */
@@ -439,41 +474,6 @@ export default class CPU {
       throw new Error(`Cannot write ${n} in memory, it has more than 8 bits`);
     }
     this.memory[addr] = n;
-  }
-
-  /**
-   * Executes the next command and increases the pc.
-   */
-  execute() {
-
-    const command = this.getCommand(this.nextCommand());
-    const param = this._getInstrParams(command.param);
-
-    Logger.state(this, command.fn, command.param, param);
-
-    if(command.fn === this.jp || command.fn === this.jr_nz_n){
-      command.fn.call(this, param);
-      return;
-    }
-
-    command.fn.call(this, param);
-    this._r.pc++;
-  }
-
-  /**
-   * @param numBytes
-   * @returns {*}
-   * @private
-   */
-  _getInstrParams(numBytes){
-    let param;
-    if(numBytes > 0){
-      param = this.byteAt(++this._r.pc);
-      if (numBytes > 1){
-        param += this.byteAt(++this._r.pc) << 8;
-      }
-    }
-    return param;
   }
 
   /**
