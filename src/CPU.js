@@ -399,12 +399,12 @@ export default class CPU {
   execute() {
 
     const command = this.getCommand(this.nextCommand());
-    const bytes = command.param;
+    const numBytes = command.param;
 
     let param;
-    if(bytes > 0){
+    if(numBytes > 0){
       param = this.byteAt(++this._r.pc);
-      if (bytes > 1){
+      if (numBytes > 1){
         param += this.byteAt(++this._r.pc) << 8;
       }
     }
@@ -422,9 +422,9 @@ export default class CPU {
    * Jumps to address
    * @param {number} 16 bits
    */
-  jp(jump_to){
-    Logger.instr(this._r.pc, `JP ${Utils.hexStr(jump_to)}`);
-    this._r.pc = jump_to;
+  jp(nn){
+    Logger.instr(this._r.pc - 2, `jp ${Utils.hexStr(nn)}`);
+    this._r.pc = nn;
   }
 
   /**
