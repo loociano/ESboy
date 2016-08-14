@@ -104,7 +104,12 @@ export default class CPU {
       0x1a: {fn: this.ld_a_de, param: 0},
       0x7e: {fn: this.ld_a_hl, param: 0},
       0xfa: {fn: this.ld_a_nn, param: 2},
-      0x3e: {fn: this.ld_a_n, param: 1}
+      0x3e: {fn: this.ld_a_n, param: 1},
+      0x0b: {fn: this.dec_bc, param: 0},
+      0x1b: {fn: this.dec_de, param: 0},
+      0x2b: {fn: this.dec_hl, param: 0},
+      0x3b: {fn: this.dec_sp, param: 0},
+      0x3a: {fn: this.ldd_hl_a, param: 0}
     };
 
     this.memory = new Buffer(this.ADDR_MAX + 1);
@@ -776,5 +781,58 @@ export default class CPU {
   ld_a_n(n){
     Logger.instr(this._r.pc, `ld a,${Utils.hexStr(n)}`);
     this._r.a = n;
+  }
+
+  /**
+   * Loads a with value at address hl. Decrements hl.
+   */
+  ldd_hl_a(){
+    Logger.instr(this._r.pc, 'ldd a,[hl]');
+    this._r.a = this.byteAt(this.hl());
+    this.dec_hl();
+  }
+
+  /**
+   * Decrements bc by 1.
+   */
+  dec_bc(){
+    Logger.instr(this._r.pc, 'dec bc');
+    this._dec_rr('b', 'c');
+  }
+
+  /**
+   * Decrements de by 1.
+   */
+  dec_de(){
+    Logger.instr(this._r.pc, 'dec de');
+    this._dec_rr('d', 'e');
+  }
+
+  /**
+   * Decrements hl by 1.
+   */
+  dec_hl(){
+    Logger.instr(this._r.pc, 'dec hl');
+    this._dec_rr('h', 'l');
+  }
+
+  /**
+   * Decrements sp by 1.
+   */
+  dec_sp(){
+    Logger.instr(this._r.pc, 'dec sp');
+    this._r.sp--;
+  }
+
+  /**
+   * Decrements the 16bits register r1r2 by 1.
+   * @param r1
+   * @param r2
+   * @private
+   */
+  _dec_rr(r1, r2){
+    const value = this[r1+r2]() - 1;
+    this._r[r1] = (value & 0xff00) >> 8;
+    this._r[r2] = value & 0x00ff;
   }
 }
