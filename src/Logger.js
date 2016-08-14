@@ -3,6 +3,12 @@ import Utils from './Utils';
 
 export default class Logger {
 
+  static state(cpu, fn, paramLength, param){
+    if (!config.TEST) {
+      console.info(`[${Utils.hex4(cpu.pc() - paramLength)}] ${fn.name} ${Utils.hexStr(param)} af:${Utils.hex4(cpu.af())} bc:${Utils.hex4(cpu.bc())} de:${Utils.hex4(cpu.de())} hl:${Utils.hex4(cpu.hl())} sp:${Utils.hex4(cpu.sp())} pc:sp:${Utils.hex4(cpu.pc())}`);
+    }
+  }
+
   /**
    * Logs executing instruction
    * @param PC
