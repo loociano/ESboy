@@ -817,6 +817,60 @@ export default class CPU {
   }
 
   /**
+   * Decrements a by 1.
+   */
+  dec_a(){
+    this._dec_r('a');
+  }
+
+  dec_b(){
+    this._dec_r('b');
+  }
+
+  dec_c(){
+    this._dec_r('c');
+  }
+
+  dec_d(){
+    this._dec_r('d');
+  }
+
+  dec_e(){
+    this._dec_r('e');
+  }
+
+  dec_h(){
+    this._dec_r('h');
+  }
+
+  dec_l(){
+    this._dec_r('l');
+  }
+
+  /**
+   * Decrements register r by 1.
+   * @param {string} register
+   * @private
+   */
+  _dec_r(r){
+    Logger.instr(this._r.pc, `dec ${r}`);
+    this._r[r]--;
+    if (this._r[r] === 0){
+      this.setZ(1);
+    } else {
+      this.setZ(0);
+    }
+    this.setN(1);
+    // TODO H?
+  }
+
+  dec_0x_hl(){
+    Logger.instr(this._r.pc, `dec (hl)`);
+    let value = this.byteAt(this.hl());
+    this.writeByteAt(this.hl(), --value);
+  }
+
+  /**
    * Decrements bc by 1.
    */
   dec_bc(){
