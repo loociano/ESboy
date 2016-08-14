@@ -837,14 +837,22 @@ export default class CPU {
    * @private
    */
   _dec_r(r){
+
+    this.setN(1); // substracting
+
+    if ((this._r[r] & 0x0f) === 0){
+      this.setH(1); // half carry
+    } else {
+      this.setH(0);
+    }
+
     this._r[r]--;
+
     if (this._r[r] === 0){
-      this.setZ(1);
+      this.setZ(1); // result is zero
     } else {
       this.setZ(0);
     }
-    this.setN(1);
-    // TODO H?
   }
 
   dec_0x_hl(){

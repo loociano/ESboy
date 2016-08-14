@@ -257,6 +257,24 @@ describe('CPU', function() {
     assertDecrementRegister(cpu, cpu.l, cpu.dec_l);
   });
 
+  it('should set flags on decrement', () => {
+    cpu.ld_b_n(0xff);
+    cpu.dec_b();
+    assert.equal(cpu.b(), 0xfe);
+    assert.equal(cpu.getZ(), 0, 'Not result zero');
+    assert.equal(cpu.getN(), 1, 'Substracting');
+    assert.equal(cpu.getH(), 0, 'Not half carry');
+  });
+
+  it('should set half carry on decrement', () => {
+    cpu.ld_b_n(0xf0);
+    cpu.dec_b();
+    assert.equal(cpu.b(), 0xef);
+    assert.equal(cpu.getZ(), 0, 'Not result zero');
+    assert.equal(cpu.getN(), 1, 'Substracting');
+    assert.equal(cpu.getH(), 1, 'Half carry');
+  });
+
   it('should decrement a value at a memory location', () => {
     const value = 0xab;
     cpu.writeByteAt(0xdfff, value);
