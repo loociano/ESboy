@@ -476,8 +476,8 @@ export default class CPU {
   }
 
   xor_hl(){
-    Logger.instr(this._r.pc, `xor hl`);
-    this._xor(this._r.hl);
+    Logger.instr(this._r.pc, `xor (hl)`);
+    this._xor(this.byteAt(this.hl()));
   }
 
   xor_n(n){
