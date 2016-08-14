@@ -213,14 +213,34 @@ describe('CPU', function() {
     assert.equal(cpu.a(), 0xab, 'load value 0xab into a');
   });
 
-  /*it('should put a into memory address hl and decrement hl', () => {
-
-    cpu.ld_
+  it('should put a into memory address hl and decrement hl', () => {
+    const hl = cpu.hl();
+    const value = cpu.byteAt(hl);
     cpu.ldd_hl_a();
+    assert.equal(cpu.a(), value, `register a has memory value ${value}`);
+    assert.equal(cpu.hl(), hl - 1, 'hl is decremented 1');
+  });
 
-  });*/
+  it('should decrement registers', () => {
+    assertDecrementRegister(cpu, cpu.bc, cpu.dec_bc);
+    assertDecrementRegister(cpu, cpu.de, cpu.dec_de);
+    assertDecrementRegister(cpu, cpu.hl, cpu.dec_hl);
+    assertDecrementRegister(cpu, cpu.sp, cpu.dec_sp);
+  });
 
 });
+
+/**
+ * Asserts that a register is decremented.
+ * @param scope
+ * @param registerFn
+ * @param decFn
+ */
+function assertDecrementRegister(scope, registerFn, decFn){
+  const value = registerFn.call(scope);
+  decFn.call(scope);
+  assert.equal(registerFn.call(scope), value - 1, `decrement ${registerFn}`);
+}
 
 /**
  * Asserts that value is loaded in a.
