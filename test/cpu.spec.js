@@ -192,7 +192,47 @@ describe('CPU', function() {
     assert.equal(cpu.l(), 0xab, 'load 0xab into l');
   });
 
+  it('should load values into register a', () => {
+
+    assertLoadA(cpu, cpu.a, cpu.ld_a_a);
+    assertLoadA(cpu, cpu.b, cpu.ld_a_b);
+    assertLoadA(cpu, cpu.c, cpu.ld_a_c);
+    assertLoadA(cpu, cpu.d, cpu.ld_a_d);
+    assertLoadA(cpu, cpu.e, cpu.ld_a_e);
+    assertLoadA(cpu, cpu.h, cpu.ld_a_h);
+    assertLoadA(cpu, cpu.l, cpu.ld_a_l);
+    assertLoadA(cpu, cpu.bc, cpu.ld_a_bc);
+    assertLoadA(cpu, cpu.de, cpu.ld_a_de);
+    assertLoadA(cpu, cpu.hl, cpu.ld_a_hl);
+
+    const value = cpu.byteAt(0xabcd);
+    cpu.ld_a_nn(0xabcd);
+    assert.equal(cpu.a(), value, 'load value at memory 0xabcd into a');
+
+    cpu.ld_a_n(0xab);
+    assert.equal(cpu.a(), 0xab, 'load value 0xab into a');
+  });
+
+  /*it('should put a into memory address hl and decrement hl', () => {
+
+    cpu.ld_
+    cpu.ldd_hl_a();
+
+  });*/
+
 });
+
+/**
+ * Asserts that value is loaded in a.
+ * @param scope
+ * @param registerFn
+ * @param loadFn
+ */
+function assertLoadA(scope, registerFn, loadFn){
+  const value = registerFn.call(scope);
+  loadFn.call(scope);
+  assert.equal(registerFn.call(scope), value, `load ${registerFn} into a`);
+}
 
 function testSetGetFlag(cpu, setFn, getFn){
   setFn.call(cpu, 1);
