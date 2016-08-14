@@ -119,6 +119,7 @@ export default class CPU {
       0x25: {fn: this.dec_h, param: 0},
       0x2d: {fn: this.dec_l, param: 0},
       0x35: {fn: this.dec_0x_hl, param: 0},
+      0x20: {fn: this.jr_nz_n, param: 1}
     };
 
     this.memory = new Buffer(this.ADDR_MAX + 1);
@@ -909,10 +910,10 @@ export default class CPU {
    * @param {signed int} n
    */
   jr_nz_n(n){
+    this._r.pc++;
+
     if (this.getZ() === 0){
       this._r.pc += Utils.uint8ToInt8(n);
-    } else {
-      this._r.pc++;
     }
   }
 }

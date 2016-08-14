@@ -305,7 +305,7 @@ describe('CPU', function() {
     assert.equal(cpu.getZ(), 0, 'Z is reset');
     const pc = cpu.pc();
     cpu.jr_nz_n(0x05);
-    assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0x05), 'jump forward');
+    assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0x05) + 1, 'jump forward');
   });
 
   it('shold jump conditionally backwards', () => {
@@ -314,7 +314,7 @@ describe('CPU', function() {
     assert.equal(cpu.getZ(), 0, 'Z is reset');
     const pc = cpu.pc();
     cpu.jr_nz_n(0xfc);
-    assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0xfc), 'jump backward');
+    assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0xfc) + 1, 'jump backward');
   });
 
   it('shold jump not jump is last operation was zero', () => {
