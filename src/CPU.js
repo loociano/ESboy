@@ -435,38 +435,47 @@ export default class CPU {
   }
 
   xor_a(){
+    Logger.instr(this._r.pc, `xor a`);
     this._xor(this._r.a);
   }
 
   xor_b(){
+    Logger.instr(this._r.pc, `xor b`);
     this._xor(this._r.b);
   }
 
   xor_c(){
+    Logger.instr(this._r.pc, `xor c`);
     this._xor(this._r.c);
   }
 
   xor_d(){
+    Logger.instr(this._r.pc, `xor d`);
     this._xor(this._r.d);
   }
 
   xor_e(){
+    Logger.instr(this._r.pc, `xor e`);
     this._xor(this._r.e);
   }
 
   xor_h(){
+    Logger.instr(this._r.pc, `xor h`);
     this._xor(this._r.h);
   }
 
   xor_l(){
+    Logger.instr(this._r.pc, `xor l`);
     this._xor(this._r.l);
   }
 
   xor_hl(){
+    Logger.instr(this._r.pc, `xor hl`);
     this._xor(this._r.hl);
   }
 
   xor_n(n){
+    Logger.instr(this._r.pc, `xor ${Utils.hexStr(n)}`);
     this._xor(n);
   }
 
@@ -475,7 +484,6 @@ export default class CPU {
    * @private
    */
   _xor(n){
-    Logger.instr(this._r.pc, `xor ${n}`);
     this._r.a ^= n;
     this.resetFlags();
     if (this._r.a === 0){
@@ -548,6 +556,7 @@ export default class CPU {
    * @param {number} 16 bits
    */
   ld_bc_nn(nn) {
+    Logger.instr(this._r.pc - 2, `ld bc,${Utils.hexStr(nn)}`);
     this._ld_rr_nn('b', 'c', nn);
   }
 
@@ -556,6 +565,7 @@ export default class CPU {
    * @param {number} 16 bits
    */
   ld_de_nn(nn) {
+    Logger.instr(this._r.pc - 2, `ld de,${Utils.hexStr(nn)}`);
     this._ld_rr_nn('d', 'e', nn);
   }
 
@@ -564,6 +574,7 @@ export default class CPU {
    * @param {number} 16 bits
    */
   ld_hl_nn(nn) {
+    Logger.instr(this._r.pc - 2, `ld hl,${Utils.hexStr(nn)}`);
     this._ld_rr_nn('h', 'l', nn);
   }
 
@@ -572,6 +583,7 @@ export default class CPU {
    * @param {number} 16 bits
    */
   ld_sp_nn(nn) {
+    Logger.instr(this._r.pc - 2, `ld sp,${Utils.hexStr(nn)}`);
     this._r.sp = nn;
   }
 
