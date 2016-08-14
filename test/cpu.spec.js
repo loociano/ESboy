@@ -50,6 +50,23 @@ describe('CPU', function() {
     assert(cpu.isChecksumCorrect());
   });
 
+  it('should write bytes in memory', () => {
+    cpu.writeByteAt(0xc000, 0xab);
+    assert.equal(cpu.byteAt(0xc000), 0xab, 'write 0xab in memory address 0xc000');
+  });
+
+  it('should not write bytes in ROM', () => {
+    assert.throws(() => {
+      cpu.writeByteAt(0x0000, 0xab);
+    }, Error, 'Cannot write in ROM');
+    assert.throws(() => {
+      cpu.writeByteAt(0x7fff, 0xab);
+    }, Error, 'Cannot write in ROM');
+    assert.doesNotThrow(() => {
+      cpu.writeByteAt(0x8000, 0xab);
+    }, Error, 'Can write above ROM banks');
+  });
+
   it('should start with pc, sp and registers at right values', () => {
 
     assert.equal(cpu.pc(), 0x100, 'Program Counter should start at 0x100');
