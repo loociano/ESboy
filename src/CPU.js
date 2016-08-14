@@ -216,7 +216,7 @@ export default class CPU {
    * @returns {number} Register af
    */
   af(){
-    return this._r.a;
+    return (this._r.a << 8) + this._r._f;
   }
 
   /**
