@@ -15,4 +15,11 @@ export default class Utils {
       case 4: return `0x${hex}`;
     }
   }
+
+  static uint8ToInt8(number){
+    if ((number & 0x80) > 0) {
+      number -= 0x100;
+    }
+    return number;
+  }
 }

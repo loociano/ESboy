@@ -17,4 +17,11 @@ describe('Utils', () => {
     assert.equal(Utils.hex4(100), '0x0064');
     assert.equal(Utils.hex4(4096), '0x1000');
   });
+
+  it('should return signed integers', () => {
+    assert.equal(Utils.uint8ToInt8(0x7f), 127, 'Positive number');
+    assert.equal(Utils.uint8ToInt8(0xfc), -4, 'Negative number');
+    assert.equal(Utils.uint8ToInt8(0x00), 0, 'Zero');
+    assert.equal(Utils.uint8ToInt8(0x80), -128, 'Negative number');
+  });
 });
