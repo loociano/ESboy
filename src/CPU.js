@@ -846,7 +846,11 @@ export default class CPU {
       this.setH(0);
     }
 
-    this._r[r]--;
+    if (this._r[r] === 0){
+      this._r[r] = 0xff; // loop value
+    } else {
+      this._r[r]--;
+    }
 
     if (this._r[r] === 0){
       this.setZ(1); // result is zero
