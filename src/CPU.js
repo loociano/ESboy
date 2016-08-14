@@ -403,7 +403,7 @@ export default class CPU {
 
   /**
    * @param {number} addr
-   * @return {number} opcode
+   * @return {number} byte at memory address
    */
   byteAt(addr) {
 
@@ -472,7 +472,6 @@ export default class CPU {
    * @param {number} 16 bits
    */
   jp(nn){
-    Logger.instr(this._r.pc - 2, `jp ${Utils.hexStr(nn)}`);
     this._r.pc = nn;
   }
 
@@ -480,51 +479,41 @@ export default class CPU {
    * Does nothing
    */
   nop(){
-    Logger.instr(this._r.pc, 'nop');
   }
 
   xor_a(){
-    Logger.instr(this._r.pc, `xor a`);
     this._xor(this._r.a);
   }
 
   xor_b(){
-    Logger.instr(this._r.pc, `xor b`);
     this._xor(this._r.b);
   }
 
   xor_c(){
-    Logger.instr(this._r.pc, `xor c`);
     this._xor(this._r.c);
   }
 
   xor_d(){
-    Logger.instr(this._r.pc, `xor d`);
     this._xor(this._r.d);
   }
 
   xor_e(){
-    Logger.instr(this._r.pc, `xor e`);
     this._xor(this._r.e);
   }
 
   xor_h(){
-    Logger.instr(this._r.pc, `xor h`);
     this._xor(this._r.h);
   }
 
   xor_l(){
-    Logger.instr(this._r.pc, `xor l`);
     this._xor(this._r.l);
   }
 
   xor_hl(){
-    Logger.instr(this._r.pc, `xor (hl)`);
     this._xor(this.byteAt(this.hl()));
   }
 
   xor_n(n){
-    Logger.instr(this._r.pc, `xor ${Utils.hexStr(n)}`);
     this._xor(n);
   }
 
@@ -605,7 +594,6 @@ export default class CPU {
    * @param {number} 16 bits
    */
   ld_bc_nn(nn) {
-    Logger.instr(this._r.pc - 2, `ld bc,${Utils.hexStr(nn)}`);
     this._ld_rr_nn('b', 'c', nn);
   }
 
@@ -614,7 +602,6 @@ export default class CPU {
    * @param {number} 16 bits
    */
   ld_de_nn(nn) {
-    Logger.instr(this._r.pc - 2, `ld de,${Utils.hexStr(nn)}`);
     this._ld_rr_nn('d', 'e', nn);
   }
 
@@ -623,7 +610,6 @@ export default class CPU {
    * @param {number} 16 bits
    */
   ld_hl_nn(nn) {
-    Logger.instr(this._r.pc - 2, `ld hl,${Utils.hexStr(nn)}`);
     this._ld_rr_nn('h', 'l', nn);
   }
 
@@ -632,7 +618,6 @@ export default class CPU {
    * @param {number} 16 bits
    */
   ld_sp_nn(nn) {
-    Logger.instr(this._r.pc - 2, `ld sp,${Utils.hexStr(nn)}`);
     this._r.sp = nn;
   }
 
@@ -653,7 +638,6 @@ export default class CPU {
    * @param n
    */
   ld_b_n(n){
-    Logger.instr(this._r.pc - 1, `ld b,${Utils.hexStr(n)}`);
     this._ld_r_n('b', n);
   }
 
@@ -662,7 +646,6 @@ export default class CPU {
    * @param n
    */
   ld_c_n(n){
-    Logger.instr(this._r.pc - 1, `ld c,${Utils.hexStr(n)}`);
     this._ld_r_n('c', n);
   }
 
@@ -671,7 +654,6 @@ export default class CPU {
    * @param n
    */
   ld_d_n(n){
-    Logger.instr(this._r.pc - 1, `ld d,${Utils.hexStr(n)}`);
     this._ld_r_n('d', n);
   }
 
@@ -680,7 +662,6 @@ export default class CPU {
    * @param n
    */
   ld_e_n(n){
-    Logger.instr(this._r.pc - 1, `ld e,${Utils.hexStr(n)}`);
     this._ld_r_n('e', n);
   }
 
@@ -689,7 +670,6 @@ export default class CPU {
    * @param n
    */
   ld_h_n(n){
-    Logger.instr(this._r.pc - 1, `ld h,${Utils.hexStr(n)}`);
     this._ld_r_n('h', n);
   }
 
@@ -698,7 +678,6 @@ export default class CPU {
    * @param n
    */
   ld_l_n(n){
-    Logger.instr(this._r.pc - 1, `ld l,${Utils.hexStr(n)}`);
     this._ld_r_n('l', n);
   }
 
@@ -716,7 +695,6 @@ export default class CPU {
    * Loads register a into a.
    */
   ld_a_a(){
-    Logger.instr(this._r.pc, 'ld a,a');
     this.ld_a_n(this._r.a);
   }
 
@@ -724,7 +702,6 @@ export default class CPU {
    * Loads register b into a.
    */
   ld_a_b(){
-    Logger.instr(this._r.pc, `ld a,b`);
     this.ld_a_n(this._r.b);
   }
 
@@ -732,7 +709,6 @@ export default class CPU {
    * Loads register c into a.
    */
   ld_a_c(){
-    Logger.instr(this._r.pc, `ld a,c`);
     this.ld_a_n(this._r.c);
   }
 
@@ -740,7 +716,6 @@ export default class CPU {
    * Loads register a into d.
    */
   ld_a_d(){
-    Logger.instr(this._r.pc, `ld a,d`);
     this.ld_a_n(this._r.d);
   }
 
@@ -748,7 +723,6 @@ export default class CPU {
    * Loads register e into a.
    */
   ld_a_e(){
-    Logger.instr(this._r.pc, `ld a,e`);
     this.ld_a_n(this._r.e);
   }
 
@@ -756,7 +730,6 @@ export default class CPU {
    * Loads register h into a.
    */
   ld_a_h(){
-    Logger.instr(this._r.pc, `ld a,h`);
     this.ld_a_n(this._r.h);
   }
 
@@ -764,7 +737,6 @@ export default class CPU {
    * Loads register l into a.
    */
   ld_a_l(){
-    Logger.instr(this._r.pc, `ld a,l`);
     this.ld_a_n(this._r.l);
   }
 
@@ -772,7 +744,6 @@ export default class CPU {
    * Loads address memory of bc into a.
    */
   ld_a_bc(){
-    Logger.instr(this._r.pc, `ld a,[${Utils.hexStr(this.bc())}]`);
     this.ld_a_n(this.byteAt(this.bc()));
   }
 
@@ -780,7 +751,6 @@ export default class CPU {
    * Loads address memory of de into a.
    */
   ld_a_de(){
-    Logger.instr(this._r.pc, `ld a,[${Utils.hexStr(this.de())}]`);
     this.ld_a_n(this.byteAt(this.de()));
   }
 
@@ -788,7 +758,6 @@ export default class CPU {
    * Loads address memory of hl into a.
    */
   ld_a_hl(){
-    Logger.instr(this._r.pc, `ld a,[${Utils.hexStr(this.hl())}]`);
     this.ld_a_n(this.byteAt(this.hl()));
   }
 
@@ -796,7 +765,6 @@ export default class CPU {
    * Loads address memory of nn into a.
    */
   ld_a_nn(nn){
-    Logger.instr(this._r.pc, `ld a,${Utils.hexStr(nn)}`);
     this.ld_a_n(this.byteAt(nn));
   }
 
@@ -805,7 +773,6 @@ export default class CPU {
    * @param n
    */
   ld_a_n(n){
-    Logger.instr(this._r.pc, `ld a,${Utils.hexStr(n)}`);
     this._r.a = n;
   }
 
@@ -813,7 +780,6 @@ export default class CPU {
    * Loads a with value at address hl. Decrements hl.
    */
   ldd_a_hl(){
-    Logger.instr(this._r.pc, 'ldd a,[hl]');
     this._r.a = this.byteAt(this.hl());
     this.dec_hl();
   }
@@ -822,7 +788,6 @@ export default class CPU {
    * Puts a into memory address hl. Decrements hl.
    */
   ldd_hl_a(){
-    Logger.instr(this._r.pc, 'ldd (hl),a');
     this.writeByteAt(this.hl(), this._r.a);
     this.dec_hl();
   }
@@ -864,7 +829,6 @@ export default class CPU {
    * @private
    */
   _dec_r(r){
-    Logger.instr(this._r.pc, `dec ${r}`);
     this._r[r]--;
     if (this._r[r] === 0){
       this.setZ(1);
@@ -876,7 +840,6 @@ export default class CPU {
   }
 
   dec_0x_hl(){
-    Logger.instr(this._r.pc, `dec (hl)`);
     let value = this.byteAt(this.hl());
     this.writeByteAt(this.hl(), --value);
   }
@@ -885,7 +848,6 @@ export default class CPU {
    * Decrements bc by 1.
    */
   dec_bc(){
-    Logger.instr(this._r.pc, 'dec bc');
     this._dec_rr('b', 'c');
   }
 
@@ -893,7 +855,6 @@ export default class CPU {
    * Decrements de by 1.
    */
   dec_de(){
-    Logger.instr(this._r.pc, 'dec de');
     this._dec_rr('d', 'e');
   }
 
@@ -901,7 +862,6 @@ export default class CPU {
    * Decrements hl by 1.
    */
   dec_hl(){
-    Logger.instr(this._r.pc, 'dec hl');
     this._dec_rr('h', 'l');
   }
 
@@ -909,7 +869,6 @@ export default class CPU {
    * Decrements sp by 1.
    */
   dec_sp(){
-    Logger.instr(this._r.pc, 'dec sp');
     this._r.sp--;
   }
 
