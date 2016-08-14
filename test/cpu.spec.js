@@ -299,6 +299,33 @@ describe('CPU', function() {
     assertDecrementRegister(cpu, cpu.sp, cpu.dec_sp);
   });
 
+  it('should jump conditionally forward', () => {
+    cpu.ld_a_n(0x02);
+    cpu.dec_a();
+    assert.equal(cpu.getZ(), 0, 'Z is reset');
+    const pc = cpu.pc();
+    cpu.jr_nz_n(0x05);
+    assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0x05), 'jump forward');
+  });
+
+  it('shold jump conditionally backwards', () => {
+    cpu.ld_a_n(0x02);
+    cpu.dec_a();
+    assert.equal(cpu.getZ(), 0, 'Z is reset');
+    const pc = cpu.pc();
+    cpu.jr_nz_n(0xfc);
+    assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0xfc), 'jump backward');
+  });
+
+  it('shold jump not jump is last operation was zero', () => {
+    cpu.ld_a_n(0x01);
+    cpu.dec_a();
+    assert.equal(cpu.getZ(), 1, 'Z is set');
+    const pc = cpu.pc();
+    cpu.jr_nz_n(0xfc);
+    assert.equal(cpu.pc(), pc + 1, 'do not jump, move to the next instruction');
+  });
+
 });
 
 /**
