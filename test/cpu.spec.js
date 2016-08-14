@@ -51,14 +51,14 @@ describe('CPU', function() {
 
   it('should start with pc, sp and registers at right values', () => {
 
-    assert.equal(cpu.pc, 0x100, 'Program Counter should start at 0x100');
-    assert.equal(cpu.a, 0x01, 'Accumulator must start as 0x01 for GB');
+    assert.equal(cpu.pc(), 0x100, 'Program Counter should start at 0x100');
+    assert.equal(cpu.a(), 0x01, 'Accumulator must start as 0x01 for GB');
     assert.equal(cpu.af(), 0x01, 'Register af must start as 0x0001');
     assert.equal(cpu.f(), 0b1011, 'Flag register must start as 0b1011');
     assert.equal(cpu.bc(), 0x0013, 'Register bc must start as 0x0013');
     assert.equal(cpu.de(), 0x00d8, 'Register de must start as 0x00d8');
     assert.equal(cpu.hl(), 0x014d, 'Register hl must start as 0x014d');
-    assert.equal(cpu.sp, 0xfffe, 'Stack Pointer must start as 0xfffe');
+    assert.equal(cpu.sp(), 0xfffe, 'Stack Pointer must start as 0xfffe');
   });
 
   it('should start the memory map', () => {
@@ -105,31 +105,29 @@ describe('CPU', function() {
     cpu.execute();
     assert.equal(cpu.nextCommand(), 0xc3, 'c3 5001; JP 0x0150');
     cpu.execute();
-    assert.equal(cpu.pc, 0x150);
+    assert.equal(cpu.pc(), 0x150);
     assert.equal(cpu.nextCommand(), 0xc3, 'c3 8b02; JP 0x028b');
     cpu.execute();
-    assert.equal(cpu.pc, 0x028b);
+    assert.equal(cpu.pc(), 0x028b);
     assert.equal(cpu.nextCommand(), 0xaf, 'af; XOR a');
 
   });
 
   it('should jump to address', () => {
     cpu.jp(0x123);
-    assert.equal(cpu.pc, 0x123);
+    assert.equal(cpu.pc(), 0x123);
   });
 
   it('should XOR register a', () => {
-    cpu.a = 0x11;
     cpu.xor_a();
-    assert.equal(cpu.a, cpu.a ^ cpu.a);
+    assert.equal(cpu.a(), 0x00);
     assert.equal(cpu.f(), 0b1000, 'Z=1, N=0, h=0, c=0');
   });
 
   it('should XOR register a with n', () => {
-    cpu.a = 0x11;
-    const expected = cpu.a ^ 0x11;
-    cpu.xor_n(0x11);
-    assert.equal(cpu.a, expected);
+    const a = cpu.a();
+    cpu.xor_n(a);
+    assert.equal(cpu.a(), 0x00, 'register a should be zero.');
     assert.equal(cpu.f(), 0b1000, 'Z=1, N=0, h=0, c=0');
   });
 
