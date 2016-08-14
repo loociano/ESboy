@@ -148,8 +148,19 @@ describe('CPU', function() {
   });
 
   it('should load load 16bits into register', () => {
-   cpu.ld_hl_nn(0xabcd);
-   assert.equal(cpu.hl(), 0xabcd);
+
+    cpu.ld_bc_nn(0xabcd);
+    assert.equal(cpu.bc(), 0xabcd, 'load 0xabcd into bc');
+
+    cpu.ld_de_nn(0xabcd);
+    assert.equal(cpu.de(), 0xabcd, 'load 0xabcd into de');
+
+    cpu.ld_hl_nn(0xabcd);
+    assert.equal(cpu.hl(), 0xabcd, 'load 0xabcd into hl');
+
+    cpu.ld_sp_nn(0xabcd);
+    assert.equal(cpu.sp(), 0xabcd, 'load 0xabcd into sp');
+
   });
 
 });

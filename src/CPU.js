@@ -537,11 +537,35 @@ export default class CPU {
   }
 
   /**
+   * Loads 16 bits nn into bc.
+   * @param {number} 16 bits
+   */
+  ld_bc_nn(nn) {
+    this._ld_rr_nn('b', 'c', nn);
+  }
+
+  /**
+   * Loads 16 bits nn into de.
+   * @param {number} 16 bits
+   */
+  ld_de_nn(nn) {
+    this._ld_rr_nn('d', 'e', nn);
+  }
+
+  /**
    * Loads 16 bits nn into hl.
    * @param {number} 16 bits
    */
   ld_hl_nn(nn) {
     this._ld_rr_nn('h', 'l', nn);
+  }
+
+  /**
+   * Loads 16 bits nn into sp.
+   * @param {number} 16 bits
+   */
+  ld_sp_nn(nn) {
+    this._r.sp = nn;
   }
 
   /**
