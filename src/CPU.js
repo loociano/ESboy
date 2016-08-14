@@ -110,7 +110,15 @@ export default class CPU {
       0x2b: {fn: this.dec_hl, param: 0},
       0x3b: {fn: this.dec_sp, param: 0},
       0x32: {fn: this.ldd_hl_a, param: 0},
-      0x3a: {fn: this.ldd_a_hl, param: 0}
+      0x3a: {fn: this.ldd_a_hl, param: 0},
+      0x3d: {fn: this.dec_a, param: 0},
+      0x05: {fn: this.dec_b, param: 0},
+      0x0d: {fn: this.dec_c, param: 0},
+      0x15: {fn: this.dec_d, param: 0},
+      0x1d: {fn: this.dec_e, param: 0},
+      0x25: {fn: this.dec_h, param: 0},
+      0x2d: {fn: this.dec_l, param: 0},
+      0x35: {fn: this.dec_0x_hl, param: 0},
     };
 
     this.memory = new Buffer(this.ADDR_MAX + 1);
