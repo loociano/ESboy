@@ -58,16 +58,16 @@ export default class CPU {
     this.JAPANESE = 0x0;
     this.NON_JAPANESE = 0x1;
 
-    this.PC = this.ADDR_GAME_START;
-    this.SP = this.ADDR_MAX - 1;
-    this.A = 0x01;
-    this.B = 0x00;
-    this.C = 0x13;
-    this.D = 0x00;
-    this.E = 0xd8;
-    this._F = 0xb0;
-    this.H = 0x01;
-    this.L = 0x4d;
+    this.pc = this.ADDR_GAME_START;
+    this.sp = this.ADDR_MAX - 1;
+    this.a = 0x01;
+    this.b = 0x00;
+    this.c = 0x13;
+    this.d = 0x00;
+    this.e = 0xd8;
+    this._f = 0xb0;
+    this.h = 0x01;
+    this.l = 0x4d;
 
     this.commands = {
       0x00: this.nop,
@@ -139,35 +139,35 @@ export default class CPU {
   }
 
   /**
-   * @returns {number} Register AF
+   * @returns {number} Register af
    */
-  AF(){
-    return this.A;
+  af(){
+    return this.a;
   }
 
   /**
-   * @returns {number} Register BC
+   * @returns {number} Register bc
    */
-  BC(){
-    return (this.B << 8) + this.C;
+  bc(){
+    return (this.b << 8) + this.c;
   }
 
   /**
-   * @returns {number} Register DE
+   * @returns {number} Register de
    */
-  DE(){
-    return (this.D << 8) + this.E;
+  de(){
+    return (this.d << 8) + this.e;
   }
 
   /**
-   * @returns {number} Register HL
+   * @returns {number} Register hl
    */
-  HL(){
-    return (this.H << 8) + this.L;
+  hl(){
+    return (this.h << 8) + this.l;
   }
 
-  F(){
-    return (this._F & 0xF0) >> 4;
+  f(){
+    return (this._f & 0xF0) >> 4;
   }
 
   /**
@@ -191,7 +191,7 @@ export default class CPU {
     if (this.commands[opcode] != null){
       return this.commands[opcode];
     } else {
-      throw new Error(`[${Utils.hexStr(this.PC)}] ${Utils.hexStr(opcode)} opcode not implemented.`);
+      throw new Error(`[${Utils.hexStr(this.pc)}] ${Utils.hexStr(opcode)} opcode not implemented.`);
     }
   }
 
@@ -332,7 +332,7 @@ export default class CPU {
    * @return {number} next opcode
    */
   nextCommand() {
-    return this.byteAt(this.PC);
+    return this.byteAt(this.pc);
   }
 
   /**
@@ -352,25 +352,25 @@ export default class CPU {
   }
 
   /**
-   * Executes the next command and increases the PC.
+   * Executes the next command and increases the pc.
    */
   execute() {
 
     const command = this.getCommand(this.nextCommand());
 
     if(command === this.jp){
-      const param = this.byteAt(this.PC + 1) + (this.byteAt(this.PC + 2) << 8);
+      const param = this.byteAt(this.pc + 1) + (this.byteAt(this.pc + 2) << 8);
       command.call(this, param);
       return;
     }
 
     let param;
     if(command === this.xor_n){
-      param = this.byteAt(++this.PC);
+      param = this.byteAt(++this.pc);
     }
 
     command.call(this, param);
-    this.PC++;
+    this.pc++;
   }
 
   /**
@@ -378,25 +378,25 @@ export default class CPU {
    * @param {number} 16 bits
    */
   jp(jump_to){
-    Logger.instr(this.PC, `JP ${Utils.hexStr(jump_to)}`);
-    this.PC = jump_to;
+    Logger.instr(this.pc, `JP ${Utils.hexStr(jump_to)}`);
+    this.pc = jump_to;
   }
 
   /**
    * Does nothing
    */
   nop(){
-    Logger.instr(this.PC, 'NOP');
+    Logger.instr(this.pc, 'nop');
   }
 
-  xor_a(){ this._xor(this.A); }
-  xor_b(){ this._xor(this.B); }
-  xor_c(){ this._xor(this.C); }
-  xor_d(){ this._xor(this.D); }
-  xor_e(){ this._xor(this.E); }
-  xor_h(){ this._xor(this.H); }
-  xor_l(){ this._xor(this.L); }
-  xor_hl(){ this._xor(this.HL); }
+  xor_a(){ this._xor(this.a); }
+  xor_b(){ this._xor(this.b); }
+  xor_c(){ this._xor(this.c); }
+  xor_d(){ this._xor(this.d); }
+  xor_e(){ this._xor(this.e); }
+  xor_h(){ this._xor(this.h); }
+  xor_l(){ this._xor(this.l); }
+  xor_hl(){ this._xor(this.hl); }
   xor_n(n){ this._xor(n); }
 
   /**
@@ -404,10 +404,10 @@ export default class CPU {
    * @private
    */
   _xor(n){
-    Logger.instr(this.PC, `XOR ${n}`);
-    this.A ^= n;
+    Logger.instr(this.pc, `xor ${n}`);
+    this.a ^= n;
     this.resetFlags();
-    if (this.A === 0){
+    if (this.a === 0){
       this.setZ(1);
     }
   }
@@ -417,56 +417,56 @@ export default class CPU {
   }
 
   getZ(){
-    return this._F >> 7;
+    return this._f >> 7;
   }
 
   setZ(value){
     if (value === 1){
-      this._F |= 0x80;
+      this._f |= 0x80;
     } else if (value === 0) {
-      this._F &= 0x7f;
+      this._f &= 0x7f;
     } else {
       Logger.error(`Cannot set flag Z with ${value}`);
     }
   }
 
   getN(){
-    return (this._F & 0x40) >> 6;
+    return (this._f & 0x40) >> 6;
   }
 
   setN(value){
     if (value === 1){
-      this._F |= 0x40;
+      this._f |= 0x40;
     } else if (value === 0) {
-      this._F &= 0xbf;
+      this._f &= 0xbf;
     } else {
       Logger.error(`Cannot set flag N with ${value}`);
     }
   }
 
   getH() {
-    return (this._F & 0x20) >> 5;
+    return (this._f & 0x20) >> 5;
   }
 
   setH(value) {
     if (value === 1){
-      this._F |= 0x20;
+      this._f |= 0x20;
     } else if (value === 0) {
-      this._F &= 0xdf;
+      this._f &= 0xdf;
     } else {
       Logger.error(`Cannot set flag H with ${value}`);
     }
   }
 
   getC() {
-    return (this._F & 0x10) >> 4;
+    return (this._f & 0x10) >> 4;
   }
 
   setC(value) {
     if (value === 1){
-      this._F |= 0x10;
+      this._f |= 0x10;
     } else if (value === 0){
-      this._F &= 0xef;
+      this._f &= 0xef;
     } else {
       Logger.error(`Cannot set flag C with ${value}`);
     }
