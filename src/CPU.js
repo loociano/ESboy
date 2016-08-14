@@ -72,17 +72,21 @@ export default class CPU {
     };
 
     this.commands = {
-      0x00: this.nop,
-      0xc3: this.jp,
-      0xaf: this.xor_a,
-      0xa8: this.xor_b,
-      0xa9: this.xor_c,
-      0xaa: this.xor_d,
-      0xab: this.xor_e,
-      0xac: this.xor_h,
-      0xad: this.xor_l,
-      0xae: this.xor_hl,
-      0xee: this.xor_n
+      0x00: {fn: this.nop, param: 0},
+      0xc3: {fn: this.jp, param: 2},
+      0xaf: {fn: this.xor_a, param: 0},
+      0xa8: {fn: this.xor_b, param: 0},
+      0xa9: {fn: this.xor_c, param: 0},
+      0xaa: {fn: this.xor_d, param: 0},
+      0xab: {fn: this.xor_e, param: 0},
+      0xac: {fn: this.xor_h, param: 0},
+      0xad: {fn: this.xor_l, param: 0},
+      0xae: {fn: this.xor_hl, param: 0},
+      0xee: {fn: this.xor_n, param: 1},
+      0x01: {fn: this.ld_bc_nn, param: 2},
+      0x11: {fn: this.ld_de_nn, param: 2},
+      0x21: {fn: this.ld_hl_nn, param: 2},
+      0x31: {fn: this.ld_sp_nn, param: 2}
     };
 
     this.memory = new Buffer(this.ADDR_MAX + 1);
@@ -395,19 +399,22 @@ export default class CPU {
   execute() {
 
     const command = this.getCommand(this.nextCommand());
+    const bytes = command.param;
 
-    if(command === this.jp){
-      const param = this.byteAt(this._r.pc + 1) + (this.byteAt(this._r.pc + 2) << 8);
-      command.call(this, param);
+    let param;
+    if(bytes > 0){
+      param = this.byteAt(++this._r.pc);
+      if (bytes > 1){
+        param += this.byteAt(++this._r.pc) << 8;
+      }
+    }
+
+    if(command.fn === this.jp){
+      command.fn.call(this, param);
       return;
     }
 
-    let param;
-    if(command === this.xor_n){
-      param = this.byteAt(++this._r.pc);
-    }
-
-    command.call(this, param);
+    command.fn.call(this, param);
     this._r.pc++;
   }
 
