@@ -238,6 +238,15 @@ describe('CPU', function() {
     assert.equal(cpu.hl(), hl - 1, 'hl is decremented 1');
   });
 
+  it('should put a into memory address hl and decrement hl', () => {
+    const a = cpu.a();
+    const hl = 0xdfff;
+    cpu.ld_hl_nn(hl);
+    cpu.ldd_hl_a();
+    assert.equal(cpu.byteAt(hl), a, `memory ${Utils.hexStr(hl)} has value ${a}`);
+    assert.equal(cpu.hl(), hl - 1, 'hl is decremented by 1');
+  });
+
   it('should decrement registers', () => {
     assertDecrementRegister(cpu, cpu.bc, cpu.dec_bc);
     assertDecrementRegister(cpu, cpu.de, cpu.dec_de);
