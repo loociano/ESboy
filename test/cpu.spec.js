@@ -247,7 +247,25 @@ describe('CPU', function() {
     assert.equal(cpu.hl(), hl - 1, 'hl is decremented by 1');
   });
 
-  it('should decrement registers', () => {
+  it('should decrement 8 bits register', () => {
+    assertDecrementRegister(cpu, cpu.a, cpu.dec_a);
+    assertDecrementRegister(cpu, cpu.b, cpu.dec_b);
+    assertDecrementRegister(cpu, cpu.c, cpu.dec_c);
+    assertDecrementRegister(cpu, cpu.d, cpu.dec_d);
+    assertDecrementRegister(cpu, cpu.e, cpu.dec_e);
+    assertDecrementRegister(cpu, cpu.h, cpu.dec_h);
+    assertDecrementRegister(cpu, cpu.l, cpu.dec_l);
+  });
+
+  it('should decrement a value at a memory location', () => {
+    const value = 0xab;
+    cpu.writeByteAt(0xdfff, value);
+    cpu.ld_hl_nn(0xdfff);
+    cpu.dec_0x_hl();
+    assert.equal(cpu.byteAt(0xdfff), value - 1, 'Value at memory 0xdfff is decremented');
+  });
+
+  it('should decrement 16 bits registers', () => {
     assertDecrementRegister(cpu, cpu.bc, cpu.dec_bc);
     assertDecrementRegister(cpu, cpu.de, cpu.dec_de);
     assertDecrementRegister(cpu, cpu.hl, cpu.dec_hl);
