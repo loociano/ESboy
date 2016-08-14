@@ -2,6 +2,7 @@ import CPU from '../src/CPU';
 import assert from 'assert';
 import config from '../src/config';
 import {describe, beforeEach, it} from 'mocha';
+import Utils from '../src/Utils';
 
 describe('CPU', function() {
 
@@ -129,6 +130,14 @@ describe('CPU', function() {
     cpu.xor_n(a);
     assert.equal(cpu.a(), 0x00, 'register a should be zero.');
     assert.equal(cpu.f(), 0b1000, 'Z=1, N=0, h=0, c=0');
+  });
+
+  it('should xor register a with memory address hl', () => {
+    const a = cpu.a();
+    const hl = cpu.hl();
+    const value = cpu.byteAt(hl);
+    cpu.xor_hl();
+    assert.equal(cpu.a(), a ^ value, `register a should be ${Utils.hexStr(a)} xor ${Utils.hexStr(value)}`);
   });
 
   it('should set Flag Z', () => {
