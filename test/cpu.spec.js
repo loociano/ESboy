@@ -147,7 +147,7 @@ describe('CPU', function() {
     testSetGetFlag(cpu, cpu.setC, cpu.getC);
   });
 
-  it('should load load 16bits into register', () => {
+  it('should load 16 bits into register', () => {
 
     cpu.ld_bc_nn(0xabcd);
     assert.equal(cpu.bc(), 0xabcd, 'load 0xabcd into bc');
@@ -161,6 +161,26 @@ describe('CPU', function() {
     cpu.ld_sp_nn(0xabcd);
     assert.equal(cpu.sp(), 0xabcd, 'load 0xabcd into sp');
 
+  });
+
+  it('should load 8 bits into registers', () => {
+    cpu.ld_b_n(0xab);
+    assert.equal(cpu.b(), 0xab, 'load 0xab into b');
+
+    cpu.ld_c_n(0xab);
+    assert.equal(cpu.c(), 0xab, 'load 0xab into c');
+
+    cpu.ld_d_n(0xab);
+    assert.equal(cpu.d(), 0xab, 'load 0xab into d');
+
+    cpu.ld_e_n(0xab);
+    assert.equal(cpu.e(), 0xab, 'load 0xab into e');
+
+    cpu.ld_h_n(0xab);
+    assert.equal(cpu.h(), 0xab, 'load 0xab into h');
+
+    cpu.ld_l_n(0xab);
+    assert.equal(cpu.l(), 0xab, 'load 0xab into l');
   });
 
 });
