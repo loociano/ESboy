@@ -438,15 +438,9 @@ export default class CPU {
   execute() {
 
     const command = this.getCommand(this.nextCommand());
-    const numBytes = command.param;
+    const param = this._getInstrParams(command.param);
 
-    let param;
-    if(numBytes > 0){
-      param = this.byteAt(++this._r.pc);
-      if (numBytes > 1){
-        param += this.byteAt(++this._r.pc) << 8;
-      }
-    }
+    Logger.state(this, command.fn, command.param, param);
 
     if(command.fn === this.jp){
       command.fn.call(this, param);
@@ -455,6 +449,22 @@ export default class CPU {
 
     command.fn.call(this, param);
     this._r.pc++;
+  }
+
+  /**
+   * @param numBytes
+   * @returns {*}
+   * @private
+   */
+  _getInstrParams(numBytes){
+    let param;
+    if(numBytes > 0){
+      param = this.byteAt(++this._r.pc);
+      if (numBytes > 1){
+        param += this.byteAt(++this._r.pc) << 8;
+      }
+    }
+    return param;
   }
 
   /**
