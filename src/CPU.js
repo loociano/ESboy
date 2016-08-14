@@ -417,6 +417,21 @@ export default class CPU {
   }
 
   /**
+   *
+   * @param addr
+   * @param n
+   */
+  writeByteAt(addr, n){
+    if (addr > this.ADDR_MAX || addr < 0 || addr <= this.ADDR_ROM_MAX){
+      throw new Error(`Cannot set memory address ${Utils.hexStr(addr)}`);
+    }
+    if (n < 0 || n > 0xff){
+      throw new Error(`Cannot write ${n} in memory, it has more than 8 bits`);
+    }
+    this.memory[addr] = n;
+  }
+
+  /**
    * Executes the next command and increases the pc.
    */
   execute() {
