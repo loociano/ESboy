@@ -808,6 +808,15 @@ export default class CPU {
   }
 
   /**
+   * Puts a into memory address hl. Decrements hl.
+   */
+  ldd_hl_a(){
+    Logger.instr(this._r.pc, 'ldd (hl),a');
+    this.writeByteAt(this.hl(), this._r.a);
+    this.dec_hl();
+  }
+
+  /**
    * Decrements bc by 1.
    */
   dec_bc(){
