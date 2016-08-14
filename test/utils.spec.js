@@ -7,6 +7,7 @@ describe('Utils', () => {
 
     assert.equal(Utils.hexStr(0), '0x0');
     assert.equal(Utils.hexStr(100), '0x64');
+    assert.equal(Utils.hexStr(), '');
 
   });
 });
