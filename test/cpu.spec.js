@@ -275,6 +275,15 @@ describe('CPU', function() {
     assert.equal(cpu.getH(), 1, 'Half carry');
   });
 
+  it('should loop value on decrement', () => {
+    cpu.ld_a_n(0x00);
+    cpu.dec_a();
+    assert.equal(cpu.a(), 0xff, 'loop value');
+    assert.equal(cpu.getZ(), 0, 'Not result zero');
+    assert.equal(cpu.getN(), 1, 'Substracting');
+    assert.equal(cpu.getH(), 1, 'Half carry');
+  });
+
   it('should decrement a value at a memory location', () => {
     const value = 0xab;
     cpu.writeByteAt(0xdfff, value);
@@ -300,8 +309,10 @@ describe('CPU', function() {
  */
 function assertDecrementRegister(scope, registerFn, decFn){
   const value = registerFn.call(scope);
+  let expected = value - 1;
+  if (value === 0) expected = 0xff;
   decFn.call(scope);
-  assert.equal(registerFn.call(scope), value - 1, `decrement ${registerFn}`);
+  assert.equal(registerFn.call(scope), expected, `decrement ${registerFn.name}`);
 }
 
 /**
