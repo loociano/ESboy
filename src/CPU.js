@@ -450,7 +450,7 @@ export default class CPU {
 
     Logger.state(this, command.fn, command.param, param);
 
-    if(command.fn === this.jp){
+    if(command.fn === this.jp || command.fn === this.jr_nz_n){
       command.fn.call(this, param);
       return;
     }
@@ -902,5 +902,17 @@ export default class CPU {
     const value = this[r1+r2]() - 1;
     this._r[r1] = (value & 0xff00) >> 8;
     this._r[r2] = value & 0x00ff;
+  }
+
+  /**
+   * Jumps to current address + n if last operation was not zero.
+   * @param {signed int} n
+   */
+  jr_nz_n(n){
+    if (this.getZ() === 0){
+      this._r.pc += Utils.uint8ToInt8(n);
+    } else {
+      this._r.pc++;
+    }
   }
 }
