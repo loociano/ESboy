@@ -92,7 +92,19 @@ export default class CPU {
       0x16: {fn: this.ld_d_n, param: 1},
       0x1e: {fn: this.ld_e_n, param: 1},
       0x26: {fn: this.ld_h_n, param: 1},
-      0x2e: {fn: this.ld_l_n, param: 1}
+      0x2e: {fn: this.ld_l_n, param: 1},
+      0x7f: {fn: this.ld_a_a, param: 0},
+      0x78: {fn: this.ld_a_b, param: 0},
+      0x79: {fn: this.ld_a_c, param: 0},
+      0x7a: {fn: this.ld_a_d, param: 0},
+      0x7b: {fn: this.ld_a_e, param: 0},
+      0x7c: {fn: this.ld_a_h, param: 0},
+      0x7d: {fn: this.ld_a_l, param: 0},
+      0x0a: {fn: this.ld_a_bc, param: 0},
+      0x1a: {fn: this.ld_a_de, param: 0},
+      0x7e: {fn: this.ld_a_hl, param: 0},
+      0xfa: {fn: this.ld_a_nn, param: 2},
+      0x3e: {fn: this.ld_a_n, param: 1}
     };
 
     this.memory = new Buffer(this.ADDR_MAX + 1);
@@ -667,5 +679,102 @@ export default class CPU {
    */
   _ld_r_n(r, n){
     this._r[r] = n;
+  }
+
+  /**
+   * Loads register a into a.
+   */
+  ld_a_a(){
+    Logger.instr(this._r.pc, 'ld a,a');
+    this.ld_a_n(this._r.a);
+  }
+
+  /**
+   * Loads register b into a.
+   */
+  ld_a_b(){
+    Logger.instr(this._r.pc, `ld a,b`);
+    this.ld_a_n(this._r.b);
+  }
+
+  /**
+   * Loads register c into a.
+   */
+  ld_a_c(){
+    Logger.instr(this._r.pc, `ld a,c`);
+    this.ld_a_n(this._r.c);
+  }
+
+  /**
+   * Loads register a into d.
+   */
+  ld_a_d(){
+    Logger.instr(this._r.pc, `ld a,d`);
+    this.ld_a_n(this._r.d);
+  }
+
+  /**
+   * Loads register e into a.
+   */
+  ld_a_e(){
+    Logger.instr(this._r.pc, `ld a,e`);
+    this.ld_a_n(this._r.e);
+  }
+
+  /**
+   * Loads register h into a.
+   */
+  ld_a_h(){
+    Logger.instr(this._r.pc, `ld a,h`);
+    this.ld_a_n(this._r.h);
+  }
+
+  /**
+   * Loads register l into a.
+   */
+  ld_a_l(){
+    Logger.instr(this._r.pc, `ld a,l`);
+    this.ld_a_n(this._r.l);
+  }
+
+  /**
+   * Loads address memory of bc into a.
+   */
+  ld_a_bc(){
+    Logger.instr(this._r.pc, `ld a,[${Utils.hexStr(this.bc())}]`);
+    this.ld_a_n(this.byteAt(this.bc()));
+  }
+
+  /**
+   * Loads address memory of de into a.
+   */
+  ld_a_de(){
+    Logger.instr(this._r.pc, `ld a,[${Utils.hexStr(this.de())}]`);
+    this.ld_a_n(this.byteAt(this.de()));
+  }
+
+  /**
+   * Loads address memory of hl into a.
+   */
+  ld_a_hl(){
+    Logger.instr(this._r.pc, `ld a,[${Utils.hexStr(this.hl())}]`);
+    this.ld_a_n(this.byteAt(this.hl()));
+  }
+
+  /**
+   * Loads address memory of nn into a.
+   */
+  ld_a_nn(nn){
+    Logger.instr(this._r.pc, `ld a,${Utils.hexStr(nn)}`);
+    this.ld_a_n(this.byteAt(nn));
+  }
+
+  /**
+   * Loads 8 bits into register a.
+   * @param n
+   */
+  ld_a_n(n){
+    Logger.instr(this._r.pc, `ld a,${Utils.hexStr(n)}`);
+    this._r.a = n;
   }
 }
