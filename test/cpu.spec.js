@@ -29,44 +29,6 @@ describe('CPU', function() {
 
   });
 
-  it('should read the game header', () => {
-    assert.equal(cpu.getGameTitle(), 'TETRIS', 'should read title');
-    assert.equal(cpu.isGameInColor(), false, 'should not be gb color');
-    assert.equal(cpu.isGameSuperGB(), false, 'should not be super GB');
-    assert.equal(cpu.getCartridgeType(), 'ROM ONLY');
-    assert.equal(cpu.getRomSize(), '32KB');
-    assert.equal(cpu.getRAMSize(), 'None');
-    assert.equal(cpu.getDestinationCode(), 'Japanese');
-  });
-
-  it('should read the nintendo graphic buffer', () => {
-
-    const buf = new Buffer('CEED6666CC0D000B03730083000C000D0008' +
-      '111F8889000EDCCC6EE6DDDDD999BBBB67636E0EECCCDDDC999FBBB9333E', 'hex');
-    assert(cpu.getNintendoGraphicBuffer().equals(buf), 'Nintendo Graphic Buffer must match.');
-  });
-
-  it('should compute the checksum', () => {
-    assert(cpu.isChecksumCorrect());
-  });
-
-  it('should write bytes in memory', () => {
-    cpu.writeByteAt(0xc000, 0xab);
-    assert.equal(cpu.byteAt(0xc000), 0xab, 'write 0xab in memory address 0xc000');
-  });
-
-  it('should not write bytes in ROM', () => {
-    assert.throws(() => {
-      cpu.writeByteAt(0x0000, 0xab);
-    }, Error, 'Cannot write in ROM');
-    assert.throws(() => {
-      cpu.writeByteAt(0x7fff, 0xab);
-    }, Error, 'Cannot write in ROM');
-    assert.doesNotThrow(() => {
-      cpu.writeByteAt(0x8000, 0xab);
-    }, Error, 'Can write above ROM banks');
-  });
-
   it('should start with pc, sp and registers at right values', () => {
 
     assert.equal(cpu.pc(), 0x100, 'Program Counter should start at 0x100');
@@ -77,44 +39,6 @@ describe('CPU', function() {
     assert.equal(cpu.de(), 0x00d8, 'Register de must start as 0x00d8');
     assert.equal(cpu.hl(), 0x014d, 'Register hl must start as 0x014d');
     assert.equal(cpu.sp(), 0xfffe, 'Stack Pointer must start as 0xfffe');
-  });
-
-  it('should start the memory map', () => {
-
-    assert.equal(cpu.memory.length, 0x10000, 'Memory size is 0x10000');
-
-    // Starting values at addresses
-    assert.equal(cpu.byteAt(0xff05), 0x00);
-    assert.equal(cpu.byteAt(0xff06), 0x00);
-    assert.equal(cpu.byteAt(0xff07), 0x00);
-    assert.equal(cpu.byteAt(0xff10), 0x80);
-    assert.equal(cpu.byteAt(0xff11), 0xbf);
-    assert.equal(cpu.byteAt(0xff12), 0xf3);
-    assert.equal(cpu.byteAt(0xff14), 0xbf);
-    assert.equal(cpu.byteAt(0xff16), 0x3f);
-    assert.equal(cpu.byteAt(0xff17), 0x00);
-    assert.equal(cpu.byteAt(0xff19), 0xbf);
-    assert.equal(cpu.byteAt(0xff1a), 0x7f);
-    assert.equal(cpu.byteAt(0xff1b), 0xff);
-    assert.equal(cpu.byteAt(0xff1c), 0x9f);
-    assert.equal(cpu.byteAt(0xff1e), 0xbf);
-    assert.equal(cpu.byteAt(0xff20), 0xff);
-    assert.equal(cpu.byteAt(0xff21), 0x00);
-    assert.equal(cpu.byteAt(0xff22), 0x00);
-    assert.equal(cpu.byteAt(0xff23), 0xbf);
-    assert.equal(cpu.byteAt(0xff24), 0x77);
-    assert.equal(cpu.byteAt(0xff25), 0xf3);
-    assert.equal(cpu.byteAt(0xff26), 0xf1);
-    assert.equal(cpu.byteAt(0xff40), 0x91);
-    assert.equal(cpu.byteAt(0xff42), 0x00);
-    assert.equal(cpu.byteAt(0xff43), 0x00);
-    assert.equal(cpu.byteAt(0xff45), 0x00);
-    assert.equal(cpu.byteAt(0xff47), 0xfc);
-    assert.equal(cpu.byteAt(0xff48), 0xff);
-    assert.equal(cpu.byteAt(0xff49), 0xff);
-    assert.equal(cpu.byteAt(0xff4a), 0x00);
-    assert.equal(cpu.byteAt(0xff4b), 0x00);
-    assert.equal(cpu.byteAt(0xffff), 0x00);
   });
 
   it('should execute instructions', () => {
@@ -152,7 +76,7 @@ describe('CPU', function() {
   it('should xor register a with memory address hl', () => {
     const a = cpu.a();
     const hl = cpu.hl();
-    const value = cpu.byteAt(hl);
+    const value = cpu.mmu.byteAt(hl);
     cpu.xor_hl();
     assert.equal(cpu.a(), a ^ value, `register a should be ${Utils.hexStr(a)} xor ${Utils.hexStr(value)}`);
   });
@@ -222,7 +146,7 @@ describe('CPU', function() {
     assertLoadA(cpu, cpu.de, cpu.ld_a_de);
     assertLoadA(cpu, cpu.hl, cpu.ld_a_hl);
 
-    const value = cpu.byteAt(0xabcd);
+    const value = cpu.mmu.byteAt(0xabcd);
     cpu.ld_a_nn(0xabcd);
     assert.equal(cpu.a(), value, 'load value at memory 0xabcd into a');
 
@@ -232,7 +156,7 @@ describe('CPU', function() {
 
   it('should put memory address hl into a and decrement hl', () => {
     const hl = cpu.hl();
-    const value = cpu.byteAt(hl);
+    const value = cpu.mmu.byteAt(hl);
     cpu.ldd_a_hl();
     assert.equal(cpu.a(), value, `register a has memory value ${value}`);
     assert.equal(cpu.hl(), hl - 1, 'hl is decremented 1');
@@ -243,7 +167,7 @@ describe('CPU', function() {
     const hl = 0xdfff;
     cpu.ld_hl_nn(hl);
     cpu.ldd_hl_a();
-    assert.equal(cpu.byteAt(hl), a, `memory ${Utils.hexStr(hl)} has value ${a}`);
+    assert.equal(cpu.mmu.byteAt(hl), a, `memory ${Utils.hexStr(hl)} has value ${a}`);
     assert.equal(cpu.hl(), hl - 1, 'hl is decremented by 1');
   });
 
@@ -286,10 +210,10 @@ describe('CPU', function() {
 
   it('should decrement a value at a memory location', () => {
     const value = 0xab;
-    cpu.writeByteAt(0xdfff, value);
+    cpu.mmu.writeByteAt(0xdfff, value);
     cpu.ld_hl_nn(0xdfff);
     cpu.dec_0x_hl();
-    assert.equal(cpu.byteAt(0xdfff), value - 1, 'Value at memory 0xdfff is decremented');
+    assert.equal(cpu.mmu.byteAt(0xdfff), value - 1, 'Value at memory 0xdfff is decremented');
   });
 
   it('should decrement 16 bits registers', () => {
