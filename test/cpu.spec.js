@@ -147,6 +147,11 @@ describe('CPU', function() {
     testSetGetFlag(cpu, cpu.setC, cpu.getC);
   });
 
+  it('should load load 16bits into register', () => {
+   cpu.ld_hl_nn(0xabcd);
+   assert.equal(cpu.hl(), 0xabcd);
+  });
+
 });
 
 function testSetGetFlag(cpu, setFn, getFn){

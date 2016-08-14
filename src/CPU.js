@@ -535,4 +535,24 @@ export default class CPU {
       Logger.error(`Cannot set flag C with ${value}`);
     }
   }
+
+  /**
+   * Loads 16 bits nn into hl.
+   * @param {number} 16 bits
+   */
+  ld_hl_nn(nn) {
+    this._ld_rr_nn('h', 'l', nn);
+  }
+
+  /**
+   * Loads MSB in r1, LSB in r2
+   * @param {string} r1
+   * @param {string} r2
+   * @param {number} 16 bits
+   * @private
+   */
+  _ld_rr_nn(r1, r2, nn){
+    this._r[r1] = ((nn & 0xff00) >> 8);
+    this._r[r2] = nn & 0x00ff;
+  }
 }
