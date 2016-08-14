@@ -213,10 +213,10 @@ describe('CPU', function() {
     assert.equal(cpu.a(), 0xab, 'load value 0xab into a');
   });
 
-  it('should put a into memory address hl and decrement hl', () => {
+  it('should put memory address hl into a and decrement hl', () => {
     const hl = cpu.hl();
     const value = cpu.byteAt(hl);
-    cpu.ldd_hl_a();
+    cpu.ldd_a_hl();
     assert.equal(cpu.a(), value, `register a has memory value ${value}`);
     assert.equal(cpu.hl(), hl - 1, 'hl is decremented 1');
   });

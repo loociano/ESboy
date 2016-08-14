@@ -786,7 +786,7 @@ export default class CPU {
   /**
    * Loads a with value at address hl. Decrements hl.
    */
-  ldd_hl_a(){
+  ldd_a_hl(){
     Logger.instr(this._r.pc, 'ldd a,[hl]');
     this._r.a = this.byteAt(this.hl());
     this.dec_hl();
