@@ -86,7 +86,13 @@ export default class CPU {
       0x01: {fn: this.ld_bc_nn, param: 2},
       0x11: {fn: this.ld_de_nn, param: 2},
       0x21: {fn: this.ld_hl_nn, param: 2},
-      0x31: {fn: this.ld_sp_nn, param: 2}
+      0x31: {fn: this.ld_sp_nn, param: 2},
+      0x06: {fn: this.ld_b_n, param: 1},
+      0x0e: {fn: this.ld_c_n, param: 1},
+      0x16: {fn: this.ld_d_n, param: 1},
+      0x1e: {fn: this.ld_e_n, param: 1},
+      0x26: {fn: this.ld_h_n, param: 1},
+      0x2e: {fn: this.ld_l_n, param: 1}
     };
 
     this.memory = new Buffer(this.ADDR_MAX + 1);
@@ -597,5 +603,69 @@ export default class CPU {
   _ld_rr_nn(r1, r2, nn){
     this._r[r1] = ((nn & 0xff00) >> 8);
     this._r[r2] = nn & 0x00ff;
+  }
+
+  /**
+   * Loads 8 bits into b
+   * @param n
+   */
+  ld_b_n(n){
+    Logger.instr(this._r.pc - 1, `ld b,${Utils.hexStr(n)}`);
+    this._ld_r_n('b', n);
+  }
+
+  /**
+   * Loads 8 bits into c
+   * @param n
+   */
+  ld_c_n(n){
+    Logger.instr(this._r.pc - 1, `ld c,${Utils.hexStr(n)}`);
+    this._ld_r_n('c', n);
+  }
+
+  /**
+   * Loads 8 bits into d
+   * @param n
+   */
+  ld_d_n(n){
+    Logger.instr(this._r.pc - 1, `ld d,${Utils.hexStr(n)}`);
+    this._ld_r_n('d', n);
+  }
+
+  /**
+   * Loads 8 bits into e
+   * @param n
+   */
+  ld_e_n(n){
+    Logger.instr(this._r.pc - 1, `ld e,${Utils.hexStr(n)}`);
+    this._ld_r_n('e', n);
+  }
+
+  /**
+   * Loads 8 bits into h
+   * @param n
+   */
+  ld_h_n(n){
+    Logger.instr(this._r.pc - 1, `ld h,${Utils.hexStr(n)}`);
+    this._ld_r_n('h', n);
+  }
+
+  /**
+   * Loads 8 bits into l
+   * @param n
+   */
+  ld_l_n(n){
+    Logger.instr(this._r.pc - 1, `ld l,${Utils.hexStr(n)}`);
+    this._ld_r_n('l', n);
+  }
+
+  /**
+   * Loads 8 bits into register r
+   * @param r
+   * @param n
+   * @private
+   */
+  _ld_r_n(r, n){
+    this._r[r] = n;
   }
 }
