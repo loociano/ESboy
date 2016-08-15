@@ -28,54 +28,54 @@ export default class CPU {
     };
 
     this.commands = {
-      0x00: {fn: this.nop, param: 0},
-      0x01: {fn: this.ld_bc_nn, param: 2},
-      0x05: {fn: this.dec_b, param: 0},
-      0x06: {fn: this.ld_b_n, param: 1},
-      0x0a: {fn: this.ld_a_bc, param: 0},
-      0x0b: {fn: this.dec_bc, param: 0},
-      0x0d: {fn: this.dec_c, param: 0},
-      0x0e: {fn: this.ld_c_n, param: 1},
-      0x11: {fn: this.ld_de_nn, param: 2},
-      0x15: {fn: this.dec_d, param: 0},
-      0x16: {fn: this.ld_d_n, param: 1},
-      0x1a: {fn: this.ld_a_de, param: 0},
-      0x1b: {fn: this.dec_de, param: 0},
-      0x1d: {fn: this.dec_e, param: 0},
-      0x1e: {fn: this.ld_e_n, param: 1},
-      0x20: {fn: this.jr_nz_n, param: 1},
-      0x21: {fn: this.ld_hl_nn, param: 2},
-      0x25: {fn: this.dec_h, param: 0},
-      0x2b: {fn: this.dec_hl, param: 0},
-      0x2d: {fn: this.dec_l, param: 0},
-      0x2e: {fn: this.ld_l_n, param: 1},
-      0x26: {fn: this.ld_h_n, param: 1},
-      0x31: {fn: this.ld_sp_nn, param: 2},
-      0x32: {fn: this.ldd_hl_a, param: 0},
-      0x35: {fn: this.dec_0x_hl, param: 0},
-      0x3a: {fn: this.ldd_a_hl, param: 0},
-      0x3b: {fn: this.dec_sp, param: 0},
-      0x3d: {fn: this.dec_a, param: 0},
-      0x3e: {fn: this.ld_a_n, param: 1},
-      0x78: {fn: this.ld_a_b, param: 0},
-      0x79: {fn: this.ld_a_c, param: 0},
-      0x7a: {fn: this.ld_a_d, param: 0},
-      0x7b: {fn: this.ld_a_e, param: 0},
-      0x7c: {fn: this.ld_a_h, param: 0},
-      0x7d: {fn: this.ld_a_l, param: 0},
-      0x7e: {fn: this.ld_a_hl, param: 0},
-      0x7f: {fn: this.ld_a_a, param: 0},
-      0xa8: {fn: this.xor_b, param: 0},
-      0xa9: {fn: this.xor_c, param: 0},
-      0xaa: {fn: this.xor_d, param: 0},
-      0xab: {fn: this.xor_e, param: 0},
-      0xac: {fn: this.xor_h, param: 0},
-      0xad: {fn: this.xor_l, param: 0},
-      0xae: {fn: this.xor_hl, param: 0},
-      0xaf: {fn: this.xor_a, param: 0},
-      0xc3: {fn: this.jp, param: 2},
-      0xee: {fn: this.xor_n, param: 1},
-      0xfa: {fn: this.ld_a_nn, param: 2}
+      0x00: {fn: this.nop, paramBytes: 0},
+      0x01: {fn: this.ld_bc_nn, paramBytes: 2},
+      0x05: {fn: this.dec_b, paramBytes: 0},
+      0x06: {fn: this.ld_b_n, paramBytes: 1},
+      0x0a: {fn: this.ld_a_bc, paramBytes: 0},
+      0x0b: {fn: this.dec_bc, paramBytes: 0},
+      0x0d: {fn: this.dec_c, paramBytes: 0},
+      0x0e: {fn: this.ld_c_n, paramBytes: 1},
+      0x11: {fn: this.ld_de_nn, paramBytes: 2},
+      0x15: {fn: this.dec_d, paramBytes: 0},
+      0x16: {fn: this.ld_d_n, paramBytes: 1},
+      0x1a: {fn: this.ld_a_de, paramBytes: 0},
+      0x1b: {fn: this.dec_de, paramBytes: 0},
+      0x1d: {fn: this.dec_e, paramBytes: 0},
+      0x1e: {fn: this.ld_e_n, paramBytes: 1},
+      0x20: {fn: this.jr_nz_n, paramBytes: 1},
+      0x21: {fn: this.ld_hl_nn, paramBytes: 2},
+      0x25: {fn: this.dec_h, paramBytes: 0},
+      0x2b: {fn: this.dec_hl, paramBytes: 0},
+      0x2d: {fn: this.dec_l, paramBytes: 0},
+      0x2e: {fn: this.ld_l_n, paramBytes: 1},
+      0x26: {fn: this.ld_h_n, paramBytes: 1},
+      0x31: {fn: this.ld_sp_nn, paramBytes: 2},
+      0x32: {fn: this.ldd_hl_a, paramBytes: 0},
+      0x35: {fn: this.dec_0x_hl, paramBytes: 0},
+      0x3a: {fn: this.ldd_a_hl, paramBytes: 0},
+      0x3b: {fn: this.dec_sp, paramBytes: 0},
+      0x3d: {fn: this.dec_a, paramBytes: 0},
+      0x3e: {fn: this.ld_a_n, paramBytes: 1},
+      0x78: {fn: this.ld_a_b, paramBytes: 0},
+      0x79: {fn: this.ld_a_c, paramBytes: 0},
+      0x7a: {fn: this.ld_a_d, paramBytes: 0},
+      0x7b: {fn: this.ld_a_e, paramBytes: 0},
+      0x7c: {fn: this.ld_a_h, paramBytes: 0},
+      0x7d: {fn: this.ld_a_l, paramBytes: 0},
+      0x7e: {fn: this.ld_a_hl, paramBytes: 0},
+      0x7f: {fn: this.ld_a_a, paramBytes: 0},
+      0xa8: {fn: this.xor_b, paramBytes: 0},
+      0xa9: {fn: this.xor_c, paramBytes: 0},
+      0xaa: {fn: this.xor_d, paramBytes: 0},
+      0xab: {fn: this.xor_e, paramBytes: 0},
+      0xac: {fn: this.xor_h, paramBytes: 0},
+      0xad: {fn: this.xor_l, paramBytes: 0},
+      0xae: {fn: this.xor_hl, paramBytes: 0},
+      0xaf: {fn: this.xor_a, paramBytes: 0},
+      0xc3: {fn: this.jp, paramBytes: 2},
+      0xee: {fn: this.xor_n, paramBytes: 1},
+      0xfa: {fn: this.ld_a_nn, paramBytes: 2}
     };
   }
 
@@ -165,18 +165,12 @@ export default class CPU {
    */
   execute() {
 
-    const command = this.getCommand(this.nextCommand());
-    const param = this._getInstrParams(command.param);
+    const command = this._getCommand(this._nextOpcode());
+    const param = this._getInstrParams(command.paramBytes);
 
-    Logger.state(this, command.fn, command.param, param);
-
-    if(command.fn === this.jp || command.fn === this.jr_nz_n){
-      command.fn.call(this, param);
-      return;
-    }
+    Logger.state(this, command.fn, command.paramBytes, param);
 
     command.fn.call(this, param);
-    this._r.pc++;
   }
 
   /**
@@ -187,9 +181,9 @@ export default class CPU {
   _getInstrParams(numBytes){
     let param;
     if(numBytes > 0){
-      param = this.mmu.byteAt(++this._r.pc);
+      param = this.mmu.byteAt(this._r.pc++);
       if (numBytes > 1){
-        param += this.mmu.byteAt(++this._r.pc) << 8;
+        param += this.mmu.byteAt(this._r.pc++) << 8;
       }
     }
     return param;
@@ -198,8 +192,9 @@ export default class CPU {
   /**
    * @param opcode
    * @returns {string} command given the opcode
+   * @private
    */
-  getCommand(opcode){
+  _getCommand(opcode){
     if (this.commands[opcode] != null){
       return this.commands[opcode];
     } else {
@@ -209,8 +204,18 @@ export default class CPU {
 
   /**
    * @return {number} next opcode
+   * @private
    */
-  nextCommand() {
+  _nextOpcode() {
+    return this.mmu.byteAt(this._r.pc++);
+  }
+
+  /**
+   * Peeks next command, without incrementing the pc.
+   * (for testing)
+   * @returns {number}
+   */
+  peekNextCommand(){
     return this.mmu.byteAt(this._r.pc);
   }
 
@@ -225,13 +230,18 @@ export default class CPU {
   /**
    * Does nothing
    */
-  nop(){
-  }
+  nop(){}
 
+  /**
+   * XOR register a, result in a.
+   */
   xor_a(){
     this._xor(this._r.a);
   }
 
+  /**
+   * XOR register b, result in a.
+   */
   xor_b(){
     this._xor(this._r.b);
   }
@@ -265,7 +275,8 @@ export default class CPU {
   }
 
   /**
-   * @param n
+   * XOR byte n with register a.
+   * @param {number} byte
    * @private
    */
   _xor(n){
@@ -276,14 +287,23 @@ export default class CPU {
     }
   }
 
+  /**
+   * Resets all flags.
+   */
   resetFlags(){
     this.setZ(0); this.setN(0); this.setH(0); this.setC(0);
   }
 
+  /**
+   * @returns {number} flag Z
+   */
   getZ(){
     return this._r._f >> 7;
   }
 
+  /**
+   * @param {0|1} flag Z
+   */
   setZ(value){
     if (value === 1){
       this._r._f |= 0x80;
@@ -294,10 +314,16 @@ export default class CPU {
     }
   }
 
+  /**
+   * @returns {number} flag N
+   */
   getN(){
     return (this._r._f & 0x40) >> 6;
   }
 
+  /**
+   * @param {0|1} flag N
+   */
   setN(value){
     if (value === 1){
       this._r._f |= 0x40;
@@ -308,10 +334,16 @@ export default class CPU {
     }
   }
 
+  /**
+   * @returns {0|1} flag H
+   */
   getH() {
     return (this._r._f & 0x20) >> 5;
   }
 
+  /**
+   * @param {0|1} flag H
+   */
   setH(value) {
     if (value === 1){
       this._r._f |= 0x20;
@@ -322,10 +354,16 @@ export default class CPU {
     }
   }
 
+  /**
+   * @returns {0|1} flag C
+   */
   getC() {
     return (this._r._f & 0x10) >> 4;
   }
 
+  /**
+   * @param {0|1} flag C
+   */
   setC(value) {
     if (value === 1){
       this._r._f |= 0x10;
@@ -648,8 +686,6 @@ export default class CPU {
    * @param {signed int} n
    */
   jr_nz_n(n){
-    this._r.pc++;
-
     if (this.getZ() === 0){
       this._r.pc += Utils.uint8ToInt8(n);
     }

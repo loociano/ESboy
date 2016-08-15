@@ -43,15 +43,15 @@ describe('CPU', function() {
 
   it('should execute instructions', () => {
 
-    assert.equal(cpu.nextCommand(), 0x00, 'Tetris starts with NOP (0x00)');
+    assert.equal(cpu.peekNextCommand(), 0x00, 'Tetris starts with NOP (0x00)');
     cpu.execute();
-    assert.equal(cpu.nextCommand(), 0xc3, 'c3 5001; JP 0x0150');
+    assert.equal(cpu.peekNextCommand(), 0xc3, 'c3 5001; JP 0x0150');
     cpu.execute();
-    assert.equal(cpu.pc(), 0x150);
-    assert.equal(cpu.nextCommand(), 0xc3, 'c3 8b02; JP 0x028b');
+    assert.equal(cpu.pc(), 0x0150);
+    assert.equal(cpu.peekNextCommand(), 0xc3, 'c3 8b02; JP 0x028b');
     cpu.execute();
     assert.equal(cpu.pc(), 0x028b);
-    assert.equal(cpu.nextCommand(), 0xaf, 'af; XOR a');
+    assert.equal(cpu.peekNextCommand(), 0xaf, 'af; XOR a');
 
   });
 
@@ -229,7 +229,7 @@ describe('CPU', function() {
     assert.equal(cpu.getZ(), 0, 'Z is reset');
     const pc = cpu.pc();
     cpu.jr_nz_n(0x05);
-    assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0x05) + 1, 'jump forward');
+    assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0x05), 'jump forward');
   });
 
   it('shold jump conditionally backwards', () => {
@@ -238,7 +238,7 @@ describe('CPU', function() {
     assert.equal(cpu.getZ(), 0, 'Z is reset');
     const pc = cpu.pc();
     cpu.jr_nz_n(0xfc);
-    assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0xfc) + 1, 'jump backward');
+    assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0xfc), 'jump backward');
   });
 
   it('shold jump not jump is last operation was zero', () => {
@@ -247,7 +247,7 @@ describe('CPU', function() {
     assert.equal(cpu.getZ(), 1, 'Z is set');
     const pc = cpu.pc();
     cpu.jr_nz_n(0xfc);
-    assert.equal(cpu.pc(), pc + 1, 'do not jump, move to the next instruction');
+    assert.equal(cpu.pc(), pc, 'do not jump, move to the next instruction');
   });
 
 });
