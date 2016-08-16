@@ -33,10 +33,9 @@ function createWindow() {
     win = null;
   });
 
-  new CPU('./roms/tetris.gb').start();
 }
 
-app.on('ready', createWindow);
+//app.on('ready', createWindow);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -49,3 +48,6 @@ app.on('activate', () => {
     createWindow();
   }
 });
+
+new CPU('./roms/tetris.gb').start();
+
