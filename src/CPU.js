@@ -76,6 +76,7 @@ export default class CPU {
       0xc3: {fn: this.jp, paramBytes: 2},
       0xe0: {fn: this.ldh_n_a, paramBytes: 1},
       0xee: {fn: this.xor_n, paramBytes: 1},
+      0xf0: {fn: this.ldh_a_n, paramBytes: 1},
       0xfb: {fn: this.ei, paramBytes: 0},
       0xf3: {fn: this.di, paramBytes: 0},
       0xfa: {fn: this.ld_a_nn, paramBytes: 2}
@@ -713,5 +714,9 @@ export default class CPU {
     if (n < 0xff){
       this.mmu.writeByteAt(0xff00 + n, this._r.a);
     }
+  }
+
+  ldh_a_n(n){
+    this._r.a = this.mmu.byteAt(0xff00 + n);
   }
 }
