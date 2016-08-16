@@ -74,7 +74,10 @@ export default class CPU {
       0xae: {fn: this.xor_hl, paramBytes: 0},
       0xaf: {fn: this.xor_a, paramBytes: 0},
       0xc3: {fn: this.jp, paramBytes: 2},
+      0xe0: {fn: this.ldh_n_a, paramBytes: 1},
       0xee: {fn: this.xor_n, paramBytes: 1},
+      0xfb: {fn: this.ei, paramBytes: 0},
+      0xf3: {fn: this.di, paramBytes: 0},
       0xfa: {fn: this.ld_a_nn, paramBytes: 2}
     };
   }
@@ -688,6 +691,26 @@ export default class CPU {
   jr_nz_n(n){
     if (this.getZ() === 0){
       this._r.pc += Utils.uint8ToInt8(n);
+    }
+  }
+
+  /** 
+   * Disables interruptions after executing the next instruction.
+   */
+  di(){
+    // TODO implement interrupts
+  }
+
+  /** 
+   * Enables interruptions after executing the next instruction.
+   */
+  ei(){
+    // TODO implement interrupts
+  }
+
+  ldh_n_a(n){
+    if (n < 0xff){
+      this.mmu.writeByteAt(0xff00 + n, this._r.a);
     }
   }
 }
