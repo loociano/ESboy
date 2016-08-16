@@ -203,7 +203,7 @@ export default class CPU {
     if (this.commands[opcode] != null){
       return this.commands[opcode];
     } else {
-      throw new Error(`[${Utils.hexStr(this._r.pc)}] ${Utils.hexStr(opcode)} opcode not implemented.`);
+      throw new Error(`[${Utils.hex4(this._r.pc - 1)}] ${Utils.hexStr(opcode)} opcode not implemented.`);
     }
   }
 
