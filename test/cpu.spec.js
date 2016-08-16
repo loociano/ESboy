@@ -250,6 +250,35 @@ describe('CPU', function() {
     assert.equal(cpu.pc(), pc, 'do not jump, move to the next instruction');
   });
 
+  it('should put a into memory address 0xff00 + 0', () => {
+
+    const value = cpu.mmu.byteAt(0xff00);
+    cpu.ld_a_n(0xab);
+    cpu.ldh_n_a(0);
+    assert.equal(cpu.mmu.byteAt(0xff00), 0xab, 'memory 0xff00 has value 0xab');
+
+  });
+
+  it('should put a into memory address 0xff00 + 0xfe', () => {
+
+    const value = cpu.mmu.byteAt(0xfffe);
+    cpu.ld_a_n(0xab);
+    cpu.ldh_n_a(0xfe);
+    assert.equal(cpu.mmu.byteAt(0xfffe), 0xab, 'memory 0xfffe has value 0xab');
+
+  });
+
+  it('should not write a into address 0xff00 + 0xff', () => {
+
+    const value = cpu.mmu.byteAt(0xfffe);
+    cpu.ld_a_n(0xab);
+    cpu.ldh_n_a(0xff);
+    assert.equal(cpu.mmu.byteAt(0xfffe), value, 'value at memory 0xffff does not change');
+
+  });
+
+
+
 });
 
 /**
