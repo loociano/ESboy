@@ -302,7 +302,7 @@ export default class CPU {
   /**
    * @returns {number} flag Z
    */
-  getZ(){
+  Z(){
     return this._r._f >> 7;
   }
 
@@ -322,7 +322,7 @@ export default class CPU {
   /**
    * @returns {number} flag N
    */
-  getN(){
+  N(){
     return (this._r._f & 0x40) >> 6;
   }
 
@@ -342,7 +342,7 @@ export default class CPU {
   /**
    * @returns {0|1} flag H
    */
-  getH() {
+  H() {
     return (this._r._f & 0x20) >> 5;
   }
 
@@ -362,7 +362,7 @@ export default class CPU {
   /**
    * @returns {0|1} flag C
    */
-  getC() {
+  C() {
     return (this._r._f & 0x10) >> 4;
   }
 
@@ -691,7 +691,7 @@ export default class CPU {
    * @param {signed int} n
    */
   jr_nz_n(n){
-    if (this.getZ() === 0){
+    if (this.Z() === 0){
       this._r.pc += Utils.uint8ToInt8(n);
     }
   }

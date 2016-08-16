@@ -82,19 +82,19 @@ describe('CPU', function() {
   });
 
   it('should set Flag Z', () => {
-    testSetGetFlag(cpu, cpu.setZ, cpu.getZ);
+    testSetGetFlag(cpu, cpu.setZ, cpu.Z);
   });
 
   it('should set Flag N', () => {
-    testSetGetFlag(cpu, cpu.setN, cpu.getN);
+    testSetGetFlag(cpu, cpu.setN, cpu.N);
   });
 
   it('should set Flag h', () => {
-    testSetGetFlag(cpu, cpu.setH, cpu.getH);
+    testSetGetFlag(cpu, cpu.setH, cpu.H);
   });
 
   it('should set Flag c', () => {
-    testSetGetFlag(cpu, cpu.setC, cpu.getC);
+    testSetGetFlag(cpu, cpu.setC, cpu.C);
   });
 
   it('should load 16 bits into register', () => {
@@ -185,27 +185,27 @@ describe('CPU', function() {
     cpu.ld_b_n(0xff);
     cpu.dec_b();
     assert.equal(cpu.b(), 0xfe);
-    assert.equal(cpu.getZ(), 0, 'Not result zero');
-    assert.equal(cpu.getN(), 1, 'Substracting');
-    assert.equal(cpu.getH(), 0, 'Not half carry');
+    assert.equal(cpu.Z(), 0, 'Not result zero');
+    assert.equal(cpu.N(), 1, 'Substracting');
+    assert.equal(cpu.H(), 0, 'Not half carry');
   });
 
   it('should set half carry on decrement', () => {
     cpu.ld_b_n(0xf0);
     cpu.dec_b();
     assert.equal(cpu.b(), 0xef);
-    assert.equal(cpu.getZ(), 0, 'Not result zero');
-    assert.equal(cpu.getN(), 1, 'Substracting');
-    assert.equal(cpu.getH(), 1, 'Half carry');
+    assert.equal(cpu.Z(), 0, 'Not result zero');
+    assert.equal(cpu.N(), 1, 'Substracting');
+    assert.equal(cpu.H(), 1, 'Half carry');
   });
 
   it('should loop value on decrement', () => {
     cpu.ld_a_n(0x00);
     cpu.dec_a();
     assert.equal(cpu.a(), 0xff, 'loop value');
-    assert.equal(cpu.getZ(), 0, 'Not result zero');
-    assert.equal(cpu.getN(), 1, 'Substracting');
-    assert.equal(cpu.getH(), 1, 'Half carry');
+    assert.equal(cpu.Z(), 0, 'Not result zero');
+    assert.equal(cpu.N(), 1, 'Substracting');
+    assert.equal(cpu.H(), 1, 'Half carry');
   });
 
   it('should decrement a value at a memory location', () => {
@@ -226,7 +226,7 @@ describe('CPU', function() {
   it('should jump conditionally forward', () => {
     cpu.ld_a_n(0x02);
     cpu.dec_a();
-    assert.equal(cpu.getZ(), 0, 'Z is reset');
+    assert.equal(cpu.Z(), 0, 'Z is reset');
     const pc = cpu.pc();
     cpu.jr_nz_n(0x05);
     assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0x05), 'jump forward');
@@ -235,7 +235,7 @@ describe('CPU', function() {
   it('shold jump conditionally backwards', () => {
     cpu.ld_a_n(0x02);
     cpu.dec_a();
-    assert.equal(cpu.getZ(), 0, 'Z is reset');
+    assert.equal(cpu.Z(), 0, 'Z is reset');
     const pc = cpu.pc();
     cpu.jr_nz_n(0xfc);
     assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0xfc), 'jump backward');
@@ -244,7 +244,7 @@ describe('CPU', function() {
   it('shold jump not jump is last operation was zero', () => {
     cpu.ld_a_n(0x01);
     cpu.dec_a();
-    assert.equal(cpu.getZ(), 1, 'Z is set');
+    assert.equal(cpu.Z(), 1, 'Z is set');
     const pc = cpu.pc();
     cpu.jr_nz_n(0xfc);
     assert.equal(cpu.pc(), pc, 'do not jump, move to the next instruction');
