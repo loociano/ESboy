@@ -295,6 +295,16 @@ describe('CPU', function() {
     assert.equal(cpu.a(), value, '(0xffff) into a');
   });
 
+  it('should compare with register a with value', () => {
+    const n = 0xab;
+    cpu.ld_a_n(0xab);
+    cpu.cp_n(n);
+    assert.equal(cpu.Z(), 0, 'Z=0 as a=n');
+    assert.equal(cpu.N(), 1, 'N is set');
+    assert.equal(cpu.H(), 0, 'Half carry happened');
+    assert.equal(cpu.C(), 0, 'A is not greater than n');
+  });
+
 });
 
 /**
