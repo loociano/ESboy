@@ -277,7 +277,23 @@ describe('CPU', function() {
 
   });
 
+  it('should put value at memory address 0xff00 + 0 into a', () => {
+    const value = cpu.mmu.byteAt(0xff00);
+    cpu.ldh_a_n(0);
+    assert.equal(cpu.a(), value, '(0xff00) into a');
+  });
 
+  it('should put value at memory address 0xff00 + 0xfe into a', () => {
+    const value = cpu.mmu.byteAt(0xff00 + 0xfe);
+    cpu.ldh_a_n(0xfe);
+    assert.equal(cpu.a(), value, '(0xfffe) into a');
+  });
+
+  it('should put value at memory address 0xff00 + 0xff into a', () => {
+    const value = cpu.mmu.byteAt(0xff00 + 0xff);
+    cpu.ldh_a_n(0xff);
+    assert.equal(cpu.a(), value, '(0xffff) into a');
+  });
 
 });
 
