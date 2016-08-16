@@ -161,6 +161,7 @@ export default class CPU {
     } catch(e){
       Logger.error(e);
     }
+    process.exit(0);
   }
 
   /**
