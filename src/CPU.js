@@ -73,13 +73,22 @@ export default class CPU {
       0xad: {fn: this.xor_l, paramBytes: 0},
       0xae: {fn: this.xor_hl, paramBytes: 0},
       0xaf: {fn: this.xor_a, paramBytes: 0},
+      0xb8: {fn: this.cp_b, paramBytes: 0},
+      0xb9: {fn: this.cp_c, paramBytes: 0},
+      0xba: {fn: this.cp_d, paramBytes: 0},
+      0xbb: {fn: this.cp_e, paramBytes: 0},
+      0xbc: {fn: this.cp_h, paramBytes: 0},
+      0xbd: {fn: this.cp_l, paramBytes: 0},
+      0xbe: {fn: this.cp_hl, paramBytes: 0},
+      0xbf: {fn: this.cp_a, paramBytes: 0},
       0xc3: {fn: this.jp, paramBytes: 2},
       0xe0: {fn: this.ldh_n_a, paramBytes: 1},
       0xee: {fn: this.xor_n, paramBytes: 1},
       0xf0: {fn: this.ldh_a_n, paramBytes: 1},
-      0xfb: {fn: this.ei, paramBytes: 0},
       0xf3: {fn: this.di, paramBytes: 0},
-      0xfa: {fn: this.ld_a_nn, paramBytes: 2}
+      0xfa: {fn: this.ld_a_nn, paramBytes: 2},
+      0xfb: {fn: this.ei, paramBytes: 0},
+      0xfe: {fn: this.cp_n, paramBytes: 1}
     };
   }
 
