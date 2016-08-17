@@ -375,6 +375,32 @@ describe('CPU', function() {
     assertFlagsCompareGreaterValue(cpu);
   });
 
+  it('should understand prefix cb instructions', () => {
+
+    const start = 0xc000; // internal RAM
+    cpu.mmu.writeByteAt(start, 0xcb);
+    cpu.mmu.writeByteAt(start+1, 0x7c);
+    cpu.jp(start);
+    cpu.execute();
+    assert.equal(cpu.pc(), start+2);
+  });
+
+  it('should test bits', () => {
+
+    cpu.ld_h_n(0x00);
+    cpu.bit_7_h();
+    assert.equal(cpu.Z(), 1, 'bit 7 is zero');
+    assert.equal(cpu.N(), 0, 'N always reset');
+    assert.equal(cpu.H(), 1, 'H always set');
+
+    cpu.ld_h_n(0b10000000);
+    cpu.bit_7_h();
+    assert.equal(cpu.Z(), 0, 'bit 7 is not zero');
+    assert.equal(cpu.N(), 0, 'N always reset');
+    assert.equal(cpu.H(), 1, 'H always set');
+
+  });
+
 });
 
 /**
