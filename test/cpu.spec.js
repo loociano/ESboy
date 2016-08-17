@@ -341,6 +341,33 @@ describe('CPU', function() {
     });
   });
 
+  it('should compare register a with value at memory address hl', () => {
+    
+    cpu.ld_a_n(0xab);
+    cpu.ld_hl_nn(0xfffe);
+
+    // Lower value
+    cpu.mmu.writeByteAt(cpu.hl(), 0x01);
+    cpu.cp_hl();
+    assert.equal(cpu.Z(), 0, 'Z not set as a > n');
+    assert.equal(cpu.N(), 1, 'N is always set');
+    assert.equal(cpu.C(), 0, 'a is greater than n');
+
+    // Equal value
+    cpu.mmu.writeByteAt(cpu.hl(), 0xab);
+    cpu.cp_hl();
+    assert.equal(cpu.Z(), 1, 'Z is set as a=n');
+    assert.equal(cpu.N(), 1, 'N is set');
+    assert.equal(cpu.C(), 0, 'a is not greater than n');
+
+    // Greater value
+    cpu.mmu.writeByteAt(cpu.hl(), 0xff);
+    cpu.cp_hl();
+    assert.equal(cpu.Z(), 0, 'Z reset as a < n');
+    assert.equal(cpu.N(), 1, 'N is always set');
+    assert.equal(cpu.C(), 1, 'a is greater than n');
+  });
+
   it('should compare register a with lower value n', () => {
     const n = 0x01;
     cpu.ld_a_n(0xab);
