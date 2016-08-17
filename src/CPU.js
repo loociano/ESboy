@@ -14,6 +14,8 @@ export default class CPU {
 
     if (!this.mmu.rom) return;
 
+    this.EXTENDED_PREFIX = 0xcb;
+
     this._r = {
       pc: this.mmu.ADDR_GAME_START,
       sp: this.mmu.ADDR_MAX - 1,
@@ -94,7 +96,12 @@ export default class CPU {
       0xfb: {fn: this.ei, paramBytes: 0},
       0xfe: {fn: this.cp_n, paramBytes: 1}
     };
+
+    this.extended = {
+      0x7c: {fn: this.bit_7_h, paramBytes: 0}
+    };
   }
+
 
   a(){
     return this._r.a;
@@ -183,7 +190,15 @@ export default class CPU {
    */
   execute() {
 
-    const command = this._getCommand(this._nextOpcode());
+    const opcode = this._nextOpcode();
+    let command;
+
+    if (opcode === this.EXTENDED_PREFIX){
+      command = this._getExtendedCommand(this._nextOpcode());
+    } else {
+      command = this._getCommand(opcode);
+    }
+
     const param = this._getInstrParams(command.paramBytes);
 
     Logger.state(this, command.fn, command.paramBytes, param);
@@ -212,11 +227,19 @@ export default class CPU {
    * @returns {string} command given the opcode
    * @private
    */
-  _getCommand(opcode){
-    if (this.commands[opcode] != null){
+  _getCommand(opcode) {
+    if (this.commands[opcode] != null) {
       return this.commands[opcode];
     } else {
       throw new Error(`[${Utils.hex4(this._r.pc - 1)}] ${Utils.hexStr(opcode)} opcode not implemented.`);
+    }
+  }
+
+  _getExtendedCommand(opcode) {
+    if (this.extended[opcode] != null) {
+      return this.extended[opcode];
+    } else {
+      throw new Error(`[${Utils.hex4(this._r.pc - 1)}] ${Utils.hexStr(opcode)} extended opcode not implemented.`);
     }
   }
 
@@ -775,5 +798,27 @@ export default class CPU {
     } else if (diff < 0){
        this.setC(1);
     }
+  }
+
+  /**
+   * Tests bit 7 in h
+   */
+  bit_7_h() {
+    this._bit_b_r(7, this._r.h);
+  }
+
+  /**
+   * Tests bit b in register r
+   * @param b
+   * @param r
+   * @private
+   */
+  _bit_b_r(b, r) {
+    if ((r & (1 << b)) >> b) {
+      this.setZ(0);
+    } else {
+      this.setZ(1);
+    }
+    this.setN(0); this.setH(1);
   }
 }
