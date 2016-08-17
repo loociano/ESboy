@@ -748,6 +748,10 @@ export default class CPU {
     this.cp_n(this._r.l);
   }
 
+  cp_hl(){
+    this.cp_n(this.mmu.byteAt(this.hl()));
+  }
+
   cp_n(n){
     
     this.setN(1); this.setZ(0); this.setC(0);
