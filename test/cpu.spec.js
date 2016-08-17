@@ -305,27 +305,35 @@ describe('CPU', function() {
 
   it('it should compare registers with register a', () => {
 
-    [cpu.cp_b].forEach(function(fn) {
+    [
+      {ld: cpu.ld_b_n, cp: cpu.cp_b},
+      {ld: cpu.ld_c_n, cp: cpu.cp_c},
+      {ld: cpu.ld_d_n, cp: cpu.cp_d},
+      {ld: cpu.ld_e_n, cp: cpu.cp_e},
+      {ld: cpu.ld_h_n, cp: cpu.cp_h},
+      {ld: cpu.ld_l_n, cp: cpu.cp_l}
+
+    ].forEach(function(fn) {
 
       cpu.ld_a_n(0xab);
 
       // Same value
-      cpu.ld_b_n(0xab);
-      fn.call(cpu);
+      fn.ld.call(cpu, 0xab);
+      fn.cp.call(cpu);
       assert.equal(cpu.Z(), 1, 'Z is set as a=r');
       assert.equal(cpu.N(), 1, 'N is always set');
       assert.equal(cpu.C(), 0, 'a is not greater than r');
 
       // Lower value
-      cpu.ld_b_n(0x01);
-      fn.call(cpu);
+      fn.ld.call(cpu, 0x01);
+      fn.cp.call(cpu);
       assert.equal(cpu.Z(), 0, 'Z not set as a > r');
       assert.equal(cpu.N(), 1, 'N is always set');
       assert.equal(cpu.C(), 0, 'a is not greater than r');
 
       // Greater value
-      cpu.ld_b_n(0xff);
-      fn.call(cpu);
+      fn.ld.call(cpu, 0xff);
+      fn.cp.call(cpu);
       assert.equal(cpu.Z(), 0, 'Z reset as a < r');
       assert.equal(cpu.N(), 1, 'N is always set');
       assert.equal(cpu.C(), 1, 'a is greater than r');
