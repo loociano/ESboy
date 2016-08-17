@@ -301,7 +301,6 @@ describe('CPU', function() {
     cpu.cp_n(n);
     assert.equal(cpu.Z(), 0, 'Z not set as a > n');
     assert.equal(cpu.N(), 1, 'N is always set');
-    assert.equal(cpu.H(), 1, 'No half carry');
     assert.equal(cpu.C(), 0, 'A is not greater than n');
   });
 
@@ -311,7 +310,6 @@ describe('CPU', function() {
     cpu.cp_n(n);
     assert.equal(cpu.Z(), 1, 'Z is set as a=n');
     assert.equal(cpu.N(), 1, 'N is set');
-    assert.equal(cpu.H(), 0, 'Half carry happened');
     assert.equal(cpu.C(), 0, 'A is not greater than n');
   });
 
@@ -321,18 +319,7 @@ describe('CPU', function() {
     cpu.cp_n(n);
     assert.equal(cpu.Z(), 0, 'Z reset as a < n');
     assert.equal(cpu.N(), 1, 'N is always set');
-    assert.equal(cpu.H(), 0, 'Half carry happened');
     assert.equal(cpu.C(), 1, 'A is not greater than n');
-  });
-
-  it('should compare register a and test half carry', () => {
-    const n = 0x10;
-    cpu.ld_a_n(0xff);
-    cpu.cp_n(n);
-    assert.equal(cpu.Z(), 0, 'Z reset as a != n');
-    assert.equal(cpu.N(), 1, 'N is always set');
-    assert.equal(cpu.H(), 1, 'Half carry happened');
-    assert.equal(cpu.C(), 0, 'A is not greater than n');
   });
 
 });
