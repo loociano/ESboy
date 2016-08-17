@@ -720,6 +720,34 @@ export default class CPU {
     this._r.a = this.mmu.byteAt(0xff00 + n);
   }
 
+  cp_a(){
+    this.cp_n(this._r.a);
+  }
+
+  cp_b(){
+    this.cp_n(this._r.b);
+  }
+
+  cp_c(){
+    this.cp_n(this._r.c);
+  }
+
+  cp_d(){
+    this.cp_n(this._r.d);
+  }
+
+  cp_e(){
+    this.cp_n(this._r.e);
+  }
+
+  cp_h(){
+    this.cp_n(this._r.h);
+  }
+
+  cp_l(){
+    this.cp_n(this._r.l);
+  }
+
   cp_n(n){
     
     this.setN(1); this.setZ(0); this.setC(0);
