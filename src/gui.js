@@ -1,5 +1,6 @@
 import {app, BrowserWindow, Menu, remote} from 'electron';
 import CPU from './CPU';
+import Logger from './Logger';
 
 let win;
 
@@ -49,5 +50,10 @@ app.on('activate', () => {
   }
 });
 
-new CPU('./roms/tetris.gb').start();
+let filename = process.argv[2];
+if (!filename) filename = './roms/tetris.gb';
+
+Logger.info(`Loading ${filename}`);
+
+new CPU(filename).start();
 

@@ -27,6 +27,10 @@ export default class CPU {
       l: 0x4d
     };
 
+    if (filename.indexOf('bios') != -1){
+      this._r.pc = 0;
+    }
+
     this.commands = {
       0x00: {fn: this.nop, paramBytes: 0},
       0x01: {fn: this.ld_bc_nn, paramBytes: 2},
