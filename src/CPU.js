@@ -719,4 +719,16 @@ export default class CPU {
   ldh_a_n(n){
     this._r.a = this.mmu.byteAt(0xff00 + n);
   }
+
+  cp_n(n){
+    
+    this.setN(1); this.setZ(0); this.setC(0);
+    var diff = this._r.a - n;
+    
+    if (diff == 0){
+      this.setZ(1);
+    } else if (diff < 0){
+       this.setC(1);
+    }
+  }
 }
