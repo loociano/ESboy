@@ -295,13 +295,51 @@ describe('CPU', function() {
     assert.equal(cpu.a(), value, '(0xffff) into a');
   });
 
+  it('should compare register a with itself', () => {
+    cpu.ld_a_n(0xab);
+    cpu.cp_a();
+    assert.equal(cpu.Z(), 1, 'Z is set as a=a');
+    assert.equal(cpu.N(), 1, 'N is always set');
+    assert.equal(cpu.C(), 0, 'a is not greater than a');
+  });
+
+  it('it should compare registers with register a', () => {
+
+    [cpu.cp_b].forEach(function(fn) {
+
+      cpu.ld_a_n(0xab);
+
+      // Same value
+      cpu.ld_b_n(0xab);
+      fn.call(cpu);
+      assert.equal(cpu.Z(), 1, 'Z is set as a=r');
+      assert.equal(cpu.N(), 1, 'N is always set');
+      assert.equal(cpu.C(), 0, 'a is not greater than r');
+
+      // Lower value
+      cpu.ld_b_n(0x01);
+      fn.call(cpu);
+      assert.equal(cpu.Z(), 0, 'Z not set as a > r');
+      assert.equal(cpu.N(), 1, 'N is always set');
+      assert.equal(cpu.C(), 0, 'a is not greater than r');
+
+      // Greater value
+      cpu.ld_b_n(0xff);
+      fn.call(cpu);
+      assert.equal(cpu.Z(), 0, 'Z reset as a < r');
+      assert.equal(cpu.N(), 1, 'N is always set');
+      assert.equal(cpu.C(), 1, 'a is greater than r');
+
+    });
+  });
+
   it('should compare register a with lower value n', () => {
     const n = 0x01;
     cpu.ld_a_n(0xab);
     cpu.cp_n(n);
     assert.equal(cpu.Z(), 0, 'Z not set as a > n');
     assert.equal(cpu.N(), 1, 'N is always set');
-    assert.equal(cpu.C(), 0, 'A is not greater than n');
+    assert.equal(cpu.C(), 0, 'a is greater than n');
   });
 
   it('should compare register a with equal value n', () => {
@@ -310,7 +348,7 @@ describe('CPU', function() {
     cpu.cp_n(n);
     assert.equal(cpu.Z(), 1, 'Z is set as a=n');
     assert.equal(cpu.N(), 1, 'N is set');
-    assert.equal(cpu.C(), 0, 'A is not greater than n');
+    assert.equal(cpu.C(), 0, 'a is not greater than n');
   });
 
   it('should compare register a with greater value n', () => {
@@ -319,7 +357,7 @@ describe('CPU', function() {
     cpu.cp_n(n);
     assert.equal(cpu.Z(), 0, 'Z reset as a < n');
     assert.equal(cpu.N(), 1, 'N is always set');
-    assert.equal(cpu.C(), 1, 'A is not greater than n');
+    assert.equal(cpu.C(), 1, 'a is greater than n');
   });
 
 });
