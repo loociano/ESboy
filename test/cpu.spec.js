@@ -298,9 +298,7 @@ describe('CPU', function() {
   it('should compare register a with itself', () => {
     cpu.ld_a_n(0xab);
     cpu.cp_a();
-    assert.equal(cpu.Z(), 1, 'Z is set as a=a');
-    assert.equal(cpu.N(), 1, 'N is always set');
-    assert.equal(cpu.C(), 0, 'a is not greater than a');
+    assertFlagsCompareEqualValue(cpu);
   });
 
   it('it should compare registers with register a', () => {
@@ -320,23 +318,17 @@ describe('CPU', function() {
       // Same value
       fn.ld.call(cpu, 0xab);
       fn.cp.call(cpu);
-      assert.equal(cpu.Z(), 1, 'Z is set as a=r');
-      assert.equal(cpu.N(), 1, 'N is always set');
-      assert.equal(cpu.C(), 0, 'a is not greater than r');
+      assertFlagsCompareEqualValue(cpu);
 
       // Lower value
       fn.ld.call(cpu, 0x01);
       fn.cp.call(cpu);
-      assert.equal(cpu.Z(), 0, 'Z not set as a > r');
-      assert.equal(cpu.N(), 1, 'N is always set');
-      assert.equal(cpu.C(), 0, 'a is not greater than r');
+      assertFlagsCompareLowerValue(cpu);
 
       // Greater value
       fn.ld.call(cpu, 0xff);
       fn.cp.call(cpu);
-      assert.equal(cpu.Z(), 0, 'Z reset as a < r');
-      assert.equal(cpu.N(), 1, 'N is always set');
-      assert.equal(cpu.C(), 1, 'a is greater than r');
+      assertFlagsCompareGreaterValue(cpu);
 
     });
   });
@@ -349,50 +341,38 @@ describe('CPU', function() {
     // Lower value
     cpu.mmu.writeByteAt(cpu.hl(), 0x01);
     cpu.cp_hl();
-    assert.equal(cpu.Z(), 0, 'Z not set as a > n');
-    assert.equal(cpu.N(), 1, 'N is always set');
-    assert.equal(cpu.C(), 0, 'a is greater than n');
+    assertFlagsCompareLowerValue(cpu);
 
     // Equal value
     cpu.mmu.writeByteAt(cpu.hl(), 0xab);
     cpu.cp_hl();
-    assert.equal(cpu.Z(), 1, 'Z is set as a=n');
-    assert.equal(cpu.N(), 1, 'N is set');
-    assert.equal(cpu.C(), 0, 'a is not greater than n');
+    assertFlagsCompareEqualValue(cpu);
 
     // Greater value
     cpu.mmu.writeByteAt(cpu.hl(), 0xff);
     cpu.cp_hl();
-    assert.equal(cpu.Z(), 0, 'Z reset as a < n');
-    assert.equal(cpu.N(), 1, 'N is always set');
-    assert.equal(cpu.C(), 1, 'a is greater than n');
+    assertFlagsCompareGreaterValue(cpu);
   });
 
   it('should compare register a with lower value n', () => {
     const n = 0x01;
     cpu.ld_a_n(0xab);
     cpu.cp_n(n);
-    assert.equal(cpu.Z(), 0, 'Z not set as a > n');
-    assert.equal(cpu.N(), 1, 'N is always set');
-    assert.equal(cpu.C(), 0, 'a is greater than n');
+    assertFlagsCompareLowerValue(cpu);
   });
 
   it('should compare register a with equal value n', () => {
     const n = 0xab;
     cpu.ld_a_n(0xab);
     cpu.cp_n(n);
-    assert.equal(cpu.Z(), 1, 'Z is set as a=n');
-    assert.equal(cpu.N(), 1, 'N is set');
-    assert.equal(cpu.C(), 0, 'a is not greater than n');
+    assertFlagsCompareEqualValue(cpu);
   });
 
   it('should compare register a with greater value n', () => {
     const n = 0xff;
     cpu.ld_a_n(0xab);
     cpu.cp_n(n);
-    assert.equal(cpu.Z(), 0, 'Z reset as a < n');
-    assert.equal(cpu.N(), 1, 'N is always set');
-    assert.equal(cpu.C(), 1, 'a is greater than n');
+    assertFlagsCompareGreaterValue(cpu);
   });
 
 });
@@ -428,4 +408,22 @@ function testSetGetFlag(cpu, setFn, getFn){
   assert.equal(getFn.call(cpu), 1, 'Flag=1');
   setFn.call(cpu, 0);
   assert.equal(getFn.call(cpu), 0, 'Flag=0');
+}
+
+function assertFlagsCompareGreaterValue(cpu){
+  assert.equal(cpu.Z(), 0, 'Z reset as a < n');
+  assert.equal(cpu.N(), 1, 'N is always set');
+  assert.equal(cpu.C(), 1, 'a is greater than n');
+}
+
+function assertFlagsCompareEqualValue(cpu){
+  assert.equal(cpu.Z(), 1, 'Z is set as a=n');
+  assert.equal(cpu.N(), 1, 'N is set');
+  assert.equal(cpu.C(), 0, 'a is not greater than n');
+}
+
+function assertFlagsCompareLowerValue(cpu){
+  assert.equal(cpu.Z(), 0, 'Z not set as a > n');
+  assert.equal(cpu.N(), 1, 'N is always set');
+  assert.equal(cpu.C(), 0, 'a is greater than n');
 }
