@@ -17,16 +17,28 @@ describe('MMU', () => {
     assert.equal(mmu.byteAt(0xc000), 0xab, 'write 0xab in memory address 0xc000');
   });
 
+  it('should not write in Interrupt Enable register', () => {
+    const ie = mmu.byteAt(0xffff);
+    mmu.writeByteAt(0xffff, 0xab);
+    assert.equal(mmu.byteAt(0xffff), ie, 'should not write on 0xffff');
+  });
+
   it('should not write bytes in ROM', () => {
-    assert.throws(() => {
-      mmu.writeByteAt(0x0000, 0xab);
-    }, Error, 'Cannot write in ROM');
-    assert.throws(() => {
-      mmu.writeByteAt(0x7fff, 0xab);
-    }, Error, 'Cannot write in ROM');
-    assert.doesNotThrow(() => {
-      mmu.writeByteAt(0x8000, 0xab);
-    }, Error, 'Can write above ROM banks');
+    
+    let addr = 0x0000;
+    let value = mmu.byteAt(addr);
+    mmu.writeByteAt(addr, 0xab);
+    assert.equal(mmu.byteAt(addr), value, `should not write on ${addr}`);
+
+    addr = 0x7fff;
+    value = mmu.byteAt(addr);
+    mmu.writeByteAt(addr, 0xab);
+    assert.equal(mmu.byteAt(addr), value, `should not write on ${addr}`);
+
+    addr = 0x8000;
+    mmu.writeByteAt(addr, 0xab);
+    assert.equal(mmu.byteAt(addr), 0xab, `can write on ${addr}`);
+  
   });
 
   it('should start the memory map', () => {
