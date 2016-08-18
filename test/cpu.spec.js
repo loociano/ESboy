@@ -406,9 +406,9 @@ describe('CPU', function() {
     const value = 0xab;
     const offset = 0x01;
     cpu.ld_c_n(offset);
-    cpu.ld_c_n(value);
+    cpu.ld_a_n(value);
     cpu.ld_0x_c_a();
-    assert.equal(cpu.mmy.byteAt(0xff00 + offset), value, 'value at memory address 0xff00 + c');
+    assert.equal(cpu.mmu.byteAt(0xff00 + offset), value, 'value at memory address 0xff00 + c');
 
   });
 
@@ -417,9 +417,9 @@ describe('CPU', function() {
     const offset = 0xff;
     const ie = cpu.ie();
     cpu.ld_c_n(offset);
-    cpu.ld_c_n(0xab);
+    cpu.ld_a_n(0xab);
     cpu.ld_0x_c_a();
-    assert.equal(cpu.mmy.byteAt(0xff00 + offset), ie, 'ie is not overriden.');
+    assert.equal(cpu.mmu.byteAt(0xff00 + offset), ie, 'ie is not overridden.');
 
   });
 
