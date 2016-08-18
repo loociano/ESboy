@@ -36,32 +36,40 @@ export default class CPU {
     this.commands = {
       0x00: {fn: this.nop, paramBytes: 0},
       0x01: {fn: this.ld_bc_nn, paramBytes: 2},
+      0x04: {fn: this.inc_c, paramBytes: 0},
       0x05: {fn: this.dec_b, paramBytes: 0},
       0x06: {fn: this.ld_b_n, paramBytes: 1},
       0x0a: {fn: this.ld_a_bc, paramBytes: 0},
       0x0b: {fn: this.dec_bc, paramBytes: 0},
+      0x0c: {fn: this.inc_c, paramBytes: 0},
       0x0d: {fn: this.dec_c, paramBytes: 0},
       0x0e: {fn: this.ld_c_n, paramBytes: 1},
       0x11: {fn: this.ld_de_nn, paramBytes: 2},
+      0x14: {fn: this.inc_d, paramBytes: 0},
       0x15: {fn: this.dec_d, paramBytes: 0},
       0x16: {fn: this.ld_d_n, paramBytes: 1},
       0x1a: {fn: this.ld_a_de, paramBytes: 0},
       0x1b: {fn: this.dec_de, paramBytes: 0},
+      0x1c: {fn: this.inc_e, paramBytes: 0},
       0x1d: {fn: this.dec_e, paramBytes: 0},
       0x1e: {fn: this.ld_e_n, paramBytes: 1},
       0x20: {fn: this.jr_nz_n, paramBytes: 1},
       0x21: {fn: this.ld_hl_nn, paramBytes: 2},
+      0x24: {fn: this.inc_h, paramBytes: 0},
       0x25: {fn: this.dec_h, paramBytes: 0},
       0x2b: {fn: this.dec_hl, paramBytes: 0},
+      0x2c: {fn: this.inc_l, paramBytes: 0},
       0x2d: {fn: this.dec_l, paramBytes: 0},
       0x2e: {fn: this.ld_l_n, paramBytes: 1},
       0x26: {fn: this.ld_h_n, paramBytes: 1},
       0x31: {fn: this.ld_sp_nn, paramBytes: 2},
       0x32: {fn: this.ldd_hl_a, paramBytes: 0},
+      0x34: {fn: this.inc_0x_hl, paramBytes: 0},
       0x35: {fn: this.dec_0x_hl, paramBytes: 0},
       0x3a: {fn: this.ldd_a_hl, paramBytes: 0},
       0x3b: {fn: this.dec_sp, paramBytes: 0},
       0x3d: {fn: this.dec_a, paramBytes: 0},
+      0x3c: {fn: this.inc_a, paramBytes: 0},
       0x3e: {fn: this.ld_a_n, paramBytes: 1},
       0x78: {fn: this.ld_a_b, paramBytes: 0},
       0x79: {fn: this.ld_a_c, paramBytes: 0},
@@ -860,6 +868,27 @@ export default class CPU {
 
   inc_l(){
     this._inc_r('l');
+  }
+
+  /**
+   * Increments the value at memory location hl by 1.
+   */
+  inc_0x_hl(){
+    let value = this.mmu.byteAt(this.hl());
+
+    if (value === 0xff){
+      this.mmu.writeByteAt(this.hl(), 0x00);
+      this.setZ(1);
+    } else {
+      this.mmu.writeByteAt(this.hl(), ++value);
+      this.setZ(0);
+    }
+    if (value === 0x10){
+      this.setH(1);
+    } else {
+      this.setH(0);
+    }
+    this.setN(0);
   }
 
   /**
