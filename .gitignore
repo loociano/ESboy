@@ -1,6 +1,7 @@
 lib
 node_modules
 tools
+roms
 
 # IDEs
 .idea
