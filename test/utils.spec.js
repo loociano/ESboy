@@ -25,4 +25,11 @@ describe('Utils', () => {
     assert.equal(Utils.uint8ToInt8(0x00), 0, 'Zero');
     assert.equal(Utils.uint8ToInt8(0x80), -128, 'Negative number');
   });
+
+  it('should pad 0 up to 1 byte', () => {
+    assert.equal(Utils.hex2(), '0x00');
+    assert.equal(Utils.hex2(0), '0x00');
+    assert.equal(Utils.hex2(15), '0x0f');
+    assert.equal(Utils.hex2(16), '0x10');
+  });
 });
