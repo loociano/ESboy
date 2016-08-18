@@ -5,11 +5,11 @@ import {describe, beforeEach, it} from 'mocha';
 
 describe('MMU', () => {
 
-  config.TEST = true;
+  config.DEBUG = true;
   let mmu;
 
   beforeEach(function() {
-    mmu = new MMU('./roms/tetris.gb');
+    mmu = new MMU('./roms/bios.gb');
   });
 
   it('should write bytes in memory', () => {

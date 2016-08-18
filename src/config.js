@@ -1,5 +1,5 @@
 const config = {
-  TEST: false
+  DEBUG: false
 };
 
 export default config;

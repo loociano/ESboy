@@ -6,7 +6,7 @@ import Utils from '../src/utils';
 
 describe('CPU', function() {
 
-  config.TEST = true;
+  config.DEBUG = true;
   let cpu;
 
   beforeEach(function() {

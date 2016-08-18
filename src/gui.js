@@ -1,6 +1,7 @@
 import {app, BrowserWindow, Menu, remote} from 'electron';
 import CPU from './cpu';
 import Logger from './logger';
+import config from './config';
 
 let win;
 
@@ -50,7 +51,21 @@ app.on('activate', () => {
   }
 });
 
-let filename = process.argv[2];
+// Game file
+let filename;
+
+// Options
+for(let i = 2; i < process.argv.length; i++){
+  const option = process.argv[i];
+  if (option.indexOf('--') > -1){
+    if (option === '--debug'){
+      config.DEBUG = true;
+    }
+  } else {
+    filename = option;
+  }
+}
+
 if (!filename) filename = './roms/bios.gb';
 
 Logger.info(`Loading ${filename}
