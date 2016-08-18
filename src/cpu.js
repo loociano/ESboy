@@ -833,4 +833,53 @@ export default class CPU {
   ld_0x_c_a(){
     this.mmu.writeByteAt(0xff00 + this._r.c, this._r.a);
   }
+
+  inc_a(){
+    this._inc_r('a');
+  }
+
+  inc_b(){
+    this._inc_r('b');
+  }
+
+  inc_c(){
+    this._inc_r('c');
+  }
+
+  inc_d(){
+    this._inc_r('d');
+  }
+
+  inc_e(){
+    this._inc_r('e');
+  }
+
+  inc_h(){
+    this._inc_r('h');
+  }
+
+  inc_l(){
+    this._inc_r('l');
+  }
+
+  /**
+   * Increases register r by 1.
+   * @param r
+   * @private
+   */
+  _inc_r(r){
+    if (this._r[r] === 0xff){
+      this._r[r] = 0x00;
+      this.setZ(1);
+    } else {
+      this._r[r]++;
+      this.setZ(0);
+    }
+    if (this._r[r] === 0x10){
+      this.setH(1);
+    } else {
+      this.setH(0);
+    }
+    this.setN(0);
+  }
 }
