@@ -410,6 +410,46 @@ describe('CPU', function() {
 
   });
 
+  it('should increment register by 1', () => {
+
+    [
+      {r: cpu.a, ld: cpu.ld_a_n, inc: cpu.inc_a},
+      {r: cpu.b, ld: cpu.ld_b_n, inc: cpu.inc_b},
+      {r: cpu.c, ld: cpu.ld_c_n, inc: cpu.inc_c},
+      {r: cpu.d, ld: cpu.ld_d_n, inc: cpu.inc_d},
+      {r: cpu.e, ld: cpu.ld_e_n, inc: cpu.inc_e},
+      {r: cpu.h, ld: cpu.ld_h_n, inc: cpu.inc_h},
+      {r: cpu.l, ld: cpu.ld_l_n, inc: cpu.inc_l}
+
+    ].forEach(function(fn){
+
+      fn.ld.call(cpu, 0x00);
+      let r = fn.r.call(cpu);
+      fn.inc.call(cpu);
+      assert.equal(fn.r.call(cpu), r+1, 'a incremented.');
+      assert.equal(cpu.Z(), 0, 'Z set if result is zero');
+      assert.equal(cpu.N(), 0, 'N is always reset');
+      assert.equal(cpu.H(), 0, 'H reset as no half carry');
+
+      fn.ld.call(cpu, 0x0f);
+      r = fn.r.call(cpu);
+      fn.inc.call(cpu);
+      assert.equal(fn.r.call(cpu), r+1, 'a incremented.');
+      assert.equal(cpu.Z(), 0, 'Z set if result is zero');
+      assert.equal(cpu.N(), 0, 'N is always reset');
+      assert.equal(cpu.H(), 1, 'H set as half carry');
+
+      fn.ld.call(cpu, 0xff);
+      r = fn.r.call(cpu);
+      fn.inc.call(cpu);
+      assert.equal(fn.r.call(cpu), 0x00, 'a resets to 0x00.');
+      assert.equal(cpu.Z(), 1, 'Z set if result is zero');
+      assert.equal(cpu.N(), 0, 'N is always reset');
+      assert.equal(cpu.H(), 0, 'H reset as no half carry');
+
+    });
+  });
+
 });
 
 /**
