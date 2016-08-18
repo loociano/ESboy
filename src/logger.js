@@ -16,6 +16,8 @@ export default class Logger {
   }
 
   static error(msg){
-    console.error(msg);
+    if (!config.TEST) {
+      console.error(msg);
+    }
   }
 }

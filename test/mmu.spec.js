@@ -6,6 +6,8 @@ import {describe, beforeEach, it} from 'mocha';
 describe('MMU', () => {
 
   config.DEBUG = false;
+  config.TEST = true;
+
   let mmu;
 
   beforeEach(function() {
