@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "babel src -d lib",
-    "test": "node ./node_modules/mocha/bin/_mocha --compilers js:babel-register",
+    "test": "mocha --compilers js:babel-register",
     "start": "npm run build && electron ./lib/gui.js"
   },
   "keywords": [],

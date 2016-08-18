@@ -1,5 +1,5 @@
 import Utils from './Utils';
-import Logger from './logger';
+import Logger from './Logger';
 import MMU from './mmu';
 
 export default class CPU {
