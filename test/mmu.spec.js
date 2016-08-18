@@ -5,7 +5,7 @@ import {describe, beforeEach, it} from 'mocha';
 
 describe('MMU', () => {
 
-  config.DEBUG = true;
+  config.DEBUG = false;
   let mmu;
 
   beforeEach(function() {
@@ -79,25 +79,29 @@ describe('MMU', () => {
     assert.equal(mmu.byteAt(0xffff), 0x00);
   });
 
-  it('should read the game header', () => {
-    assert.equal(mmu.getGameTitle(), 'TETRIS', 'should read title');
-    assert.equal(mmu.isGameInColor(), false, 'should not be gb color');
-    assert.equal(mmu.isGameSuperGB(), false, 'should not be super GB');
-    assert.equal(mmu.getCartridgeType(), 'ROM ONLY');
-    assert.equal(mmu.getRomSize(), '32KB');
-    assert.equal(mmu.getRAMSize(), 'None');
-    assert.equal(mmu.getDestinationCode(), 'Japanese');
-  });
+  describe.skip('ROM checks', () => {
 
-  it('should read the nintendo graphic buffer', () => {
+    it('should read the game header', () => {
+      assert.equal(mmu.getGameTitle(), 'TETRIS', 'should read title');
+      assert.equal(mmu.isGameInColor(), false, 'should not be gb color');
+      assert.equal(mmu.isGameSuperGB(), false, 'should not be super GB');
+      assert.equal(mmu.getCartridgeType(), 'ROM ONLY');
+      assert.equal(mmu.getRomSize(), '32KB');
+      assert.equal(mmu.getRAMSize(), 'None');
+      assert.equal(mmu.getDestinationCode(), 'Japanese');
+    });
 
-    const buf = new Buffer('CEED6666CC0D000B03730083000C000D0008' +
-      '111F8889000EDCCC6EE6DDDDD999BBBB67636E0EECCCDDDC999FBBB9333E', 'hex');
-    assert(mmu.getNintendoGraphicBuffer().equals(buf), 'Nintendo Graphic Buffer must match.');
-  });
+    it('should read the nintendo graphic buffer', () => {
 
-  it('should compute the checksum', () => {
-    assert(mmu.isChecksumCorrect());
+      const buf = new Buffer('CEED6666CC0D000B03730083000C000D0008' +
+        '111F8889000EDCCC6EE6DDDDD999BBBB67636E0EECCCDDDC999FBBB9333E', 'hex');
+      assert(mmu.getNintendoGraphicBuffer().equals(buf), 'Nintendo Graphic Buffer must match.');
+    });
+
+    it('should compute the checksum', () => {
+      assert(mmu.isChecksumCorrect());
+    });
+
   });
 
 });
