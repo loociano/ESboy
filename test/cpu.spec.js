@@ -401,6 +401,28 @@ describe('CPU', function() {
 
   });
 
+  it('should put a into memory address 0xff00 + c', () => {
+
+    const value = 0xab;
+    const offset = 0x01;
+    cpu.ld_c_n(offset);
+    cpu.ld_c_n(value);
+    cpu.ld_0x_c_a();
+    assert.equal(cpu.mmy.byteAt(0xff00 + offset), value, 'value at memory address 0xff00 + c');
+
+  });
+
+  it('should not write memory address 0xff00 + 0xff', () => {
+
+    const offset = 0xff;
+    const ie = cpu.ie();
+    cpu.ld_c_n(offset);
+    cpu.ld_c_n(0xab);
+    cpu.ld_0x_c_a();
+    assert.equal(cpu.mmy.byteAt(0xff00 + offset), ie, 'ie is not overriden.');
+
+  });
+
 });
 
 /**
