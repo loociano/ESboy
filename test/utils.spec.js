@@ -1,5 +1,6 @@
 import assert from 'assert';
-import Utils from '../src/Utils';
+import Utils from '../src/utils';
+import {describe, beforeEach, it} from 'mocha';
 
 describe('Utils', () => {
 

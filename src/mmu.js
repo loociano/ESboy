@@ -1,6 +1,6 @@
 import fs from 'fs';
-import Utils from './Utils';
-import Logger from './Logger';
+import Utils from './utils';
+import Logger from './logger';
 
 export default class MMU {
 

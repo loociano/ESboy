@@ -1,8 +1,8 @@
-import CPU from '../src/CPU';
+import CPU from '../src/cpu';
 import assert from 'assert';
 import config from '../src/config';
 import {describe, beforeEach, it} from 'mocha';
-import Utils from '../src/Utils';
+import Utils from '../src/utils';
 
 describe('CPU', function() {
 

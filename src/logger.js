@@ -1,5 +1,5 @@
 import config from './config';
-import Utils from './Utils';
+import Utils from './utils';
 
 export default class Logger {
 

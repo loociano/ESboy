@@ -1,4 +1,4 @@
-import MMU from '../src/MMU';
+import MMU from '../src/mmu';
 import assert from 'assert';
 import config from '../src/config';
 import {describe, beforeEach, it} from 'mocha';
