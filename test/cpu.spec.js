@@ -10,7 +10,7 @@ describe('CPU', function() {
   let cpu;
 
   beforeEach(function() {
-    cpu = new CPU('./roms/tetris.gb');
+    cpu = new CPU('./roms/bios.gb');
   });
 
   it('should handle missing ROM filename', () => {
@@ -31,7 +31,7 @@ describe('CPU', function() {
 
   it('should start with pc, sp and registers at right values', () => {
 
-    assert.equal(cpu.pc(), 0x100, 'Program Counter should start at 0x100');
+    assert.equal(cpu.pc(), 0x0000, 'Program Counter should start at 0x0000 in BIOS');
     assert.equal(cpu.a(), 0x01, 'Accumulator must start as 0x01 for GB');
     assert.equal(cpu.af(), 0x01b0, 'Register af must start as 0x01bc');
     assert.equal(cpu.f(), 0b1011, 'Flag register must start as 0b1011');
@@ -39,20 +39,6 @@ describe('CPU', function() {
     assert.equal(cpu.de(), 0x00d8, 'Register de must start as 0x00d8');
     assert.equal(cpu.hl(), 0x014d, 'Register hl must start as 0x014d');
     assert.equal(cpu.sp(), 0xfffe, 'Stack Pointer must start as 0xfffe');
-  });
-
-  it('should execute instructions', () => {
-
-    assert.equal(cpu.peekNextCommand(), 0x00, 'Tetris starts with NOP (0x00)');
-    cpu.execute();
-    assert.equal(cpu.peekNextCommand(), 0xc3, 'c3 5001; JP 0x0150');
-    cpu.execute();
-    assert.equal(cpu.pc(), 0x0150);
-    assert.equal(cpu.peekNextCommand(), 0xc3, 'c3 8b02; JP 0x028b');
-    cpu.execute();
-    assert.equal(cpu.pc(), 0x028b);
-    assert.equal(cpu.peekNextCommand(), 0xaf, 'af; XOR a');
-
   });
 
   it('should jump to address', () => {

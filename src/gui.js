@@ -51,9 +51,10 @@ app.on('activate', () => {
 });
 
 let filename = process.argv[2];
-if (!filename) filename = './roms/tetris.gb';
+if (!filename) filename = './roms/bios.gb';
 
-Logger.info(`Loading ${filename}`);
+Logger.info(`Loading ${filename}
+            `);
 
 new CPU(filename).start();
 
