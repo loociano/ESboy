@@ -139,6 +139,10 @@ export default class CPU {
     return this._r.sp;
   }
 
+  ie(){
+    return this.mmu.byteAt(0xffff);
+  }
+
   /**
    * @returns {number} Register af
    */
@@ -820,5 +824,12 @@ export default class CPU {
       this.setZ(1);
     }
     this.setN(0); this.setH(1);
+  }
+
+  /**
+   * Loads register a into memory address 0xff00 + c
+   */
+  ld_0x_c_a(){
+    this.mmu.writeByteAt(0xff00 + this._r.c, this._r.a);
   }
 }
