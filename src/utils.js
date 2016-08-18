@@ -16,6 +16,15 @@ export default class Utils {
     }
   }
 
+  static hex2(number){
+    if (number == null) return '0x00';
+    let hex = number.toString(16);
+    if (hex.length < 2){
+      hex = '0' + hex;
+    }
+    return `0x${hex}`;
+  }
+
   static uint8ToInt8(number){
     if ((number & 0x80) > 0) {
       number -= 0x100;
