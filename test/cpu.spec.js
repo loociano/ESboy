@@ -195,12 +195,15 @@ describe('CPU', function() {
     assert.equal(cpu.H(), 1, 'Half carry');
   });
 
+  // TODO decrement with 0x01 to assert flag Z
+
   it('should decrement a value at a memory location', () => {
     const value = 0xab;
     cpu.mmu.writeByteAt(0xdfff, value);
     cpu.ld_hl_nn(0xdfff);
     cpu.dec_0x_hl();
     assert.equal(cpu.mmu.byteAt(0xdfff), value - 1, 'Value at memory 0xdfff is decremented');
+    // TODO check flags
   });
 
   it('should decrement 16 bits registers', () => {
@@ -448,6 +451,42 @@ describe('CPU', function() {
       assert.equal(cpu.H(), 0, 'H reset as no half carry');
 
     });
+  });
+
+  it('should increment memory value at hl 0x00 by 1', () => {
+
+    const addr = 0xc000;
+    cpu.ld_hl_nn(addr);
+    let value = 0x00;
+    cpu.mmu.writeByteAt(addr, value);
+
+    cpu.inc_0x_hl();
+
+    assert.equal(cpu.mmu.byteAt(cpu.hl()), value+1, 'value at memory (hl) incremented.');
+    assert.equal(cpu.Z(), 0, 'Z set if result is zero');
+    assert.equal(cpu.N(), 0, 'N is always reset');
+    assert.equal(cpu.H(), 0, 'H reset as no half carry');
+
+    value = 0x0f;
+    cpu.mmu.writeByteAt(addr, value);
+
+    cpu.inc_0x_hl();
+
+    assert.equal(cpu.mmu.byteAt(cpu.hl()), value+1, 'value at memory (hl) incremented.');
+    assert.equal(cpu.Z(), 0, 'Z set if result is zero');
+    assert.equal(cpu.N(), 0, 'N is always reset');
+    assert.equal(cpu.H(), 1, 'H set as half carry');
+
+    value = 0xff;
+    cpu.mmu.writeByteAt(addr, value);
+
+    cpu.inc_0x_hl();
+
+    assert.equal(cpu.mmu.byteAt(cpu.hl()), 0x00, 'value at memory (hl) resets to 0x00.');
+    assert.equal(cpu.Z(), 1, 'Z set if result is zero');
+    assert.equal(cpu.N(), 0, 'N is always reset');
+    assert.equal(cpu.H(), 0, 'H reset as no half carry');
+
   });
 
 });
