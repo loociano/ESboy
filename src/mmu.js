@@ -1,5 +1,6 @@
 import fs from 'fs';
 import Utils from './Utils';
+import Logger from './Logger';
 
 export default class MMU {
 
@@ -130,11 +131,13 @@ export default class MMU {
    * @param {number} byte
    */
   writeByteAt(addr, n){
-    if (addr > this.ADDR_MAX || addr < 0 || addr <= this.ADDR_ROM_MAX){
-      throw new Error(`Cannot set memory address ${Utils.hexStr(addr)}`);
+    if (addr >= this.ADDR_MAX || addr < 0 || addr <= this.ADDR_ROM_MAX){
+      Logger.error(`Cannot set memory address ${Utils.hexStr(addr)}`);
+      return;
     }
     if (n < 0 || n > 0xff){
-      throw new Error(`Cannot write ${n} in memory, it has more than 8 bits`);
+      Logger.error(`Cannot write ${n} in memory, it has more than 8 bits`);
+      return;
     }
     this.memory[addr] = n;
   }
