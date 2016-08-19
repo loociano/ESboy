@@ -489,6 +489,40 @@ describe('CPU', function() {
 
   });
 
+  it('should copy register a into other registers and memory locations', () => {
+
+    cpu.ld_a_n(0xab);
+    cpu.ld_bc_nn(0xc000);
+    cpu.ld_de_nn(0xc001);
+    cpu.ld_hl_nn(0xc002);
+    const nn = 0xc003;
+
+    cpu.ld_a_a();
+    cpu.ld_b_a();
+    cpu.ld_c_a();
+    cpu.ld_d_a();
+    cpu.ld_e_a();
+    cpu.ld_h_a();
+    cpu.ld_l_a();
+    cpu.ld_0x_bc_a();
+    cpu.ld_0x_de_a();
+    cpu.ld_0x_hl_a();
+    cpu.ld_0x_nn_a(nn);
+    
+    assert.equal(cpu.a(), cpu.a(), 'copy a to a');
+    assert.equal(cpu.b(), cpu.a(), 'copy a to b');
+    assert.equal(cpu.c(), cpu.a(), 'copy a to c');
+    assert.equal(cpu.d(), cpu.a(), 'copy a to d');
+    assert.equal(cpu.e(), cpu.a(), 'copy a to e');
+    assert.equal(cpu.h(), cpu.a(), 'copy a to h');
+    assert.equal(cpu.l(), cpu.a(), 'copy a to l');
+    assert.equal(cpu.mmu.byteAt(cpu.bc()), cpu.a(), 'copy a to memory location bc');
+    assert.equal(cpu.mmu.byteAt(cpu.de()), cpu.a(), 'copy a to memory location de');
+    assert.equal(cpu.mmu.byteAt(cpu.hl()), cpu.a(), 'copy a to memory location hl');
+    assert.equal(cpu.mmu.byteAt(nn), cpu.a(), 'copy a to memory location nn');
+
+  });
+
 });
 
 /**
