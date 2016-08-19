@@ -36,6 +36,7 @@ export default class CPU {
     this.commands = {
       0x00: {fn: this.nop, paramBytes: 0},
       0x01: {fn: this.ld_bc_nn, paramBytes: 2},
+      0x02: {fn: this.ld_0x_bc_a, paramBytes: 0},
       0x04: {fn: this.inc_c, paramBytes: 0},
       0x05: {fn: this.dec_b, paramBytes: 0},
       0x06: {fn: this.ld_b_n, paramBytes: 1},
@@ -45,6 +46,7 @@ export default class CPU {
       0x0d: {fn: this.dec_c, paramBytes: 0},
       0x0e: {fn: this.ld_c_n, paramBytes: 1},
       0x11: {fn: this.ld_de_nn, paramBytes: 2},
+      0x12: {fn: this.ld_0x_de_a, paramBytes: 0},
       0x14: {fn: this.inc_d, paramBytes: 0},
       0x15: {fn: this.dec_d, paramBytes: 0},
       0x16: {fn: this.ld_d_n, paramBytes: 1},
@@ -71,6 +73,13 @@ export default class CPU {
       0x3d: {fn: this.dec_a, paramBytes: 0},
       0x3c: {fn: this.inc_a, paramBytes: 0},
       0x3e: {fn: this.ld_a_n, paramBytes: 1},
+      0x47: {fn: this.ld_b_a, paramBytes: 0},
+      0x4f: {fn: this.ld_c_a, paramBytes: 0},
+      0x57: {fn: this.ld_d_a, paramBytes: 0},
+      0x5f: {fn: this.ld_e_a, paramBytes: 0},
+      0x67: {fn: this.ld_h_a, paramBytes: 0},
+      0x6f: {fn: this.ld_l_a, paramBytes: 0},
+      0x77: {fn: this.ld_0x_hl_a, paramBytes: 0},
       0x78: {fn: this.ld_a_b, paramBytes: 0},
       0x79: {fn: this.ld_a_c, paramBytes: 0},
       0x7a: {fn: this.ld_a_d, paramBytes: 0},
@@ -98,6 +107,7 @@ export default class CPU {
       0xc3: {fn: this.jp, paramBytes: 2},
       0xe0: {fn: this.ldh_n_a, paramBytes: 1},
       0xe2: {fn: this.ld_0x_c_a, paramBytes: 0},
+      0xea: {fn: this.ld_0x_nn_a, paramBytes: 1},
       0xee: {fn: this.xor_n, paramBytes: 1},
       0xf0: {fn: this.ldh_a_n, paramBytes: 1},
       0xf3: {fn: this.di, paramBytes: 0},
@@ -910,5 +920,53 @@ export default class CPU {
       this.setH(0);
     }
     this.setN(0);
+  }
+
+  ld_b_a(){
+    this._ld_r_a('b');
+  }
+
+  ld_c_a(){
+    this._ld_r_a('c');
+  }
+
+  ld_d_a(){
+    this._ld_r_a('d');
+  }
+
+  ld_e_a(){
+    this._ld_r_a('e');
+  }
+
+  ld_h_a(){
+    this._ld_r_a('h');
+  }
+
+  ld_l_a(){
+    this._ld_r_a('l');
+  }
+
+  _ld_r_a(r){
+    this._r[r] = this._r.a;
+  }
+
+  ld_0x_bc_a(){
+    this._ld_0x_nn_a(this.bc());
+  }
+
+  ld_0x_de_a(){
+    this._ld_0x_nn_a(this.de());
+  }
+
+  ld_0x_hl_a(){
+    this._ld_0x_nn_a(this.hl());
+  }
+
+  ld_0x_nn_a(addr){
+    this._ld_0x_nn_a(addr);
+  }
+
+  _ld_0x_nn_a(addr){
+    this.mmu.writeByteAt(addr, this._r.a);
   }
 }
