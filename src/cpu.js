@@ -122,7 +122,7 @@ export default class CPU {
       0xfe: {fn: this.cp_n, paramBytes: 1}
     };
   }
-  
+
   a(){
     return this._r.a;
   }
@@ -160,7 +160,7 @@ export default class CPU {
   }
 
   ie(){
-    return this.mmu.byteAt(0xffff);
+    return this.mmu.readByteAt(0xffff);
   }
 
   /**
@@ -239,9 +239,9 @@ export default class CPU {
   _getInstrParams(numBytes){
     let param;
     if(numBytes > 0){
-      param = this.mmu.byteAt(this._r.pc++);
+      param = this.mmu.readByteAt(this._r.pc++);
       if (numBytes > 1){
-        param += this.mmu.byteAt(this._r.pc++) << 8;
+        param += this.mmu.readByteAt(this._r.pc++) << 8;
       }
     }
     return param;
@@ -265,7 +265,7 @@ export default class CPU {
    * @private
    */
   _nextOpcode() {
-    return this.mmu.byteAt(this._r.pc++);
+    return this.mmu.readByteAt(this._r.pc++);
   }
 
   /**
@@ -316,7 +316,7 @@ export default class CPU {
   }
 
   xor_hl(){
-    this._xor(this.mmu.byteAt(this.hl()));
+    this._xor(this.mmu.readByteAt(this.hl()));
   }
 
   xor_n(n){
@@ -578,28 +578,28 @@ export default class CPU {
    * Loads address memory of bc into a.
    */
   ld_a_bc(){
-    this.ld_a_n(this.mmu.byteAt(this.bc()));
+    this.ld_a_n(this.mmu.readByteAt(this.bc()));
   }
 
   /**
    * Loads address memory of de into a.
    */
   ld_a_de(){
-    this.ld_a_n(this.mmu.byteAt(this.de()));
+    this.ld_a_n(this.mmu.readByteAt(this.de()));
   }
 
   /**
    * Loads address memory of hl into a.
    */
   ld_a_hl(){
-    this.ld_a_n(this.mmu.byteAt(this.hl()));
+    this.ld_a_n(this.mmu.readByteAt(this.hl()));
   }
 
   /**
    * Loads address memory of nn into a.
    */
   ld_a_nn(nn){
-    this.ld_a_n(this.mmu.byteAt(nn));
+    this.ld_a_n(this.mmu.readByteAt(nn));
   }
 
   /**
@@ -614,7 +614,7 @@ export default class CPU {
    * Loads a with value at address hl. Decrements hl.
    */
   ldd_a_hl(){
-    this._r.a = this.mmu.byteAt(this.hl());
+    this._r.a = this.mmu.readByteAt(this.hl());
     this.dec_hl();
   }
 
@@ -686,7 +686,7 @@ export default class CPU {
   }
 
   dec_0x_hl(){
-    let value = this.mmu.byteAt(this.hl());
+    let value = this.mmu.readByteAt(this.hl());
     this.mmu.writeByteAt(this.hl(), --value);
   }
 
@@ -761,7 +761,7 @@ export default class CPU {
   }
 
   ldh_a_n(n){
-    this._r.a = this.mmu.byteAt(0xff00 + n);
+    this._r.a = this.mmu.readByteAt(0xff00 + n);
   }
 
   cp_a(){
@@ -793,7 +793,7 @@ export default class CPU {
   }
 
   cp_hl(){
-    this.cp_n(this.mmu.byteAt(this.hl()));
+    this.cp_n(this.mmu.readByteAt(this.hl()));
   }
 
   cp_n(n){
@@ -869,7 +869,7 @@ export default class CPU {
    * Increments the value at memory location hl by 1.
    */
   inc_0x_hl(){
-    let value = this.mmu.byteAt(this.hl());
+    let value = this.mmu.readByteAt(this.hl());
 
     if (value === 0xff){
       this.mmu.writeByteAt(this.hl(), 0x00);
