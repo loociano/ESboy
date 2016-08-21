@@ -31,4 +31,12 @@ export default class Utils {
     }
     return number;
   }
+
+  static lsb(word){
+    return word & 0x00ff;
+  }
+
+  static msb(word){
+    return (word & 0xff00) >> 8;
+  }
 }
