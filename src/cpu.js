@@ -4,6 +4,9 @@ import MMU from './mmu';
 
 export default class CPU {
 
+  /**
+   * @param {string} filename
+   */
   constructor(filename) {
 
     if (filename == null) {
@@ -29,7 +32,7 @@ export default class CPU {
       l: 0x4d
     };
 
-    if (filename.indexOf('bios') != -1){
+    if (filename.includes('bios')){
       this._r.pc = 0;
     }
 

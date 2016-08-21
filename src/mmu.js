@@ -4,6 +4,9 @@ import Logger from './logger';
 
 export default class MMU {
 
+  /**
+   * @param {string} filename
+   */
   constructor(filename){
 
     this.rom = this._load(filename);

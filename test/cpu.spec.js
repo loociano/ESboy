@@ -4,7 +4,7 @@ import config from '../src/config';
 import {describe, beforeEach, it} from 'mocha';
 import Utils from '../src/utils';
 
-describe('CPU', function() {
+describe('CPU Unit tests', function() {
 
   config.DEBUG = false;
   config.TEST = true;
@@ -222,7 +222,7 @@ describe('CPU', function() {
     assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0x05), 'jump forward');
   });
 
-  it('shold jump conditionally backwards', () => {
+  it('should jump conditionally backwards', () => {
     cpu.ld_a_n(0x02);
     cpu.dec_a();
     assert.equal(cpu.Z(), 0, 'Z is reset');
@@ -231,7 +231,7 @@ describe('CPU', function() {
     assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0xfc), 'jump backward');
   });
 
-  it('shold jump not jump is last operation was zero', () => {
+  it('should jump not jump is last operation was zero', () => {
     cpu.ld_a_n(0x01);
     cpu.dec_a();
     assert.equal(cpu.Z(), 1, 'Z is set');
