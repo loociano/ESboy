@@ -105,13 +105,17 @@ export default class CPU {
       0xbe: {fn: this.cp_hl, paramBytes: 0},
       0xbf: {fn: this.cp_a, paramBytes: 0},
       0xc3: {fn: this.jp, paramBytes: 2},
+      0xc5: {fn: this.push_bc, paramBytes: 0},
       0xcd: {fn: this.call, paramBytes: 2},
+      0xd5: {fn: this.push_de, paramBytes: 0},
       0xe0: {fn: this.ldh_n_a, paramBytes: 1},
       0xe2: {fn: this.ld_0x_c_a, paramBytes: 0},
+      0xe5: {fn: this.push_hl, paramBytes: 0},
       0xea: {fn: this.ld_0x_nn_a, paramBytes: 1},
       0xee: {fn: this.xor_n, paramBytes: 1},
       0xf0: {fn: this.ldh_a_n, paramBytes: 1},
       0xf3: {fn: this.di, paramBytes: 0},
+      0xf5: {fn: this.push_af, paramBytes: 0},
       0xfa: {fn: this.ld_a_nn, paramBytes: 2},
       0xfb: {fn: this.ei, paramBytes: 0},
       0xfe: {fn: this.cp_n, paramBytes: 1}
@@ -980,5 +984,44 @@ export default class CPU {
     this.mmu.writeByteAt(--this._r.sp, Utils.msb(this._r.pc));
     this.mmu.writeByteAt(--this._r.sp, Utils.lsb(this._r.pc));
     this._r.pc = addr;
+  }
+
+  /**
+   * Pushes register af into stack.
+   */
+  push_af(){
+    this._push('a', '_f');
+  }
+
+  /**
+   * Pushes register bc into stack.
+   */
+  push_bc(){
+    this._push('b', 'c');
+  }
+
+  /**
+   * Pushes register de into stack.
+   */
+  push_de(){
+    this._push('d', 'e');
+  }
+
+  /**
+   * Pushes register hl into stack.
+   */
+  push_hl(){
+    this._push('h', 'l');
+  }
+
+  /**
+   * Pushes register r1 and r2 into the stack. Decrements sp twice.
+   * @param r1
+   * @param r2
+   * @private
+   */
+  _push(r1, r2){
+    this.mmu.writeByteAt(--this._r.sp, this._r[r1]);
+    this.mmu.writeByteAt(--this._r.sp, this._r[r2]);
   }
 }
