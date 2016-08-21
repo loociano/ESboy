@@ -106,6 +106,7 @@ export default class CPU {
       0xbf: {fn: this.cp_a, paramBytes: 0},
       0xc3: {fn: this.jp, paramBytes: 2},
       0xc5: {fn: this.push_bc, paramBytes: 0},
+      0xcb7c: {fn: this.bit_7_h, paramBytes: 0},
       0xcd: {fn: this.call, paramBytes: 2},
       0xd5: {fn: this.push_de, paramBytes: 0},
       0xe0: {fn: this.ldh_n_a, paramBytes: 1},
@@ -120,13 +121,8 @@ export default class CPU {
       0xfb: {fn: this.ei, paramBytes: 0},
       0xfe: {fn: this.cp_n, paramBytes: 1}
     };
-
-    this.extended = {
-      0x7c: {fn: this.bit_7_h, paramBytes: 0}
-    };
   }
-
-
+  
   a(){
     return this._r.a;
   }
@@ -195,6 +191,9 @@ export default class CPU {
     return (this._r.h << 8) + this._r.l;
   }
 
+  /**
+   * @returns {number} flags (4 bits)
+   */
   f(){
     return (this._r._f & 0xF0) >> 4;
   }
@@ -218,15 +217,13 @@ export default class CPU {
    */
   execute() {
 
-    const opcode = this._nextOpcode();
-    let command;
+    let opcode = this._nextOpcode();
 
     if (opcode === this.EXTENDED_PREFIX){
-      command = this._getExtendedCommand(this._nextOpcode());
-    } else {
-      command = this._getCommand(opcode);
+      opcode = (opcode << 8) + this._nextOpcode();
     }
 
+    const command = this._getCommand(opcode);
     const param = this._getInstrParams(command.paramBytes);
 
     Logger.state(this, command.fn, command.paramBytes, param);
@@ -263,29 +260,12 @@ export default class CPU {
     }
   }
 
-  _getExtendedCommand(opcode) {
-    if (this.extended[opcode] != null) {
-      return this.extended[opcode];
-    } else {
-      throw new Error(`[${Utils.hex4(this._r.pc - 1)}] ${Utils.hexStr(opcode)} extended opcode not implemented.`);
-    }
-  }
-
   /**
    * @return {number} next opcode
    * @private
    */
   _nextOpcode() {
     return this.mmu.byteAt(this._r.pc++);
-  }
-
-  /**
-   * Peeks next command, without incrementing the pc.
-   * (for testing)
-   * @returns {number}
-   */
-  peekNextCommand(){
-    return this.mmu.byteAt(this._r.pc);
   }
 
   /**
