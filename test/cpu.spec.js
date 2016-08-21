@@ -537,6 +537,26 @@ describe('CPU', function() {
 
   });
 
+  it('should push registers into the stack', () => {
+
+    cpu.push_af();
+    assert.equal(cpu.mmu.byteAt(cpu.sp() + 1), cpu.a(), 'store a into stack');
+    assert.equal(cpu.mmu.byteAt(cpu.sp()), cpu.f() << 4, 'store f into stack');
+
+    cpu.push_bc();
+    assert.equal(cpu.mmu.byteAt(cpu.sp() + 1), cpu.b(), 'store b into stack');
+    assert.equal(cpu.mmu.byteAt(cpu.sp()), cpu.c(), 'store c into stack');
+
+    cpu.push_de();
+    assert.equal(cpu.mmu.byteAt(cpu.sp() + 1), cpu.d(), 'store d into stack');
+    assert.equal(cpu.mmu.byteAt(cpu.sp()), cpu.e(), 'store e into stack');
+
+    cpu.push_hl();
+    assert.equal(cpu.mmu.byteAt(cpu.sp() + 1), cpu.h(), 'store h into stack');
+    assert.equal(cpu.mmu.byteAt(cpu.sp()), cpu.l(), 'store l into stack');
+
+  });
+
 });
 
 /**
