@@ -105,6 +105,7 @@ export default class CPU {
       0xbe: {fn: this.cp_hl, paramBytes: 0},
       0xbf: {fn: this.cp_a, paramBytes: 0},
       0xc3: {fn: this.jp, paramBytes: 2},
+      0xcd: {fn: this.call, paramBytes: 2},
       0xe0: {fn: this.ldh_n_a, paramBytes: 1},
       0xe2: {fn: this.ld_0x_c_a, paramBytes: 0},
       0xea: {fn: this.ld_0x_nn_a, paramBytes: 1},
@@ -968,5 +969,16 @@ export default class CPU {
 
   _ld_0x_nn_a(addr){
     this.mmu.writeByteAt(addr, this._r.a);
+  }
+
+  /**
+   * Calls a routine at a given address, saving the pc in the
+   * stack.
+   * @param addr
+   */
+  call(addr){
+    this.mmu.writeByteAt(--this._r.sp, Utils.msb(this._r.pc));
+    this.mmu.writeByteAt(--this._r.sp, Utils.lsb(this._r.pc));
+    this._r.pc = addr;
   }
 }

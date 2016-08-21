@@ -523,6 +523,20 @@ describe('CPU', function() {
 
   });
 
+  it('should call a routine', () => {
+
+    const pc = cpu.pc();
+    const sp = cpu.sp();
+    const addr = 0x1234;
+
+    cpu.call(addr);
+    assert.equal(cpu.mmu.byteAt(sp - 1), Utils.msb(pc), 'store the lsb into stack');
+    assert.equal(cpu.mmu.byteAt(sp - 2), Utils.lsb(pc), 'store the msb into stack');
+    assert.equal(cpu.sp(), sp - 2, 'sp moved down 2 bytes');
+    assert.equal(cpu.pc(), addr, 'jump to address');
+
+  });
+
 });
 
 /**
