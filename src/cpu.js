@@ -53,6 +53,7 @@ export default class CPU {
       0x14: {fn: this.inc_d, paramBytes: 0},
       0x15: {fn: this.dec_d, paramBytes: 0},
       0x16: {fn: this.ld_d_n, paramBytes: 1},
+      0x17: {fn: this.rla, paramBytes: 0},
       0x1a: {fn: this.ld_a_de, paramBytes: 0},
       0x1b: {fn: this.dec_de, paramBytes: 0},
       0x1c: {fn: this.inc_e, paramBytes: 0},
@@ -1020,6 +1021,10 @@ export default class CPU {
     this._rl_r('a');
   }
 
+  rla(){
+    this.rl_a();
+  }
+
   rl_b(){
     this._rl_r('b');
   }
@@ -1051,13 +1056,9 @@ export default class CPU {
    */
   _rl_r(r){
 
-    if ((this._r[r] & 0x80) > 0){
-      this.setC(1);
-    } else {
-      this.setC(0);
-    }
-
-    this._r[r] = (this._r[r] << 1) & 0xff;
+    const rotated = (this._r[r] << 1) + this.C();
+    this._r[r] = rotated & 0xff;
+    this.setC((rotated & 0x100) >> 8);
 
     if (this._r[r] === 0){
       this.setZ(1);

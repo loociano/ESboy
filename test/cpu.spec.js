@@ -584,9 +584,10 @@ describe('CPU Unit tests', function() {
       {r: cpu.h, ld: cpu.ld_h_n, rl: cpu.rl_h},
       {r: cpu.l, ld: cpu.ld_l_n, rl: cpu.rl_l} ].map( (fn) => {
 
+      cpu.setC(0);
       fn.ld.call(cpu, 0x80);
       fn.rl.call(cpu);
-      assert.equal(fn.r.call(cpu), 0x00, 'l rotated left');
+      assert.equal(fn.r.call(cpu), 0x00, `${fn.r.name} rotated left`);
       assert.equal(cpu.Z(), 1, 'Result was zero');
       assert.equal(cpu.N(), 0, 'N reset');
       assert.equal(cpu.H(), 0, 'H reset');
@@ -603,6 +604,19 @@ describe('CPU Unit tests', function() {
     assert.equal(cpu.N(), 0, 'N reset');
     assert.equal(cpu.H(), 0, 'H reset');
     assert.equal(cpu.C(), 0, 'C reset');
+
+  });
+
+  it('should rotate a to the left', () => {
+
+    cpu.setC(1);
+    cpu.ld_a_n(           0b10010101);
+    cpu.rla();
+    assert.equal(cpu.a(), 0b00101011, 'Rotate a left');
+    assert.equal(cpu.Z(), 0, 'Result was positive');
+    assert.equal(cpu.N(), 0, 'N reset');
+    assert.equal(cpu.H(), 0, 'H reset');
+    assert.equal(cpu.C(), 1, 'Carry 1');
 
   });
 
