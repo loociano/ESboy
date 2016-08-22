@@ -131,7 +131,7 @@ describe('CPU Unit tests', function() {
       {r2: cpu.h, r1: cpu.a, ld: cpu.ld_a_h},
       {r2: cpu.l, r1: cpu.a, ld: cpu.ld_a_l}
 
-    ].forEach(function(param){
+    ].map( (param) => {
       const value = param.r2.call(cpu);
       param.ld.call(cpu);
       assert.equal(param.r1.call(cpu), value, `load ${param.r2.name} into ${param.r1.name}`);
@@ -141,15 +141,14 @@ describe('CPU Unit tests', function() {
 
   it('should copy memory locations into register a', () => {
 
-    [
-      {r2: cpu.bc, r1: cpu.a, ld: cpu.ld_a_bc},
+    [ {r2: cpu.bc, r1: cpu.a, ld: cpu.ld_a_bc},
       {r2: cpu.de, r1: cpu.a, ld: cpu.ld_a_de},
-      {r2: cpu.hl, r1: cpu.a, ld: cpu.ld_a_hl}
-    
-    ].forEach(function(param){
-      const value = cpu.mmu.byteAt(param.r2.call(cpu));
+      {r2: cpu.hl, r1: cpu.a, ld: cpu.ld_a_hl} ].map( (param) => {
+
+      const value = cpu.mmu.readByteAt(param.r2.call(cpu));
       param.ld.call(cpu);
       assert.equal(param.r1.call(cpu), value, `load ${param.r2.name} into ${param.r1.name}`);
+    
     });
 
     const value = cpu.mmu.readByteAt(0xabcd);
@@ -317,15 +316,12 @@ describe('CPU Unit tests', function() {
 
   it('it should compare registers with register a', () => {
 
-    [
-      {ld: cpu.ld_b_n, cp: cpu.cp_b},
+    [ {ld: cpu.ld_b_n, cp: cpu.cp_b},
       {ld: cpu.ld_c_n, cp: cpu.cp_c},
       {ld: cpu.ld_d_n, cp: cpu.cp_d},
       {ld: cpu.ld_e_n, cp: cpu.cp_e},
       {ld: cpu.ld_h_n, cp: cpu.cp_h},
-      {ld: cpu.ld_l_n, cp: cpu.cp_l}
-
-    ].forEach(function(fn) {
+      {ld: cpu.ld_l_n, cp: cpu.cp_l} ].map( (fn) => {
 
       cpu.ld_a_n(0xab);
 
@@ -439,16 +435,13 @@ describe('CPU Unit tests', function() {
 
   it('should increment register by 1', () => {
 
-    [
-      {r: cpu.a, ld: cpu.ld_a_n, inc: cpu.inc_a},
+    [ {r: cpu.a, ld: cpu.ld_a_n, inc: cpu.inc_a},
       {r: cpu.b, ld: cpu.ld_b_n, inc: cpu.inc_b},
       {r: cpu.c, ld: cpu.ld_c_n, inc: cpu.inc_c},
       {r: cpu.d, ld: cpu.ld_d_n, inc: cpu.inc_d},
       {r: cpu.e, ld: cpu.ld_e_n, inc: cpu.inc_e},
       {r: cpu.h, ld: cpu.ld_h_n, inc: cpu.inc_h},
-      {r: cpu.l, ld: cpu.ld_l_n, inc: cpu.inc_l}
-
-    ].forEach(function(fn){
+      {r: cpu.l, ld: cpu.ld_l_n, inc: cpu.inc_l} ].map( (fn) => {
 
       fn.ld.call(cpu, 0x00);
       let r = fn.r.call(cpu);
