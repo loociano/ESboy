@@ -574,6 +574,26 @@ describe('CPU Unit tests', function() {
 
   });
 
+  it('should pop registers into the stack', () => {
+
+    [ {r: cpu.af, pop: cpu.pop_af},
+      {r: cpu.bc, pop: cpu.pop_bc},
+      {r: cpu.de, pop: cpu.pop_de},
+      {r: cpu.hl, pop: cpu.pop_hl} ].map( (i) => {
+
+      let sp = cpu.sp(); // sp: 0xfffe
+      cpu.mmu.writeByteAt(--sp, 0xab); // sp: 0xfffd
+      cpu.mmu.writeByteAt(--sp, 0xcd); // sp: 0xfffc
+      cpu.ld_sp_nn(sp);
+
+      i.pop.call(cpu);
+      assert.equal(i.r.call(cpu), 0xabcd, `Pop into ${i.r.name}`);
+      assert.equal(cpu.sp(), sp + 2, 'sp incremented twice');
+
+    });
+
+  });
+
   it('should rotate registers left', () => {
 
     [ {r: cpu.a, ld: cpu.ld_a_n, rl: cpu.rl_a},
