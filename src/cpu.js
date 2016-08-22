@@ -4,6 +4,9 @@ import MMU from './mmu';
 
 export default class CPU {
 
+  /**
+   * @param {string} filename
+   */
   constructor(filename) {
 
     if (filename == null) {
@@ -29,7 +32,7 @@ export default class CPU {
       l: 0x4d
     };
 
-    if (filename.indexOf('bios') != -1){
+    if (filename.includes('bios')){
       this._r.pc = 0;
     }
 
@@ -105,22 +108,23 @@ export default class CPU {
       0xbe: {fn: this.cp_hl, paramBytes: 0},
       0xbf: {fn: this.cp_a, paramBytes: 0},
       0xc3: {fn: this.jp, paramBytes: 2},
+      0xc5: {fn: this.push_bc, paramBytes: 0},
+      0xcb7c: {fn: this.bit_7_h, paramBytes: 0},
+      0xcd: {fn: this.call, paramBytes: 2},
+      0xd5: {fn: this.push_de, paramBytes: 0},
       0xe0: {fn: this.ldh_n_a, paramBytes: 1},
       0xe2: {fn: this.ld_0x_c_a, paramBytes: 0},
+      0xe5: {fn: this.push_hl, paramBytes: 0},
       0xea: {fn: this.ld_0x_nn_a, paramBytes: 1},
       0xee: {fn: this.xor_n, paramBytes: 1},
       0xf0: {fn: this.ldh_a_n, paramBytes: 1},
       0xf3: {fn: this.di, paramBytes: 0},
+      0xf5: {fn: this.push_af, paramBytes: 0},
       0xfa: {fn: this.ld_a_nn, paramBytes: 2},
       0xfb: {fn: this.ei, paramBytes: 0},
       0xfe: {fn: this.cp_n, paramBytes: 1}
     };
-
-    this.extended = {
-      0x7c: {fn: this.bit_7_h, paramBytes: 0}
-    };
   }
-
 
   a(){
     return this._r.a;
@@ -159,7 +163,7 @@ export default class CPU {
   }
 
   ie(){
-    return this.mmu.byteAt(0xffff);
+    return this.mmu.readByteAt(0xffff);
   }
 
   /**
@@ -190,6 +194,9 @@ export default class CPU {
     return (this._r.h << 8) + this._r.l;
   }
 
+  /**
+   * @returns {number} flags (4 bits)
+   */
   f(){
     return (this._r._f & 0xF0) >> 4;
   }
@@ -213,15 +220,13 @@ export default class CPU {
    */
   execute() {
 
-    const opcode = this._nextOpcode();
-    let command;
+    let opcode = this._nextOpcode();
 
     if (opcode === this.EXTENDED_PREFIX){
-      command = this._getExtendedCommand(this._nextOpcode());
-    } else {
-      command = this._getCommand(opcode);
+      opcode = (opcode << 8) + this._nextOpcode();
     }
 
+    const command = this._getCommand(opcode);
     const param = this._getInstrParams(command.paramBytes);
 
     Logger.state(this, command.fn, command.paramBytes, param);
@@ -237,9 +242,9 @@ export default class CPU {
   _getInstrParams(numBytes){
     let param;
     if(numBytes > 0){
-      param = this.mmu.byteAt(this._r.pc++);
+      param = this.mmu.readByteAt(this._r.pc++);
       if (numBytes > 1){
-        param += this.mmu.byteAt(this._r.pc++) << 8;
+        param += this.mmu.readByteAt(this._r.pc++) << 8;
       }
     }
     return param;
@@ -258,29 +263,12 @@ export default class CPU {
     }
   }
 
-  _getExtendedCommand(opcode) {
-    if (this.extended[opcode] != null) {
-      return this.extended[opcode];
-    } else {
-      throw new Error(`[${Utils.hex4(this._r.pc - 1)}] ${Utils.hexStr(opcode)} extended opcode not implemented.`);
-    }
-  }
-
   /**
    * @return {number} next opcode
    * @private
    */
   _nextOpcode() {
-    return this.mmu.byteAt(this._r.pc++);
-  }
-
-  /**
-   * Peeks next command, without incrementing the pc.
-   * (for testing)
-   * @returns {number}
-   */
-  peekNextCommand(){
-    return this.mmu.byteAt(this._r.pc);
+    return this.mmu.readByteAt(this._r.pc++);
   }
 
   /**
@@ -331,7 +319,7 @@ export default class CPU {
   }
 
   xor_hl(){
-    this._xor(this.mmu.byteAt(this.hl()));
+    this._xor(this.mmu.readByteAt(this.hl()));
   }
 
   xor_n(n){
@@ -593,28 +581,28 @@ export default class CPU {
    * Loads address memory of bc into a.
    */
   ld_a_bc(){
-    this.ld_a_n(this.mmu.byteAt(this.bc()));
+    this.ld_a_n(this.mmu.readByteAt(this.bc()));
   }
 
   /**
    * Loads address memory of de into a.
    */
   ld_a_de(){
-    this.ld_a_n(this.mmu.byteAt(this.de()));
+    this.ld_a_n(this.mmu.readByteAt(this.de()));
   }
 
   /**
    * Loads address memory of hl into a.
    */
   ld_a_hl(){
-    this.ld_a_n(this.mmu.byteAt(this.hl()));
+    this.ld_a_n(this.mmu.readByteAt(this.hl()));
   }
 
   /**
    * Loads address memory of nn into a.
    */
   ld_a_nn(nn){
-    this.ld_a_n(this.mmu.byteAt(nn));
+    this.ld_a_n(this.mmu.readByteAt(nn));
   }
 
   /**
@@ -629,7 +617,7 @@ export default class CPU {
    * Loads a with value at address hl. Decrements hl.
    */
   ldd_a_hl(){
-    this._r.a = this.mmu.byteAt(this.hl());
+    this._r.a = this.mmu.readByteAt(this.hl());
     this.dec_hl();
   }
 
@@ -701,7 +689,7 @@ export default class CPU {
   }
 
   dec_0x_hl(){
-    let value = this.mmu.byteAt(this.hl());
+    let value = this.mmu.readByteAt(this.hl());
     this.mmu.writeByteAt(this.hl(), --value);
   }
 
@@ -776,7 +764,7 @@ export default class CPU {
   }
 
   ldh_a_n(n){
-    this._r.a = this.mmu.byteAt(0xff00 + n);
+    this._r.a = this.mmu.readByteAt(0xff00 + n);
   }
 
   cp_a(){
@@ -808,7 +796,7 @@ export default class CPU {
   }
 
   cp_hl(){
-    this.cp_n(this.mmu.byteAt(this.hl()));
+    this.cp_n(this.mmu.readByteAt(this.hl()));
   }
 
   cp_n(n){
@@ -884,7 +872,7 @@ export default class CPU {
    * Increments the value at memory location hl by 1.
    */
   inc_0x_hl(){
-    let value = this.mmu.byteAt(this.hl());
+    let value = this.mmu.readByteAt(this.hl());
 
     if (value === 0xff){
       this.mmu.writeByteAt(this.hl(), 0x00);
@@ -968,5 +956,55 @@ export default class CPU {
 
   _ld_0x_nn_a(addr){
     this.mmu.writeByteAt(addr, this._r.a);
+  }
+
+  /**
+   * Calls a routine at a given address, saving the pc in the
+   * stack.
+   * @param addr
+   */
+  call(addr){
+    this.mmu.writeByteAt(--this._r.sp, Utils.msb(this._r.pc));
+    this.mmu.writeByteAt(--this._r.sp, Utils.lsb(this._r.pc));
+    this._r.pc = addr;
+  }
+
+  /**
+   * Pushes register af into stack.
+   */
+  push_af(){
+    this._push('a', '_f');
+  }
+
+  /**
+   * Pushes register bc into stack.
+   */
+  push_bc(){
+    this._push('b', 'c');
+  }
+
+  /**
+   * Pushes register de into stack.
+   */
+  push_de(){
+    this._push('d', 'e');
+  }
+
+  /**
+   * Pushes register hl into stack.
+   */
+  push_hl(){
+    this._push('h', 'l');
+  }
+
+  /**
+   * Pushes register r1 and r2 into the stack. Decrements sp twice.
+   * @param r1
+   * @param r2
+   * @private
+   */
+  _push(r1, r2){
+    this.mmu.writeByteAt(--this._r.sp, this._r[r1]);
+    this.mmu.writeByteAt(--this._r.sp, this._r[r2]);
   }
 }

@@ -4,7 +4,7 @@ import config from '../src/config';
 import {describe, beforeEach, it} from 'mocha';
 import Utils from '../src/utils';
 
-describe('CPU', function() {
+describe('CPU Unit tests', function() {
 
   config.DEBUG = false;
   config.TEST = true;
@@ -63,7 +63,7 @@ describe('CPU', function() {
   it('should xor register a with memory address hl', () => {
     const a = cpu.a();
     const hl = cpu.hl();
-    const value = cpu.mmu.byteAt(hl);
+    const value = cpu.mmu.readByteAt(hl);
     cpu.xor_hl();
     assert.equal(cpu.a(), a ^ value, `register a should be ${Utils.hexStr(a)} xor ${Utils.hexStr(value)}`);
   });
@@ -152,7 +152,7 @@ describe('CPU', function() {
       assert.equal(param.r1.call(cpu), value, `load ${param.r2.name} into ${param.r1.name}`);
     });
 
-    const value = cpu.mmu.byteAt(0xabcd);
+    const value = cpu.mmu.readByteAt(0xabcd);
     cpu.ld_a_nn(0xabcd);
     assert.equal(cpu.a(), value, 'load value at memory 0xabcd into a');
 
@@ -167,7 +167,7 @@ describe('CPU', function() {
 
   it('should put memory address hl into a and decrement hl', () => {
     const hl = cpu.hl();
-    const value = cpu.mmu.byteAt(hl);
+    const value = cpu.mmu.readByteAt(hl);
     cpu.ldd_a_hl();
     assert.equal(cpu.a(), value, `register a has memory value ${value}`);
     assert.equal(cpu.hl(), hl - 1, 'hl is decremented 1');
@@ -178,7 +178,7 @@ describe('CPU', function() {
     const hl = 0xdfff;
     cpu.ld_hl_nn(hl);
     cpu.ldd_hl_a();
-    assert.equal(cpu.mmu.byteAt(hl), a, `memory ${Utils.hexStr(hl)} has value ${a}`);
+    assert.equal(cpu.mmu.readByteAt(hl), a, `memory ${Utils.hexStr(hl)} has value ${a}`);
     assert.equal(cpu.hl(), hl - 1, 'hl is decremented by 1');
   });
 
@@ -226,7 +226,7 @@ describe('CPU', function() {
     cpu.mmu.writeByteAt(0xdfff, value);
     cpu.ld_hl_nn(0xdfff);
     cpu.dec_0x_hl();
-    assert.equal(cpu.mmu.byteAt(0xdfff), value - 1, 'Value at memory 0xdfff is decremented');
+    assert.equal(cpu.mmu.readByteAt(0xdfff), value - 1, 'Value at memory 0xdfff is decremented');
     // TODO check flags
   });
 
@@ -246,7 +246,7 @@ describe('CPU', function() {
     assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0x05), 'jump forward');
   });
 
-  it('shold jump conditionally backwards', () => {
+  it('should jump conditionally backwards', () => {
     cpu.ld_a_n(0x02);
     cpu.dec_a();
     assert.equal(cpu.Z(), 0, 'Z is reset');
@@ -255,7 +255,7 @@ describe('CPU', function() {
     assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0xfc), 'jump backward');
   });
 
-  it('shold jump not jump is last operation was zero', () => {
+  it('should jump not jump is last operation was zero', () => {
     cpu.ld_a_n(0x01);
     cpu.dec_a();
     assert.equal(cpu.Z(), 1, 'Z is set');
@@ -266,45 +266,45 @@ describe('CPU', function() {
 
   it('should put a into memory address 0xff00 + 0', () => {
 
-    const value = cpu.mmu.byteAt(0xff00);
+    const value = cpu.mmu.readByteAt(0xff00);
     cpu.ld_a_n(0xab);
     cpu.ldh_n_a(0);
-    assert.equal(cpu.mmu.byteAt(0xff00), 0xab, 'memory 0xff00 has value 0xab');
+    assert.equal(cpu.mmu.readByteAt(0xff00), 0xab, 'memory 0xff00 has value 0xab');
 
   });
 
   it('should put a into memory address 0xff00 + 0xfe', () => {
 
-    const value = cpu.mmu.byteAt(0xfffe);
+    const value = cpu.mmu.readByteAt(0xfffe);
     cpu.ld_a_n(0xab);
     cpu.ldh_n_a(0xfe);
-    assert.equal(cpu.mmu.byteAt(0xfffe), 0xab, 'memory 0xfffe has value 0xab');
+    assert.equal(cpu.mmu.readByteAt(0xfffe), 0xab, 'memory 0xfffe has value 0xab');
 
   });
 
   it('should not write a into address 0xff00 + 0xff', () => {
 
-    const value = cpu.mmu.byteAt(0xfffe);
+    const value = cpu.mmu.readByteAt(0xfffe);
     cpu.ld_a_n(0xab);
     cpu.ldh_n_a(0xff);
-    assert.equal(cpu.mmu.byteAt(0xfffe), value, 'value at memory 0xffff does not change');
+    assert.equal(cpu.mmu.readByteAt(0xfffe), value, 'value at memory 0xffff does not change');
 
   });
 
   it('should put value at memory address 0xff00 + 0 into a', () => {
-    const value = cpu.mmu.byteAt(0xff00);
+    const value = cpu.mmu.readByteAt(0xff00);
     cpu.ldh_a_n(0);
     assert.equal(cpu.a(), value, '(0xff00) into a');
   });
 
   it('should put value at memory address 0xff00 + 0xfe into a', () => {
-    const value = cpu.mmu.byteAt(0xff00 + 0xfe);
+    const value = cpu.mmu.readByteAt(0xff00 + 0xfe);
     cpu.ldh_a_n(0xfe);
     assert.equal(cpu.a(), value, '(0xfffe) into a');
   });
 
   it('should put value at memory address 0xff00 + 0xff into a', () => {
-    const value = cpu.mmu.byteAt(0xff00 + 0xff);
+    const value = cpu.mmu.readByteAt(0xff00 + 0xff);
     cpu.ldh_a_n(0xff);
     assert.equal(cpu.a(), value, '(0xffff) into a');
   });
@@ -422,7 +422,7 @@ describe('CPU', function() {
     cpu.ld_c_n(offset);
     cpu.ld_a_n(value);
     cpu.ld_0x_c_a();
-    assert.equal(cpu.mmu.byteAt(0xff00 + offset), value, 'value at memory address 0xff00 + c');
+    assert.equal(cpu.mmu.readByteAt(0xff00 + offset), value, 'value at memory address 0xff00 + c');
 
   });
 
@@ -433,7 +433,7 @@ describe('CPU', function() {
     cpu.ld_c_n(offset);
     cpu.ld_a_n(0xab);
     cpu.ld_0x_c_a();
-    assert.equal(cpu.mmu.byteAt(0xff00 + offset), ie, 'ie is not overridden.');
+    assert.equal(cpu.mmu.readByteAt(0xff00 + offset), ie, 'ie is not overridden.');
 
   });
 
@@ -486,7 +486,7 @@ describe('CPU', function() {
 
     cpu.inc_0x_hl();
 
-    assert.equal(cpu.mmu.byteAt(cpu.hl()), value+1, 'value at memory (hl) incremented.');
+    assert.equal(cpu.mmu.readByteAt(cpu.hl()), value+1, 'value at memory (hl) incremented.');
     assert.equal(cpu.Z(), 0, 'Z set if result is zero');
     assert.equal(cpu.N(), 0, 'N is always reset');
     assert.equal(cpu.H(), 0, 'H reset as no half carry');
@@ -496,7 +496,7 @@ describe('CPU', function() {
 
     cpu.inc_0x_hl();
 
-    assert.equal(cpu.mmu.byteAt(cpu.hl()), value+1, 'value at memory (hl) incremented.');
+    assert.equal(cpu.mmu.readByteAt(cpu.hl()), value+1, 'value at memory (hl) incremented.');
     assert.equal(cpu.Z(), 0, 'Z set if result is zero');
     assert.equal(cpu.N(), 0, 'N is always reset');
     assert.equal(cpu.H(), 1, 'H set as half carry');
@@ -506,7 +506,7 @@ describe('CPU', function() {
 
     cpu.inc_0x_hl();
 
-    assert.equal(cpu.mmu.byteAt(cpu.hl()), 0x00, 'value at memory (hl) resets to 0x00.');
+    assert.equal(cpu.mmu.readByteAt(cpu.hl()), 0x00, 'value at memory (hl) resets to 0x00.');
     assert.equal(cpu.Z(), 1, 'Z set if result is zero');
     assert.equal(cpu.N(), 0, 'N is always reset');
     assert.equal(cpu.H(), 0, 'H reset as no half carry');
@@ -540,10 +540,44 @@ describe('CPU', function() {
     assert.equal(cpu.e(), cpu.a(), 'copy a to e');
     assert.equal(cpu.h(), cpu.a(), 'copy a to h');
     assert.equal(cpu.l(), cpu.a(), 'copy a to l');
-    assert.equal(cpu.mmu.byteAt(cpu.bc()), cpu.a(), 'copy a to memory location bc');
-    assert.equal(cpu.mmu.byteAt(cpu.de()), cpu.a(), 'copy a to memory location de');
-    assert.equal(cpu.mmu.byteAt(cpu.hl()), cpu.a(), 'copy a to memory location hl');
-    assert.equal(cpu.mmu.byteAt(nn), cpu.a(), 'copy a to memory location nn');
+    assert.equal(cpu.mmu.readByteAt(cpu.bc()), cpu.a(), 'copy a to memory location bc');
+    assert.equal(cpu.mmu.readByteAt(cpu.de()), cpu.a(), 'copy a to memory location de');
+    assert.equal(cpu.mmu.readByteAt(cpu.hl()), cpu.a(), 'copy a to memory location hl');
+    assert.equal(cpu.mmu.readByteAt(nn), cpu.a(), 'copy a to memory location nn');
+
+  });
+
+  it('should call a routine', () => {
+
+    const pc = cpu.pc();
+    const sp = cpu.sp();
+    const addr = 0x1234;
+
+    cpu.call(addr);
+    assert.equal(cpu.mmu.readByteAt(sp - 1), Utils.msb(pc), 'store the lsb into stack');
+    assert.equal(cpu.mmu.readByteAt(sp - 2), Utils.lsb(pc), 'store the msb into stack');
+    assert.equal(cpu.sp(), sp - 2, 'sp moved down 2 bytes');
+    assert.equal(cpu.pc(), addr, 'jump to address');
+
+  });
+
+  it('should push registers into the stack', () => {
+
+    cpu.push_af();
+    assert.equal(cpu.mmu.readByteAt(cpu.sp() + 1), cpu.a(), 'store a into stack');
+    assert.equal(cpu.mmu.readByteAt(cpu.sp()), cpu.f() << 4, 'store f into stack');
+
+    cpu.push_bc();
+    assert.equal(cpu.mmu.readByteAt(cpu.sp() + 1), cpu.b(), 'store b into stack');
+    assert.equal(cpu.mmu.readByteAt(cpu.sp()), cpu.c(), 'store c into stack');
+
+    cpu.push_de();
+    assert.equal(cpu.mmu.readByteAt(cpu.sp() + 1), cpu.d(), 'store d into stack');
+    assert.equal(cpu.mmu.readByteAt(cpu.sp()), cpu.e(), 'store e into stack');
+
+    cpu.push_hl();
+    assert.equal(cpu.mmu.readByteAt(cpu.sp() + 1), cpu.h(), 'store h into stack');
+    assert.equal(cpu.mmu.readByteAt(cpu.sp()), cpu.l(), 'store l into stack');
 
   });
 

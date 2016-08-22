@@ -4,6 +4,9 @@ import Logger from './logger';
 
 export default class MMU {
 
+  /**
+   * @param {string} filename
+   */
   constructor(filename){
 
     this.rom = this._load(filename);
@@ -113,7 +116,7 @@ export default class MMU {
    * @param {number} addr
    * @return {number} byte at memory address
    */
-  byteAt(addr) {
+  readByteAt(addr) {
 
     if (addr > this.ADDR_MAX || addr < 0){
       throw new Error(`Cannot read memory address ${Utils.hexStr(addr)}`);

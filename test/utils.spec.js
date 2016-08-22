@@ -32,4 +32,12 @@ describe('Utils', () => {
     assert.equal(Utils.hex2(15), '0x0f');
     assert.equal(Utils.hex2(16), '0x10');
   });
+
+  it('should return the lsb and msb', () => {
+
+    assert.equal(Utils.lsb(0xabcd), 0xcd);
+    assert.equal(Utils.msb(0xabcd), 0xab);
+
+  });
+
 });

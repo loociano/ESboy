@@ -16,30 +16,30 @@ describe('MMU', () => {
 
   it('should write bytes in memory', () => {
     mmu.writeByteAt(0xc000, 0xab);
-    assert.equal(mmu.byteAt(0xc000), 0xab, 'write 0xab in memory address 0xc000');
+    assert.equal(mmu.readByteAt(0xc000), 0xab, 'write 0xab in memory address 0xc000');
   });
 
   it('should not write in Interrupt Enable register', () => {
-    const ie = mmu.byteAt(0xffff);
+    const ie = mmu.readByteAt(0xffff);
     mmu.writeByteAt(0xffff, 0xab);
-    assert.equal(mmu.byteAt(0xffff), ie, 'should not write on 0xffff');
+    assert.equal(mmu.readByteAt(0xffff), ie, 'should not write on 0xffff');
   });
 
   it('should not write bytes in ROM', () => {
     
     let addr = 0x0000;
-    let value = mmu.byteAt(addr);
+    let value = mmu.readByteAt(addr);
     mmu.writeByteAt(addr, 0xab);
-    assert.equal(mmu.byteAt(addr), value, `should not write on ${addr}`);
+    assert.equal(mmu.readByteAt(addr), value, `should not write on ${addr}`);
 
     addr = 0x7fff;
-    value = mmu.byteAt(addr);
+    value = mmu.readByteAt(addr);
     mmu.writeByteAt(addr, 0xab);
-    assert.equal(mmu.byteAt(addr), value, `should not write on ${addr}`);
+    assert.equal(mmu.readByteAt(addr), value, `should not write on ${addr}`);
 
     addr = 0x8000;
     mmu.writeByteAt(addr, 0xab);
-    assert.equal(mmu.byteAt(addr), 0xab, `can write on ${addr}`);
+    assert.equal(mmu.readByteAt(addr), 0xab, `can write on ${addr}`);
   
   });
 
@@ -48,37 +48,37 @@ describe('MMU', () => {
     assert.equal(mmu.memory.length, 0x10000, 'Memory size is 0x10000');
 
     // Starting values at addresses
-    assert.equal(mmu.byteAt(0xff05), 0x00);
-    assert.equal(mmu.byteAt(0xff06), 0x00);
-    assert.equal(mmu.byteAt(0xff07), 0x00);
-    assert.equal(mmu.byteAt(0xff10), 0x80);
-    assert.equal(mmu.byteAt(0xff11), 0xbf);
-    assert.equal(mmu.byteAt(0xff12), 0xf3);
-    assert.equal(mmu.byteAt(0xff14), 0xbf);
-    assert.equal(mmu.byteAt(0xff16), 0x3f);
-    assert.equal(mmu.byteAt(0xff17), 0x00);
-    assert.equal(mmu.byteAt(0xff19), 0xbf);
-    assert.equal(mmu.byteAt(0xff1a), 0x7f);
-    assert.equal(mmu.byteAt(0xff1b), 0xff);
-    assert.equal(mmu.byteAt(0xff1c), 0x9f);
-    assert.equal(mmu.byteAt(0xff1e), 0xbf);
-    assert.equal(mmu.byteAt(0xff20), 0xff);
-    assert.equal(mmu.byteAt(0xff21), 0x00);
-    assert.equal(mmu.byteAt(0xff22), 0x00);
-    assert.equal(mmu.byteAt(0xff23), 0xbf);
-    assert.equal(mmu.byteAt(0xff24), 0x77);
-    assert.equal(mmu.byteAt(0xff25), 0xf3);
-    assert.equal(mmu.byteAt(0xff26), 0xf1);
-    assert.equal(mmu.byteAt(0xff40), 0x91);
-    assert.equal(mmu.byteAt(0xff42), 0x00);
-    assert.equal(mmu.byteAt(0xff43), 0x00);
-    assert.equal(mmu.byteAt(0xff45), 0x00);
-    assert.equal(mmu.byteAt(0xff47), 0xfc);
-    assert.equal(mmu.byteAt(0xff48), 0xff);
-    assert.equal(mmu.byteAt(0xff49), 0xff);
-    assert.equal(mmu.byteAt(0xff4a), 0x00);
-    assert.equal(mmu.byteAt(0xff4b), 0x00);
-    assert.equal(mmu.byteAt(0xffff), 0x00);
+    assert.equal(mmu.readByteAt(0xff05), 0x00);
+    assert.equal(mmu.readByteAt(0xff06), 0x00);
+    assert.equal(mmu.readByteAt(0xff07), 0x00);
+    assert.equal(mmu.readByteAt(0xff10), 0x80);
+    assert.equal(mmu.readByteAt(0xff11), 0xbf);
+    assert.equal(mmu.readByteAt(0xff12), 0xf3);
+    assert.equal(mmu.readByteAt(0xff14), 0xbf);
+    assert.equal(mmu.readByteAt(0xff16), 0x3f);
+    assert.equal(mmu.readByteAt(0xff17), 0x00);
+    assert.equal(mmu.readByteAt(0xff19), 0xbf);
+    assert.equal(mmu.readByteAt(0xff1a), 0x7f);
+    assert.equal(mmu.readByteAt(0xff1b), 0xff);
+    assert.equal(mmu.readByteAt(0xff1c), 0x9f);
+    assert.equal(mmu.readByteAt(0xff1e), 0xbf);
+    assert.equal(mmu.readByteAt(0xff20), 0xff);
+    assert.equal(mmu.readByteAt(0xff21), 0x00);
+    assert.equal(mmu.readByteAt(0xff22), 0x00);
+    assert.equal(mmu.readByteAt(0xff23), 0xbf);
+    assert.equal(mmu.readByteAt(0xff24), 0x77);
+    assert.equal(mmu.readByteAt(0xff25), 0xf3);
+    assert.equal(mmu.readByteAt(0xff26), 0xf1);
+    assert.equal(mmu.readByteAt(0xff40), 0x91);
+    assert.equal(mmu.readByteAt(0xff42), 0x00);
+    assert.equal(mmu.readByteAt(0xff43), 0x00);
+    assert.equal(mmu.readByteAt(0xff45), 0x00);
+    assert.equal(mmu.readByteAt(0xff47), 0xfc);
+    assert.equal(mmu.readByteAt(0xff48), 0xff);
+    assert.equal(mmu.readByteAt(0xff49), 0xff);
+    assert.equal(mmu.readByteAt(0xff4a), 0x00);
+    assert.equal(mmu.readByteAt(0xff4b), 0x00);
+    assert.equal(mmu.readByteAt(0xffff), 0x00);
   });
 
   describe.skip('ROM checks', () => {
