@@ -109,6 +109,14 @@ export default class CPU {
       0xbf: {fn: this.cp_a, paramBytes: 0},
       0xc3: {fn: this.jp, paramBytes: 2},
       0xc5: {fn: this.push_bc, paramBytes: 0},
+      0xcb10: {fn: this.rl_b, paramBytes: 0},
+      0xcb11: {fn: this.rl_c, paramBytes: 0},
+      0xcb12: {fn: this.rl_d, paramBytes: 0},
+      0xcb13: {fn: this.rl_e, paramBytes: 0},
+      0xcb14: {fn: this.rl_h, paramBytes: 0},
+      0xcb15: {fn: this.rl_l, paramBytes: 0},
+      0xcb16: {fn: this.rl_0x_hl, paramBytes: 0},
+      0xcb17: {fn: this.rl_a, paramBytes: 0},
       0xcb7c: {fn: this.bit_7_h, paramBytes: 0},
       0xcd: {fn: this.call, paramBytes: 2},
       0xd5: {fn: this.push_de, paramBytes: 0},
@@ -1006,5 +1014,84 @@ export default class CPU {
   _push(r1, r2){
     this.mmu.writeByteAt(--this._r.sp, this._r[r1]);
     this.mmu.writeByteAt(--this._r.sp, this._r[r2]);
+  }
+
+  rl_a(){
+    this._rl_r('a');
+  }
+
+  rl_b(){
+    this._rl_r('b');
+  }
+
+  rl_c(){
+    this._rl_r('c');
+  }
+
+  rl_d(){
+    this._rl_r('d');
+  }
+
+  rl_e(){
+    this._rl_r('e');
+  }
+
+  rl_h(){
+    this._rl_r('h');
+  }
+
+  rl_l(){
+    this._rl_r('l');
+  }
+
+  /**
+   * Rotates left register r with carry flag.
+   * @param r
+   * @private
+   */
+  _rl_r(r){
+
+    if ((this._r[r] & 0x80) > 0){
+      this.setC(1);
+    } else {
+      this.setC(0);
+    }
+
+    this._r[r] = (this._r[r] << 1) & 0xff;
+
+    if (this._r[r] === 0){
+      this.setZ(1);
+    } else {
+      this.setZ(0);
+    }
+
+    this.setN(0);
+    this.setH(0);
+  }
+
+  /**
+   * Rotates left the value at memory hl. Sets carry flag.
+   */
+  rl_0x_hl(){
+
+    const value = this.mmu.readByteAt(this.hl());
+
+    if ((value & 0x80) > 0){
+      this.setC(1);
+    } else {
+      this.setC(0);
+    }
+
+    const rotated = (value << 1) & 0xff;
+    this.mmu.writeByteAt(this.hl(), rotated);
+
+    if (rotated === 0){
+      this.setZ(1);
+    } else {
+      this.setZ(0);
+    }
+
+    this.setN(0);
+    this.setH(0);
   }
 }
