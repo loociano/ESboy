@@ -108,6 +108,7 @@ export default class CPU {
       0xbd: {fn: this.cp_l, paramBytes: 0},
       0xbe: {fn: this.cp_hl, paramBytes: 0},
       0xbf: {fn: this.cp_a, paramBytes: 0},
+      0xc1: {fn: this.pop_bc, paramBytes: 0},
       0xc3: {fn: this.jp, paramBytes: 2},
       0xc5: {fn: this.push_bc, paramBytes: 0},
       0xcb10: {fn: this.rl_b, paramBytes: 0},
@@ -120,13 +121,16 @@ export default class CPU {
       0xcb17: {fn: this.rl_a, paramBytes: 0},
       0xcb7c: {fn: this.bit_7_h, paramBytes: 0},
       0xcd: {fn: this.call, paramBytes: 2},
+      0xd1: {fn: this.pop_de, paramBytes: 0},
       0xd5: {fn: this.push_de, paramBytes: 0},
       0xe0: {fn: this.ldh_n_a, paramBytes: 1},
+      0xe1: {fn: this.pop_hl, paramBytes: 0},
       0xe2: {fn: this.ld_0x_c_a, paramBytes: 0},
       0xe5: {fn: this.push_hl, paramBytes: 0},
       0xea: {fn: this.ld_0x_nn_a, paramBytes: 1},
       0xee: {fn: this.xor_n, paramBytes: 1},
       0xf0: {fn: this.ldh_a_n, paramBytes: 1},
+      0xf1: {fn: this.pop_af, paramBytes: 0},
       0xf3: {fn: this.di, paramBytes: 0},
       0xf5: {fn: this.push_af, paramBytes: 0},
       0xfa: {fn: this.ld_a_nn, paramBytes: 2},
@@ -1015,6 +1019,45 @@ export default class CPU {
   _push(r1, r2){
     this.mmu.writeByteAt(--this._r.sp, this._r[r1]);
     this.mmu.writeByteAt(--this._r.sp, this._r[r2]);
+  }
+
+  /**
+   * Pops two bytes off the stack into af
+   */
+  pop_af(){
+    this._pop('a', '_f');
+  }
+
+  /**
+   * Pops two bytes off the stack into bc
+   */
+  pop_bc(){
+    this._pop('b', 'c');
+  }
+
+  /**
+   * Pops two bytes off the stack into de
+   */
+  pop_de(){
+    this._pop('d', 'e');
+  }
+
+  /**
+   * Pops two bytes off the stack into hl
+   */
+  pop_hl(){
+    this._pop('h', 'l');
+  }
+
+  /**
+   * Pops two bytes off the stack into register r1,r2
+   * @param r1
+   * @param r2
+   * @private
+   */
+  _pop(r1, r2){
+    this._r[r2] = this.mmu.readByteAt(this._r.sp++);
+    this._r[r1] = this.mmu.readByteAt(this._r.sp++);
   }
 
   rl_a(){
