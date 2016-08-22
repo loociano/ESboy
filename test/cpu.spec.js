@@ -120,25 +120,48 @@ describe('CPU Unit tests', function() {
     assert.equal(cpu.l(), 0xab, 'load 0xab into l');
   });
 
-  it('should load values into register a', () => {
+  it('should copy registers into register a', () => {
 
-    assertLoadA(cpu, cpu.a, cpu.ld_a_a);
-    assertLoadA(cpu, cpu.b, cpu.ld_a_b);
-    assertLoadA(cpu, cpu.c, cpu.ld_a_c);
-    assertLoadA(cpu, cpu.d, cpu.ld_a_d);
-    assertLoadA(cpu, cpu.e, cpu.ld_a_e);
-    assertLoadA(cpu, cpu.h, cpu.ld_a_h);
-    assertLoadA(cpu, cpu.l, cpu.ld_a_l);
-    assertLoadA(cpu, cpu.bc, cpu.ld_a_bc);
-    assertLoadA(cpu, cpu.de, cpu.ld_a_de);
-    assertLoadA(cpu, cpu.hl, cpu.ld_a_hl);
+    [
+      {r2: cpu.a, r1: cpu.a, ld: cpu.ld_a_a},
+      {r2: cpu.b, r1: cpu.a, ld: cpu.ld_a_b},
+      {r2: cpu.c, r1: cpu.a, ld: cpu.ld_a_c},
+      {r2: cpu.d, r1: cpu.a, ld: cpu.ld_a_d},
+      {r2: cpu.e, r1: cpu.a, ld: cpu.ld_a_e},
+      {r2: cpu.h, r1: cpu.a, ld: cpu.ld_a_h},
+      {r2: cpu.l, r1: cpu.a, ld: cpu.ld_a_l}
+
+    ].map( (param) => {
+      const value = param.r2.call(cpu);
+      param.ld.call(cpu);
+      assert.equal(param.r1.call(cpu), value, `load ${param.r2.name} into ${param.r1.name}`);
+    });
+
+  });
+
+  it('should copy memory locations into register a', () => {
+
+    [ {r2: cpu.bc, r1: cpu.a, ld: cpu.ld_a_bc},
+      {r2: cpu.de, r1: cpu.a, ld: cpu.ld_a_de},
+      {r2: cpu.hl, r1: cpu.a, ld: cpu.ld_a_hl} ].map( (param) => {
+
+      const value = cpu.mmu.readByteAt(param.r2.call(cpu));
+      param.ld.call(cpu);
+      assert.equal(param.r1.call(cpu), value, `load ${param.r2.name} into ${param.r1.name}`);
+    
+    });
 
     const value = cpu.mmu.readByteAt(0xabcd);
     cpu.ld_a_nn(0xabcd);
     assert.equal(cpu.a(), value, 'load value at memory 0xabcd into a');
 
+  });
+
+  it('should load a byte into a', () => {
+
     cpu.ld_a_n(0xab);
     assert.equal(cpu.a(), 0xab, 'load value 0xab into a');
+  
   });
 
   it('should put memory address hl into a and decrement hl', () => {
@@ -293,15 +316,12 @@ describe('CPU Unit tests', function() {
 
   it('it should compare registers with register a', () => {
 
-    [
-      {ld: cpu.ld_b_n, cp: cpu.cp_b},
+    [ {ld: cpu.ld_b_n, cp: cpu.cp_b},
       {ld: cpu.ld_c_n, cp: cpu.cp_c},
       {ld: cpu.ld_d_n, cp: cpu.cp_d},
       {ld: cpu.ld_e_n, cp: cpu.cp_e},
       {ld: cpu.ld_h_n, cp: cpu.cp_h},
-      {ld: cpu.ld_l_n, cp: cpu.cp_l}
-
-    ].forEach(function(fn) {
+      {ld: cpu.ld_l_n, cp: cpu.cp_l} ].map( (fn) => {
 
       cpu.ld_a_n(0xab);
 
@@ -415,16 +435,13 @@ describe('CPU Unit tests', function() {
 
   it('should increment register by 1', () => {
 
-    [
-      {r: cpu.a, ld: cpu.ld_a_n, inc: cpu.inc_a},
+    [ {r: cpu.a, ld: cpu.ld_a_n, inc: cpu.inc_a},
       {r: cpu.b, ld: cpu.ld_b_n, inc: cpu.inc_b},
       {r: cpu.c, ld: cpu.ld_c_n, inc: cpu.inc_c},
       {r: cpu.d, ld: cpu.ld_d_n, inc: cpu.inc_d},
       {r: cpu.e, ld: cpu.ld_e_n, inc: cpu.inc_e},
       {r: cpu.h, ld: cpu.ld_h_n, inc: cpu.inc_h},
-      {r: cpu.l, ld: cpu.ld_l_n, inc: cpu.inc_l}
-
-    ].forEach(function(fn){
+      {r: cpu.l, ld: cpu.ld_l_n, inc: cpu.inc_l} ].map( (fn) => {
 
       fn.ld.call(cpu, 0x00);
       let r = fn.r.call(cpu);
@@ -603,18 +620,6 @@ function assertDecrementRegister(scope, registerFn, decFn){
   if (value === 0) expected = 0xff;
   decFn.call(scope);
   assert.equal(registerFn.call(scope), expected, `decrement ${registerFn.name}`);
-}
-
-/**
- * Asserts that value is loaded in a.
- * @param scope
- * @param registerFn
- * @param loadFn
- */
-function assertLoadA(scope, registerFn, loadFn){
-  const value = registerFn.call(scope);
-  loadFn.call(scope);
-  assert.equal(registerFn.call(scope), value, `load ${registerFn} into a`);
 }
 
 function testSetGetFlag(cpu, setFn, getFn){
