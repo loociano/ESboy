@@ -10,7 +10,7 @@ export default class Utils {
   }
 
   /**
-   * @param {integer} number
+   * @param {number} number
    * @returns {string} 4 hex, example: '0x0abc'
    */
   static hex4(number){

@@ -367,7 +367,7 @@ export default class CPU {
   }
 
   /**
-   * @param {0|1} flag Z
+   * @param {number} value Z
    */
   setZ(value){
     if (value === 1){
@@ -400,7 +400,7 @@ export default class CPU {
   }
 
   /**
-   * @returns {0|1} flag H
+   * @returns {number} flag H
    */
   H() {
     return (this._r._f & 0x20) >> 5;
@@ -420,7 +420,7 @@ export default class CPU {
   }
 
   /**
-   * @returns {0|1} flag C
+   * @returns {number} flag C
    */
   C() {
     return (this._r._f & 0x10) >> 4;
@@ -680,7 +680,7 @@ export default class CPU {
    */
   _dec_r(r){
 
-    this.setN(1); // substracting
+    this.setN(1); // subtracting
 
     if ((this._r[r] & 0x0f) === 0){
       this.setH(1); // half carry
