@@ -557,6 +557,38 @@ describe('CPU Unit tests', function() {
 
   });
 
+  it('should rotate registers left', () => {
+
+    [ {r: cpu.a, ld: cpu.ld_a_n, rl: cpu.rl_a},
+      {r: cpu.b, ld: cpu.ld_b_n, rl: cpu.rl_b},
+      {r: cpu.c, ld: cpu.ld_c_n, rl: cpu.rl_c},
+      {r: cpu.d, ld: cpu.ld_d_n, rl: cpu.rl_d},
+      {r: cpu.e, ld: cpu.ld_e_n, rl: cpu.rl_e},
+      {r: cpu.h, ld: cpu.ld_h_n, rl: cpu.rl_h},
+      {r: cpu.l, ld: cpu.ld_l_n, rl: cpu.rl_l} ].map( (fn) => {
+
+      fn.ld.call(cpu, 0x80);
+      fn.rl.call(cpu);
+      assert.equal(fn.r.call(cpu), 0x00, 'l rotated left');
+      assert.equal(cpu.Z(), 1, 'Result was zero');
+      assert.equal(cpu.N(), 0, 'N reset');
+      assert.equal(cpu.H(), 0, 'H reset');
+      assert.equal(cpu.C(), 1, 'Carry set');
+    });
+
+    const addr = 0xc000;
+    cpu.ld_hl_nn(addr);
+    cpu.mmu.writeByteAt(addr, 0x11);
+    cpu.setC(1);
+    cpu.rl_0x_hl();
+    assert.equal(cpu.mmu.readByteAt(addr), 0x22, 'value at memory hl rotated left');
+    assert.equal(cpu.Z(), 0, 'Result was positive');
+    assert.equal(cpu.N(), 0, 'N reset');
+    assert.equal(cpu.H(), 0, 'H reset');
+    assert.equal(cpu.C(), 0, 'C reset');
+
+  });
+
 });
 
 /**
