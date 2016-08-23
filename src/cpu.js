@@ -61,6 +61,7 @@ export default class CPU {
       0x1e: {fn: this.ld_e_n, paramBytes: 1},
       0x20: {fn: this.jr_nz_n, paramBytes: 1},
       0x21: {fn: this.ld_hl_nn, paramBytes: 2},
+      0x22: {fn: this.ldi_0xhl_a, paramBytes: 0},
       0x24: {fn: this.inc_h, paramBytes: 0},
       0x25: {fn: this.dec_h, paramBytes: 0},
       0x2b: {fn: this.dec_hl, paramBytes: 0},
