@@ -638,8 +638,16 @@ export default class CPU {
    * Puts a into memory address hl. Decrements hl.
    */
   ldd_hl_a(){
-    this.mmu.writeByteAt(this.hl(), this._r.a);
+    this.ld_0x_hl_a();
     this.dec_hl();
+  }
+
+  /** 
+   * Puts a into memory address hl. Increments hl.
+   */
+  ldi_0xhl_a(){
+    this.ld_0x_hl_a();
+    this.inc_hl();
   }
 
   /**
