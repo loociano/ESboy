@@ -191,23 +191,23 @@ describe('CPU Unit tests', function() {
         {ld: cpu.ld_d_n, cp: cpu.cp_d},
         {ld: cpu.ld_e_n, cp: cpu.cp_e},
         {ld: cpu.ld_h_n, cp: cpu.cp_h},
-        {ld: cpu.ld_l_n, cp: cpu.cp_l} ].map( (fn) => {
+        {ld: cpu.ld_l_n, cp: cpu.cp_l} ].map( ({ld, cp}) => {
 
         cpu.ld_a_n(0xab);
 
         // Same value
-        fn.ld.call(cpu, 0xab);
-        fn.cp.call(cpu);
+        ld.call(cpu, 0xab);
+        cp.call(cpu);
         assertFlagsCompareEqualValue(cpu);
 
         // Lower value
-        fn.ld.call(cpu, 0x01);
-        fn.cp.call(cpu);
+        ld.call(cpu, 0x01);
+        cp.call(cpu);
         assertFlagsCompareLowerValue(cpu);
 
         // Greater value
-        fn.ld.call(cpu, 0xff);
-        fn.cp.call(cpu);
+        ld.call(cpu, 0xff);
+        cp.call(cpu);
         assertFlagsCompareGreaterValue(cpu);
 
       });
@@ -263,28 +263,28 @@ describe('CPU Unit tests', function() {
         {r: cpu.d, ld: cpu.ld_d_n, inc: cpu.inc_d},
         {r: cpu.e, ld: cpu.ld_e_n, inc: cpu.inc_e},
         {r: cpu.h, ld: cpu.ld_h_n, inc: cpu.inc_h},
-        {r: cpu.l, ld: cpu.ld_l_n, inc: cpu.inc_l} ].map( (fn) => {
+        {r: cpu.l, ld: cpu.ld_l_n, inc: cpu.inc_l} ].map( ({r, ld, inc}) => {
 
-        fn.ld.call(cpu, 0x00);
-        let r = fn.r.call(cpu);
-        fn.inc.call(cpu);
-        assert.equal(fn.r.call(cpu), r+1, 'a incremented.');
+        ld.call(cpu, 0x00);
+        let r = r.call(cpu);
+        inc.call(cpu);
+        assert.equal(r.call(cpu), r+1, 'a incremented.');
         assert.equal(cpu.Z(), 0, 'Z set if result is zero');
         assert.equal(cpu.N(), 0, 'N is always reset');
         assert.equal(cpu.H(), 0, 'H reset as no half carry');
 
-        fn.ld.call(cpu, 0x0f);
-        r = fn.r.call(cpu);
-        fn.inc.call(cpu);
-        assert.equal(fn.r.call(cpu), r+1, 'a incremented.');
+        ld.call(cpu, 0x0f);
+        r = r.call(cpu);
+        inc.call(cpu);
+        assert.equal(r.call(cpu), r+1, 'a incremented.');
         assert.equal(cpu.Z(), 0, 'Z set if result is zero');
         assert.equal(cpu.N(), 0, 'N is always reset');
         assert.equal(cpu.H(), 1, 'H set as half carry');
 
-        fn.ld.call(cpu, 0xff);
-        r = fn.r.call(cpu);
-        fn.inc.call(cpu);
-        assert.equal(fn.r.call(cpu), 0x00, 'a resets to 0x00.');
+        ld.call(cpu, 0xff);
+        r = r.call(cpu);
+        inc.call(cpu);
+        assert.equal(r.call(cpu), 0x00, 'a resets to 0x00.');
         assert.equal(cpu.Z(), 1, 'Z set if result is zero');
         assert.equal(cpu.N(), 0, 'N is always reset');
         assert.equal(cpu.H(), 0, 'H reset as no half carry');
@@ -363,15 +363,15 @@ describe('CPU Unit tests', function() {
       [ {r: cpu.af, pop: cpu.pop_af},
         {r: cpu.bc, pop: cpu.pop_bc},
         {r: cpu.de, pop: cpu.pop_de},
-        {r: cpu.hl, pop: cpu.pop_hl} ].map( (i) => {
+        {r: cpu.hl, pop: cpu.pop_hl} ].map( ({r, pop}) => {
 
         let sp = cpu.sp(); // sp: 0xfffe
         cpu.mmu.writeByteAt(--sp, 0xab); // sp: 0xfffd
         cpu.mmu.writeByteAt(--sp, 0xcd); // sp: 0xfffc
         cpu.ld_sp_nn(sp);
 
-        i.pop.call(cpu);
-        assert.equal(i.r.call(cpu), 0xabcd, `Pop into ${i.r.name}`);
+        pop.call(cpu);
+        assert.equal(r.call(cpu), 0xabcd, `Pop into ${r.name}`);
         assert.equal(cpu.sp(), sp + 2, 'sp incremented twice');
       });
     });
@@ -425,21 +425,21 @@ describe('CPU Unit tests', function() {
         {r2: cpu.d, r1: cpu.a, ld: cpu.ld_a_d},
         {r2: cpu.e, r1: cpu.a, ld: cpu.ld_a_e},
         {r2: cpu.h, r1: cpu.a, ld: cpu.ld_a_h},
-        {r2: cpu.l, r1: cpu.a, ld: cpu.ld_a_l} ].map( (param) => {
-        const value = param.r2.call(cpu);
-        param.ld.call(cpu);
-        assert.equal(param.r1.call(cpu), value, `load ${param.r2.name} into ${param.r1.name}`);
+        {r2: cpu.l, r1: cpu.a, ld: cpu.ld_a_l} ].map( ({r2, r1, ld}) => {
+        const value = r2.call(cpu);
+        ld.call(cpu);
+        assert.equal(r1.call(cpu), value, `load ${r2.name} into ${r1.name}`);
       });
     });
 
     it('should copy memory locations into register a', () => {
       [ {r2: cpu.bc, r1: cpu.a, ld: cpu.ld_a_bc},
         {r2: cpu.de, r1: cpu.a, ld: cpu.ld_a_de},
-        {r2: cpu.hl, r1: cpu.a, ld: cpu.ld_a_hl} ].map( (param) => {
+        {r2: cpu.hl, r1: cpu.a, ld: cpu.ld_a_hl} ].map( ({r2, r1, ld}) => {
 
-        const value = cpu.mmu.readByteAt(param.r2.call(cpu));
-        param.ld.call(cpu);
-        assert.equal(param.r1.call(cpu), value, `load ${param.r2.name} into ${param.r1.name}`);
+        const value = cpu.mmu.readByteAt(r2.call(cpu));
+        ld.call(cpu);
+        assert.equal(r1.call(cpu), value, `load ${r2.name} into ${r1.name}`);
 
       });
 
@@ -600,12 +600,12 @@ describe('CPU Unit tests', function() {
         {r: cpu.d, ld: cpu.ld_d_n, rl: cpu.rl_d},
         {r: cpu.e, ld: cpu.ld_e_n, rl: cpu.rl_e},
         {r: cpu.h, ld: cpu.ld_h_n, rl: cpu.rl_h},
-        {r: cpu.l, ld: cpu.ld_l_n, rl: cpu.rl_l} ].map( (fn) => {
+        {r: cpu.l, ld: cpu.ld_l_n, rl: cpu.rl_l} ].map( ({r, ld, rl}) => {
 
         cpu.setC(0);
-        fn.ld.call(cpu, 0x80);
-        fn.rl.call(cpu);
-        assert.equal(fn.r.call(cpu), 0x00, `${fn.r.name} rotated left`);
+        ld.call(cpu, 0x80);
+        rl.call(cpu);
+        assert.equal(r.call(cpu), 0x00, `${r.name} rotated left`);
         assert.equal(cpu.Z(), 1, 'Result was zero');
         assert.equal(cpu.N(), 0, 'N reset');
         assert.equal(cpu.H(), 0, 'H reset');
