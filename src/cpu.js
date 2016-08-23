@@ -830,12 +830,20 @@ export default class CPU {
     // TODO implement interrupts
   }
 
+  /**
+   * Loads a into memory address 0xff00 + n
+   * @param {number} n
+   */
   ldh_n_a(n){
     if (n < 0xff){
       this.mmu.writeByteAt(0xff00 + n, this._r.a);
     }
   }
 
+  /**
+   * Loads memory address 0xff00 + n into register a.
+   * @param {number} n
+   */
   ldh_a_n(n){
     this._r.a = this.mmu.readByteAt(0xff00 + n);
   }
@@ -872,6 +880,10 @@ export default class CPU {
     this.cp_n(this.mmu.readByteAt(this.hl()));
   }
 
+  /**
+   * Compares n with register a.
+   * @param {number} n
+   */
   cp_n(n){
     
     this.setN(1); this.setZ(0); this.setC(0);
