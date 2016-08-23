@@ -108,6 +108,93 @@ describe('CPU Unit tests', function() {
       });
     });
 
+    describe('Jump Z', () => {
+      it('should jump forward if Z is set', () => {
+        cpu.setZ(1);
+        const pc = cpu.pc();
+
+        cpu.jr_z_n(0x05);
+
+        assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0x05), 'jump forward');
+      });
+
+      it('should jump backwards if Z is set', () => {
+        cpu.setZ(1);
+        const pc = cpu.pc();
+
+        cpu.jr_z_n(0xfc);
+
+        assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0xfc), 'jump backward');
+      });
+
+      it('should not jump if Z is reset', () => {
+        cpu.setZ(0);
+        const pc = cpu.pc();
+
+        cpu.jr_z_n(0xfc);
+
+        assert.equal(cpu.pc(), pc, 'do not jump, move to the next instruction');
+      });
+    });
+
+    describe('Jump NC', () => {
+      it('should jump forward if C is reset', () => {
+        cpu.setC(0);
+        const pc = cpu.pc();
+
+        cpu.jr_nc_n(0x05);
+
+        assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0x05), 'jump forward');
+      });
+
+      it('should jump backwards if C is reset', () => {
+        cpu.setC(0);
+        const pc = cpu.pc();
+
+        cpu.jr_nc_n(0xfc);
+
+        assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0xfc), 'jump backward');
+      });
+
+      it('should not jump if C is set', () => {
+        cpu.setC(1);
+        const pc = cpu.pc();
+
+        cpu.jr_nc_n(0xfc);
+
+        assert.equal(cpu.pc(), pc, 'do not jump, move to the next instruction');
+      });
+    });
+
+    describe('Jump C', () => {
+      it('should jump forward if C is set', () => {
+        cpu.setC(1);
+        const pc = cpu.pc();
+
+        cpu.jr_c_n(0x05);
+
+        assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0x05), 'jump forward');
+      });
+
+      it('should jump backwards if C is set', () => {
+        cpu.setC(1);
+        const pc = cpu.pc();
+
+        cpu.jr_c_n(0xfc);
+
+        assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0xfc), 'jump backward');
+      });
+
+      it('should not jump if C is reset', () => {
+        cpu.setC(0);
+        const pc = cpu.pc();
+
+        cpu.jr_c_n(0xfc);
+
+        assert.equal(cpu.pc(), pc, 'do not jump, move to the next instruction');
+      });
+    });
+
   });
 
   describe('8 bit arithmetic', () => {
