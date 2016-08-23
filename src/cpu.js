@@ -881,6 +881,37 @@ export default class CPU {
     this._inc_r('l');
   }
 
+  inc_bc(){
+    this._inc_rr('b', 'c');
+  }
+
+  inc_de(){
+    this._inc_rr('d', 'e');
+  }
+
+  inc_hl(){
+    this._inc_rr('h', 'l');
+  }
+
+  inc_sp(){
+    if (this._r.sp >= this.mmu.ADDR_MAX - 1){
+      throw new Error(`Cannot increase stack pointer more than ${this._r.sp}`);
+    }
+    this._r.sp++;
+  }
+
+  _inc_rr(r1, r2){
+    const value = (this._r[r1] << 8) + this._r[r2] + 1;
+    if ((value & 0x10000) > 0){
+      // TODO verify if INC 16 bits loops to 0
+      this._r[r1] = 0;
+      this._r[r2] = 0;
+    } else {
+      this._r[r1] = (value & 0xff00) >> 8;
+      this._r[r2] = value & 0x00ff;
+    }
+  }
+
   /**
    * Increments the value at memory location hl by 1.
    */
