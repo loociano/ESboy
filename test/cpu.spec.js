@@ -266,24 +266,29 @@ describe('CPU Unit tests', function() {
         {r: cpu.l, ld: cpu.ld_l_n, inc: cpu.inc_l} ].map( ({r, ld, inc}) => {
 
         ld.call(cpu, 0x00);
-        let r = r.call(cpu);
+        let value = r.call(cpu);
+        
         inc.call(cpu);
-        assert.equal(r.call(cpu), r+1, 'a incremented.');
+        
+        assert.equal(r.call(cpu), value+1, 'a incremented.');
         assert.equal(cpu.Z(), 0, 'Z set if result is zero');
         assert.equal(cpu.N(), 0, 'N is always reset');
         assert.equal(cpu.H(), 0, 'H reset as no half carry');
 
         ld.call(cpu, 0x0f);
-        r = r.call(cpu);
+        value = r.call(cpu);
+        
         inc.call(cpu);
-        assert.equal(r.call(cpu), r+1, 'a incremented.');
+        
+        assert.equal(r.call(cpu), value+1, 'a incremented.');
         assert.equal(cpu.Z(), 0, 'Z set if result is zero');
         assert.equal(cpu.N(), 0, 'N is always reset');
         assert.equal(cpu.H(), 1, 'H set as half carry');
 
         ld.call(cpu, 0xff);
-        r = r.call(cpu);
+        
         inc.call(cpu);
+        
         assert.equal(r.call(cpu), 0x00, 'a resets to 0x00.');
         assert.equal(cpu.Z(), 1, 'Z set if result is zero');
         assert.equal(cpu.N(), 0, 'N is always reset');
