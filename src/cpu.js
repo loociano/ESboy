@@ -56,6 +56,7 @@ export default class CPU {
       0x15: {fn: this.dec_d, paramBytes: 0},
       0x16: {fn: this.ld_d_n, paramBytes: 1},
       0x17: {fn: this.rla, paramBytes: 0},
+      0x18: {fn: this.jp_n, paramBytes: 1},
       0x1a: {fn: this.ld_a_de, paramBytes: 0},
       0x1b: {fn: this.dec_de, paramBytes: 0},
       0x1c: {fn: this.inc_e, paramBytes: 0},
@@ -299,6 +300,18 @@ export default class CPU {
    */
   jp(nn){
     this._r.pc = nn;
+  }
+
+  /**
+   * Adds signed byte to current address and jumps to it.
+   * @param {signed number} n
+   */
+  jp_n(n){
+    const nextAddress = this._r.pc + Utils.uint8ToInt8(n);
+    if (nextAddress < 0 || nextAddress > this.mmu.ADDR_MAX){
+      throw new Error(`Program counter outside memory space at ${Utils.hex4(this._r.pc)}`);
+    }
+    this._r.pc = nextAddress;
   }
 
   /**
