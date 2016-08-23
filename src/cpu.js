@@ -67,16 +67,19 @@ export default class CPU {
       0x23: {fn: this.inc_hl, paramBytes: 0},
       0x24: {fn: this.inc_h, paramBytes: 0},
       0x25: {fn: this.dec_h, paramBytes: 0},
+      0x28: {fn: this.jr_z_n, paramBytes: 1},
       0x2b: {fn: this.dec_hl, paramBytes: 0},
       0x2c: {fn: this.inc_l, paramBytes: 0},
       0x2d: {fn: this.dec_l, paramBytes: 0},
       0x2e: {fn: this.ld_l_n, paramBytes: 1},
       0x26: {fn: this.ld_h_n, paramBytes: 1},
+      0x30: {fn: this.jr_nc_n, paramBytes: 1},
       0x31: {fn: this.ld_sp_nn, paramBytes: 2},
       0x32: {fn: this.ldd_hl_a, paramBytes: 0},
       0x33: {fn: this.inc_sp, paramBytes: 0},
       0x34: {fn: this.inc_0x_hl, paramBytes: 0},
       0x35: {fn: this.dec_0x_hl, paramBytes: 0},
+      0x38: {fn: this.jr_c_n, paramBytes: 0},
       0x3a: {fn: this.ldd_a_hl, paramBytes: 0},
       0x3b: {fn: this.dec_sp, paramBytes: 0},
       0x3d: {fn: this.dec_a, paramBytes: 0},
@@ -766,6 +769,36 @@ export default class CPU {
    */
   jr_nz_n(n){
     if (this.Z() === 0){
+      this._r.pc += Utils.uint8ToInt8(n);
+    }
+  }
+
+  /**
+   * Jumps to current address + n if last operation was zero.
+   * @param {signed int} n
+   */
+  jr_z_n(n){
+    if (this.Z() === 1){
+      this._r.pc += Utils.uint8ToInt8(n);
+    }
+  }
+
+  /**
+   * Jumps to current address + n if last operation did not carry 1 bit.
+   * @param {signed int} n
+   */
+  jr_nc_n(n){
+    if (this.C() === 0){
+      this._r.pc += Utils.uint8ToInt8(n);
+    }
+  }
+
+  /**
+   * Jumps to current address + n if last operation carried 1 bit
+   * @param {signed int} n
+   */
+  jr_c_n(n){
+    if (this.C() === 1){
       this._r.pc += Utils.uint8ToInt8(n);
     }
   }
