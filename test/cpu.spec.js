@@ -544,7 +544,11 @@ describe('CPU Unit tests', function() {
       const ie = cpu.ie();
       cpu.ld_c_n(offset);
       cpu.ld_a_n(0xab);
-      cpu.ld_0x_c_a();
+
+      assert.throws( () => {
+        cpu.ld_0x_c_a();
+      }, Error, 'should not write on 0xffff');
+
       assert.equal(cpu.mmu.readByteAt(0xff00 + offset), ie, 'ie is not overridden.');
     });
 

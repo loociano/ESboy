@@ -135,12 +135,10 @@ export default class MMU {
    */
   writeByteAt(addr, n){
     if (addr >= this.ADDR_MAX || addr < 0 || addr <= this.ADDR_ROM_MAX){
-      Logger.error(`Cannot set memory address ${Utils.hexStr(addr)}`);
-      return;
+      throw new Error(`Cannot set memory address ${Utils.hexStr(addr)}`);
     }
     if (n < 0 || n > 0xff){
-      Logger.error(`Cannot write ${n} in memory, it has more than 8 bits`);
-      return;
+      throw new Error(`Cannot write ${n} in memory, it has more than 8 bits`);
     }
     this.memory[addr] = n;
   }

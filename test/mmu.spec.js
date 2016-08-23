@@ -21,7 +21,11 @@ describe('MMU', () => {
 
   it('should not write in Interrupt Enable register', () => {
     const ie = mmu.readByteAt(0xffff);
-    mmu.writeByteAt(0xffff, 0xab);
+
+    assert.throws( () => {
+      mmu.writeByteAt(0xffff, 0xab);
+    }, Error, 'should not write on 0xffff');
+
     assert.equal(mmu.readByteAt(0xffff), ie, 'should not write on 0xffff');
   });
 
@@ -29,18 +33,22 @@ describe('MMU', () => {
     
     let addr = 0x0000;
     let value = mmu.readByteAt(addr);
-    mmu.writeByteAt(addr, 0xab);
-    assert.equal(mmu.readByteAt(addr), value, `should not write on ${addr}`);
+
+    assert.throws( () => {
+      mmu.writeByteAt(addr, 0xab);
+    }, Error, `should not write on ${addr}`);
 
     addr = 0x7fff;
-    value = mmu.readByteAt(addr);
-    mmu.writeByteAt(addr, 0xab);
-    assert.equal(mmu.readByteAt(addr), value, `should not write on ${addr}`);
+
+    assert.throws( () => {
+      mmu.writeByteAt(addr, 0xab);
+    }, Error, `should not write on ${addr}`);
 
     addr = 0x8000;
+
     mmu.writeByteAt(addr, 0xab);
+
     assert.equal(mmu.readByteAt(addr), 0xab, `can write on ${addr}`);
-  
   });
 
   it('should start the memory map', () => {
