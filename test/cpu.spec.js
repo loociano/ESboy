@@ -669,6 +669,22 @@ describe('CPU Unit tests', function() {
     });
   });
 
+  describe('Returns', () => {
+    it('should return from routine', () => {
+
+      const addr = 0xabcd;
+      const sp = cpu.sp();
+      cpu.ld_hl_nn(addr);
+      cpu.push_hl();
+      
+      cpu.ret();
+
+      assert.equal(cpu.sp(), sp, 'sp to be original value');
+      assert.equal(cpu.pc(), addr, `program to continue on ${addr}`)
+
+    });
+
+  });
 
 });
 
