@@ -116,6 +116,7 @@ export default class CPU {
       0xc1: {fn: this.pop_bc, paramBytes: 0},
       0xc3: {fn: this.jp, paramBytes: 2},
       0xc5: {fn: this.push_bc, paramBytes: 0},
+      0xc9: {fn: this.ret, paramBytes: 0},
       0xcb10: {fn: this.rl_b, paramBytes: 0},
       0xcb11: {fn: this.rl_c, paramBytes: 0},
       0xcb12: {fn: this.rl_d, paramBytes: 0},
@@ -1104,6 +1105,10 @@ export default class CPU {
     this._r[r1] = this.mmu.readByteAt(this._r.sp++);
   }
 
+  _pop_nn(){
+    return this.mmu.readByteAt(this._r.sp++) + (this.mmu.readByteAt(this._r.sp++) << 8);
+  }
+
   rl_a(){
     this._rl_r('a');
   }
@@ -1181,5 +1186,12 @@ export default class CPU {
 
     this.setN(0);
     this.setH(0);
+  }
+
+  /** 
+   * Pops two bytes from stack and jumps to that address
+   */
+  ret(){
+    this.jp(this._pop_nn());
   }
 }
