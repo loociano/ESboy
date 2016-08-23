@@ -575,6 +575,18 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.mmu.readByteAt(nn), cpu.a(), 'copy a to memory location nn');
     });
 
+    it('should load a into memory address hl and increment hl', () => {
+      const value = 0xab;
+      const addr = 0xc000;
+      cpu.ld_a_n(value);
+      cpu.ld_hl_nn(addr);
+      
+      cpu.ldi_0xhl_a();
+
+      assert.equal(cpu.mmu.readByteAt(addr), value, 'Regiter a into (hl)');
+      assert.equal(cpu.hl(), addr + 1, 'hl incremented');
+    });
+
   });
 
   describe('Bit operations', () => {
