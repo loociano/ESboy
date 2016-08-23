@@ -340,6 +340,22 @@ describe('CPU Unit tests', function() {
       // TODO check flags
     });
 
+    it('should increment 16 bits registers', () => {
+
+      [ {r: cpu.bc, ld: cpu.ld_bc_nn, inc: cpu.inc_bc},
+        {r: cpu.de, ld: cpu.ld_de_nn, inc: cpu.inc_de},
+        {r: cpu.hl, ld: cpu.ld_hl_nn, inc: cpu.inc_hl},
+        {r: cpu.sp, ld: cpu.ld_sp_nn, inc: cpu.inc_sp} ].map( ({r, ld, inc}) => {
+
+        const value = 0xc000;
+        ld.call(cpu, value);
+        inc.call(cpu);
+        assert.equal(r.call(cpu), value + 1, `register ${r} incremented`);
+        // No flags are affected
+      });
+
+    });
+
     it('should push registers into the stack', () => {
 
       cpu.push_af();
