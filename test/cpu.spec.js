@@ -79,6 +79,27 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.pc(), 0x123);
     });
 
+    it('should jump to signed offset', () => {
+      let pc = cpu.pc(); // 0
+      let offset = Utils.uint8ToInt8(0x05);
+
+      assert.throws( () => {
+        cpu.jp_n(0xff); // -1
+      }, Error, 'cannot jump outside memory space');
+
+      cpu.jp_n(0x05);
+
+      assert.equal(cpu.pc(), pc + offset, `jump forward ${offset}`);
+
+      pc = cpu.pc();
+      offset = Utils.uint8ToInt8(0xff);
+
+      cpu.jp_n(0xff);
+
+      assert.equal(cpu.pc(), pc + offset, `jump backward ${offset}`);
+
+    });
+
     describe('Jump NZ', () => {
       it('should jump forward if Z is reset', () => {
         cpu.setZ(0);
