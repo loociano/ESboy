@@ -101,6 +101,14 @@ export default class CPU {
       0x7d: {fn: this.ld_a_l, paramBytes: 0},
       0x7e: {fn: this.ld_a_hl, paramBytes: 0},
       0x7f: {fn: this.ld_a_a, paramBytes: 0},
+      0x90: {fn: this.sub_b, paramBytes: 0},
+      0x91: {fn: this.sub_c, paramBytes: 0},
+      0x92: {fn: this.sub_d, paramBytes: 0},
+      0x93: {fn: this.sub_e, paramBytes: 0},
+      0x94: {fn: this.sub_h, paramBytes: 0},
+      0x95: {fn: this.sub_l, paramBytes: 0},
+      0x96: {fn: this.sub_0x_hl, paramBytes: 0},
+      0x97: {fn: this.sub_a, paramBytes: 0},
       0xa8: {fn: this.xor_b, paramBytes: 0},
       0xa9: {fn: this.xor_c, paramBytes: 0},
       0xaa: {fn: this.xor_d, paramBytes: 0},
@@ -133,6 +141,7 @@ export default class CPU {
       0xcd: {fn: this.call, paramBytes: 2},
       0xd1: {fn: this.pop_de, paramBytes: 0},
       0xd5: {fn: this.push_de, paramBytes: 0},
+      0xd6: {fn: this.sub_n, paramBytes: 0},
       0xe0: {fn: this.ldh_n_a, paramBytes: 1},
       0xe1: {fn: this.pop_hl, paramBytes: 0},
       0xe2: {fn: this.ld_0x_c_a, paramBytes: 0},
@@ -1253,15 +1262,93 @@ export default class CPU {
     this.jp(this._pop_nn());
   }
 
+  /**
+   * Subtract a from a
+   */
+  sub_a(){
+    this._sub_r(this._r.a);
+  }
+
+  /**
+   * Subtract b from a
+   */
   sub_b(){
+    this._sub_r(this._r.b);
+  }
+
+  /**
+   * Subtract c from a
+   */
+  sub_c(){
+    this._sub_r(this._r.c);
+  }
+
+  /**
+   * Subtract d from a
+   */
+  sub_d(){
+    this._sub_r(this._r.d);
+  }
+
+  /**
+   * Subtract e from a
+   */
+  sub_e(){
+    this._sub_r(this._r.e);
+  }
+
+  /**
+   * Subtract h from a
+   */
+  sub_h(){
+    this._sub_r(this._r.h);
+  }
+
+  /**
+   * Subtract l from a
+   */
+  sub_l(){
+    this._sub_r(this._r.l);
+  }
+
+  /**
+   * Subtract value at memory address hl from a
+   */
+  sub_0x_hl(){
+    this._sub_r(this.mmu.readByteAt(this.hl()));
+  }
+
+  /**
+   * Subtract n from a
+   * @param n
+   */
+  sub_n(n){
+    this._sub_r(n);
+  }
+
+  /**
+   * Writes a value n into memory address hl
+   * Not a Z80 instruction, used for testing
+   * @param n
+   */
+  ld_0x_hl_n(n){
+    this.mmu.writeByteAt(this.hl(), n);
+  }
+
+  /**
+   * Subtract register value from register a
+   * @param value
+   * @private
+   */
+  _sub_r(value){
 
     this.setN(1);
 
-    const diff = this._r.a - this._r.b;
+    const diff = this._r.a - value;
     let nybble_a = this._r.a & 0xf0;
 
     if (diff >= 0){
-      this._r.a -= this._r.b;
+      this._r.a -= value;
       
       if (this._r.a === 0){
         this.setZ(1);
@@ -1278,7 +1365,7 @@ export default class CPU {
       this.setC(0);
     
     } else {
-      this._r.a = this._r.a + 0x100 - this._r.b;
+      this._r.a = diff + 0x100;
       this.setZ(0);
       this.setH(0);
       this.setC(1);
