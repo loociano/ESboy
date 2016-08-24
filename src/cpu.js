@@ -305,7 +305,7 @@ export default class CPU {
 
   /**
    * Jumps to address
-   * @param {number} 16 bits
+   * @param {number} nn 16 bits
    */
   jp(nn){
     this._r.pc = nn;
@@ -313,7 +313,7 @@ export default class CPU {
 
   /**
    * Adds signed byte to current address and jumps to it.
-   * @param {signed number} n
+   * @param {number} n, signed integer
    */
   jp_n(n){
     const nextAddress = this._r.pc + Utils.uint8ToInt8(n);
@@ -372,7 +372,7 @@ export default class CPU {
 
   /**
    * XOR byte n with register a.
-   * @param {number} byte
+   * @param {number} n, a byte
    * @private
    */
   _xor(n){
@@ -418,7 +418,7 @@ export default class CPU {
   }
 
   /**
-   * @param {0|1} flag N
+   * @param {number} value of flag N
    */
   setN(value){
     if (value === 1){
@@ -438,7 +438,7 @@ export default class CPU {
   }
 
   /**
-   * @param {0|1} flag H
+   * @param {number} value of flag H
    */
   setH(value) {
     if (value === 1){
@@ -458,7 +458,7 @@ export default class CPU {
   }
 
   /**
-   * @param {0|1} flag C
+   * @param {number} value of flag C
    */
   setC(value) {
     if (value === 1){
@@ -472,7 +472,7 @@ export default class CPU {
 
   /**
    * Loads 16 bits nn into bc.
-   * @param {number} 16 bits
+   * @param {number} nn 16 bits
    */
   ld_bc_nn(nn) {
     this._ld_rr_nn('b', 'c', nn);
@@ -480,7 +480,7 @@ export default class CPU {
 
   /**
    * Loads 16 bits nn into de.
-   * @param {number} 16 bits
+   * @param {number} nn, 16 bits
    */
   ld_de_nn(nn) {
     this._ld_rr_nn('d', 'e', nn);
@@ -488,7 +488,7 @@ export default class CPU {
 
   /**
    * Loads 16 bits nn into hl.
-   * @param {number} 16 bits
+   * @param {number} nn, 16 bits
    */
   ld_hl_nn(nn) {
     this._ld_rr_nn('h', 'l', nn);
@@ -496,7 +496,7 @@ export default class CPU {
 
   /**
    * Loads 16 bits nn into sp.
-   * @param {number} 16 bits
+   * @param {number} nn, 16 bits
    */
   ld_sp_nn(nn) {
     this._r.sp = nn;
@@ -506,7 +506,7 @@ export default class CPU {
    * Loads MSB in r1, LSB in r2
    * @param {string} r1
    * @param {string} r2
-   * @param {number} 16 bits
+   * @param {number} nn, 16 bits
    * @private
    */
   _ld_rr_nn(r1, r2, nn){
@@ -714,7 +714,7 @@ export default class CPU {
 
   /**
    * Decrements register r by 1.
-   * @param {string} register
+   * @param {string} r, register
    * @private
    */
   _dec_r(r){
@@ -787,17 +787,18 @@ export default class CPU {
 
   /**
    * Jumps to current address + n if last operation was not zero.
-   * @param {signed int} n
+   * @param {number} n, signed integer
    */
   jr_nz_n(n){
     if (this.Z() === 0){
+      Logger.info('jump!');
       this._r.pc += Utils.uint8ToInt8(n);
     }
   }
 
   /**
    * Jumps to current address + n if last operation was zero.
-   * @param {signed int} n
+   * @param {number} n, signed integer
    */
   jr_z_n(n){
     if (this.Z() === 1){
@@ -807,7 +808,7 @@ export default class CPU {
 
   /**
    * Jumps to current address + n if last operation did not carry 1 bit.
-   * @param {signed int} n
+   * @param {number} n, signed integer
    */
   jr_nc_n(n){
     if (this.C() === 0){
@@ -817,7 +818,7 @@ export default class CPU {
 
   /**
    * Jumps to current address + n if last operation carried 1 bit
-   * @param {signed int} n
+   * @param {number} n signed integer
    */
   jr_c_n(n){
     if (this.C() === 1){
@@ -898,7 +899,7 @@ export default class CPU {
     this.setN(1); this.setZ(0); this.setC(0);
     var diff = this._r.a - n;
     
-    if (diff == 0){
+    if (diff === 0){
       this.setZ(1);
     } else if (diff < 0){
        this.setC(1);

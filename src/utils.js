@@ -21,7 +21,7 @@ export default class Utils {
   }
 
   /**
-   * @param {integer} number
+   * @param {number} number
    * @returns {string} 2 hex, example: '0x0abc'
    */
   static hex2(number){
@@ -34,8 +34,8 @@ export default class Utils {
   }
 
   /**
-   * @param unsigned number 8 bits
-   * @returns signed number 8 bits
+   * @param {number} number, unsigned 8 bits
+   * @returns {number} number, signed 8 bits
    */
   static uint8ToInt8(number){
     if ((number & 0x80) > 0) {
