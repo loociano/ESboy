@@ -141,7 +141,7 @@ export default class CPU {
       0xcd: {fn: this.call, paramBytes: 2},
       0xd1: {fn: this.pop_de, paramBytes: 0},
       0xd5: {fn: this.push_de, paramBytes: 0},
-      0xd6: {fn: this.sub_n, paramBytes: 0},
+      0xd6: {fn: this.sub_n, paramBytes: 1},
       0xe0: {fn: this.ldh_n_a, paramBytes: 1},
       0xe1: {fn: this.pop_hl, paramBytes: 0},
       0xe2: {fn: this.ld_0x_c_a, paramBytes: 0},
