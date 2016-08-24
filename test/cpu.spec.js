@@ -444,6 +444,66 @@ describe('CPU Unit tests', function() {
 
     });
 
+    it('should substract n from register a', () =>{
+
+      // Result positive
+      cpu.ld_a_n(0x12);
+      cpu.ld_b_n(0x02);
+
+      cpu.sub_b();
+
+      assert.equal(cpu.a(), 0x10, `a subtracted two`);
+      assert.equal(cpu.Z(), 0, 'Result not zero');
+      assert.equal(cpu.N(), 1, 'N always set');
+      assert.equal(cpu.H(), 0, 'No borrow from bit 4');
+      assert.equal(cpu.C(), 0, 'No borrow from carry');
+
+      // Borrow from bit 4
+      cpu.sub_b();
+
+      assert.equal(cpu.a(), 0x0e, 'a subtracted two with half carry');
+      assert.equal(cpu.Z(), 0, 'Result not zero');
+      assert.equal(cpu.N(), 1, 'N always set');
+      assert.equal(cpu.H(), 1, 'Borrow from bit 4');
+      assert.equal(cpu.C(), 0, 'No borrow from carry');
+
+      // Result zero
+      cpu.ld_b_n(0x0e);
+
+      cpu.sub_b();
+
+      assert.equal(cpu.a(), 0x00, 'a subtracted 0x0e');
+      assert.equal(cpu.Z(), 1, 'Result is zero');
+      assert.equal(cpu.N(), 1, 'N always set');
+      assert.equal(cpu.H(), 0, 'No borrow from bit 4');
+      assert.equal(cpu.C(), 0, 'No borrow from carry');
+
+      // Result negative from positive number in a
+      cpu.ld_a_n(0x05);
+      cpu.ld_b_n(0x08);
+
+      cpu.sub_b();
+
+      assert.equal(cpu.a(), 0xfd, 'a loops back to 0xfd');
+      assert.equal(cpu.Z(), 0, 'Result not zero');
+      assert.equal(cpu.N(), 1, 'N always set');
+      assert.equal(cpu.H(), 0, 'No borrow from bit 4');
+      assert.equal(cpu.C(), 1, 'Borrow from carry');
+
+      // Max substraction
+      cpu.ld_a_n(0x01);
+      cpu.ld_b_n(0xff);
+
+      cpu.sub_b();
+
+      assert.equal(cpu.a(), 0x02, 'a loops back to 0x02');
+      assert.equal(cpu.Z(), 0, 'Result not zero');
+      assert.equal(cpu.N(), 1, 'N always set');
+      assert.equal(cpu.H(), 0, 'No borrow from bit 4');
+      assert.equal(cpu.C(), 1, 'Borrow from carry');
+
+    });
+
   });
 
   describe('16 bits arithmetic', () => {
