@@ -15,12 +15,10 @@ export default class CPU {
 
     this.mmu = new MMU(filename);
 
-    if (!this.mmu.rom) return;
-
     this.EXTENDED_PREFIX = 0xcb;
 
     this._r = {
-      pc: this.mmu.ADDR_GAME_START,
+      pc: 0,
       sp: this.mmu.ADDR_MAX - 1,
       a: 0x01,
       b: 0x00,
@@ -31,10 +29,6 @@ export default class CPU {
       h: 0x01,
       l: 0x4d
     };
-
-    if (filename.includes('bios')){
-      this._r.pc = 0;
-    }
 
     this.commands = {
       0x00: {fn: this.nop, paramBytes: 0},
@@ -791,7 +785,6 @@ export default class CPU {
    */
   jr_nz_n(n){
     if (this.Z() === 0){
-      Logger.info('jump!');
       this._r.pc += Utils.uint8ToInt8(n);
     }
   }

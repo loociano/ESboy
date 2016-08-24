@@ -66,7 +66,11 @@ for(let i = 2; i < process.argv.length; i++){
   }
 }
 
-if (!filename) filename = './roms/bios.gb';
+if (!filename) {
+  console.log(`Please execute with a ROM file: 
+  npm start <filename>`);
+  process.exit(0);
+}
 
 Logger.info(`Loading ${filename}
             `);

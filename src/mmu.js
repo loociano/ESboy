@@ -8,8 +8,6 @@ export default class MMU {
    */
   constructor(filename){
 
-    this.rom = this._load(filename);
-
     // Addresses
     this.ADDR_GAME_START = 0x100;
     this.ADDR_NINTENDO_GRAPHIC_START = 0x104;
@@ -58,15 +56,19 @@ export default class MMU {
 
     this.memory = new Buffer(this.ADDR_MAX + 1);
     this._initMemory();
+    this._loadROM(filename);
+    this._loadBIOS();
   }
 
   /**
    * @param filename
    * @private
    */
-  _load(filename){
+  _loadROM(filename){
     try {
-      return fs.readFileSync(filename);
+      const rom = fs.readFileSync(filename);
+      rom.copy(this.memory);
+
     } catch (e){
       throw new Error('ROM was not found.');
     }
@@ -110,8 +112,6 @@ export default class MMU {
     this.memory[0xff4a] = 0x00;
     this.memory[0xff4b] = 0x00;
     this.memory[0xffff] = 0x00;
-
-    this._loadBIOS();
   }
 
   /**
@@ -172,7 +172,7 @@ export default class MMU {
     if (address > this.ADDR_ROM_MAX || address < 0){
       throw new Error(`Cannot read ROM address ${Utils.hexStr(address)}`);
     }
-    return this.rom[address];
+    return this.memory[address];
   }
 
   /**
@@ -185,12 +185,12 @@ export default class MMU {
       addr_end < addr_start || addr_end > this.ADDR_ROM_MAX){
       throw new Error(`Cannot read ROM Buffer ${Utils.hexStr(addr_start)} to ${Utils.hexStr(addr_end)}`);
     }
-    return this.rom.slice(addr_start, addr_end);
+    return this.memory.slice(addr_start, addr_end);
   }
 
   /** @return {string} game title */
   getGameTitle(){
-    var title = this.rom.slice(this.ADDR_TITLE_START, this.ADDR_TITLE_END);
+    var title = this.memory.slice(this.ADDR_TITLE_START, this.ADDR_TITLE_END);
     var length = 0;
     while(title[length] != 0){
       length++;
