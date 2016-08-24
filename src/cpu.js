@@ -123,7 +123,7 @@ export default class CPU {
       0xbb: {fn: this.cp_e, paramBytes: 0},
       0xbc: {fn: this.cp_h, paramBytes: 0},
       0xbd: {fn: this.cp_l, paramBytes: 0},
-      0xbe: {fn: this.cp_hl, paramBytes: 0},
+      0xbe: {fn: this.cp_0x_hl, paramBytes: 0},
       0xbf: {fn: this.cp_a, paramBytes: 0},
       0xc1: {fn: this.pop_bc, paramBytes: 0},
       0xc3: {fn: this.jp, paramBytes: 2},
@@ -885,7 +885,7 @@ export default class CPU {
     this.cp_n(this._r.l);
   }
 
-  cp_hl(){
+  cp_0x_hl(){
     this.cp_n(this.mmu.readByteAt(this.hl()));
   }
 

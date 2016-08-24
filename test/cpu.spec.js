@@ -331,17 +331,17 @@ describe('CPU Unit tests', function() {
 
       // Lower value
       cpu.mmu.writeByteAt(cpu.hl(), 0x01);
-      cpu.cp_hl();
+      cpu.cp_0x_hl();
       assertFlagsCompareLowerValue(cpu);
 
       // Equal value
       cpu.mmu.writeByteAt(cpu.hl(), 0xab);
-      cpu.cp_hl();
+      cpu.cp_0x_hl();
       assertFlagsCompareEqualValue(cpu);
 
       // Greater value
       cpu.mmu.writeByteAt(cpu.hl(), 0xff);
-      cpu.cp_hl();
+      cpu.cp_0x_hl();
       assertFlagsCompareGreaterValue(cpu);
     });
 
