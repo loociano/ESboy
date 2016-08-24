@@ -444,63 +444,101 @@ describe('CPU Unit tests', function() {
 
     });
 
-    it('should substract n from register a', () =>{
+    it('should subtract n from register a', () =>{
 
-      // Result positive
+      cpu.ld_hl_nn(0xc000);
+
+      // Do SUB (hl) first, as h and l will be overridden later
+      [ {ld: cpu.ld_0x_hl_n, sub: cpu.sub_0x_hl},
+        {ld: cpu.ld_b_n, sub: cpu.sub_b},
+        {ld: cpu.ld_c_n, sub: cpu.sub_c},
+        {ld: cpu.ld_d_n, sub: cpu.sub_d},
+        {ld: cpu.ld_e_n, sub: cpu.sub_e},
+        {ld: cpu.ld_h_n, sub: cpu.sub_h},
+        {ld: cpu.ld_l_n, sub: cpu.sub_l} ].map( ({ld, sub}) => {
+
+        // Result positive
+        cpu.ld_a_n(0x12);
+        ld.call(cpu, 0x02);
+
+        sub.call(cpu);
+
+        assert.equal(cpu.a(), 0x10, `a subtracted two, ${sub.name}`);
+        assert.equal(cpu.Z(), 0, 'Result not zero');
+        assert.equal(cpu.N(), 1, 'N always set');
+        assert.equal(cpu.H(), 0, 'No borrow from bit 4');
+        assert.equal(cpu.C(), 0, 'No borrow from carry');
+
+        // Borrow from bit 4
+        cpu.ld_a_n(0x10);
+        ld.call(cpu, 0x02);
+        sub.call(cpu);
+
+        assert.equal(cpu.a(), 0x0e, `a subtracted two with half carry, ${sub.name}`);
+        assert.equal(cpu.Z(), 0, 'Result not zero');
+        assert.equal(cpu.N(), 1, 'N always set');
+        assert.equal(cpu.H(), 1, 'Borrow from bit 4');
+        assert.equal(cpu.C(), 0, 'No borrow from carry');
+
+        // Result zero
+        cpu.ld_a_n(0x0e);
+        ld.call(cpu, 0x0e);
+
+        sub.call(cpu);
+
+        assert.equal(cpu.a(), 0x00, `a subtracted 0x0e, ${sub.name}`);
+        assert.equal(cpu.Z(), 1, 'Result is zero');
+        assert.equal(cpu.N(), 1, 'N always set');
+        assert.equal(cpu.H(), 0, 'No borrow from bit 4');
+        assert.equal(cpu.C(), 0, 'No borrow from carry');
+
+        // Result negative from positive number in a
+        cpu.ld_a_n(0x05);
+        ld.call(cpu, 0x08);
+
+        sub.call(cpu);
+
+        assert.equal(cpu.a(), 0xfd, `a loops back to 0xfd, ${sub.name}`);
+        assert.equal(cpu.Z(), 0, 'Result not zero');
+        assert.equal(cpu.N(), 1, 'N always set');
+        assert.equal(cpu.H(), 0, 'No borrow from bit 4');
+        assert.equal(cpu.C(), 1, 'Borrow from carry');
+
+        // Max subtraction
+        cpu.ld_a_n(0x01);
+        ld.call(cpu, 0xff);
+
+        sub.call(cpu);
+
+        assert.equal(cpu.a(), 0x02, 'a loops back to 0x02');
+        assert.equal(cpu.Z(), 0, 'Result not zero');
+        assert.equal(cpu.N(), 1, 'N always set');
+        assert.equal(cpu.H(), 0, 'No borrow from bit 4');
+        assert.equal(cpu.C(), 1, 'Borrow from carry');
+
+      });
+
+      // Sub a is a special case
       cpu.ld_a_n(0x12);
-      cpu.ld_b_n(0x02);
 
-      cpu.sub_b();
+      cpu.sub_a();
 
-      assert.equal(cpu.a(), 0x10, `a subtracted two`);
-      assert.equal(cpu.Z(), 0, 'Result not zero');
-      assert.equal(cpu.N(), 1, 'N always set');
-      assert.equal(cpu.H(), 0, 'No borrow from bit 4');
-      assert.equal(cpu.C(), 0, 'No borrow from carry');
-
-      // Borrow from bit 4
-      cpu.sub_b();
-
-      assert.equal(cpu.a(), 0x0e, 'a subtracted two with half carry');
-      assert.equal(cpu.Z(), 0, 'Result not zero');
-      assert.equal(cpu.N(), 1, 'N always set');
-      assert.equal(cpu.H(), 1, 'Borrow from bit 4');
-      assert.equal(cpu.C(), 0, 'No borrow from carry');
-
-      // Result zero
-      cpu.ld_b_n(0x0e);
-
-      cpu.sub_b();
-
-      assert.equal(cpu.a(), 0x00, 'a subtracted 0x0e');
+      assert.equal(cpu.a(), 0x00, 'a subtracted itself');
       assert.equal(cpu.Z(), 1, 'Result is zero');
       assert.equal(cpu.N(), 1, 'N always set');
-      assert.equal(cpu.H(), 0, 'No borrow from bit 4');
+      assert.equal(cpu.H(), 1, 'No borrow from bit 4');
       assert.equal(cpu.C(), 0, 'No borrow from carry');
 
-      // Result negative from positive number in a
-      cpu.ld_a_n(0x05);
-      cpu.ld_b_n(0x08);
+      // Sub n, most common case
+      cpu.ld_a_n(0x09);
 
-      cpu.sub_b();
+      cpu.sub_n(0x04);
 
-      assert.equal(cpu.a(), 0xfd, 'a loops back to 0xfd');
+      assert.equal(cpu.a(), 0x05, 'a minus n');
       assert.equal(cpu.Z(), 0, 'Result not zero');
       assert.equal(cpu.N(), 1, 'N always set');
       assert.equal(cpu.H(), 0, 'No borrow from bit 4');
-      assert.equal(cpu.C(), 1, 'Borrow from carry');
-
-      // Max substraction
-      cpu.ld_a_n(0x01);
-      cpu.ld_b_n(0xff);
-
-      cpu.sub_b();
-
-      assert.equal(cpu.a(), 0x02, 'a loops back to 0x02');
-      assert.equal(cpu.Z(), 0, 'Result not zero');
-      assert.equal(cpu.N(), 1, 'N always set');
-      assert.equal(cpu.H(), 0, 'No borrow from bit 4');
-      assert.equal(cpu.C(), 1, 'Borrow from carry');
+      assert.equal(cpu.C(), 0, 'No borrow from carry');
 
     });
 
