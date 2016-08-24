@@ -1252,4 +1252,36 @@ export default class CPU {
   ret(){
     this.jp(this._pop_nn());
   }
+
+  sub_b(){
+
+    this.setN(1);
+
+    const diff = this._r.a - this._r.b;
+    let nybble_a = this._r.a & 0xf0;
+
+    if (diff >= 0){
+      this._r.a -= this._r.b;
+      
+      if (this._r.a === 0){
+        this.setZ(1);
+      } else {
+        this.setZ(0);
+      }
+
+      if ((this._r.a & 0xf0) < nybble_a){
+        this.setH(1);
+      } else {
+        this.setH(0);
+      }
+
+      this.setC(0);
+    
+    } else {
+      this._r.a = this._r.a + 0x100 - this._r.b;
+      this.setZ(0);
+      this.setH(0);
+      this.setC(1);
+    }
+  }
 }
