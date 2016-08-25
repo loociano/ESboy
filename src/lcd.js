@@ -8,12 +8,16 @@ export default class LCD {
     this.imageData = ctx.createImageData(width, height);
   }
 
-  drawPixel (x, y, r, g, b, a) {
+  drawPixel(x, y, level) {
     var index = (x + y * this.width) * 4;
-    this.imageData.data[index + 0] = r;
-    this.imageData.data[index + 1] = g;
-    this.imageData.data[index + 2] = b;
-    this.imageData.data[index + 3] = a;
+    let intensity = 255;
+    if (level === 1){
+      intensity = 0;
+    }
+    this.imageData.data[index + 0] = intensity;
+    this.imageData.data[index + 1] = intensity;
+    this.imageData.data[index + 2] = intensity;
+    this.imageData.data[index + 3] = 255;
     ctx.putImageData(this.imageData, 0, 0);
   }
 }
