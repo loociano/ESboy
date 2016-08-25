@@ -1,4 +1,4 @@
-import {app, BrowserWindow, Menu, remote} from 'electron';
+import {app, BrowserWindow, Menu, remote, dialog} from 'electron';
 import CPU from './cpu';
 import Logger from './logger';
 import config from './config';
@@ -9,18 +9,25 @@ function createWindow() {
   win = new BrowserWindow({
     width: 256,
     height: 256,
-    resizable: true,
-    maximizable: true
+    resizable: false,
+    maximizable: false
   });
 
   win.loadURL(`file://${__dirname}/../src/index.html`);
+
+  //win.webContents.openDevTools();
 
   const template = [{
     label: 'File',
     submenu: [{
         label: 'Open Game...',
         accelerator: 'CmdOrCtrl+O',
-        role: 'open'
+        role: 'open',
+        click(){
+          dialog.showOpenDialog(function(fileNames) {
+            console.log('TODO');
+          });
+        }
       },{
         label: 'Close',
         accelerator: 'CmdOrCtrl+Q',
@@ -37,7 +44,7 @@ function createWindow() {
 
 }
 
-//app.on('ready', createWindow);
+app.on('ready', createWindow);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -65,15 +72,3 @@ for(let i = 2; i < process.argv.length; i++){
     filename = option;
   }
 }
-
-if (!filename) {
-  console.log(`Please execute with a ROM file: 
-  npm start <filename>`);
-  process.exit(0);
-}
-
-Logger.info(`Loading ${filename}
-            `);
-
-new CPU(filename).start();
-

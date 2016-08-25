@@ -4,11 +4,39 @@
     <meta charset="utf-8">
     <title>gb-ES6</title>
   </head>
+  <style>
+    body {
+      margin: 0;
+    }
+    #screen{
+      border: 1px solid black;
+    }
+  </style>
+
   <body>
     <canvas id="screen" width="160" height="144"></canvas>
   </body>
 
   <script>
-    require('../lib/main.js');
+    const CPU = require('../lib/cpu.js').default;
+    const config = require('../lib/config.js').default;
+    const app = require('electron').remote;
+    const dialog = app.dialog;
+
+    //config.DEBUG = true;
+
+    const canvas = document.getElementById('screen');
+    const ctx = canvas.getContext('2d');
+
+    dialog.showOpenDialog(function(fileNames) {
+      if(fileNames === undefined){
+
+      } else {
+        new CPU(fileNames[0], ctx).start(0x100);
+      }
+    });
+
+
+
   </script>
 </html>

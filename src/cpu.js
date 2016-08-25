@@ -1,19 +1,27 @@
 import Utils from './utils';
 import Logger from './logger';
 import MMU from './mmu';
+import LCD from './lcd';
 
 export default class CPU {
 
   /**
    * @param {string} filename
    */
-  constructor(filename) {
+  constructor(filename, ctx) {
 
     if (filename == null) {
       throw new Error('Missing ROM filename');
     }
 
     this.mmu = new MMU(filename);
+
+    if (ctx != null){
+      this.lcd = new LCD(ctx, 160, 144);
+      this.lcd.drawPixel(10, 10, 255, 0, 0, 255);
+      this.lcd.drawPixel(11, 11, 255, 0, 0, 255);
+      this.lcd.drawPixel(159, 143, 255, 0, 0, 255);
+    }
 
     this.EXTENDED_PREFIX = 0xcb;
 

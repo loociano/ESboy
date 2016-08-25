@@ -75,7 +75,7 @@ export default class MMU {
         .copy(this.memory, memory_start, rom_start, rom_32kb);
 
     } catch (e){
-      throw new Error('ROM was not found.');
+      throw new Error(`ROM ${filename} was not found.`);
     }
   }
 
