@@ -141,6 +141,33 @@ export default class MMU {
   }
 
   /**
+   * Returns the buffer given a tile number
+   * Tiles are numbered from 0x00 to 0x7f
+   * @param tile_number
+   */
+  readTile(tile_number){
+    if (tile_number < 0 || tile_number > 0x7f){
+      throw new Error(`Cannot read tile ${tile_number}`);
+    }
+    const start_addr = 0x8000 + (tile_number << 4);
+    return this.memory.slice(start_addr, start_addr + 16);
+  }
+
+  /**
+   * Returns the tile number given the map hex coordinates.
+   * @param x
+   * @param y
+   * @returns {number}
+   */
+  getTileNbAtCoord(x, y){
+    if (x < 0 || x > 0x1f || y < 0 || y > 0x1f){
+      throw new Error(`Cannot read tile at coord ${x}, ${y}`);
+    }
+    const addr = 0x9800 + x + (y * 0x20);
+    return this.readByteAt(addr);
+  }
+
+  /**
    * Writes a byte n into address
    * @param {number} 16 bit address
    * @param {number} byte
