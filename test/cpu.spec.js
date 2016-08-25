@@ -11,7 +11,7 @@ describe('CPU Unit tests', function() {
   let cpu;
 
   beforeEach(function() {
-    cpu = new CPU('./roms/bios.gb');
+    cpu = new CPU('./roms/blargg_cpu_instrs.gb');
   });
 
   describe('ROM file loading', () => {
@@ -49,6 +49,21 @@ describe('CPU Unit tests', function() {
       cpu.jp(start);
       cpu.execute();
       assert.equal(cpu.pc(), start+2);
+    });
+
+    it('should run BIOS correctly', () => {
+
+      cpu.start(0x100);
+      assert.equal(cpu.pc(), 0x100);
+      assert.equal(cpu.lcdc(), 0x91, 'LCDC initialized');
+      //assert.equal(cpu.scy(), 0x00, 'SCY initialized'); // BIOS setting it at 0x64!
+      assert.equal(cpu.scx(), 0x00, 'SCX initialized');
+      assert.equal(cpu.lyc(), 0x00, 'LYC initialized');
+      assert.equal(cpu.bgp(), 0xfc, 'BGP Background Palette is initialized');
+      assert.equal(cpu.wy(), 0x00, 'WY initialized');
+      assert.equal(cpu.wx(), 0x00, 'WX initialized');
+      assert.equal(cpu.ie(), 0x00, 'IE initialized');
+
     });
 
   });

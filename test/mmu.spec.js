@@ -11,7 +11,7 @@ describe('MMU', () => {
   let mmu;
 
   beforeEach(function() {
-    mmu = new MMU('./roms/bios.gb');
+    mmu = new MMU('./roms/blargg_cpu_instrs.gb');
   });
 
   it('should write bytes in memory', () => {
