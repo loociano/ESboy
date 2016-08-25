@@ -243,6 +243,9 @@ export default class CPU {
     try {
       while(true){
         this.execute();
+        if (this._r.pc === this.mmu.ADDR_GAME_START){
+          this.mmu.dumpMemoryToFile();
+        }
       }
     } catch(e){
       Logger.error(e);

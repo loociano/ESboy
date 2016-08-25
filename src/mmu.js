@@ -297,4 +297,16 @@ export default class MMU {
     }
     return (count + 25 & 0xff) === 0;
   }
+
+  /**
+   * Dumps memory to a file
+   */
+  dumpMemoryToFile(){
+    try {
+      fs.writeFileSync('memory_dump', this.memory);
+    } catch(e){
+      console.error('Problem writing memory dump');
+    }
+
+  }
 }
