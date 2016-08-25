@@ -65,9 +65,14 @@ export default class MMU {
    * @private
    */
   _loadROM(filename){
+    const memory_start = 0;
+    const rom_start = 0;
+    const rom_32kb = 0x7fff;
+
     try {
-      const rom = fs.readFileSync(filename);
-      rom.copy(this.memory);
+
+      fs.readFileSync(filename)
+        .copy(this.memory, memory_start, rom_start, rom_32kb);
 
     } catch (e){
       throw new Error('ROM was not found.');
