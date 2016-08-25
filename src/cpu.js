@@ -197,10 +197,6 @@ export default class CPU {
     return this._r.sp;
   }
 
-  ie(){
-    return this.mmu.readByteAt(0xffff);
-  }
-
   /**
    * @returns {number} Register af
    */
@@ -236,21 +232,62 @@ export default class CPU {
     return (this._r._f & 0xF0) >> 4;
   }
 
+  lcdc(){
+    return this.mmu.readByteAt(0xff40);
+  }
+
+  scy(){
+    return this.mmu.readByteAt(0xff42);
+  }
+
+  scx(){
+    return this.mmu.readByteAt(0xff43);
+  }
+
+  lyc(){
+    return this.mmu.readByteAt(0xff45);
+  }
+
+  bgp(){
+    return this.mmu.readByteAt(0xff47);
+  }
+
+  obp0(){
+    return this.mmu.readByteAt(0xff48);
+  }
+
+  obp1(){
+    return this.mmu.readByteAt(0xff49);
+  }
+
+  wy(){
+    return this.mmu.readByteAt(0xff4a);
+  }
+
+  wx(){
+    return this.mmu.readByteAt(0xff4b);
+  }
+
+  ie(){
+    return this.mmu.readByteAt(0xffff);
+  }
+
   /**
-   * Main loop method.
+   * Main loop
+   * @param {number} pc_stop
    */
-  start(){
+  start(pc_stop = -1){
     try {
-      while(true){
+      while(pc_stop === -1 || this._r.pc < pc_stop){
         this.execute();
-        if (this._r.pc === this.mmu.ADDR_GAME_START){
+        if (this._r.pc === 0x0100){
           this.mmu.dumpMemoryToFile();
         }
       }
     } catch(e){
       Logger.error(e);
+      process.exit(0);
     }
-    process.exit(0);
   }
 
   /**
