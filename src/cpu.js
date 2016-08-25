@@ -272,6 +272,26 @@ export default class CPU {
     return this.mmu.readByteAt(0xffff);
   }
 
+  nr11(){
+    return this.mmu.readByteAt(0xff11);
+  }
+
+  nr12(){
+    return this.mmu.readByteAt(0xff12);
+  }
+
+  nr50(){
+    return this.mmu.readByteAt(0xff24);
+  }
+
+  nr51(){
+    return this.mmu.readByteAt(0xff25);
+  }
+
+  nr52(){
+    return this.mmu.readByteAt(0xff26);
+  }
+
   /**
    * Main loop
    * @param {number} pc_stop
@@ -288,6 +308,14 @@ export default class CPU {
       Logger.error(e);
       process.exit(0);
     }
+  }
+
+  /**
+   * Start emulation until a given program counter. For tests.
+   * @param {number} pc_stop
+   */
+  startUntil(pc_stop){
+    this.start(pc_stop);
   }
 
   /**

@@ -89,8 +89,6 @@ export default class MMU {
     this.memory[0xff06] = 0x00;
     this.memory[0xff07] = 0x00;
     this.memory[0xff10] = 0x80;
-    this.memory[0xff11] = 0xbf;
-    this.memory[0xff12] = 0xf3;
     this.memory[0xff14] = 0xbf;
     this.memory[0xff16] = 0x3f;
     this.memory[0xff17] = 0x00;
@@ -103,9 +101,6 @@ export default class MMU {
     this.memory[0xff21] = 0x00;
     this.memory[0xff22] = 0x00;
     this.memory[0xff23] = 0xbf;
-    this.memory[0xff24] = 0x77;
-    this.memory[0xff25] = 0xf3;
-    this.memory[0xff26] = 0xf1;
 
     this.memory[0xff44] = 0x90; // FIXME: hardcoding value on LY to force vblank
   }
