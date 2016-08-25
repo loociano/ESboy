@@ -52,12 +52,10 @@ describe('CPU Unit tests', function() {
     });
 
     it('BIOS should reset VRAM', () => {
-
       cpu.startUntil(0x000c);
 
       assert.equal(cpu.mmu.readByteAt(0x9fff), 0x00, 'Top VRAM empty');
       assert.equal(cpu.mmu.readByteAt(0x8000), 0x00, 'Bottom VRAM empty');
-
     });
 
     it('BIOS should start sound', () => {
@@ -68,9 +66,23 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.nr50(), 0x77, 'NR50');
       assert.equal(cpu.nr12(), 0xf3, 'NR52');
       assert.equal(cpu.nr11(), 0x80, 'NR11');
-
     });
 
+    it('should copy the nintendo tiles in VRAM', () => {
+      cpu.startUntil(0x0100);
+      assert(cpu.mmu.readTile(0x1).equals(B('f000f000fc00fc00fc00fc00f300f300')), 'Nintendo tile 1');
+      assert(cpu.mmu.readTile(0x2).equals(B('3c003c003c003c003c003c003c003c00')), 'Nintendo tile 2');
+      assert(cpu.mmu.readTile(0x3).equals(B('f000f000f000f00000000000f300f300')), 'Nintendo tile 3');
+      //...
+      assert(cpu.mmu.readTile(0x19).equals(B('3c004200b900a500b900a50042003c00')), 'Nintendo tile 24');
+    });
+
+    it('should write the map to tiles', () => {
+      cpu.startUntil(0x0100);
+
+      assert.equal(cpu.mmu.getTileNbAtCoord(0x04, 0x08), 0x01, 'Tile 1 at 0x04,0x08');
+      assert.equal(cpu.mmu.getTileNbAtCoord(0x10, 0x08), 0x19, 'Tile 19 at 0x10,0x08');
+    });
 
     it('should run BIOS correctly', () => {
 
@@ -1073,4 +1085,14 @@ function assertFlagsCompareLowerValue(cpu){
   assert.equal(cpu.Z(), 0, 'Z not set as a > n');
   assert.equal(cpu.N(), 1, 'N is always set');
   assert.equal(cpu.C(), 0, 'a is greater than n');
+}
+
+/**
+ * Returns a new Buffer given a hexadecimal string
+ * @param hex_string
+ * @returns {*|Buffer}
+ * @constructor
+ */
+function B(hex_string){
+  return new Buffer(hex_string, 'hex');
 }
