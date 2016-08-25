@@ -51,9 +51,30 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.pc(), start+2);
     });
 
+    it('BIOS should reset VRAM', () => {
+
+      cpu.startUntil(0x000c);
+
+      assert.equal(cpu.mmu.readByteAt(0x9fff), 0x00, 'Top VRAM empty');
+      assert.equal(cpu.mmu.readByteAt(0x8000), 0x00, 'Bottom VRAM empty');
+
+    });
+
+    it('BIOS should start sound', () => {
+      cpu.startUntil(0x0028);
+
+      assert.equal(cpu.nr52(), 0x80, 'NR52');
+      assert.equal(cpu.nr51(), 0xf3, 'NR51');
+      assert.equal(cpu.nr50(), 0x77, 'NR50');
+      assert.equal(cpu.nr12(), 0xf3, 'NR52');
+      assert.equal(cpu.nr11(), 0x80, 'NR11');
+
+    });
+
+
     it('should run BIOS correctly', () => {
 
-      cpu.start(0x100);
+      cpu.startUntil(0x100);
       assert.equal(cpu.pc(), 0x100);
       assert.equal(cpu.lcdc(), 0x91, 'LCDC initialized');
       //assert.equal(cpu.scy(), 0x00, 'SCY initialized'); // BIOS setting it at 0x64!

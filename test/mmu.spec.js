@@ -60,8 +60,6 @@ describe('MMU', () => {
     assert.equal(mmu.readByteAt(0xff06), 0x00);
     assert.equal(mmu.readByteAt(0xff07), 0x00);
     assert.equal(mmu.readByteAt(0xff10), 0x80);
-    assert.equal(mmu.readByteAt(0xff11), 0xbf);
-    assert.equal(mmu.readByteAt(0xff12), 0xf3);
     assert.equal(mmu.readByteAt(0xff14), 0xbf);
     assert.equal(mmu.readByteAt(0xff16), 0x3f);
     assert.equal(mmu.readByteAt(0xff17), 0x00);
@@ -74,9 +72,6 @@ describe('MMU', () => {
     assert.equal(mmu.readByteAt(0xff21), 0x00);
     assert.equal(mmu.readByteAt(0xff22), 0x00);
     assert.equal(mmu.readByteAt(0xff23), 0xbf);
-    assert.equal(mmu.readByteAt(0xff24), 0x77);
-    assert.equal(mmu.readByteAt(0xff25), 0xf3);
-    assert.equal(mmu.readByteAt(0xff26), 0xf1);
   });
 
   it('should load the BIOS in memory', () => {
