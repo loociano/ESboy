@@ -17,10 +17,7 @@ export default class CPU {
     this.mmu = new MMU(filename);
 
     if (ctx != null){
-      this.lcd = new LCD(ctx, 160, 144);
-      this.lcd.drawPixel(10, 10, 1);
-      this.lcd.drawPixel(11, 11, 1);
-      this.lcd.drawPixel(159, 143, 1);
+      this.lcd = new LCD(this.mmu, ctx, 160, 144);
     }
 
     this.EXTENDED_PREFIX = 0xcb;
@@ -312,6 +309,10 @@ export default class CPU {
           this.mmu.dumpMemoryToFile();
         }
       }
+      if (this.lcd) {
+        this.lcd.drawTile({tile: 1, x: 0, y: 0});
+      }
+
     } catch(e){
       Logger.error(e);
       process.exit(0);
