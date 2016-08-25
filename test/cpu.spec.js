@@ -542,6 +542,105 @@ describe('CPU Unit tests', function() {
 
     });
 
+    it('should add n to register a', () =>{
+
+      cpu.ld_hl_nn(0xc000);
+
+      // Do ADD (hl) first, as h and l will be overridden later
+      [ {ld: cpu.ld_0x_hl_n, add: cpu.add_0x_hl},
+        {ld: cpu.ld_b_n, add: cpu.add_b},
+        {ld: cpu.ld_c_n, add: cpu.add_c},
+        {ld: cpu.ld_d_n, add: cpu.add_d},
+        {ld: cpu.ld_e_n, add: cpu.add_e},
+        {ld: cpu.ld_h_n, add: cpu.add_h},
+        {ld: cpu.ld_l_n, add: cpu.add_l} ].map( ({ld, add}) => {
+
+        // Result is positive
+        cpu.ld_a_n(0x12);
+        ld.call(cpu, 0x02);
+
+        add.call(cpu);
+
+        assert.equal(cpu.a(), 0x14, `a 0x12 plus 0x02, ${add.name}`);
+        assert.equal(cpu.Z(), 0, 'Result not zero');
+        assert.equal(cpu.N(), 0, 'N always reset');
+        assert.equal(cpu.H(), 0, 'No carry from bit 3');
+        assert.equal(cpu.C(), 0, 'No carry');
+
+        // Test carry from bit 3
+        cpu.ld_a_n(0x0f);
+        ld.call(cpu, 0x01);
+
+        add.call(cpu);
+
+        assert.equal(cpu.a(), 0x10, `a 0x0f plus two with half carry, ${add.name}`);
+        assert.equal(cpu.Z(), 0, 'Result not zero');
+        assert.equal(cpu.N(), 0, 'N always reset');
+        assert.equal(cpu.H(), 1, 'Carry from bit 3');
+        assert.equal(cpu.C(), 0, 'No carry');
+
+        // Test a result zero
+        cpu.ld_a_n(0xf0);
+        ld.call(cpu, 0x10);
+
+        add.call(cpu);
+
+        assert.equal(cpu.a(), 0x00, `a 0xf0 plus 0x10 is zero, ${add.name}`);
+        assert.equal(cpu.Z(), 1, 'Result is zero');
+        assert.equal(cpu.N(), 0, 'N always reset');
+        assert.equal(cpu.H(), 1, 'Carry from bit 3');
+        assert.equal(cpu.C(), 1, 'Carry');
+
+        // Result overflows from positive number in a
+        cpu.ld_a_n(0xf0);
+        ld.call(cpu, 0x12);
+
+        add.call(cpu);
+
+        assert.equal(cpu.a(), 0x02, `a 0xf0 overflows to 0x02, ${add.name}`);
+        assert.equal(cpu.Z(), 0, 'Result not zero');
+        assert.equal(cpu.N(), 0, 'N always reset');
+        assert.equal(cpu.H(), 1, 'Carry from bit 3');
+        assert.equal(cpu.C(), 1, 'Carry');
+
+        // Test max addition
+        cpu.ld_a_n(0x02);
+        ld.call(cpu, 0xff);
+
+        add.call(cpu);
+
+        assert.equal(cpu.a(), 0x01, `a 0x02 plus 0xff overflows to 0x01, ${add.name}`);
+        assert.equal(cpu.Z(), 0, 'Result not zero');
+        assert.equal(cpu.N(), 0, 'N always reset');
+        assert.equal(cpu.H(), 1, 'Carry from bit 3');
+        assert.equal(cpu.C(), 1, 'Carry');
+
+      });
+
+      // Add a is a special case
+      cpu.ld_a_n(0x12);
+
+      cpu.add_a();
+
+      assert.equal(cpu.a(), 0x24, 'a doubles itself');
+      assert.equal(cpu.Z(), 0, 'Result not zero');
+      assert.equal(cpu.N(), 0, 'N always reset');
+      assert.equal(cpu.H(), 1, 'Carry from bit 3');
+      assert.equal(cpu.C(), 0, 'No carry');
+
+      // Add n, most common case
+      cpu.ld_a_n(0x09);
+
+      cpu.add_n(0x04);
+
+      assert.equal(cpu.a(), 0x0d, 'a 0x09 plus n 0x04');
+      assert.equal(cpu.Z(), 0, 'Result not zero');
+      assert.equal(cpu.N(), 0, 'N always reset');
+      assert.equal(cpu.H(), 0, 'No carry from bit 3');
+      assert.equal(cpu.C(), 0, 'No carry');
+
+    });
+
   });
 
   describe('16 bits arithmetic', () => {
