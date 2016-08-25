@@ -95,6 +95,14 @@ export default class CPU {
       0x7d: {fn: this.ld_a_l, paramBytes: 0},
       0x7e: {fn: this.ld_a_hl, paramBytes: 0},
       0x7f: {fn: this.ld_a_a, paramBytes: 0},
+      0x80: {fn: this.add_b, paramBytes: 0},
+      0x81: {fn: this.add_c, paramBytes: 0},
+      0x82: {fn: this.add_d, paramBytes: 0},
+      0x83: {fn: this.add_e, paramBytes: 0},
+      0x84: {fn: this.add_h, paramBytes: 0},
+      0x85: {fn: this.add_l, paramBytes: 0},
+      0x86: {fn: this.add_0x_hl, paramBytes: 0},
+      0x87: {fn: this.add_a, paramBytes: 0},
       0x90: {fn: this.sub_b, paramBytes: 0},
       0x91: {fn: this.sub_c, paramBytes: 0},
       0x92: {fn: this.sub_d, paramBytes: 0},
@@ -122,6 +130,7 @@ export default class CPU {
       0xc1: {fn: this.pop_bc, paramBytes: 0},
       0xc3: {fn: this.jp, paramBytes: 2},
       0xc5: {fn: this.push_bc, paramBytes: 0},
+      0xc6: {fn: this.add_n, paramBytes: 1},
       0xc9: {fn: this.ret, paramBytes: 0},
       0xcb10: {fn: this.rl_b, paramBytes: 0},
       0xcb11: {fn: this.rl_c, paramBytes: 0},
@@ -1339,7 +1348,7 @@ export default class CPU {
     this.setN(1);
 
     const diff = this._r.a - value;
-    let nybble_a = this._r.a & 0xf0;
+    const nybble_a = this._r.a & 0xf0;
 
     if (diff >= 0){
       this._r.a -= value;
@@ -1363,6 +1372,103 @@ export default class CPU {
       this.setZ(0);
       this.setH(0);
       this.setC(1);
+    }
+  }
+
+  /**
+   * Adds a to a
+   */
+  add_a(){
+    this._add_r(this._r.a);
+  }
+
+  /**
+   * Adds b to a
+   */
+  add_b(){
+    this._add_r(this._r.b);
+  }
+
+  /**
+   * Adds c to a
+   */
+  add_c(){
+    this._add_r(this._r.c);
+  }
+
+  /**
+   * Adds d to a
+   */
+  add_d(){
+    this._add_r(this._r.d);
+  }
+
+  /**
+   * Adds e to a
+   */
+  add_e(){
+    this._add_r(this._r.e);
+  }
+
+  /**
+   * Adds h to a
+   */
+  add_h(){
+    this._add_r(this._r.h);
+  }
+
+  /**
+   * Adds l to a
+   */
+  add_l(){
+    this._add_r(this._r.l);
+  }
+
+  /**
+   * Adds value at memory hl to a
+   */
+  add_0x_hl(){
+    this._add_r(this.mmu.readByteAt(this.hl()));
+  }
+
+  /**
+   * Adds byte to a
+   * @param {number} n, 8 bits
+   */
+  add_n(n){
+    this._add_r(n);
+  }
+
+  /**
+   * Adds a value to register a
+   * @param {number} value, 8 bits
+   * @private
+   */
+  _add_r(value){
+
+    this.setN(0);
+
+    // Half carry
+    if (value > (0x0f - (this._r.a & 0x0f))){
+      this.setH(1);
+    } else {
+      this.setH(0);
+    }
+
+    this._r.a = this._r.a + value;
+
+    // Carry
+    if ((this._r.a & 0x100) > 0){
+      this._r.a -= 0x100;
+      this.setC(1);
+    } else {
+      this.setC(0);
+    }
+
+    if (this._r.a === 0){
+      this.setZ(1);
+    } else {
+      this.setZ(0);
     }
   }
 }
