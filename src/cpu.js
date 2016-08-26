@@ -310,7 +310,12 @@ export default class CPU {
         }
       }
       if (this.lcd) {
-        this.lcd.drawTile({tile: 1, x: 0, y: 0});
+
+        for(let x = 0; x < 0x13; x++){
+          for(let y = 0; y < 0x11; y++){
+            this.lcd.drawTile({tile_number: this.mmu.getTileNbAtCoord(x, y), grid_x: x, grid_y: y});
+          }
+        }
       }
 
     } catch(e){
