@@ -7,15 +7,30 @@ export default class LCD {
     this.height = height;
 
     this.imageData = ctx.createImageData(width, height);
+
+    this.tileWidth = 8;
   }
 
-  drawTile({tile, x, y}){
-    const tileBuffer = this.mmu.readTile(tile);
+  /**
+   * @param {number} tile_number
+   * @param {number} tile_x from 0x00 to 0x1f
+   * @param {number} tile_y from 0x00 to 0x1f
+   */
+  drawTile({tile_number, grid_x, grid_y}){
+
+    const x_start = grid_x * this.tileWidth;
+    const y_start = grid_y * this.tileWidth;
+    
+    let x = x_start;
+    let y = y_start;
+
+    const tileBuffer = this.mmu.readTile(tile_number);
     const array = this._tileToMatrix(tileBuffer);
+    
     for(let i = 0; i < array.length; i++){
-      if (i > 0 && i % 8 === 0){
+      if (i > 0 && i % this.tileWidth === 0){
+        x = x_start;
         y++;
-        x = 0;
       }
       this.drawPixel(x++, y, array[i]);
     }
