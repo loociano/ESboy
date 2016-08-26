@@ -7,15 +7,15 @@ let win;
 
 function createWindow() {
   win = new BrowserWindow({
-    width: 256,
-    height: 256,
-    resizable: false,
-    maximizable: false
+    width: 512,
+    height: 512,
+    resizable: true,
+    maximizable: true
   });
 
   win.loadURL(`file://${__dirname}/../src/index.html`);
 
-  //win.webContents.openDevTools();
+  win.webContents.openDevTools();
 
   const menu = Menu.buildFromTemplate([]);
   Menu.setApplicationMenu(menu);
