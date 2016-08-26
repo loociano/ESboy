@@ -17,25 +17,7 @@ function createWindow() {
 
   //win.webContents.openDevTools();
 
-  const template = [{
-    label: 'File',
-    submenu: [{
-        label: 'Open Game...',
-        accelerator: 'CmdOrCtrl+O',
-        role: 'open',
-        click(){
-          dialog.showOpenDialog(function(fileNames) {
-            console.log('TODO');
-          });
-        }
-      },{
-        label: 'Close',
-        accelerator: 'CmdOrCtrl+Q',
-        role: 'close'
-      }]
-  }];
-
-  const menu = Menu.buildFromTemplate(template);
+  const menu = Menu.buildFromTemplate([]);
   Menu.setApplicationMenu(menu);
 
   win.on('closed', () => {
