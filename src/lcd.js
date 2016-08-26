@@ -10,7 +10,6 @@ export default class LCD {
 
     this.tileWidth = 8;
     this.tileHeight = this.tileWidth;
-    this.lineBits = 16;
   }
 
   drawTiles(){
@@ -30,13 +29,13 @@ export default class LCD {
 
     const x_start = grid_x * this.tileWidth;
     const y_start = grid_y * this.tileHeight;
-    
+
     let x = x_start;
     let y = y_start;
 
     const tileBuffer = this.mmu.readTile(tile_number);
-    const array = this._tileToMatrix(tileBuffer);
-    
+    const array = LCD.tileToMatrix(tileBuffer);
+
     for(let i = 0; i < array.length; i++){
       if (i > 0 && i % this.tileWidth === 0){
         x = x_start;
@@ -47,11 +46,14 @@ export default class LCD {
     ctx.putImageData(this.imageData, 0, 0);
   }
 
-  _tileToMatrix(buffer){
+  static tileToMatrix(buffer){
     const array = [];
-    for(let i = 0; i < this.lineBits; i = i + 2){
+    for(let i = 0; i < 16; i = i + 2){
       const value = buffer.readUInt8(i);
-      const binary = value.toString(2);
+
+      let binary = value.toString(2);
+      binary = '0'.repeat(8 - binary.length) + binary; // zero padding
+
       for (let b of binary){
         array.push(parseInt(b, 2));
       }
