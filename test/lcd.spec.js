@@ -75,4 +75,32 @@ describe('LCD', () => {
     assert.deepEqual([data[lastIndex-3], data[lastIndex-2], data[lastIndex-1], data[lastIndex]], [255, 255, 255, 255]);
   });
 
+  it('should write black tiles on screen', () => {
+
+    const mmuMock = {
+        readTile: function(tile_number){
+            return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
+        }
+    };
+
+    lcd = new LCD(mmuMock, new ContextMock(), WIDTH, HEIGHT);
+
+    lcd.drawTile({tile_number: 1, grid_x: 0, grid_y: 0});
+    lcd.drawTile({tile_number: 1, grid_x: 10, grid_y: 9});
+    lcd.drawTile({tile_number: 1, grid_x: 19, grid_y: 17});
+
+    assertBlackTile(0, 0);
+    assertBlackTile(10, 9);
+    assertBlackTile(19, 17);
+  });
+
 });
+
+function assertBlackTile(grid_x, grid_y){
+
+  for(let x = grid_x*8; x < (grid_x+1)*8; x++){
+    for(let y = grid_y*8; y < (grid_y)*8; y++){
+       assert.deepEqual(lcd.getPixelData(x, y), [255, 255, 255, 255], 'pixel is black');
+    } 
+  }
+}

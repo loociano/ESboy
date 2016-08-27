@@ -4,4 +4,8 @@ export default class ContextMock {
     return { data: new Array(width * height * 4) };
   }
 
+  putImageData(){
+    // Do nothing
+  }
+
 }
