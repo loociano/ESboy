@@ -40,4 +40,16 @@ describe('Utils', () => {
 
   });
 
+  it('should convert to 8 bit binary string', () => {
+
+    assert.equal(Utils.toBin8(0), '00000000');
+    assert.equal(Utils.toBin8(255), '11111111');
+    assert.equal(Utils.toBin8(0x2f), '00101111');
+
+    assert.throws(() => {
+      Utils.toBin8(256);
+    }, Error, 'Number cannot be represented with 8 bits');
+
+  });
+
 });
