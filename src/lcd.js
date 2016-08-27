@@ -12,8 +12,9 @@ export default class LCD {
 
     this.imageData = ctx.createImageData(width, height);
 
-    this.tileWidth = 8;
-    this.tileHeight = this.tileWidth;
+    // Constants
+    this.TILE_WIDTH = 8;
+    this.TILE_HEIGHT = this.TILE_WIDTH;
   }
 
   drawTiles(){
@@ -31,8 +32,8 @@ export default class LCD {
    */
   drawTile({tile_number, grid_x, grid_y}){
 
-    const x_start = grid_x * this.tileWidth;
-    const y_start = grid_y * this.tileHeight;
+    const x_start = grid_x * this.TILE_WIDTH;
+    const y_start = grid_y * this.TILE_HEIGHT;
 
     let x = x_start;
     let y = y_start;
@@ -41,7 +42,7 @@ export default class LCD {
     const array = LCD.tileToMatrix(tileBuffer);
 
     for(let i = 0; i < array.length; i++){
-      if (i > 0 && i % this.tileWidth === 0){
+      if (i > 0 && i % this.TILE_WIDTH === 0){
         x = x_start;
         y++;
       }
