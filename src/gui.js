@@ -40,17 +40,10 @@ app.on('activate', () => {
   }
 });
 
-// Game file
-let filename;
-
 // Options
 for(let i = 2; i < process.argv.length; i++){
   const option = process.argv[i];
-  if (option.includes('--')){
-    if (option === '--debug'){
-      config.DEBUG = true;
-    }
-  } else {
-    filename = option;
+  if (option === '--debug'){
+    config.DEBUG = true;
   }
 }
