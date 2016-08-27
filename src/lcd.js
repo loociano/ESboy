@@ -1,8 +1,10 @@
 import Utils from './utils';
+import Logger from './logger';
 
 export default class LCD {
 
   constructor(mmu, ctx, width, height){
+    
     this.mmu = mmu;
     this.ctx = ctx;
     this.width = width;
@@ -63,12 +65,24 @@ export default class LCD {
   }
 
   drawPixel(x, y, level) {
+    
+    if (level === 0) return;
+
     var index = (x + y * this.width) * 4;
-    if (level === 1){
-      this.imageData.data[index + 0] = 0;
-      this.imageData.data[index + 1] = 0;
-      this.imageData.data[index + 2] = 0;
-      this.imageData.data[index + 3] = 255;
+    let intensity;
+
+    switch(level){
+      case 1: intensity = 85; break;
+      case 2: intensity = 170; break;
+      case 3: intensity = 255; break;
+      default: 
+        Logger.error(`Unrecognized level gray level ${level}`); 
+        return;
     }
+
+    this.imageData.data[index + 0] = intensity;
+    this.imageData.data[index + 1] = intensity;
+    this.imageData.data[index + 2] = intensity;
+    this.imageData.data[index + 3] = 255; // alpha channel, always opaque
   }
 }
