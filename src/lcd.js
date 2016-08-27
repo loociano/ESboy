@@ -15,17 +15,25 @@ export default class LCD {
     // Constants
     this.TILE_WIDTH = 8;
     this.TILE_HEIGHT = this.TILE_WIDTH;
+
+    this.H_TILES = width / this.TILE_WIDTH;
+    this.V_TILES = height / this.TILE_HEIGHT;
   }
 
+  /** 
+   * Draw all tiles on screen
+   */
   drawTiles(){
-    for(let x = 0; x < 0x14; x++){
-      for(let y = 0; y < 0x12; y++){
+    for(let x = 0; x < this.H_TILES; x++){
+      for(let y = 0; y < this.V_TILES; y++){
         this.drawTile({tile_number: this.mmu.getTileNbAtCoord(x, y), grid_x: x, grid_y: y});
       }
     }
   }
 
   /**
+   * Draws all pixels from a tile in the image data
+   *
    * @param {number} tile_number
    * @param {number} tile_x from 0x00 to 0x1f
    * @param {number} tile_y from 0x00 to 0x1f
@@ -51,6 +59,11 @@ export default class LCD {
     ctx.putImageData(this.imageData, 0, 0);
   }
 
+  /**
+   * Converts a 16 bits tile buffer into array of level of grays [0-3]
+   * Example: [1, 0, 2, 3, 0, 1 ...]  
+   * @param {Buffer} buffer
+   */
   static tileToMatrix(buffer){
     const array = [];
     for(let i = 0; i < 16; i++){
@@ -65,6 +78,13 @@ export default class LCD {
     return array; // TODO: cache array for speed
   }
 
+  /**
+   * Draws pixel in image data, given its coords and grey level
+   * 
+   * @param {number} x
+   * @param {number} y
+   * @param {number} level of gray [0-3]
+   */
   drawPixel(x, y, level) {
     
     if (level === 0) return;
