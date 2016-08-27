@@ -1,3 +1,5 @@
+import Utils from './utils';
+
 export default class LCD {
 
   constructor(mmu, ctx, width, height){
@@ -48,18 +50,16 @@ export default class LCD {
 
   static tileToMatrix(buffer){
     const array = [];
-    for(let i = 0; i < 16; i = i + 2){
-      const value = buffer.readUInt8(i);
+    for(let i = 0; i < 16; i++){
+      
+      const msb = Utils.toBin8(buffer.readUInt8(i++));
+      const lsb = Utils.toBin8(buffer.readUInt8(i));
 
-      let binary = value.toString(2);
-      binary = '0'.repeat(8 - binary.length) + binary; // zero padding
-
-      for (let b of binary){
-        array.push(parseInt(b, 2));
+      for(let b = 0; b < 8; b++){
+        array.push( (parseInt(msb[b], 2) << 1) + parseInt(lsb[b], 2));
       }
     }
-    // TODO: support greys
-    return array;
+    return array; // TODO: cache array for speed
   }
 
   drawPixel(x, y, level) {
