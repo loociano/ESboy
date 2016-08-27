@@ -56,7 +56,7 @@ export default class LCD {
       }
       this.drawPixel(x++, y, array[i]);
     }
-    ctx.putImageData(this.imageData, 0, 0);
+    this.ctx.putImageData(this.imageData, 0, 0);
   }
 
   /**
@@ -105,5 +105,10 @@ export default class LCD {
     this.imageData.data[index + 1] = intensity;
     this.imageData.data[index + 2] = intensity;
     this.imageData.data[index + 3] = 255; // alpha channel, always opaque
+  }
+
+  getPixelData(x, y){
+    const index = (x + y * this.width) * 4;
+    return this.imageData.data.slice(index, index + 4);
   }
 }
