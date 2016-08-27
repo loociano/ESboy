@@ -59,4 +59,9 @@ export default class Utils {
   static msb(word){
     return (word & 0xff00) >> 8;
   }
+
+  static toBin8(number){
+    const binary = number.toString(2);
+    return '0'.repeat(8 - binary.length) + binary; // pad
+  }
 }
