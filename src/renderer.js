@@ -1,8 +1,6 @@
-const CPU = require('../lib/cpu.js').default;
-const config = require('../lib/config.js').default;
-const app = require('electron').remote;
-const Menu = app.Menu;
-const dialog = app.dialog;
+import CPU from './cpu';
+import config from './config';
+import {app, remote} from 'electron';
 
 const template = [{
   label: 'File',
@@ -11,7 +9,7 @@ const template = [{
       accelerator: 'CmdOrCtrl+O',
       role: 'open',
       click(){
-        dialog.showOpenDialog(function(fileNames) {
+        remote.dialog.showOpenDialog(function(fileNames) {
           if(fileNames !== undefined){
             new CPU(fileNames[0], ctx).start(0x100);
           }
@@ -24,8 +22,8 @@ const template = [{
     }]
 }];
 
-const menu = Menu.buildFromTemplate(template);
-Menu.setApplicationMenu(menu);
+const menu = remote.Menu.buildFromTemplate(template);
+remote.Menu.setApplicationMenu(menu);
 
 //config.DEBUG = true;
 
