@@ -30,7 +30,21 @@ describe('CPU Unit tests', function() {
     });
   });
 
+  it('should understand prefix cb instructions', () => {
+    const start = 0xc000; // internal RAM
+    cpu.mmu.writeByteAt(start, 0xcb);
+    cpu.mmu.writeByteAt(start+1, 0x7c);
+    cpu.jp(start);
+    cpu.execute();
+    assert.equal(cpu.pc(), start+2);
+  });
+
   describe('Bootstrap', () => {
+
+    before(function() {
+      cpu = new CPU('./roms/blargg_cpu_instrs.gb', new ContextMock());
+      cpu.startUntil(0x0028);
+    });
 
     it('should start with pc, sp and registers at right values', () => {
       assert.equal(cpu.pc(), 0x0000, 'Program Counter should start at 0x0000 in BIOS');
@@ -43,25 +57,20 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.sp(), 0xfffe, 'Stack Pointer must start as 0xfffe');
     });
 
-    it('should understand prefix cb instructions', () => {
-      const start = 0xc000; // internal RAM
-      cpu.mmu.writeByteAt(start, 0xcb);
-      cpu.mmu.writeByteAt(start+1, 0x7c);
-      cpu.jp(start);
-      cpu.execute();
-      assert.equal(cpu.pc(), start+2);
-    });
-
     it('BIOS should reset VRAM', () => {
-      cpu.startUntil(0x000c);
-
       assert.equal(cpu.mmu.readByteAt(0x9fff), 0x00, 'Top VRAM empty');
       assert.equal(cpu.mmu.readByteAt(0x8000), 0x00, 'Bottom VRAM empty');
     });
+  });
+
+  describe('End BIOS', () => {
+
+    beforeEach( () => {
+      cpu = new CPU('./roms/blargg_cpu_instrs.gb', new ContextMock());
+      cpu.startUntil(0x0100);
+    });
 
     it('BIOS should start sound', () => {
-      cpu.startUntil(0x0028);
-
       assert.equal(cpu.nr52(), 0x80, 'NR52');
       assert.equal(cpu.nr51(), 0xf3, 'NR51');
       assert.equal(cpu.nr50(), 0x77, 'NR50');
@@ -70,7 +79,6 @@ describe('CPU Unit tests', function() {
     });
 
     it('should copy the nintendo tiles in VRAM', () => {
-      cpu.startUntil(0x0100);
       assert(cpu.mmu.readTile(0x1).equals(B('f000f000fc00fc00fc00fc00f300f300')), 'Nintendo tile 1');
       assert(cpu.mmu.readTile(0x2).equals(B('3c003c003c003c003c003c003c003c00')), 'Nintendo tile 2');
       assert(cpu.mmu.readTile(0x3).equals(B('f000f000f000f00000000000f300f300')), 'Nintendo tile 3');
@@ -79,15 +87,11 @@ describe('CPU Unit tests', function() {
     });
 
     it('should write the map to tiles', () => {
-      cpu.startUntil(0x0100);
-
       assert.equal(cpu.mmu.getTileNbAtCoord(0x04, 0x08), 0x01, 'Tile 1 at 0x04,0x08');
       assert.equal(cpu.mmu.getTileNbAtCoord(0x10, 0x08), 0x19, 'Tile 19 at 0x10,0x08');
     });
 
-    it('should run BIOS correctly', () => {
-
-      cpu.startUntil(0x100);
+    it('should init IO registers', () => {
       assert.equal(cpu.pc(), 0x100);
       assert.equal(cpu.lcdc(), 0x91, 'LCDC initialized');
       //assert.equal(cpu.scy(), 0x00, 'SCY initialized'); // BIOS setting it at 0x64!
@@ -97,7 +101,6 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.wy(), 0x00, 'WY initialized');
       assert.equal(cpu.wx(), 0x00, 'WX initialized');
       assert.equal(cpu.ie(), 0x00, 'IE initialized');
-
     });
 
   });
