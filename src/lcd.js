@@ -21,6 +21,15 @@ export default class LCD {
   }
 
   /** 
+   * Clears the LCD by writing transparent pixels 
+   */
+  clear(){
+    for(let p = 0; p < this.width * this.height * 4; p++){
+      this.imageData.data[p] = 0;
+    }
+  }
+
+  /** 
    * Draw all tiles on screen
    */
   drawTiles(){
