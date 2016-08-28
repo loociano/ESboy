@@ -13,6 +13,16 @@ describe('LCD', () => {
     lcd = new LCD(new Object(), new ContextMock(), WIDTH, HEIGHT);
   });
 
+  it('should clear the LCD', () => {
+
+    lcd.clear();
+
+    for(let i = 0; i < WIDTH * HEIGHT * 4; i++) {
+      assert.equal(lcd.imageData.data[i], 0);
+    }
+
+  });
+
   it('should transform a Nintendo tile buffer into a matrix', () => {
     const array = LCD.tileToMatrix(new Buffer('3c004200b900a500b900a50042003c00', 'hex'));
     assert.deepEqual(array, [0,0,2,2,2,2,0,0,
