@@ -96,19 +96,13 @@ export default class LCD {
    */
   drawPixel(x, y, level) {
     
-    if (level === 0) return;
-
-    var index = (x + y * this.width) * 4;
-    let intensity;
-
-    switch(level){
-      case 1: intensity = 85; break;
-      case 2: intensity = 170; break;
-      case 3: intensity = 255; break;
-      default: 
-        Logger.error(`Unrecognized level gray level ${level}`); 
-        return;
+    if (level < 0 || level > 3){
+      Logger.error(`Unrecognized level gray level ${level}`); 
+      return;
     }
+
+    let intensity = level * 85; // 255/3
+    var index = (x + y * this.width) * 4;
 
     this.imageData.data[index + 0] = intensity;
     this.imageData.data[index + 1] = intensity;
