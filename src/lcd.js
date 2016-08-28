@@ -12,12 +12,16 @@ export default class LCD {
 
     this.imageData = ctx.createImageData(width, height);
 
+    this._currentLine = 0;
+
     // Constants
     this.TILE_WIDTH = 8;
     this.TILE_HEIGHT = this.TILE_WIDTH;
 
     this.H_TILES = width / this.TILE_WIDTH;
     this.V_TILES = height / this.TILE_HEIGHT;
+
+    this.VBLANK = 11;
   }
 
   /** 
@@ -114,5 +118,12 @@ export default class LCD {
   getPixelData(x, y){
     const index = (x + y * this.width) * 4;
     return this.imageData.data.slice(index, index + 4);
+  }
+
+  isVBlank(){
+    if (this._currentLine === this.height + this.VBLANK){
+      this._currentLine = 0;
+    }
+    return this._currentLine++ >= this.height;
   }
 }
