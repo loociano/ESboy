@@ -79,11 +79,11 @@ describe('MMU', () => {
     assert(mmu.readBuffer(0x0000, 0x0100).equals(bios), 'BIOS is in memory');
   });
 
-  describe.skip('ROM checks', () => {
+  describe('ROM checks', () => {
 
-    it('should read the game header', () => {
-      assert.equal(mmu.getGameTitle(), 'TETRIS', 'should read title');
-      assert.equal(mmu.isGameInColor(), false, 'should not be gb color');
+    xit('should read the game header', () => {
+      assert.equal(mmu.getGameTitle(), 'CPU_INSTRS', 'should read title');
+      assert.equal(mmu.isGameInColor(), true, 'is gb color');
       assert.equal(mmu.isGameSuperGB(), false, 'should not be super GB');
       assert.equal(mmu.getCartridgeType(), 'ROM ONLY');
       assert.equal(mmu.getRomSize(), '32KB');
@@ -92,7 +92,6 @@ describe('MMU', () => {
     });
 
     it('should read the nintendo graphic buffer', () => {
-
       const buf = new Buffer('CEED6666CC0D000B03730083000C000D0008' +
         '111F8889000EDCCC6EE6DDDDD999BBBB67636E0EECCCDDDC999FBBB9333E', 'hex');
       assert(mmu.getNintendoGraphicBuffer().equals(buf), 'Nintendo Graphic Buffer must match.');
