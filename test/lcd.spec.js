@@ -89,9 +89,11 @@ describe('LCD', () => {
     lcd.drawTile({tile_number: 1, grid_x: 10, grid_y: 9});
     lcd.drawTile({tile_number: 1, grid_x: 19, grid_y: 17});
 
-    assertBlackTile(0, 0);
-    assertBlackTile(10, 9);
-    assertBlackTile(19, 17);
+    lcd.assertBlackTile = assertBlackTile;
+
+    lcd.assertBlackTile(0, 0);
+    lcd.assertBlackTile(10, 9);
+    lcd.assertBlackTile(19, 17);
   });
 
 });
@@ -99,8 +101,8 @@ describe('LCD', () => {
 function assertBlackTile(grid_x, grid_y){
 
   for(let x = grid_x*8; x < (grid_x+1)*8; x++){
-    for(let y = grid_y*8; y < (grid_y)*8; y++){
-       assert.deepEqual(lcd.getPixelData(x, y), [255, 255, 255, 255], 'pixel is black');
+    for(let y = grid_y*8; y < (grid_y+1)*8; y++){
+       assert.deepEqual(this.getPixelData(x, y), [255, 255, 255, 255], 'pixel is black');
     } 
   }
 }
