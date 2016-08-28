@@ -8,6 +8,7 @@ describe('LCD', () => {
   let lcd;
   const WIDTH = 160;
   const HEIGHT = 144;
+  const VBLANK = 11;
 
   beforeEach(function() {
     lcd = new LCD(new Object(), new ContextMock(), WIDTH, HEIGHT);
@@ -106,6 +107,17 @@ describe('LCD', () => {
     lcd.assertBlackTile(0, 0);
     lcd.assertBlackTile(10, 9);
     lcd.assertBlackTile(19, 17);
+  });
+
+  it('should generate vblank interruption', () => {
+
+    let count = 0;
+    for(let i = 0; i < HEIGHT + VBLANK; i++){
+      if (lcd.isVBlank()) count++;
+    }
+
+    assert.equal(count, VBLANK, `Vertical blank occurs ${VBLANK} times`);
+
   });
 
 });
