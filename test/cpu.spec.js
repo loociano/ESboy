@@ -3,7 +3,7 @@ import assert from 'assert';
 import config from '../src/config';
 import {describe, beforeEach, it} from 'mocha';
 import Utils from '../src/utils';
-import ContextMock from '../src/contextMock';
+import ContextMock from './mock/contextMock';
 
 describe('CPU Unit tests', function() {
 

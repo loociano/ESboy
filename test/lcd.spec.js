@@ -1,6 +1,6 @@
 import assert from 'assert';
 import LCD from '../src/lcd';
-import ContextMock from '../src/contextMock';
+import ContextMock from './mock/contextMock';
 import {describe, beforeEach, it} from 'mocha';
 
 describe('LCD', () => {
