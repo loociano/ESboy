@@ -7,10 +7,11 @@
     "test": "test"
   },
   "scripts": {
-    "build": "babel src -d lib",
+    "build": "babel src test -d lib",
     "test": "mocha --compilers js:babel-register",
     "start": "npm run build && electron ./lib/gui.js",
-    "debug": "npm run build && electron ./lib/gui.js --debug"
+    "debug": "npm run build && electron ./lib/gui.js --debug",
+    "debugger": "node ./lib/debugger.js"
   },
   "keywords": [],
   "author": "Luc Rubio <luc@loociano.com>",
