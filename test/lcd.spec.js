@@ -76,11 +76,13 @@ describe('LCD', () => {
     const lastIndex = WIDTH*HEIGHT*4 - 1;
     const data = lcd.imageData.data;
 
-    lcd.drawPixel(0, 0, 1);
+    lcd.drawPixel(0, 0, 0);
+    lcd.drawPixel(1, 0, 1);
     lcd.drawPixel(WIDTH-1, 0, 2);
     lcd.drawPixel(WIDTH-1, HEIGHT-1, 3);
 
-    assert.deepEqual([data[0], data[1], data[2], data[3]], [85, 85, 85, 255]);
+    assert.deepEqual([data[0], data[1], data[2], data[3]], [0, 0, 0, 0]);
+    assert.deepEqual([data[4], data[5], data[6], data[7]], [85, 85, 85, 255]);
     assert.deepEqual([data[WIDTH*4-4], data[WIDTH*4-3], data[WIDTH*4-2], data[WIDTH*4-1]], [170, 170, 170, 255]);
     assert.deepEqual([data[lastIndex-3], data[lastIndex-2], data[lastIndex-1], data[lastIndex]], [255, 255, 255, 255]);
   });
