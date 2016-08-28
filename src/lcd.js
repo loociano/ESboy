@@ -102,12 +102,13 @@ export default class LCD {
     }
 
     let intensity = level * 85; // 255/3
-    var index = (x + y * this.width) * 4;
+    const index = (x + y * this.width) * 4;
+    const alpha = level === 0 ? 0 : 255;
 
     this.imageData.data[index + 0] = intensity;
     this.imageData.data[index + 1] = intensity;
     this.imageData.data[index + 2] = intensity;
-    this.imageData.data[index + 3] = 255; // alpha channel, always opaque
+    this.imageData.data[index + 3] = alpha;
   }
 
   getPixelData(x, y){
