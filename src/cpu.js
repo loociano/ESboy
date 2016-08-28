@@ -7,6 +7,7 @@ export default class CPU {
 
   /**
    * @param {string} filename
+   * @param {Object} ctx
    */
   constructor(filename, ctx) {
 
@@ -14,11 +15,12 @@ export default class CPU {
       throw new Error('Missing ROM filename');
     }
 
-    this.mmu = new MMU(filename);
-
-    if (ctx != null){
-      this.lcd = new LCD(this.mmu, ctx, 160, 144);
+    if (ctx == null){
+      throw new Error('Missing canvas ctx');
     }
+
+    this.mmu = new MMU(filename);
+    this.lcd = new LCD(this.mmu, ctx, 160, 144);
 
     this.EXTENDED_PREFIX = 0xcb;
 
@@ -309,9 +311,7 @@ export default class CPU {
           this.mmu.dumpMemoryToFile();
         }
       }
-      if (this.lcd) {
-        this.lcd.drawTiles();
-      }
+      this.lcd.drawTiles();
 
     } catch(e){
       Logger.error(e);
