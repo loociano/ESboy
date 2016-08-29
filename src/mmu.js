@@ -22,6 +22,9 @@ export default class MMU {
     this.ADDR_DESTINATION_CODE = 0x14a;
     this.ADDR_COMPLEMENT_CHECK = 0x14d;
     this.ADDR_ROM_MAX = 0x7fff;
+
+    this.ADDR_LY = 0xff44;
+
     this.ADDR_MAX = 0xffff;
 
     // Values
@@ -326,5 +329,13 @@ export default class MMU {
       console.error('Problem writing memory dump');
     }
 
+  }
+
+  ly(){
+    return this.readByteAt(this.ADDR_LY);
+  }
+
+  setLy(line){
+    this.writeByteAt(this.ADDR_LY, line);
   }
 }

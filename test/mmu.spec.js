@@ -103,4 +103,9 @@ describe('MMU', () => {
 
   });
 
+  it('should write ly', () => {
+    mmu.setLy(0x01);
+    assert.equal(mmu.ly(), 0x01, 'set ly');
+  })
+
 });
