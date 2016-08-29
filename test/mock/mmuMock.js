@@ -11,5 +11,9 @@ export default class MMUMock {
   setLy(line){
     this._ly = line;
   }
+
+  lcdc(){
+    return 0x90;
+  }
   
 }

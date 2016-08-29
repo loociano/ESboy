@@ -12,8 +12,6 @@ export default class LCD {
 
     this.imageData = ctx.createImageData(width, height);
 
-    this._currentLine = 0;
-
     // Constants
     this.TILE_WIDTH = 8;
     this.TILE_HEIGHT = this.TILE_WIDTH;
@@ -124,7 +122,7 @@ export default class LCD {
     return this.mmu.ly() >= this.height;
   }
 
-  _updateLY(){
+  updateLY(){
     let ly = this.mmu.ly();
     if (ly === 153){
       ly = 0;
@@ -132,5 +130,13 @@ export default class LCD {
       ly++;
     }
     this.mmu.setLy(ly);
+  }
+
+  isControlOp(){
+    return ((this.mmu.lcdc() & 0x80) >> 7) === 1;
+  }
+
+  getTileDataSelect(){
+    return (this.mmu.lcdc() & 0x10) >> 4;
   }
 }

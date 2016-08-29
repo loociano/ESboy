@@ -118,16 +118,16 @@ describe('LCD', () => {
       
       if (lcd.isVBlank()) {
         count++;
-        /*assert.isTrue(lcd.isControlOp());
-        assert.equal(lcd.getWindowTileMapSelect(), 0);
-        assert.isTrue(lcd.isWindowDisplay());
+        assert.equal(lcd.isControlOp(), true);
+        //assert.equal(lcd.getWindowTileMapSelect(), 0);
+        //assert.isTrue(lcd.isWindowDisplay());
         assert.equal(lcd.getTileDataSelect(), 1);
-        assert.equal(lcd.getTileMapSelect(), 0);
-        assert.equal(lcd.getOBJSize(), 0);
-        assert.equal(lcd.isOBJDisplay(), 0);
-        assert.isFalse(lcd.isBGandWindowDisplay());*/
+        //assert.equal(lcd.getTileMapSelect(), 0);
+        //assert.equal(lcd.getOBJSize(), 0);
+        //assert.equal(lcd.isOBJDisplay(), 0);
+        //assert.isFalse(lcd.isBGandWindowDisplay());*/
       }
-      lcd._updateLY();
+      lcd.updateLY();
     }
 
     assert.equal(count, VBLANK, `Vertical blank occurs ${VBLANK} times`);
