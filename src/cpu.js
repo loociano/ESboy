@@ -311,7 +311,17 @@ export default class CPU {
     try {
       while(pc_stop === -1 || this._r.pc < pc_stop){
 
+        if (this.lcd.isVBlank()){
+          if (this._refresh > 100){
+            this.lcd.drawTiles();
+            this._refresh = 0;
+          } else {
+            this._refresh++;
+          }
+        }
+
         this.execute();
+
         if (this._t > 100){
           this.lcd.updateLY();
           this._t = 0;
@@ -323,8 +333,6 @@ export default class CPU {
           this.mmu.dumpMemoryToFile();
         }
       }
-      
-      this.lcd.drawTiles();
 
     } catch(e){
       Logger.error(e);
