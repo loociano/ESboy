@@ -23,6 +23,7 @@ export default class MMU {
     this.ADDR_COMPLEMENT_CHECK = 0x14d;
     this.ADDR_ROM_MAX = 0x7fff;
 
+    this.ADDR_LCDC = 0xff40;
     this.ADDR_LY = 0xff44;
 
     this.ADDR_MAX = 0xffff;
@@ -104,8 +105,6 @@ export default class MMU {
     this.memory[0xff21] = 0x00;
     this.memory[0xff22] = 0x00;
     this.memory[0xff23] = 0xbf;
-
-    this.memory[0xff44] = 0x90; // FIXME: hardcoding value on LY to force vblank
   }
 
   /**
@@ -329,6 +328,14 @@ export default class MMU {
       console.error('Problem writing memory dump');
     }
 
+  }
+
+  lcdc(){
+    return this.readByteAt(this.ADDR_LCDC);
+  }
+
+  setLcdc(value){
+    this.writeByteAt(this.ADDR_LCDC, value);
   }
 
   ly(){

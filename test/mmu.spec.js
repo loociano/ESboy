@@ -106,6 +106,11 @@ describe('MMU', () => {
   it('should write ly', () => {
     mmu.setLy(0x01);
     assert.equal(mmu.ly(), 0x01, 'set ly');
+  });
+
+  it('should read lcdc', () => {
+    mmu.setLcdc(0xff);
+    assert.equal(mmu.lcdc(), 0xff, 'set lcdc');
   })
 
 });
