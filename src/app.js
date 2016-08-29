@@ -1,6 +1,4 @@
 import {app, BrowserWindow, Menu, remote, dialog} from 'electron';
-import CPU from './cpu';
-import Logger from './logger';
 import config from './config';
 
 let win;

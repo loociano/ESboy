@@ -28,6 +28,6 @@ const ctx = canvas.getContext('2d');
 
 function startGame(fileNames){
   if(fileNames !== undefined){
-    cpu = new CPU(fileNames[0], ctx).start(0x100);
+    cpu = new CPU(fileNames[0], ctx).start();
   }
 }
