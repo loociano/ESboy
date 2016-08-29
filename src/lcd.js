@@ -20,12 +20,15 @@ export default class LCD {
     this.V_TILES = height / this.TILE_HEIGHT;
 
     this.VBLANK = 10;
+
+    this._clear();
   }
 
   /** 
-   * Clears the LCD by writing transparent pixels 
+   * Clears the LCD by writing transparent pixels
+   * @private
    */
-  clear(){
+  _clear(){
     for(let p = 0; p < this.width * this.height * 4; p++){
       this.imageData.data[p] = 0;
     }

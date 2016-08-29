@@ -306,8 +306,6 @@ export default class CPU {
    */
   start(pc_stop = -1){
 
-    this.lcd.clear();
-
     try {
       while(pc_stop === -1 || this._r.pc < pc_stop){
 

@@ -16,9 +16,9 @@ describe('LCD', () => {
     lcd = new LCD(new MMUMock(), new ContextMock(), WIDTH, HEIGHT);
   });
 
-  it('should clear the LCD', () => {
+  it('should _clear the LCD', () => {
 
-    lcd.clear();
+    lcd._clear();
 
     for(let i = 0; i < WIDTH * HEIGHT * 4; i++) {
       assert.equal(lcd.imageData.data[i], 0);
