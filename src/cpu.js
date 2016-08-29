@@ -22,6 +22,7 @@ export default class CPU {
     this.mmu = new MMU(filename);
     this.lcd = new LCD(this.mmu, ctx, 160, 144);
     this._t = 0; // measure CPU cycles
+    this._refresh = 0;
 
     this.EXTENDED_PREFIX = 0xcb;
 
