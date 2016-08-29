@@ -119,12 +119,12 @@ export default class LCD {
   }
 
   isVBlank(){
-    return this.mmu.ly() >= this.height;
+    return this.mmu.ly() === 144;
   }
 
   updateLY(){
     let ly = this.mmu.ly();
-    if (ly === 153){
+    if (ly >= 153){
       ly = 0;
     } else {
       ly++;

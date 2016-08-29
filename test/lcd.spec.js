@@ -111,7 +111,7 @@ describe('LCD', () => {
     lcd.assertBlackTile(19, 17);
   });
 
-  it('should generate vblank interruption', () => {
+  it('should generate a vblank interruption', () => {
 
     let count = 0;
     for(let i = 0; i < HEIGHT + VBLANK; i++){
@@ -130,7 +130,7 @@ describe('LCD', () => {
       lcd.updateLY();
     }
 
-    assert.equal(count, VBLANK, `Vertical blank occurs ${VBLANK} times`);
+    assert.equal(count, 1, `Vertical blank occurs 1 time`);
 
   });
 

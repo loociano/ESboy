@@ -21,6 +21,7 @@ export default class CPU {
 
     this.mmu = new MMU(filename);
     this.lcd = new LCD(this.mmu, ctx, 160, 144);
+    this._t = 0; // measure CPU cycles
 
     this.EXTENDED_PREFIX = 0xcb;
 
@@ -309,8 +310,14 @@ export default class CPU {
 
     try {
       while(pc_stop === -1 || this._r.pc < pc_stop){
-        
+
         this.execute();
+        if (this._t > 100){
+          this.lcd.updateLY();
+          this._t = 0;
+        } else {
+          this._t++;
+        }
         
         if (this._r.pc === 0x0100){
           this.mmu.dumpMemoryToFile();
