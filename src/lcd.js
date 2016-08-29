@@ -21,7 +21,7 @@ export default class LCD {
     this.H_TILES = width / this.TILE_WIDTH;
     this.V_TILES = height / this.TILE_HEIGHT;
 
-    this.VBLANK = 11;
+    this.VBLANK = 10;
   }
 
   /** 
@@ -121,9 +121,16 @@ export default class LCD {
   }
 
   isVBlank(){
-    if (this._currentLine === this.height + this.VBLANK){
-      this._currentLine = 0;
+    return this.mmu.ly() >= this.height;
+  }
+
+  _updateLY(){
+    let ly = this.mmu.ly();
+    if (ly === 153){
+      ly = 0;
+    } else {
+      ly++;
     }
-    return this._currentLine++ >= this.height;
+    this.mmu.setLy(ly);
   }
 }

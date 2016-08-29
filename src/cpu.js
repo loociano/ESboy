@@ -304,13 +304,19 @@ export default class CPU {
    * @param {number} pc_stop
    */
   start(pc_stop = -1){
+
+    this.lcd.clear();
+
     try {
       while(pc_stop === -1 || this._r.pc < pc_stop){
+        
         this.execute();
+        
         if (this._r.pc === 0x0100){
           this.mmu.dumpMemoryToFile();
         }
       }
+      
       this.lcd.drawTiles();
 
     } catch(e){
