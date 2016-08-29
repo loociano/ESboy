@@ -4,4 +4,4 @@ import config from './config';
 
 config.DEBUG = true;
 
-new CPU(process.argv[2], new ContextMock()).start(0x100);
+new CPU(process.argv[2], new ContextMock()).start();
