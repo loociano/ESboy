@@ -982,7 +982,7 @@ export default class CPU {
   cp_n(n){
     
     this.setN(1); this.setZ(0); this.setC(0);
-    var diff = this._r.a - n;
+    const diff = this._r.a - n;
     
     if (diff === 0){
       this.setZ(1);
