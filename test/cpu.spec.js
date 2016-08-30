@@ -785,6 +785,17 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.hl(), hl - 1, 'hl is decremented by 1');
     });
 
+    it('should load value at memory address hl into a and increment hl', () => {
+      const hl = 0xc000;
+      cpu.ld_hl_nn(hl);
+      cpu.mmu.writeByteAt(hl, 0xf1);
+
+      cpu.ldi_a_0xhl();
+
+      assert.equal(cpu.a(), 0xf1, `register a has value 0xf1`);
+      assert.equal(cpu.hl(), hl + 1, 'hl is incremented by 1');
+    });
+
     it('should put a into memory address 0xff00 + 0', () => {
       const value = cpu.mmu.readByteAt(0xff00);
       cpu.ld_a_n(0xab);
