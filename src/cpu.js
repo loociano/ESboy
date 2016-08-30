@@ -42,7 +42,7 @@ export default class CPU {
     this.commands = {
       0x00: {fn: this.nop, paramBytes: 0},
       0x01: {fn: this.ld_bc_nn, paramBytes: 2},
-      0x02: {fn: this.ld_0x_bc_a, paramBytes: 0},
+      0x02: {fn: this.ld_0xbc_a, paramBytes: 0},
       0x03: {fn: this.inc_bc, paramBytes: 0},
       0x04: {fn: this.inc_c, paramBytes: 0},
       0x05: {fn: this.dec_b, paramBytes: 0},
@@ -53,7 +53,7 @@ export default class CPU {
       0x0d: {fn: this.dec_c, paramBytes: 0},
       0x0e: {fn: this.ld_c_n, paramBytes: 1},
       0x11: {fn: this.ld_de_nn, paramBytes: 2},
-      0x12: {fn: this.ld_0x_de_a, paramBytes: 0},
+      0x12: {fn: this.ld_0xde_a, paramBytes: 0},
       0x13: {fn: this.inc_de, paramBytes: 0},
       0x14: {fn: this.inc_d, paramBytes: 0},
       0x15: {fn: this.dec_d, paramBytes: 0},
@@ -81,8 +81,8 @@ export default class CPU {
       0x31: {fn: this.ld_sp_nn, paramBytes: 2},
       0x32: {fn: this.ldd_hl_a, paramBytes: 0},
       0x33: {fn: this.inc_sp, paramBytes: 0},
-      0x34: {fn: this.inc_0x_hl, paramBytes: 0},
-      0x35: {fn: this.dec_0x_hl, paramBytes: 0},
+      0x34: {fn: this.inc_0xhl, paramBytes: 0},
+      0x35: {fn: this.dec_0xhl, paramBytes: 0},
       0x36: {fn: this.ld_0xhl_n, paramBytes: 1},
       0x38: {fn: this.jr_c_n, paramBytes: 0},
       0x3a: {fn: this.ldd_a_hl, paramBytes: 0},
@@ -102,7 +102,7 @@ export default class CPU {
       0x73: {fn: this.ld_0xhl_e, paramBytes: 0},
       0x74: {fn: this.ld_0xhl_h, paramBytes: 0},
       0x75: {fn: this.ld_0xhl_l, paramBytes: 0},
-      0x77: {fn: this.ld_0x_hl_a, paramBytes: 0},
+      0x77: {fn: this.ld_0xhl_a, paramBytes: 0},
       0x78: {fn: this.ld_a_b, paramBytes: 0},
       0x79: {fn: this.ld_a_c, paramBytes: 0},
       0x7a: {fn: this.ld_a_d, paramBytes: 0},
@@ -117,7 +117,7 @@ export default class CPU {
       0x83: {fn: this.add_e, paramBytes: 0},
       0x84: {fn: this.add_h, paramBytes: 0},
       0x85: {fn: this.add_l, paramBytes: 0},
-      0x86: {fn: this.add_0x_hl, paramBytes: 0},
+      0x86: {fn: this.add_0xhl, paramBytes: 0},
       0x87: {fn: this.add_a, paramBytes: 0},
       0x90: {fn: this.sub_b, paramBytes: 0},
       0x91: {fn: this.sub_c, paramBytes: 0},
@@ -125,7 +125,7 @@ export default class CPU {
       0x93: {fn: this.sub_e, paramBytes: 0},
       0x94: {fn: this.sub_h, paramBytes: 0},
       0x95: {fn: this.sub_l, paramBytes: 0},
-      0x96: {fn: this.sub_0x_hl, paramBytes: 0},
+      0x96: {fn: this.sub_0xhl, paramBytes: 0},
       0x97: {fn: this.sub_a, paramBytes: 0},
       0xa8: {fn: this.xor_b, paramBytes: 0},
       0xa9: {fn: this.xor_c, paramBytes: 0},
@@ -133,7 +133,7 @@ export default class CPU {
       0xab: {fn: this.xor_e, paramBytes: 0},
       0xac: {fn: this.xor_h, paramBytes: 0},
       0xad: {fn: this.xor_l, paramBytes: 0},
-      0xae: {fn: this.xor_hl, paramBytes: 0},
+      0xae: {fn: this.xor_0xhl, paramBytes: 0},
       0xaf: {fn: this.xor_a, paramBytes: 0},
       0xb8: {fn: this.cp_b, paramBytes: 0},
       0xb9: {fn: this.cp_c, paramBytes: 0},
@@ -141,7 +141,7 @@ export default class CPU {
       0xbb: {fn: this.cp_e, paramBytes: 0},
       0xbc: {fn: this.cp_h, paramBytes: 0},
       0xbd: {fn: this.cp_l, paramBytes: 0},
-      0xbe: {fn: this.cp_0x_hl, paramBytes: 0},
+      0xbe: {fn: this.cp_0xhl, paramBytes: 0},
       0xbf: {fn: this.cp_a, paramBytes: 0},
       0xc1: {fn: this.pop_bc, paramBytes: 0},
       0xc3: {fn: this.jp, paramBytes: 2},
@@ -154,7 +154,7 @@ export default class CPU {
       0xcb13: {fn: this.rl_e, paramBytes: 0},
       0xcb14: {fn: this.rl_h, paramBytes: 0},
       0xcb15: {fn: this.rl_l, paramBytes: 0},
-      0xcb16: {fn: this.rl_0x_hl, paramBytes: 0},
+      0xcb16: {fn: this.rl_0xhl, paramBytes: 0},
       0xcb17: {fn: this.rl_a, paramBytes: 0},
       0xcb7c: {fn: this.bit_7_h, paramBytes: 0},
       0xcd: {fn: this.call, paramBytes: 2},
@@ -163,9 +163,9 @@ export default class CPU {
       0xd6: {fn: this.sub_n, paramBytes: 1},
       0xe0: {fn: this.ldh_n_a, paramBytes: 1},
       0xe1: {fn: this.pop_hl, paramBytes: 0},
-      0xe2: {fn: this.ld_0x_c_a, paramBytes: 0},
+      0xe2: {fn: this.ld_0xc_a, paramBytes: 0},
       0xe5: {fn: this.push_hl, paramBytes: 0},
-      0xea: {fn: this.ld_0x_nn_a, paramBytes: 2},
+      0xea: {fn: this.ld_0xnn_a, paramBytes: 2},
       0xee: {fn: this.xor_n, paramBytes: 1},
       0xf0: {fn: this.ldh_a_n, paramBytes: 1},
       0xf1: {fn: this.pop_af, paramBytes: 0},
@@ -453,30 +453,51 @@ export default class CPU {
     this._xor(this._r.b);
   }
 
+  /**
+   * XOR register c, result in a.
+   */
   xor_c(){
     this._xor(this._r.c);
   }
 
+  /**
+   * XOR register d, result in a.
+   */
   xor_d(){
     this._xor(this._r.d);
   }
 
+  /**
+   * XOR register e, result in a.
+   */
   xor_e(){
     this._xor(this._r.e);
   }
 
+  /**
+   * XOR register h, result in a.
+   */
   xor_h(){
     this._xor(this._r.h);
   }
 
+  /**
+   * XOR register l, result in a.
+   */
   xor_l(){
     this._xor(this._r.l);
   }
 
-  xor_hl(){
+  /**
+   * XOR memory location hl, result in a.
+   */
+  xor_0xhl(){
     this._xor(this.mmu.readByteAt(this.hl()));
   }
 
+  /**
+   * XOR byte n, result in a.
+   */
   xor_n(n){
     this._xor(n);
   }
@@ -780,7 +801,7 @@ export default class CPU {
    * Puts a into memory address hl. Decrements hl.
    */
   ldd_hl_a(){
-    this.ld_0x_hl_a();
+    this.ld_0xhl_a();
     this.dec_hl();
   }
 
@@ -788,7 +809,7 @@ export default class CPU {
    * Puts a into memory address hl. Increments hl.
    */
   ldi_0xhl_a(){
-    this.ld_0x_hl_a();
+    this.ld_0xhl_a();
     this.inc_hl();
   }
 
@@ -799,26 +820,44 @@ export default class CPU {
     this._dec_r('a');
   }
 
+  /**
+   * Decrements b by 1.
+   */
   dec_b(){
     this._dec_r('b');
   }
 
+  /**
+   * Decrements c by 1.
+   */
   dec_c(){
     this._dec_r('c');
   }
 
+  /**
+   * Decrements d by 1.
+   */
   dec_d(){
     this._dec_r('d');
   }
 
+  /**
+   * Decrements e by 1.
+   */
   dec_e(){
     this._dec_r('e');
   }
 
+  /**
+   * Decrements h by 1.
+   */
   dec_h(){
     this._dec_r('h');
   }
 
+  /**
+   * Decrements l by 1.
+   */
   dec_l(){
     this._dec_r('l');
   }
@@ -851,7 +890,10 @@ export default class CPU {
     }
   }
 
-  dec_0x_hl(){
+  /**
+   * Decrements memory location hl by 1
+   */
+  dec_0xhl(){
     let value = this.mmu.readByteAt(this.hl());
     this.mmu.writeByteAt(this.hl(), --value);
   }
@@ -968,35 +1010,59 @@ export default class CPU {
     this._r.a = this.mmu.readByteAt(0xff00 + n);
   }
 
+  /**
+   * Compares register a with register a
+   */
   cp_a(){
     this.cp_n(this._r.a);
   }
 
+  /**
+   * Compares register b with register a
+   */
   cp_b(){
     this.cp_n(this._r.b);
   }
 
+  /**
+   * Compares register c with register a
+   */
   cp_c(){
     this.cp_n(this._r.c);
   }
 
+  /**
+   * Compares register d with register a
+   */
   cp_d(){
     this.cp_n(this._r.d);
   }
 
+  /**
+   * Compares register e with register a
+   */
   cp_e(){
     this.cp_n(this._r.e);
   }
 
+  /**
+   * Compares register h with register a
+   */
   cp_h(){
     this.cp_n(this._r.h);
   }
 
+  /**
+   * Compares register l with register a
+   */
   cp_l(){
     this.cp_n(this._r.l);
   }
 
-  cp_0x_hl(){
+  /**
+   * Compares memory location hl with register a
+   */
+  cp_0xhl(){
     this.cp_n(this.mmu.readByteAt(this.hl()));
   }
 
@@ -1041,50 +1107,82 @@ export default class CPU {
   /**
    * Loads register a into memory address 0xff00 + c
    */
-  ld_0x_c_a(){
+  ld_0xc_a(){
     this.mmu.writeByteAt(0xff00 + this._r.c, this._r.a);
   }
 
+  /**
+   * Increases register a by 1
+   */
   inc_a(){
     this._inc_r('a');
   }
-
+  /**
+   * Increases register b by 1
+   */
   inc_b(){
     this._inc_r('b');
   }
 
+  /**
+   * Increases register c by 1
+   */
   inc_c(){
     this._inc_r('c');
   }
 
+  /**
+   * Increases register d by 1
+   */
   inc_d(){
     this._inc_r('d');
   }
 
+  /**
+   * Increases register e by 1
+   */
   inc_e(){
     this._inc_r('e');
   }
 
+  /**
+   * Increases register h by 1
+   */
   inc_h(){
     this._inc_r('h');
   }
 
+  /**
+   * Increases register l by 1
+   */
   inc_l(){
     this._inc_r('l');
   }
 
+  /**
+   * Increases register bc by 1
+   */
   inc_bc(){
     this._inc_rr('b', 'c');
   }
 
+  /**
+   * Increases register de by 1
+   */
   inc_de(){
     this._inc_rr('d', 'e');
   }
 
+  /**
+   * Increases register hl by 1
+   */
   inc_hl(){
     this._inc_rr('h', 'l');
   }
 
+  /**
+   * Increases stack pointer by 1
+   */
   inc_sp(){
     if (this._r.sp >= this.mmu.ADDR_MAX - 1){
       throw new Error(`Cannot increase stack pointer more than ${this._r.sp}`);
@@ -1092,6 +1190,10 @@ export default class CPU {
     this._r.sp++;
   }
 
+  /**
+   * Increases register rr by 1
+   * @private
+   */
   _inc_rr(r1, r2){
     const value = (this._r[r1] << 8) + this._r[r2] + 1;
     if ((value & 0x10000) > 0){
@@ -1107,7 +1209,7 @@ export default class CPU {
   /**
    * Increments the value at memory location hl by 1.
    */
-  inc_0x_hl(){
+  inc_0xhl(){
     let value = this.mmu.readByteAt(this.hl());
 
     if (value === 0xff){
@@ -1146,55 +1248,92 @@ export default class CPU {
     this.setN(0);
   }
 
+  /**
+   * Loads register a into b
+   */
   ld_b_a(){
     this._ld_r_a('b');
   }
 
+  /**
+   * Loads register a into c
+   */
   ld_c_a(){
     this._ld_r_a('c');
   }
 
+  /**
+   * Loads register a into d
+   */
   ld_d_a(){
     this._ld_r_a('d');
   }
 
+  /**
+   * Loads register a into e
+   */
   ld_e_a(){
     this._ld_r_a('e');
   }
 
+  /**
+   * Loads register a into h
+   */
   ld_h_a(){
     this._ld_r_a('h');
   }
 
+  /**
+   * Loads register a into l
+   */
   ld_l_a(){
     this._ld_r_a('l');
   }
 
+  /**
+   * Loads register r into a
+   * @param {string} r
+   * @private
+   */
   _ld_r_a(r){
     this._r[r] = this._r.a;
   }
 
-  ld_0x_bc_a(){
-    this._ld_0x_nn_a(this.bc());
+  /**
+   * Loads register a into memory location bc
+   */
+  ld_0xbc_a(){
+    this._ld_0xnn_a(this.bc());
   }
 
-  ld_0x_de_a(){
-    this._ld_0x_nn_a(this.de());
+  /**
+   * Loads register a into memory location de
+   */
+  ld_0xde_a(){
+    this._ld_0xnn_a(this.de());
   }
 
-  ld_0x_hl_a(){
-    this._ld_0x_nn_a(this.hl());
+  /**
+   * Loads register a into memory location hl
+   */
+  ld_0xhl_a(){
+    this._ld_0xnn_a(this.hl());
   }
 
   /**
    * Loads register a into memory address nn
    * @param addr
    */
-  ld_0x_nn_a(addr){
-    this._ld_0x_nn_a(addr);
+  ld_0xnn_a(addr){
+    this._ld_0xnn_a(addr);
   }
 
-  _ld_0x_nn_a(addr){
+  /**
+   * Loads register a into memory address nn
+   * @param addr
+   * @private
+   */
+  _ld_0xnn_a(addr){
     this.mmu.writeByteAt(addr, this._r.a);
   }
 
@@ -1287,38 +1426,67 @@ export default class CPU {
     this._r[r1] = this.mmu.readByteAt(this._r.sp++);
   }
 
+  /**
+   * Pops two bytes off the stack
+   * @returns {number}
+   * @private
+   */
   _pop_nn(){
     return this.mmu.readByteAt(this._r.sp++) + (this.mmu.readByteAt(this._r.sp++) << 8);
   }
 
+  /**
+   * Rotates left register a
+   */
   rl_a(){
     this._rl_r('a');
   }
 
+  /**
+   * Rotates left register a
+   */
   rla(){
     this.rl_a();
   }
 
+  /**
+   * Rotates left register b
+   */
   rl_b(){
     this._rl_r('b');
   }
 
+  /**
+   * Rotates left register c
+   */
   rl_c(){
     this._rl_r('c');
   }
 
+  /**
+   * Rotates left register d
+   */
   rl_d(){
     this._rl_r('d');
   }
 
+  /**
+   * Rotates left register e
+   */
   rl_e(){
     this._rl_r('e');
   }
 
+  /**
+   * Rotates left register h
+   */
   rl_h(){
     this._rl_r('h');
   }
 
+  /**
+   * Rotates left register l
+   */
   rl_l(){
     this._rl_r('l');
   }
@@ -1347,7 +1515,7 @@ export default class CPU {
   /**
    * Rotates left the value at memory hl. Sets carry flag.
    */
-  rl_0x_hl(){
+  rl_0xhl(){
 
     const value = this.mmu.readByteAt(this.hl());
 
@@ -1429,7 +1597,7 @@ export default class CPU {
   /**
    * Subtract value at memory address hl from a
    */
-  sub_0x_hl(){
+  sub_0xhl(){
     this._sub_r(this.mmu.readByteAt(this.hl()));
   }
 
@@ -1538,7 +1706,7 @@ export default class CPU {
   /**
    * Adds value at memory hl to a
    */
-  add_0x_hl(){
+  add_0xhl(){
     this._add_r(this.mmu.readByteAt(this.hl()));
   }
 

@@ -223,7 +223,7 @@ describe('CPU Unit tests', function() {
       const a = cpu.a();
       const hl = cpu.hl();
       const value = cpu.mmu.readByteAt(hl);
-      cpu.xor_hl();
+      cpu.xor_0xhl();
       assert.equal(cpu.a(), a ^ value, `register a should be ${Utils.hexStr(a)} xor ${Utils.hexStr(value)}`);
     });
 
@@ -270,7 +270,7 @@ describe('CPU Unit tests', function() {
       const value = 0xab;
       cpu.mmu.writeByteAt(0xdfff, value);
       cpu.ld_hl_nn(0xdfff);
-      cpu.dec_0x_hl();
+      cpu.dec_0xhl();
       assert.equal(cpu.mmu.readByteAt(0xdfff), value - 1, 'Value at memory 0xdfff is decremented');
       // TODO check flags
     });
@@ -317,17 +317,17 @@ describe('CPU Unit tests', function() {
 
       // Lower value
       cpu.mmu.writeByteAt(cpu.hl(), 0x01);
-      cpu.cp_0x_hl();
+      cpu.cp_0xhl();
       assertFlagsCompareLowerValue(cpu);
 
       // Equal value
       cpu.mmu.writeByteAt(cpu.hl(), 0xab);
-      cpu.cp_0x_hl();
+      cpu.cp_0xhl();
       assertFlagsCompareEqualValue(cpu);
 
       // Greater value
       cpu.mmu.writeByteAt(cpu.hl(), 0xff);
-      cpu.cp_0x_hl();
+      cpu.cp_0xhl();
       assertFlagsCompareGreaterValue(cpu);
     });
 
@@ -401,7 +401,7 @@ describe('CPU Unit tests', function() {
       let value = 0x00;
       cpu.mmu.writeByteAt(addr, value);
 
-      cpu.inc_0x_hl();
+      cpu.inc_0xhl();
 
       assert.equal(cpu.mmu.readByteAt(cpu.hl()), value+1, 'value at memory (hl) incremented.');
       assert.equal(cpu.Z(), 0, 'Z set if result is zero');
@@ -411,7 +411,7 @@ describe('CPU Unit tests', function() {
       value = 0x0f;
       cpu.mmu.writeByteAt(addr, value);
 
-      cpu.inc_0x_hl();
+      cpu.inc_0xhl();
 
       assert.equal(cpu.mmu.readByteAt(cpu.hl()), value+1, 'value at memory (hl) incremented.');
       assert.equal(cpu.Z(), 0, 'Z set if result is zero');
@@ -421,7 +421,7 @@ describe('CPU Unit tests', function() {
       value = 0xff;
       cpu.mmu.writeByteAt(addr, value);
 
-      cpu.inc_0x_hl();
+      cpu.inc_0xhl();
 
       assert.equal(cpu.mmu.readByteAt(cpu.hl()), 0x00, 'value at memory (hl) resets to 0x00.');
       assert.equal(cpu.Z(), 1, 'Z set if result is zero');
@@ -435,7 +435,7 @@ describe('CPU Unit tests', function() {
       cpu.ld_hl_nn(0xc000);
 
       // Do SUB (hl) first, as h and l will be overridden later
-      [ {ld: cpu.ld_0xhl_n, sub: cpu.sub_0x_hl},
+      [ {ld: cpu.ld_0xhl_n, sub: cpu.sub_0xhl},
         {ld: cpu.ld_b_n, sub: cpu.sub_b},
         {ld: cpu.ld_c_n, sub: cpu.sub_c},
         {ld: cpu.ld_d_n, sub: cpu.sub_d},
@@ -533,7 +533,7 @@ describe('CPU Unit tests', function() {
       cpu.ld_hl_nn(0xc000);
 
       // Do ADD (hl) first, as h and l will be overridden later
-      [ {ld: cpu.ld_0xhl_n, add: cpu.add_0x_hl},
+      [ {ld: cpu.ld_0xhl_n, add: cpu.add_0xhl},
         {ld: cpu.ld_b_n, add: cpu.add_b},
         {ld: cpu.ld_c_n, add: cpu.add_c},
         {ld: cpu.ld_d_n, add: cpu.add_d},
@@ -829,7 +829,7 @@ describe('CPU Unit tests', function() {
       const offset = 0x01;
       cpu.ld_c_n(offset);
       cpu.ld_a_n(value);
-      cpu.ld_0x_c_a();
+      cpu.ld_0xc_a();
       assert.equal(cpu.mmu.readByteAt(0xff00 + offset), value, 'value at memory address 0xff00 + c');
     });
 
@@ -840,7 +840,7 @@ describe('CPU Unit tests', function() {
       cpu.ld_a_n(0xab);
 
       assert.doesNotThrow( () => {
-        cpu.ld_0x_c_a();
+        cpu.ld_0xc_a();
       }, Error, 'should not write on 0xffff silently');
 
       assert.equal(cpu.mmu.readByteAt(0xff00 + offset), ie, 'ie is not overridden.');
@@ -860,10 +860,10 @@ describe('CPU Unit tests', function() {
       cpu.ld_e_a();
       cpu.ld_h_a();
       cpu.ld_l_a();
-      cpu.ld_0x_bc_a();
-      cpu.ld_0x_de_a();
-      cpu.ld_0x_hl_a();
-      cpu.ld_0x_nn_a(nn);
+      cpu.ld_0xbc_a();
+      cpu.ld_0xde_a();
+      cpu.ld_0xhl_a();
+      cpu.ld_0xnn_a(nn);
 
       assert.equal(cpu.a(), cpu.a(), 'copy a to a');
       assert.equal(cpu.b(), cpu.a(), 'copy a to b');
@@ -968,7 +968,7 @@ describe('CPU Unit tests', function() {
       cpu.ld_hl_nn(addr);
       cpu.mmu.writeByteAt(addr, 0x11);
       cpu.setC(1);
-      cpu.rl_0x_hl();
+      cpu.rl_0xhl();
       assert.equal(cpu.mmu.readByteAt(addr), 0x22, 'value at memory hl rotated left');
       assert.equal(cpu.Z(), 0, 'Result was positive');
       assert.equal(cpu.N(), 0, 'N reset');
