@@ -37,11 +37,3 @@ app.on('activate', () => {
     createWindow();
   }
 });
-
-// Options
-for(let i = 2; i < process.argv.length; i++){
-  const option = process.argv[i];
-  if (option === '--debug'){
-    config.DEBUG = true;
-  }
-}
