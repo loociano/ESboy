@@ -72,6 +72,7 @@ export default class CPU {
       0x24: {fn: this.inc_h, paramBytes: 0},
       0x25: {fn: this.dec_h, paramBytes: 0},
       0x28: {fn: this.jr_z_n, paramBytes: 1},
+      0x2a: {fn: this.ldi_a_0xhl, paramBytes: 0},
       0x2b: {fn: this.dec_hl, paramBytes: 0},
       0x2c: {fn: this.inc_l, paramBytes: 0},
       0x2d: {fn: this.dec_l, paramBytes: 0},
@@ -811,6 +812,22 @@ export default class CPU {
   ldi_0xhl_a(){
     this.ld_0xhl_a();
     this.inc_hl();
+  }
+
+  /**
+   * Puts value at memory location hl into a. Increments hl.
+   */
+  ldi_a_0xhl(){
+    this._ld_a_0xhl();
+    this.inc_hl();
+  }
+
+  /**
+   * Loads value at memory location hl into a.
+   * @private
+   */
+  _ld_a_0xhl(){
+    this._r.a = this.mmu.readByteAt(this.hl());
   }
 
   /**
