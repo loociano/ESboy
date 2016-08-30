@@ -435,7 +435,7 @@ describe('CPU Unit tests', function() {
       cpu.ld_hl_nn(0xc000);
 
       // Do SUB (hl) first, as h and l will be overridden later
-      [ {ld: cpu.ld_0x_hl_n, sub: cpu.sub_0x_hl},
+      [ {ld: cpu.ld_0xhl_n, sub: cpu.sub_0x_hl},
         {ld: cpu.ld_b_n, sub: cpu.sub_b},
         {ld: cpu.ld_c_n, sub: cpu.sub_c},
         {ld: cpu.ld_d_n, sub: cpu.sub_d},
@@ -533,7 +533,7 @@ describe('CPU Unit tests', function() {
       cpu.ld_hl_nn(0xc000);
 
       // Do ADD (hl) first, as h and l will be overridden later
-      [ {ld: cpu.ld_0x_hl_n, add: cpu.add_0x_hl},
+      [ {ld: cpu.ld_0xhl_n, add: cpu.add_0x_hl},
         {ld: cpu.ld_b_n, add: cpu.add_b},
         {ld: cpu.ld_c_n, add: cpu.add_c},
         {ld: cpu.ld_d_n, add: cpu.add_d},
@@ -888,6 +888,27 @@ describe('CPU Unit tests', function() {
 
       assert.equal(cpu.mmu.readByteAt(addr), value, 'Regiter a into (hl)');
       assert.equal(cpu.hl(), addr + 1, 'hl incremented');
+    });
+
+    it('should load registers into memory location hl', () => {
+      [ {ld: cpu.ld_b_n, ld_0xhl: cpu.ld_0xhl_b},
+        {ld: cpu.ld_c_n, ld_0xhl: cpu.ld_0xhl_c},
+        {ld: cpu.ld_d_n, ld_0xhl: cpu.ld_0xhl_d},
+        {ld: cpu.ld_e_n, ld_0xhl: cpu.ld_0xhl_e},
+        {ld: cpu.ld_h_n, ld_0xhl: cpu.ld_0xhl_h},
+        {ld: cpu.ld_l_n, ld_0xhl: cpu.ld_0xhl_l} ].map( ({ld, ld_0xhl}) => {
+
+          cpu.ld_hl_nn(0xc000);
+          ld.call(cpu, 0xc0);
+          ld_0xhl.call(cpu);
+          assert.equal(cpu.mmu.readByteAt(0xc000), 0xc0, `${ld_0xhl.name} applied.`);
+
+      });
+
+      // Special case, immediate byte
+      cpu.ld_hl_nn(0xc000);
+      cpu.ld_0xhl_n(0x01);
+      assert.equal(cpu.mmu.readByteAt(0xc000), 0x01, 'loaded n into memory location hl');
     });
 
   });
