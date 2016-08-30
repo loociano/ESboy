@@ -22,9 +22,9 @@ describe('MMU', () => {
   it('should not write in Interrupt Enable register', () => {
     const ie = mmu.readByteAt(0xffff);
 
-    assert.throws( () => {
+    assert.doesNotThrow( () => {
       mmu.writeByteAt(0xffff, 0xab);
-    }, Error, 'should not write on 0xffff');
+    }, Error, 'should not write on 0xffff silently');
 
     assert.equal(mmu.readByteAt(0xffff), ie, 'should not write on 0xffff');
   });
@@ -34,13 +34,13 @@ describe('MMU', () => {
     let addr = 0x0000;
     let value = mmu.readByteAt(addr);
 
-    assert.throws( () => {
+    assert.doesNotThrow( () => {
       mmu.writeByteAt(addr, 0xab);
     }, Error, `should not write on ${addr}`);
 
     addr = 0x7fff;
 
-    assert.throws( () => {
+    assert.doesNotThrow( () => {
       mmu.writeByteAt(addr, 0xab);
     }, Error, `should not write on ${addr}`);
 
