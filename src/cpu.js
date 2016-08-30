@@ -341,8 +341,7 @@ export default class CPU {
       }
 
     } catch(e){
-      Logger.error(e);
-      process.exit(0);
+      Logger.error(e.stack);
     }
   }
 
@@ -370,7 +369,12 @@ export default class CPU {
 
     Logger.state(this, command.fn, command.paramBytes, param);
 
-    command.fn.call(this, param);
+    try {
+      command.fn.call(this, param);
+    } catch (e){
+      Logger.beforeCrash(this, command.fn, command.paramBytes, param);
+      throw e;
+    }
   }
 
   /**
@@ -1182,6 +1186,10 @@ export default class CPU {
     this._ld_0x_nn_a(this.hl());
   }
 
+  /**
+   * Loads register a into memory address nn
+   * @param addr
+   */
   ld_0x_nn_a(addr){
     this._ld_0x_nn_a(addr);
   }

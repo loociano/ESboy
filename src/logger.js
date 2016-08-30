@@ -9,6 +9,12 @@ export default class Logger {
     }
   }
 
+  static beforeCrash(cpu, instructionFn, paramLength, param){
+    config.DEBUG = true;
+    Logger.state(cpu, instructionFn, paramLength, param);
+    config.DEBUG = false;
+  }
+
   static info(msg){
     if (config.DEBUG) {
       console.info(msg);
