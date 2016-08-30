@@ -83,6 +83,7 @@ export default class CPU {
       0x33: {fn: this.inc_sp, paramBytes: 0},
       0x34: {fn: this.inc_0x_hl, paramBytes: 0},
       0x35: {fn: this.dec_0x_hl, paramBytes: 0},
+      0x36: {fn: this.ld_0xhl_n, paramBytes: 1},
       0x38: {fn: this.jr_c_n, paramBytes: 0},
       0x3a: {fn: this.ldd_a_hl, paramBytes: 0},
       0x3b: {fn: this.dec_sp, paramBytes: 0},
@@ -95,6 +96,12 @@ export default class CPU {
       0x5f: {fn: this.ld_e_a, paramBytes: 0},
       0x67: {fn: this.ld_h_a, paramBytes: 0},
       0x6f: {fn: this.ld_l_a, paramBytes: 0},
+      0x70: {fn: this.ld_0xhl_b, paramBytes: 0},
+      0x71: {fn: this.ld_0xhl_c, paramBytes: 0},
+      0x72: {fn: this.ld_0xhl_d, paramBytes: 0},
+      0x73: {fn: this.ld_0xhl_e, paramBytes: 0},
+      0x74: {fn: this.ld_0xhl_h, paramBytes: 0},
+      0x75: {fn: this.ld_0xhl_l, paramBytes: 0},
       0x77: {fn: this.ld_0x_hl_a, paramBytes: 0},
       0x78: {fn: this.ld_a_b, paramBytes: 0},
       0x79: {fn: this.ld_a_c, paramBytes: 0},
@@ -1428,10 +1435,9 @@ export default class CPU {
 
   /**
    * Writes a value n into memory address hl
-   * Not a Z80 instruction, used for testing
-   * @param n
+   * @param {number} n
    */
-  ld_0x_hl_n(n){
+  ld_0xhl_n(n){
     this.mmu.writeByteAt(this.hl(), n);
   }
 
@@ -1567,5 +1573,47 @@ export default class CPU {
     } else {
       this.setZ(0);
     }
+  }
+
+  /**
+   * Loads register b into memory location hl
+   */
+  ld_0xhl_b(){
+    this.ld_0xhl_n(this._r.b);
+  }
+
+  /**
+   * Loads register c into memory location hl
+   */
+  ld_0xhl_c(){
+    this.ld_0xhl_n(this._r.c);
+  }
+
+  /**
+   * Loads register d into memory location hl
+   */
+  ld_0xhl_d(){
+    this.ld_0xhl_n(this._r.d);
+  }
+
+  /**
+   * Loads register e into memory location hl
+   */
+  ld_0xhl_e(){
+    this.ld_0xhl_n(this._r.e);
+  }
+
+  /**
+   * Loads register h into memory location hl
+   */
+  ld_0xhl_h(){
+    this.ld_0xhl_n(this._r.h);
+  }
+
+  /**
+   * Loads register l into memory location hl
+   */
+  ld_0xhl_l(){
+    this.ld_0xhl_n(this._r.l);
   }
 }
