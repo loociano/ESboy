@@ -77,6 +77,7 @@ export default class CPU {
       0x2c: {fn: this.inc_l, paramBytes: 0},
       0x2d: {fn: this.dec_l, paramBytes: 0},
       0x2e: {fn: this.ld_l_n, paramBytes: 1},
+      0x2f: {fn: this.cpl, paramBytes: 0},
       0x26: {fn: this.ld_h_n, paramBytes: 1},
       0x30: {fn: this.jr_nc_n, paramBytes: 1},
       0x31: {fn: this.ld_sp_nn, paramBytes: 2},
@@ -1887,5 +1888,13 @@ export default class CPU {
    */
   ld_0xhl_l(){
     this.ld_0xhl_n(this._r.l);
+  }
+
+  /** 
+   * Complements register a
+   */
+  cpl() {
+    this._r.a = ~this._r.a;
+    this.setN(1); this.setH(1);
   }
 }
