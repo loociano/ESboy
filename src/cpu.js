@@ -174,6 +174,14 @@ export default class CPU {
       0xcb15: {fn: this.rl_l, paramBytes: 0},
       0xcb16: {fn: this.rl_0xhl, paramBytes: 0},
       0xcb17: {fn: this.rl_a, paramBytes: 0},
+      0xcb30: {fn: this.swap_b, paramBytes: 0},
+      0xcb31: {fn: this.swap_c, paramBytes: 0},
+      0xcb32: {fn: this.swap_d, paramBytes: 0},
+      0xcb33: {fn: this.swap_e, paramBytes: 0},
+      0xcb34: {fn: this.swap_h, paramBytes: 0},
+      0xcb35: {fn: this.swap_l, paramBytes: 0},
+      0xcb36: {fn: this.swap_0xhl, paramBytes: 0},
+      0xcb37: {fn: this.swap_a, paramBytes: 0},
       0xcb7c: {fn: this.bit_7_h, paramBytes: 0},
       0xcd: {fn: this.call, paramBytes: 2},
       0xd1: {fn: this.pop_de, paramBytes: 0},
@@ -1982,5 +1990,93 @@ export default class CPU {
   cpl() {
     this._r.a = ~this._r.a;
     this.setN(1); this.setH(1);
+  }
+
+  /**
+   * Swaps nybbles of a
+   */
+  swap_a(){
+    this._swap_n('a');
+  }
+
+  /**
+   * Swaps nybbles of b
+   */
+  swap_b(){
+    this._swap_n('b');
+  }
+
+  /**
+   * Swaps nybbles of c
+   */
+  swap_c(){
+    this._swap_n('c');
+  }
+
+  /**
+   * Swaps nybbles of d
+   */
+  swap_d(){
+    this._swap_n('d');
+  }
+
+  /**
+   * Swaps nybbles of e
+   */
+  swap_e(){
+    this._swap_n('e');
+  }
+
+  /**
+   * Swaps nybbles of h
+   */
+  swap_h(){
+    this._swap_n('h');
+  }
+
+  /**
+   * Swaps nybbles of l
+   */
+  swap_l(){
+    this._swap_n('l');
+  }
+
+  /**
+   * Swaps nybbles of value at memory location hl
+   */
+  swap_0xhl(){
+    const swapped = this._swap4bits(this._0xhl());
+
+    if (swapped){
+      this.setZ(0);
+    } else {
+      this.setZ(1);
+    }
+    this.ld_0xhl_n(swapped);
+    this.setN(0); this.setH(0); this.setC(0);
+  }
+
+  /**
+   * Swaps nybbles of register r
+   * @param {string} r
+   * @private
+   */
+  _swap_n(r){
+    if (this._r[r] = this._swap4bits(this._r[r])){
+      this.setZ(0);
+    } else {
+      this.setZ(1);
+    }
+    this.setN(0); this.setH(0); this.setC(0);
+  }
+
+  /**
+   * Swaps top-bottom 4 bits in a byte.
+   * @param byte
+   * @returns {number}
+   * @private
+   */
+  _swap4bits(byte){
+    return (byte >> 4 & 0x0f) + (byte << 4 & 0xf0);
   }
 }
