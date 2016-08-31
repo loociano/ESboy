@@ -206,6 +206,66 @@ describe('CPU Unit tests', function() {
 
   describe('8 bit arithmetic', () => {
 
+    describe('AND', () => {
+
+      it('should AND register a with itself', () => {
+        cpu.ld_a_n(0x11);
+        
+        cpu.and_a();
+        
+        assert.equal(cpu.a(), cpu.a(), 'a AND a does not change a');
+        assert.equal(cpu.f(), 0b0010, 'AND a with positive result sets only H');
+      });
+
+      it('should AND register a with register r', () => {
+
+        [ {ld: cpu.ld_b_n, or: cpu.and_b},
+          {ld: cpu.ld_c_n, or: cpu.and_c},
+          {ld: cpu.ld_d_n, or: cpu.and_d},
+          {ld: cpu.ld_e_n, or: cpu.and_e},
+          {ld: cpu.ld_h_n, or: cpu.and_h},
+          {ld: cpu.ld_l_n, or: cpu.and_l} ].map( ({ld, and}) => {
+
+            cpu.ld_a_n(0x11);
+            ld.call(cpu, 0x33);
+
+            and.call(cpu);
+
+            assert.equal(cpu.a(), 0x11 | 0x33, `a ${or.name}`);
+            assert.equal(cpu.f(), 0b0010, `${or.name} with positive result sets only H`);
+        });
+      });
+
+      it('should AND a with memory location hl', () => {
+        cpu.ld_a_n(0x11);
+        cpu.ld_hl_nn(0xc000);
+        cpu.mmu.writeByteAt(0xc000, 0x33);
+
+        cpu.and_0xhl();
+
+        assert.equal(cpu.a(), 0x11 | 0x33, 'a AND (hl)');
+        assert.equal(cpu.f(), 0b0010, 'OR (hl) with positive result sets only H');
+      });
+
+      it('should AND a with byte n', () => {
+        cpu.ld_a_n(0x11);
+        
+        cpu.or_n(0x33);
+
+        assert.equal(cpu.a(), 0x11 | 0x33, 'a AND n');
+        assert.equal(cpu.f(), 0b0010, 'AND n with positive result sets only H');
+      });
+
+      it('should set flag Z if AND result is zero', () => {
+        cpu.ld_a_n(0x0f);
+        
+        cpu.or_n(0xf0);
+
+        assert.equal(cpu.a(), 0x00, 'a OR n');
+        assert.equal(cpu.f(), 0b1010, 'OR n with zero result sets Z and H');
+      });
+    });
+
     describe('OR', () => {
 
       it('should OR register a with itself', () => {
