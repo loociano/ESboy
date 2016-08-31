@@ -129,6 +129,14 @@ export default class CPU {
       0x95: {fn: this.sub_l, paramBytes: 0},
       0x96: {fn: this.sub_0xhl, paramBytes: 0},
       0x97: {fn: this.sub_a, paramBytes: 0},
+      0xa0: {fn: this.and_b, paramBytes: 0},
+      0xa1: {fn: this.and_c, paramBytes: 0},
+      0xa2: {fn: this.and_d, paramBytes: 0},
+      0xa3: {fn: this.and_e, paramBytes: 0},
+      0xa4: {fn: this.and_h, paramBytes: 0},
+      0xa5: {fn: this.and_l, paramBytes: 0},
+      0xa6: {fn: this.and_0xhl, paramBytes: 0},
+      0xa7: {fn: this.and_a, paramBytes: 0},
       0xa8: {fn: this.xor_b, paramBytes: 0},
       0xa9: {fn: this.xor_c, paramBytes: 0},
       0xaa: {fn: this.xor_d, paramBytes: 0},
@@ -175,6 +183,7 @@ export default class CPU {
       0xe1: {fn: this.pop_hl, paramBytes: 0},
       0xe2: {fn: this.ld_0xc_a, paramBytes: 0},
       0xe5: {fn: this.push_hl, paramBytes: 0},
+      0xe6: {fn: this.and_n, paramBytes: 1},
       0xea: {fn: this.ld_0xnn_a, paramBytes: 2},
       0xee: {fn: this.xor_n, paramBytes: 1},
       0xf0: {fn: this.ldh_a_n, paramBytes: 1},
@@ -457,6 +466,75 @@ export default class CPU {
    * Does nothing
    */
   nop(){}
+
+  /**
+   * Register a AND a
+   */
+  and_a(){
+    this.and_n(this._r.a);
+  }
+
+  /**
+   * Register a AND b
+   */
+  and_b(){
+    this.and_n(this._r.b);
+  }
+
+  /**
+   * Register a AND c
+   */
+  and_c(){
+    this.and_n(this._r.c);
+  }
+
+  /**
+   * Register a AND d
+   */
+  and_d(){
+    this.and_n(this._r.d);
+  }
+
+  /**
+   * Register a AND e
+   */
+  and_e(){
+    this.and_n(this._r.e);
+  }
+
+  /**
+   * Register a AND h
+   */
+  and_h(){
+    this.and_n(this._r.h);
+  }
+
+  /**
+   * Register a AND l
+   */
+  and_l(){
+    this.and_n(this._r.l);
+  }
+
+  /**
+   * Register a AND value at memory location hl
+   */
+  and_0xhl(){
+    this.and_n(this._0xhl());
+  }
+
+  /**
+   * Register a AND n
+   * @param n
+   */
+  and_n(n){
+    if (this._r.a &= n){
+      this.setZ(0);
+    } else {
+      this.setZ(1);
+    }
+    this.setN(0); this.setH(1); this.setC(0);
+  }
 
   /** 
    * Register a OR a. Does nothing.
