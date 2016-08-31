@@ -1148,6 +1148,34 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.H(), 1, 'H always set');
     });
 
+    it('should swap nybbles', () => {
+
+      cpu.ld_hl_nn(0xc000);
+
+      [ {r: cpu._0xhl, ld: cpu.ld_0xhl_n, swap: cpu.swap_0xhl},
+        {r: cpu.a, ld: cpu.ld_a_n, swap: cpu.swap_a},
+        {r: cpu.b, ld: cpu.ld_b_n, swap: cpu.swap_b},
+        {r: cpu.c, ld: cpu.ld_c_n, swap: cpu.swap_c},
+        {r: cpu.d, ld: cpu.ld_d_n, swap: cpu.swap_d},
+        {r: cpu.e, ld: cpu.ld_e_n, swap: cpu.swap_e},
+        {r: cpu.h, ld: cpu.ld_h_n, swap: cpu.swap_h},
+        {r: cpu.l, ld: cpu.ld_l_n, swap: cpu.swap_l} ].map( ({r, ld, swap}) => {
+          ld.call(cpu, 0xab);
+
+          swap.call(cpu);
+
+          assert.equal(r.call(cpu), 0xba, `${swap.name} swapped nybbles`);
+          assert.equal(cpu.f(), 0b0000, `${swap.name} resets all flags for positive result`);
+
+          ld.call(cpu, 0x00);
+
+          swap.call(cpu);
+
+          assert.equal(r.call(cpu), 0x00, `${swap.name} does not modify zero`);
+          assert.equal(cpu.f(), 0b1000, `${swap.name} sets Z with zero result`);
+      });
+    });
+
   });
 
 });
