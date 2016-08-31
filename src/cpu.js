@@ -242,6 +242,15 @@ export default class CPU {
   }
 
   /**
+   * @param offset
+   * @returns {number} byte at memory location sp + offset
+   * @private
+   */
+  peek_stack(offset = 0){
+    return this.mmu.readByteAt(this.sp() + offset);
+  }
+
+  /**
    * @returns {number} Register af
    */
   af(){
@@ -1534,9 +1543,17 @@ export default class CPU {
    * @param addr
    */
   call(addr){
+    this._push_pc();
+    this._r.pc = addr;
+  }
+
+  /**
+   * Pushes the pc into stack.
+   * @private
+   */
+  _push_pc(){
     this.mmu.writeByteAt(--this._r.sp, Utils.msb(this._r.pc));
     this.mmu.writeByteAt(--this._r.sp, Utils.lsb(this._r.pc));
-    this._r.pc = addr;
   }
 
   /**
@@ -2078,5 +2095,13 @@ export default class CPU {
    */
   _swap4bits(byte){
     return (byte >> 4 & 0x0f) + (byte << 4 & 0xf0);
+  }
+
+  /**
+   * Restart to address 0x0000
+   */
+  rst_00(){
+    this._push_pc();
+    this.jp(0x0000);
   }
 }
