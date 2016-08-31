@@ -1184,13 +1184,26 @@ describe('CPU Unit tests', function() {
       cpu.setPC = function(pc){
         this._r.pc = pc;
       };
-      cpu.setPC(0x0150);
 
-      cpu.rst_00();
+      [ {rst: cpu.rst_00, addr: 0x00},
+        {rst: cpu.rst_08, addr: 0x08},
+        {rst: cpu.rst_10, addr: 0x10},
+        {rst: cpu.rst_18, addr: 0x18},
+        {rst: cpu.rst_20, addr: 0x20},
+        {rst: cpu.rst_28, addr: 0x28},
+        {rst: cpu.rst_30, addr: 0x30},
+        {rst: cpu.rst_38, addr: 0x38} ].map( ({rst, addr}) => {
 
-      assert.equal(cpu.peek_stack(+1), 0x01, 'top nybble');
-      assert.equal(cpu.peek_stack(), 0x50, 'bottom nybble');
-      assert.equal(cpu.pc(), 0x0000);
+          cpu.setPC(0x0150);
+
+          rst.call(cpu);
+
+          assert.equal(cpu.peek_stack(+1), 0x01, 'top nybble');
+          assert.equal(cpu.peek_stack(), 0x50, 'bottom nybble');
+          assert.equal(cpu.pc(), addr);
+      });
+
+
     });
   });
 
