@@ -14,4 +14,10 @@ GNU GPLv3 License. Ongoing test-driven project using ECMAScript 6 and Electron.
 
 ## Develop
 
+Run all tests:
+
 ``npm test``
+
+Debug game in console without GUI:
+
+`npm run cli ./roms/blargg_cpu_instrs.gb -- --debug`
