@@ -2098,10 +2098,68 @@ export default class CPU {
   }
 
   /**
-   * Restart to address 0x0000
+   * Restarts to address 0x0000
    */
   rst_00(){
+    this._rst_n(0x00);
+  }
+
+  /**
+   * Restarts to address 0x0008
+   */
+  rst_08(){
+    this._rst_n(0x08);
+  }
+
+  /**
+   * Restarts to address 0x0010
+   */
+  rst_10(){
+    this._rst_n(0x10);
+  }
+
+  /**
+   * Restarts to address 0x0018
+   */
+  rst_18(){
+    this._rst_n(0x18);
+  }
+
+  /**
+   * Restarts to address 0x0020
+   */
+  rst_20(){
+    this._rst_n(0x20);
+  }
+
+  /**
+   * Restarts to address 0x0028
+   */
+  rst_28(){
+    this._rst_n(0x28);
+  }
+
+  /**
+   * Restarts to address 0x0030
+   */
+  rst_30(){
+    this._rst_n(0x30);
+  }
+
+  /**
+   * Restarts to address 0x0038
+   */
+  rst_38(){
+    this._rst_n(0x38);
+  }
+
+  /**
+   * Pushes the pc into stack and jumps to address n
+   * @param n
+   * @private
+   */
+  _rst_n(n){
     this._push_pc();
-    this.jp(0x0000);
+    this.jp(n);
   }
 }
