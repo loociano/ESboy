@@ -206,6 +206,66 @@ describe('CPU Unit tests', function() {
 
   describe('8 bit arithmetic', () => {
 
+    describe('OR', () => {
+
+      it('should OR register a with itself', () => {
+        cpu.ld_a_n(0x11);
+        
+        cpu.or_a();
+        
+        assert.equal(cpu.a(), cpu.a(), 'a OR a does not change a');
+        assert.equal(cpu.f(), 0b0000, 'OR a with positive number resets all flags');
+      });
+
+      it('should OR register a with register r', () => {
+
+        [ {ld: cpu.ld_b_n, or: cpu.or_b},
+          {ld: cpu.ld_c_n, or: cpu.or_c},
+          {ld: cpu.ld_d_n, or: cpu.or_d},
+          {ld: cpu.ld_e_n, or: cpu.or_e},
+          {ld: cpu.ld_h_n, or: cpu.or_h},
+          {ld: cpu.ld_l_n, or: cpu.or_l} ].map( ({ld, or}) => {
+
+            cpu.ld_a_n(0x11);
+            ld.call(cpu, 0x22);
+
+            or.call(cpu);
+
+            assert.equal(cpu.a(), 0x11 | 0x22, `a ${or.name}`);
+            assert.equal(cpu.f(), 0b0000, `All flags zero with ${or.name}`);
+        });
+      });
+
+      it('should OR a with memory location hl', () => {
+        cpu.ld_a_n(0x11);
+        cpu.ld_hl_nn(0xc000);
+        cpu.mmu.writeByteAt(0xc000, 0x22);
+
+        cpu.or_0xhl();
+
+        assert.equal(cpu.a(), 0x11 | 0x22, 'a OR (hl)');
+        assert.equal(cpu.f(), 0b0000, 'All flags zero with OR (hl)');
+      });
+
+      it('should OR a with byte n', () => {
+        cpu.ld_a_n(0x11);
+        
+        cpu.or_n(0x22);
+
+        assert.equal(cpu.a(), 0x11 | 0x22, 'a OR n');
+        assert.equal(cpu.f(), 0b0000, 'All flags zero with OR n');
+      });
+
+      it('should set flag Z if OR result is zero', () => {
+        cpu.ld_a_n(0x00);
+        
+        cpu.or_n(0x00);
+
+        assert.equal(cpu.a(), 0x00, 'a OR n');
+        assert.equal(cpu.f(), 0b1000, 'Zero flag set');
+      });
+    });
+   
     it('should XOR register a', () => {
       cpu.xor_a();
       assert.equal(cpu.a(), 0x00);
