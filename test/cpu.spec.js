@@ -219,20 +219,20 @@ describe('CPU Unit tests', function() {
 
       it('should AND register a with register r', () => {
 
-        [ {ld: cpu.ld_b_n, or: cpu.and_b},
-          {ld: cpu.ld_c_n, or: cpu.and_c},
-          {ld: cpu.ld_d_n, or: cpu.and_d},
-          {ld: cpu.ld_e_n, or: cpu.and_e},
-          {ld: cpu.ld_h_n, or: cpu.and_h},
-          {ld: cpu.ld_l_n, or: cpu.and_l} ].map( ({ld, and}) => {
+        [ {ld: cpu.ld_b_n, and: cpu.and_b},
+          {ld: cpu.ld_c_n, and: cpu.and_c},
+          {ld: cpu.ld_d_n, and: cpu.and_d},
+          {ld: cpu.ld_e_n, and: cpu.and_e},
+          {ld: cpu.ld_h_n, and: cpu.and_h},
+          {ld: cpu.ld_l_n, and: cpu.and_l} ].map( ({ld, and}) => {
 
             cpu.ld_a_n(0x11);
             ld.call(cpu, 0x33);
 
             and.call(cpu);
 
-            assert.equal(cpu.a(), 0x11 | 0x33, `a ${or.name}`);
-            assert.equal(cpu.f(), 0b0010, `${or.name} with positive result sets only H`);
+            assert.equal(cpu.a(), 0x11 & 0x33, `a ${and.name}`);
+            assert.equal(cpu.f(), 0b0010, `${and.name} with positive result sets only H`);
         });
       });
 
@@ -243,26 +243,26 @@ describe('CPU Unit tests', function() {
 
         cpu.and_0xhl();
 
-        assert.equal(cpu.a(), 0x11 | 0x33, 'a AND (hl)');
+        assert.equal(cpu.a(), 0x11 & 0x33, 'a AND (hl)');
         assert.equal(cpu.f(), 0b0010, 'OR (hl) with positive result sets only H');
       });
 
       it('should AND a with byte n', () => {
         cpu.ld_a_n(0x11);
         
-        cpu.or_n(0x33);
+        cpu.and_n(0x33);
 
-        assert.equal(cpu.a(), 0x11 | 0x33, 'a AND n');
+        assert.equal(cpu.a(), 0x11 & 0x33, 'a AND n');
         assert.equal(cpu.f(), 0b0010, 'AND n with positive result sets only H');
       });
 
       it('should set flag Z if AND result is zero', () => {
         cpu.ld_a_n(0x0f);
         
-        cpu.or_n(0xf0);
+        cpu.and_n(0xf0);
 
-        assert.equal(cpu.a(), 0x00, 'a OR n');
-        assert.equal(cpu.f(), 0b1010, 'OR n with zero result sets Z and H');
+        assert.equal(cpu.a(), 0x00, 'a AND n');
+        assert.equal(cpu.f(), 0b1010, 'AND n with zero result sets Z and H');
       });
     });
 
