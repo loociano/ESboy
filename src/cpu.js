@@ -136,6 +136,14 @@ export default class CPU {
       0xad: {fn: this.xor_l, paramBytes: 0},
       0xae: {fn: this.xor_0xhl, paramBytes: 0},
       0xaf: {fn: this.xor_a, paramBytes: 0},
+      0xb0: {fn: this.or_b, paramBytes: 0},
+      0xb1: {fn: this.or_c, paramBytes: 0},
+      0xb2: {fn: this.or_d, paramBytes: 0},
+      0xb3: {fn: this.or_e, paramBytes: 0},
+      0xb4: {fn: this.or_h, paramBytes: 0},
+      0xb5: {fn: this.or_l, paramBytes: 0},
+      0xb6: {fn: this.or_0xhl, paramBytes: 0},
+      0xb7: {fn: this.or_a, paramBytes: 0},
       0xb8: {fn: this.cp_b, paramBytes: 0},
       0xb9: {fn: this.cp_c, paramBytes: 0},
       0xba: {fn: this.cp_d, paramBytes: 0},
@@ -172,6 +180,7 @@ export default class CPU {
       0xf1: {fn: this.pop_af, paramBytes: 0},
       0xf3: {fn: this.di, paramBytes: 0},
       0xf5: {fn: this.push_af, paramBytes: 0},
+      0xf6: {fn: this.or_n, paramBytes: 1},
       0xfa: {fn: this.ld_a_nn, paramBytes: 2},
       0xfb: {fn: this.ei, paramBytes: 0},
       0xfe: {fn: this.cp_n, paramBytes: 1}
@@ -246,7 +255,7 @@ export default class CPU {
    * @returns {number} flags (4 bits)
    */
   f(){
-    return (this._r._f & 0xF0) >> 4;
+    return (this._r._f & 0xf0) >> 4;
   }
 
   lcdc(){
@@ -439,6 +448,76 @@ export default class CPU {
    * Does nothing
    */
   nop(){}
+
+  /** 
+   * Register a OR a. Does nothing.
+   */
+  or_a(){
+    this.or_n(this._r.b);
+  }
+
+  /**
+   * Register a OR b
+   */
+  or_b(){
+    this.or_n(this._r.b);
+  }
+
+  /**
+   * Register a OR c
+   */
+  or_c(){
+    this.or_n(this._r.c);
+  }
+
+  /**
+   * Register a OR d
+   */
+  or_d(){
+    this.or_n(this._r.d);
+  }
+
+  /**
+   * Register a OR e
+   */
+  or_e(){
+    this.or_n(this._r.e);
+  }
+
+  /**
+   * Register a OR h
+   */
+  or_h(){
+    this.or_n(this._r.h);
+  }
+
+  /**
+   * Register a OR l
+   */
+  or_l(){
+    this.or_n(this._r.l);
+  }
+
+  /**
+   * Register a OR memory location hl
+   */
+  or_0xhl(){
+    this.or_n(this.mmu.readByteAt(this.hl()));
+  }
+  
+  /**
+   * Register a OR n
+   * @param {number} n
+   * @private
+   */
+  or_n(n){
+    if (this._r.a |= n){
+      this.setZ(0);
+    } else {
+      this.setZ(1);
+    }
+    this.setN(0); this.setH(0); this.setC(0);
+  }
 
   /**
    * XOR register a, result in a.
