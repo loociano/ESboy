@@ -1178,6 +1178,22 @@ describe('CPU Unit tests', function() {
 
   });
 
+  describe('Restarts', () => {
+
+    it('should restart to address', () => {
+      cpu.setPC = function(pc){
+        this._r.pc = pc;
+      };
+      cpu.setPC(0x0150);
+
+      cpu.rst_00();
+
+      assert.equal(cpu.peek_stack(+1), 0x01, 'top nybble');
+      assert.equal(cpu.peek_stack(), 0x50, 'bottom nybble');
+      assert.equal(cpu.pc(), 0x0000);
+    });
+  });
+
 });
 
 /**
