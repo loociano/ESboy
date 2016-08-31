@@ -1076,6 +1076,20 @@ describe('CPU Unit tests', function() {
 
   });
 
+  describe('Miscellaneous', () => {
+
+    it('should complement register a', () => {
+      cpu.ld_a_n(0x33);
+      
+      cpu.cpl();
+
+      assert.equal(cpu.a(), ~0x33, 'Complement a');
+      assert.equal(cpu.N(), 1, 'N always set');
+      assert.equal(cpu.H(), 1, 'H always set');
+    });
+
+  });
+
 });
 
 /**
