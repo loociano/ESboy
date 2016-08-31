@@ -253,6 +253,14 @@ export default class CPU {
   }
 
   /**
+   * @returns {number} byte at memory location hl
+   * @private
+   */
+  _0xhl(){
+    return this.mmu.readByteAt(this.hl());
+  }
+
+  /**
    * @returns {number} flags (4 bits)
    */
   f(){
@@ -503,7 +511,7 @@ export default class CPU {
    * Register a OR memory location hl
    */
   or_0xhl(){
-    this.or_n(this.mmu.readByteAt(this.hl()));
+    this.or_n(this._0xhl());
   }
   
   /**
@@ -573,7 +581,7 @@ export default class CPU {
    * XOR memory location hl, result in a.
    */
   xor_0xhl(){
-    this._xor(this.mmu.readByteAt(this.hl()));
+    this._xor(this._0xhl());
   }
 
   /**
@@ -852,7 +860,7 @@ export default class CPU {
    * Loads address memory of hl into a.
    */
   ld_a_hl(){
-    this.ld_a_n(this.mmu.readByteAt(this.hl()));
+    this.ld_a_n(this._0xhl());
   }
 
   /**
@@ -874,7 +882,7 @@ export default class CPU {
    * Loads a with value at address hl. Decrements hl.
    */
   ldd_a_hl(){
-    this._r.a = this.mmu.readByteAt(this.hl());
+    this._r.a = this._0xhl();
     this.dec_hl();
   }
 
@@ -907,7 +915,7 @@ export default class CPU {
    * @private
    */
   _ld_a_0xhl(){
-    this._r.a = this.mmu.readByteAt(this.hl());
+    this._r.a = this._0xhl();
   }
 
   /**
@@ -991,7 +999,7 @@ export default class CPU {
    * Decrements memory location hl by 1
    */
   dec_0xhl(){
-    let value = this.mmu.readByteAt(this.hl());
+    let value = this._0xhl();
     this.mmu.writeByteAt(this.hl(), --value);
   }
 
@@ -1160,7 +1168,7 @@ export default class CPU {
    * Compares memory location hl with register a
    */
   cp_0xhl(){
-    this.cp_n(this.mmu.readByteAt(this.hl()));
+    this.cp_n(this._0xhl());
   }
 
   /**
@@ -1307,7 +1315,7 @@ export default class CPU {
    * Increments the value at memory location hl by 1.
    */
   inc_0xhl(){
-    let value = this.mmu.readByteAt(this.hl());
+    let value = this._0xhl();
 
     if (value === 0xff){
       this.mmu.writeByteAt(this.hl(), 0x00);
@@ -1614,7 +1622,7 @@ export default class CPU {
    */
   rl_0xhl(){
 
-    const value = this.mmu.readByteAt(this.hl());
+    const value = this._0xhl();
 
     if ((value & 0x80) > 0){
       this.setC(1);
@@ -1695,7 +1703,7 @@ export default class CPU {
    * Subtract value at memory address hl from a
    */
   sub_0xhl(){
-    this._sub_r(this.mmu.readByteAt(this.hl()));
+    this._sub_r(this._0xhl());
   }
 
   /**
@@ -1804,7 +1812,7 @@ export default class CPU {
    * Adds value at memory hl to a
    */
   add_0xhl(){
-    this._add_r(this.mmu.readByteAt(this.hl()));
+    this._add_r(this._0xhl());
   }
 
   /**
