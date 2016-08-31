@@ -367,6 +367,8 @@ export default class CPU {
    */
   start(pc_stop = -1){
 
+    let inBIOS = true;
+
     try {
       while(pc_stop === -1 || this._r.pc < pc_stop){
 
@@ -379,7 +381,7 @@ export default class CPU {
           }
         }
 
-        this.execute();
+        this.execute(inBIOS);
 
         if (this._t > 100){
           this.lcd.updateLY();
@@ -389,6 +391,7 @@ export default class CPU {
         }
         
         if (this._r.pc === 0x0100){
+          inBIOS = false;
           this.mmu.dumpMemoryToFile();
         }
       }
@@ -408,17 +411,18 @@ export default class CPU {
 
   /**
    * Executes the next command and increases the pc.
+   * @param {boolean} inBIOS
    */
-  execute() {
+  execute(inBIOS) {
 
-    let opcode = this._nextOpcode();
+    let opcode = this._nextOpcode(inBIOS);
 
     if (opcode === this.EXTENDED_PREFIX){
-      opcode = (opcode << 8) + this._nextOpcode();
+      opcode = (opcode << 8) + this._nextOpcode(inBIOS);
     }
 
     const command = this._getCommand(opcode);
-    const param = this._getInstrParams(command.paramBytes);
+    const param = this._getInstrParams(command.paramBytes, inBIOS);
 
     Logger.state(this, command.fn, command.paramBytes, param);
 
@@ -432,15 +436,16 @@ export default class CPU {
 
   /**
    * @param numBytes
+   * @param inBIOS
    * @returns {*}
    * @private
    */
-  _getInstrParams(numBytes){
+  _getInstrParams(numBytes, inBIOS){
     let param;
     if(numBytes > 0){
-      param = this.mmu.readByteAt(this._r.pc++);
+      param = this.mmu.readByteAt(this._r.pc++, inBIOS);
       if (numBytes > 1){
-        param += this.mmu.readByteAt(this._r.pc++) << 8;
+        param += this.mmu.readByteAt(this._r.pc++, inBIOS) << 8;
       }
     }
     return param;
@@ -460,11 +465,12 @@ export default class CPU {
   }
 
   /**
+   * @param {boolean} inBIOS
    * @return {number} next opcode
    * @private
    */
-  _nextOpcode() {
-    return this.mmu.readByteAt(this._r.pc++);
+  _nextOpcode(inBIOS) {
+    return this.mmu.readByteAt(this._r.pc++, inBIOS);
   }
 
   /**

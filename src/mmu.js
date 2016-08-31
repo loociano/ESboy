@@ -60,9 +60,10 @@ export default class MMU {
     this.NON_JAPANESE = 0x1;
 
     this.memory = new Buffer(this.ADDR_MAX + 1);
+    this.bios = this.getBIOS();
+
     this._initMemory();
     this._loadROM(filename);
-    this._loadBIOS();
   }
 
   /**
@@ -109,14 +110,6 @@ export default class MMU {
   }
 
   /**
-   * Loads BIOS in memory
-   * @private
-   */
-  _loadBIOS(){
-    this.getBIOS().copy(this.memory);
-  }
-
-  /**
    * @returns {Buffer} BIOS
    */
   getBIOS(){
@@ -125,20 +118,31 @@ export default class MMU {
 
   /**
    * @param {number} addr
+   * @param {boolean} inBIOS
    * @return {number} byte at memory address
    */
-  readByteAt(addr) {
+  readByteAt(addr, inBIOS = false) {
 
     if (addr > this.ADDR_MAX || addr < 0){
       throw new Error(`Cannot read memory address ${Utils.hexStr(addr)}`);
     }
 
     if (addr <= this.ADDR_ROM_MAX){
+      if (inBIOS){
+        return this._biosByteAt(addr);
+      }
       return this.romByteAt(addr);
     }
     return this.memory[addr];
   }
 
+  /**
+   * @param addr
+   * @returns {number}
+   */
+  readBIOSByteAt(addr){
+    return this.readByteAt(addr, true);
+  }
 
   /**
    * Reads buffer from memory
@@ -147,6 +151,10 @@ export default class MMU {
    */
   readBuffer(addr_start, addr_end){
     return this.memory.slice(addr_start, addr_end);
+  }
+
+  readBIOSBuffer(){
+    return this.bios.slice(0, this.ADDR_GAME_START);
   }
 
   /**
@@ -201,6 +209,13 @@ export default class MMU {
       throw new Error(`Cannot read ROM address ${Utils.hexStr(address)}`);
     }
     return this.memory[address];
+  }
+
+  _biosByteAt(addr){
+    if (addr >= this.ADDR_GAME_START || addr < 0){
+      throw new Error(`Cannot read bios address ${Utils.hexStr(addr)}`);
+    }
+    return this.bios[addr];
   }
 
   /**

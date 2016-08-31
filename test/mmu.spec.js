@@ -75,7 +75,16 @@ describe('MMU', () => {
   });
 
   it('should load the BIOS in memory', () => {
-    assert(mmu.readBuffer(0x0000, 0x0100).equals(mmu.getBIOS()), 'BIOS is in memory');
+    assert(mmu.readBIOSBuffer().equals(mmu.getBIOS()), 'BIOS is in memory');
+  });
+
+  it('should read BIOS', () => {
+    assert.equal(mmu.readBIOSByteAt(0x0000), 0x31, 'first BIOS byte');
+    assert.equal(mmu.readBIOSByteAt(0x00ff), 0x50, 'last BIOS byte');
+
+    assert.throws( () => {
+      mmu.readBIOSByteAt(0x0100);
+    }, Error, 'Address 0x0100 is out of BIOS range.');
   });
 
   describe('ROM checks', () => {

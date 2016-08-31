@@ -47,6 +47,18 @@ describe('BIOS', () => {
     assert.equal(cpu.ie(), 0x00, 'IE initialized');
   });
 
+  it('should override BIOS with ROM in range 0x0000 - 0x00ff', () => {
+    /*assert(!cpu.mmu.readBuffer(0x0000, 0x0100).equals(cpu.mmu.getBIOS()), 'BIOS in memory 0x00-0xff is overriden by ROM');
+    assert.equal(cpu.mmu.readByteAt(0x00), 0x3c);
+    assert.equal(cpu.mmu.readByteAt(0x08), 0x3c);
+    assert.equal(cpu.mmu.readByteAt(0x10), 0x3c);
+    assert.equal(cpu.mmu.readByteAt(0x18), 0x3c);
+    assert.equal(cpu.mmu.readByteAt(0x20), 0x3c);
+    assert.equal(cpu.mmu.readByteAt(0x28), 0x3c);
+    assert.equal(cpu.mmu.readByteAt(0x30), 0x3c);
+    assert.equal(cpu.mmu.readByteAt(0x38), 0x3c);*/
+  });
+
 });
 
 /**
