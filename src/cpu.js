@@ -209,12 +209,14 @@ export default class CPU {
       0xbd: {fn: this.cp_l, paramBytes: 0},
       0xbe: {fn: this.cp_0xhl, paramBytes: 0},
       0xbf: {fn: this.cp_a, paramBytes: 0},
+      0xc0: {fn: this.ret_nz, paramBytes: 0},
       0xc1: {fn: this.pop_bc, paramBytes: 0},
       0xc2: {fn: this.jp_nz_nn, paramBytes: 2},
       0xc3: {fn: this.jp, paramBytes: 2},
       0xc5: {fn: this.push_bc, paramBytes: 0},
       0xc6: {fn: this.add_n, paramBytes: 1},
       0xc7: {fn: this.rst_00, paramBytes: 0},
+      0xc8: {fn: this.ret_z, paramBytes: 0},
       0xc9: {fn: this.ret, paramBytes: 0},
       0xca: {fn: this.jp_z_nn, paramBytes: 2},
       0xcb10: {fn: this.rl_b, paramBytes: 0},
@@ -300,11 +302,13 @@ export default class CPU {
       0xcbbf: {fn: this.res_7_a, paramBytes: 0},
       0xcd: {fn: this.call, paramBytes: 2},
       0xcf: {fn: this.rst_08, paramBytes: 0},
+      0xd0: {fn: this.ret_nc, paramBytes: 0},
       0xd1: {fn: this.pop_de, paramBytes: 0},
       0xd2: {fn: this.jp_nc_nn, paramBytes: 2},
       0xd5: {fn: this.push_de, paramBytes: 0},
       0xd6: {fn: this.sub_n, paramBytes: 1},
       0xd7: {fn: this.rst_10, paramBytes: 0},
+      0xd8: {fn: this.ret_c, paramBytes: 0},
       0xda: {fn: this.jp_c_nn, paramBytes: 2},
       0xdf: {fn: this.rst_18, paramBytes: 0},
       0xe0: {fn: this.ldh_n_a, paramBytes: 1},
@@ -2281,6 +2285,42 @@ export default class CPU {
    */
   ret(){
     this.jp(this._pop_nn());
+  }
+
+  /**
+   * Jumps if last operation was not zero
+   */
+  ret_nz(){
+    if (this.Z() === 0){
+      this.jp(this._pop_nn());
+    }
+  }
+
+  /**
+   * Jumps if last operation was zero
+   */
+  ret_z(){
+    if (this.Z() === 1){
+      this.jp(this._pop_nn());
+    }
+  }
+
+  /**
+   * Jumps if last operation did not carry
+   */
+  ret_nc(){
+    if (this.C() === 0){
+      this.jp(this._pop_nn());
+    }
+  }
+
+  /**
+   * Jumps if last operation carried
+   */
+  ret_c(){
+    if (this.C() === 1){
+      this.jp(this._pop_nn());
+    }
   }
 
   /**
