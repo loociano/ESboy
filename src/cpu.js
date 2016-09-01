@@ -286,6 +286,11 @@ export default class CPU {
     return (this._r.h << 8) + this._r.l;
   }
 
+  _set_hl(nn){
+    this._r.h = nn >> 8 & 0x00ff;
+    this._r.l = nn & 0x00ff;
+  }
+
   /**
    * @returns {number} byte at memory location hl
    * @private
@@ -1966,6 +1971,29 @@ export default class CPU {
     } else {
       this.setZ(0);
     }
+  }
+
+  add_hl_bc(){
+    const bc = this.bc();
+    const hl = this.hl();
+    let value = hl + bc;
+
+    if ((value & 0xf000) > (hl & 0xf000)){
+      this.setH(1);
+    } else {
+      this.setH(0);
+    }
+
+    if ((value & 0x10000) > 0){
+      value -= 0x10000;
+      this.setC(1);
+    } else {
+      this.setC(0);
+    }
+
+    this._set_hl(value);
+
+    this.setN(0);
   }
 
   /**
