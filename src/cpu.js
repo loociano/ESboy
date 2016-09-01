@@ -48,7 +48,7 @@ export default class CPU {
       0x05: {fn: this.dec_b, paramBytes: 0},
       0x06: {fn: this.ld_b_n, paramBytes: 1},
       0x09: {fn: this.add_hl_bc, paramBytes: 0},
-      0x0a: {fn: this.ld_a_bc, paramBytes: 0},
+      0x0a: {fn: this.ld_a_0xbc, paramBytes: 0},
       0x0b: {fn: this.dec_bc, paramBytes: 0},
       0x0c: {fn: this.inc_c, paramBytes: 0},
       0x0d: {fn: this.dec_c, paramBytes: 0},
@@ -62,7 +62,7 @@ export default class CPU {
       0x17: {fn: this.rla, paramBytes: 0},
       0x18: {fn: this.jp_n, paramBytes: 1},
       0x19: {fn: this.add_hl_de, paramBytes: 0},
-      0x1a: {fn: this.ld_a_de, paramBytes: 0},
+      0x1a: {fn: this.ld_a_0xde, paramBytes: 0},
       0x1b: {fn: this.dec_de, paramBytes: 0},
       0x1c: {fn: this.inc_e, paramBytes: 0},
       0x1d: {fn: this.dec_e, paramBytes: 0},
@@ -102,6 +102,7 @@ export default class CPU {
       0x43: {fn: this.ld_b_e, paramBytes: 0},
       0x44: {fn: this.ld_b_h, paramBytes: 0},
       0x45: {fn: this.ld_b_l, paramBytes: 0},
+      0x46: {fn: this.ld_b_0xhl, paramBytes: 0},
       0x47: {fn: this.ld_b_a, paramBytes: 0},
       0x48: {fn: this.ld_c_b, paramBytes: 0},
       0x49: {fn: this.ld_c_c, paramBytes: 0},
@@ -109,6 +110,7 @@ export default class CPU {
       0x4b: {fn: this.ld_c_e, paramBytes: 0},
       0x4c: {fn: this.ld_c_h, paramBytes: 0},
       0x4d: {fn: this.ld_c_l, paramBytes: 0},
+      0x4e: {fn: this.ld_c_0xhl, paramBytes: 0},
       0x4f: {fn: this.ld_c_a, paramBytes: 0},
       0x50: {fn: this.ld_d_b, paramBytes: 0},
       0x51: {fn: this.ld_d_c, paramBytes: 0},
@@ -116,6 +118,7 @@ export default class CPU {
       0x53: {fn: this.ld_d_e, paramBytes: 0},
       0x54: {fn: this.ld_d_h, paramBytes: 0},
       0x55: {fn: this.ld_d_l, paramBytes: 0},
+      0x56: {fn: this.ld_d_0xhl, paramBytes: 0},
       0x57: {fn: this.ld_d_a, paramBytes: 0},
       0x58: {fn: this.ld_e_b, paramBytes: 0},
       0x59: {fn: this.ld_e_c, paramBytes: 0},
@@ -123,6 +126,7 @@ export default class CPU {
       0x5b: {fn: this.ld_e_e, paramBytes: 0},
       0x5c: {fn: this.ld_e_h, paramBytes: 0},
       0x5d: {fn: this.ld_e_l, paramBytes: 0},
+      0x5e: {fn: this.ld_e_0xhl, paramBytes: 0},
       0x5f: {fn: this.ld_e_a, paramBytes: 0},
       0x60: {fn: this.ld_h_b, paramBytes: 0},
       0x61: {fn: this.ld_h_c, paramBytes: 0},
@@ -130,6 +134,7 @@ export default class CPU {
       0x63: {fn: this.ld_h_e, paramBytes: 0},
       0x64: {fn: this.ld_h_h, paramBytes: 0},
       0x65: {fn: this.ld_h_l, paramBytes: 0},
+      0x66: {fn: this.ld_h_0xhl, paramBytes: 0},
       0x67: {fn: this.ld_h_a, paramBytes: 0},
       0x68: {fn: this.ld_l_b, paramBytes: 0},
       0x69: {fn: this.ld_l_c, paramBytes: 0},
@@ -137,6 +142,7 @@ export default class CPU {
       0x6b: {fn: this.ld_l_e, paramBytes: 0},
       0x6c: {fn: this.ld_l_h, paramBytes: 0},
       0x6d: {fn: this.ld_l_l, paramBytes: 0},
+      0x6e: {fn: this.ld_l_0xhl, paramBytes: 0},
       0x6f: {fn: this.ld_l_a, paramBytes: 0},
       0x70: {fn: this.ld_0xhl_b, paramBytes: 0},
       0x71: {fn: this.ld_0xhl_c, paramBytes: 0},
@@ -151,7 +157,7 @@ export default class CPU {
       0x7b: {fn: this.ld_a_e, paramBytes: 0},
       0x7c: {fn: this.ld_a_h, paramBytes: 0},
       0x7d: {fn: this.ld_a_l, paramBytes: 0},
-      0x7e: {fn: this.ld_a_hl, paramBytes: 0},
+      0x7e: {fn: this.ld_a_0xhl, paramBytes: 0},
       0x7f: {fn: this.ld_a_a, paramBytes: 0},
       0x80: {fn: this.add_b, paramBytes: 0},
       0x81: {fn: this.add_c, paramBytes: 0},
@@ -994,22 +1000,73 @@ export default class CPU {
   /**
    * Loads address memory of bc into a.
    */
-  ld_a_bc(){
+  ld_a_0xbc(){
     this.ld_a_n(this.mmu.readByteAt(this.bc()));
   }
 
   /**
    * Loads address memory of de into a.
    */
-  ld_a_de(){
+  ld_a_0xde(){
     this.ld_a_n(this.mmu.readByteAt(this.de()));
   }
 
   /**
    * Loads address memory of hl into a.
    */
-  ld_a_hl(){
+  ld_a_0xhl(){
     this.ld_a_n(this._0xhl());
+  }
+
+  /**
+   * Loads value at memory location hl into b.
+   */
+  ld_b_0xhl(){
+    this._ld_r_0xhl('b');
+  }
+
+  /**
+   * Loads value at memory location hl into c.
+   */
+  ld_c_0xhl(){
+    this._ld_r_0xhl('c');
+  }
+
+  /**
+   * Loads value at memory location hl into d.
+   */
+  ld_d_0xhl(){
+    this._ld_r_0xhl('d');
+  }
+
+  /**
+   * Loads value at memory location hl into e.
+   */
+  ld_e_0xhl(){
+    this._ld_r_0xhl('e');
+  }
+
+  /**
+   * Loads value at memory location hl into h.
+   */
+  ld_h_0xhl(){
+    this._ld_r_0xhl('h');
+  }
+
+  /**
+   * Loads value at memory location hl into l.
+   */
+  ld_l_0xhl(){
+    this._ld_r_0xhl('l');
+  }
+
+  /**
+   * Loads value at memory location hl into register r.
+   * @param r
+   * @private
+   */
+  _ld_r_0xhl(r){
+    this._ld_r_n(r, this._0xhl());
   }
 
   /**
