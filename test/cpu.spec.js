@@ -94,7 +94,22 @@ describe('CPU Unit tests', function() {
 
     });
 
-    describe('Jump NZ', () => {
+    describe('Jump NZ with address', () => {
+      it('should jump to address if Z is reset', () => {
+        cpu.setZ(0);
+        cpu.jp_nz_nn(0xc000);
+        assert.equal(cpu.pc(), 0xc000, 'jump to address');
+      });
+
+      it('should not jump to address if Z is set', () => {
+        cpu.setZ(1);
+        const pc = cpu.pc();
+        cpu.jp_nz_nn(0xc000);
+        assert.equal(cpu.pc(), pc, 'do not jump to address');
+      });
+    });
+
+    describe('Jump NZ with signed byte', () => {
       it('should jump forward if Z is reset', () => {
         cpu.setZ(0);
         const pc = cpu.pc();
@@ -123,7 +138,22 @@ describe('CPU Unit tests', function() {
       });
     });
 
-    describe('Jump Z', () => {
+    describe('Jump Z with address', () => {
+      it('should jump to address if Z is set', () => {
+        cpu.setZ(1);
+        cpu.jp_z_nn(0xc000);
+        assert.equal(cpu.pc(), 0xc000, 'jump to address');
+      });
+
+      it('should not jump to address if Z is reset', () => {
+        cpu.setZ(0);
+        const pc = cpu.pc();
+        cpu.jp_z_nn(0xc000);
+        assert.equal(cpu.pc(), pc, 'do not jump to address');
+      });
+    });
+
+    describe('Jump Z with signed byte', () => {
       it('should jump forward if Z is set', () => {
         cpu.setZ(1);
         const pc = cpu.pc();
@@ -152,7 +182,22 @@ describe('CPU Unit tests', function() {
       });
     });
 
-    describe('Jump NC', () => {
+    describe('Jump NC with address', () => {
+      it('should jump to address if Carry is reset', () => {
+        cpu.setC(0);
+        cpu.jp_nc_nn(0xc000);
+        assert.equal(cpu.pc(), 0xc000, 'jump to address');
+      });
+
+      it('should not jump to address if Carry is set', () => {
+        cpu.setC(1);
+        const pc = cpu.pc();
+        cpu.jp_nc_nn(0xc000);
+        assert.equal(cpu.pc(), pc, 'do not jump to address');
+      });
+    });
+
+    describe('Jump NC with signed byte', () => {
       it('should jump forward if C is reset', () => {
         cpu.setC(0);
         const pc = cpu.pc();
@@ -181,7 +226,22 @@ describe('CPU Unit tests', function() {
       });
     });
 
-    describe('Jump C', () => {
+    describe('Jump C with address', () => {
+      it('should jump to address if Carry is set', () => {
+        cpu.setC(1);
+        cpu.jp_c_nn(0xc000);
+        assert.equal(cpu.pc(), 0xc000, 'jump to address');
+      });
+
+      it('should not jump to address if Carry is reset', () => {
+        cpu.setC(0);
+        const pc = cpu.pc();
+        cpu.jp_c_nn(0xc000);
+        assert.equal(cpu.pc(), pc, 'do not jump to address');
+      });
+    });
+
+    describe('Jump C with signed byte', () => {
       it('should jump forward if C is set', () => {
         cpu.setC(1);
         const pc = cpu.pc();
