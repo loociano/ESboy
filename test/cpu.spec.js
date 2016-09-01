@@ -940,10 +940,23 @@ describe('CPU Unit tests', function() {
       });
     });
 
+    it('should load value at memory hl into registers', () => {
+      ['a', 'b', 'c', 'd', 'e', 'h', 'l'].map( (r) => {
+        cpu.ld_hl_nn(0xc000);
+        cpu.mmu.writeByteAt(cpu.hl(), 0xab);
+        const func = `ld_${r}_0xhl`;
+        assert.ok(cpu[func], `${func} does not exist`);
+
+        cpu[func].call(cpu);
+
+        assert.equal(cpu[r].call(cpu), 0xab, `load (hl) into ${r}`);
+      });
+    });
+
     it('should copy memory locations into register a', () => {
-      [ {r2: cpu.bc, r1: cpu.a, ld: cpu.ld_a_bc},
-        {r2: cpu.de, r1: cpu.a, ld: cpu.ld_a_de},
-        {r2: cpu.hl, r1: cpu.a, ld: cpu.ld_a_hl} ].map( ({r2, r1, ld}) => {
+      [ {r2: cpu.bc, r1: cpu.a, ld: cpu.ld_a_0xbc},
+        {r2: cpu.de, r1: cpu.a, ld: cpu.ld_a_0xde},
+        {r2: cpu.hl, r1: cpu.a, ld: cpu.ld_a_0xhl}].map( ({r2, r1, ld}) => {
 
         const value = cpu.mmu.readByteAt(r2.call(cpu));
         ld.call(cpu);
