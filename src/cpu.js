@@ -243,6 +243,7 @@ export default class CPU {
       0xe5: {fn: this.push_hl, paramBytes: 0},
       0xe6: {fn: this.and_n, paramBytes: 1},
       0xe7: {fn: this.rst_20, paramBytes: 0},
+      0xe9: {fn: this.jp_hl, paramBytes: 0},
       0xea: {fn: this.ld_0xnn_a, paramBytes: 2},
       0xee: {fn: this.xor_n, paramBytes: 1},
       0xef: {fn: this.rst_28, paramBytes: 0},
@@ -537,6 +538,13 @@ export default class CPU {
       throw new Error(`Program counter outside memory space at ${Utils.hex4(this._r.pc)}`);
     }
     this._r.pc = nextAddress;
+  }
+
+  /**
+   * Jumps to address contained in hl.
+   */
+  jp_hl(){
+    this._r.pc = this.hl();
   }
 
   /**
