@@ -79,12 +79,10 @@ describe('MMU', () => {
   });
 
   it('should read BIOS', () => {
-    assert.equal(mmu.readBIOSByteAt(0x0000), 0x31, 'first BIOS byte');
-    assert.equal(mmu.readBIOSByteAt(0x00ff), 0x50, 'last BIOS byte');
-
-    assert.throws( () => {
-      mmu.readBIOSByteAt(0x0100);
-    }, Error, 'Address 0x0100 is out of BIOS range.');
+    assert.equal(mmu.readByteAt(0x0000), 0x31, 'first BIOS byte');
+    assert.equal(mmu.readByteAt(0x00ff), 0x50, 'last BIOS byte');
+    assert.equal(mmu.readByteAt(0x0100), 0x00, 'first GAME byte');
+    assert.equal(mmu.readByteAt(0x0101), 0xc3, 'second GAME byte');
   });
 
   describe('ROM checks', () => {
