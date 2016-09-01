@@ -1147,6 +1147,36 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.N(), 0, 'N always reset');
       assert.equal(cpu.H(), 1, 'H always set');
     });
+
+    it('should reset bits', () => {
+      ['a', 'b', 'c', 'd', 'e', 'h', 'l'].map( (r) => {
+
+        cpu[`ld_${r}_n`].call(cpu, 0xff);
+
+        for(let b = 0; b < 8; b++) {
+          const func = `res_${b}_${r}`;
+          assert.ok(cpu[func], `${func} exists`);
+
+          cpu[func].call(cpu); // reset bit b
+        }
+
+        assert.equal(cpu[r].call(cpu), 0x00, `RES b,${r} 0..b..7 resets all bits`);
+
+      });
+    });
+
+    it('should reset bits at memory location hl', () => {
+
+      cpu.ld_hl_nn(0xc000);
+      cpu.mmu.writeByteAt(cpu.hl(), 0xff);
+
+      for(let b = 0; b < 8; b++) {
+        cpu.res_b_0xhl(b);
+      }
+
+      assert.equal(cpu._0xhl(), 0x00, 'RES b,(hl) with 0..b..7 resets all bits');
+    });
+
   });
 
   describe('Calls', () => {
