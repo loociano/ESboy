@@ -65,6 +65,14 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.pc(), 0x123);
     });
 
+    it('should jump to address contained in hl', () => {
+      cpu.ld_hl_nn(0xc000);
+
+      cpu.jp_hl();
+
+      assert.equal(cpu.pc(), 0xc000);
+    });
+
     it('should jump to signed offset', () => {
       let pc = cpu.pc(); // 0
       let offset = Utils.uint8ToInt8(0x05);
