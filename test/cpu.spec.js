@@ -922,17 +922,18 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.l(), 0xab, 'load 0xab into l');
     });
 
-    it('should copy registers into register a', () => {
-      [ {r2: cpu.a, r1: cpu.a, ld: cpu.ld_a_a},
-        {r2: cpu.b, r1: cpu.a, ld: cpu.ld_a_b},
-        {r2: cpu.c, r1: cpu.a, ld: cpu.ld_a_c},
-        {r2: cpu.d, r1: cpu.a, ld: cpu.ld_a_d},
-        {r2: cpu.e, r1: cpu.a, ld: cpu.ld_a_e},
-        {r2: cpu.h, r1: cpu.a, ld: cpu.ld_a_h},
-        {r2: cpu.l, r1: cpu.a, ld: cpu.ld_a_l} ].map( ({r2, r1, ld}) => {
-        const value = r2.call(cpu);
-        ld.call(cpu);
-        assert.equal(r1.call(cpu), value, `load ${r2.name} into ${r1.name}`);
+    it('should load registers into register other registers', () => {
+
+      ['a', 'b', 'c', 'd', 'e', 'h', 'l'].map( (r1) => {
+        ['a', 'b', 'c', 'd', 'e', 'h', 'l'].map( (r2) => {
+          const value = cpu[r2].call(cpu);
+          const func = `ld_${r1}_${r2}`;
+          assert.ok(cpu[func], `${func} does not exist`);
+
+          cpu[func].call(cpu);
+
+          assert.equal(cpu[r1].call(cpu), value, `load ${r2} into ${r1}`);
+        });
       });
     });
 
