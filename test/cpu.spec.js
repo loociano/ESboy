@@ -1300,7 +1300,6 @@ describe('CPU Unit tests', function() {
 
   describe('Returns', () => {
     it('should return from routine', () => {
-
       const addr = 0xabcd;
       const sp = cpu.sp();
       cpu.ld_hl_nn(addr);
@@ -1310,7 +1309,86 @@ describe('CPU Unit tests', function() {
 
       assert.equal(cpu.sp(), sp, 'sp to be original value');
       assert.equal(cpu.pc(), addr, `program to continue on ${addr}`)
+    });
 
+    it('should return if last operation was not zero', () => {
+      const addr = 0xabcd;
+      const sp = cpu.sp();
+      const pc = cpu.pc();
+      cpu.ld_hl_nn(addr);
+      cpu.push_hl();
+      cpu.setZ(1);
+
+      cpu.ret_nz();
+
+      assert.equal(cpu.pc(), pc, 'Does not jump');
+
+      cpu.setZ(0);
+
+      cpu.ret_nz();
+
+      assert.equal(cpu.pc(), addr, 'Jumps');
+      assert.equal(cpu.sp(), sp, 'sp to original value');
+    });
+
+    it('should return if last operation was zero', () => {
+      const addr = 0xabcd;
+      const sp = cpu.sp();
+      const pc = cpu.pc();
+      cpu.ld_hl_nn(addr);
+      cpu.push_hl();
+      cpu.setZ(0);
+
+      cpu.ret_z();
+
+      assert.equal(cpu.pc(), pc, 'Does not jump');
+
+      cpu.setZ(1);
+
+      cpu.ret_z();
+
+      assert.equal(cpu.pc(), addr, 'Jumps');
+      assert.equal(cpu.sp(), sp, 'sp to original value');
+    });
+
+    it('should return if last operation did not carry', () => {
+      const addr = 0xabcd;
+      const sp = cpu.sp();
+      const pc = cpu.pc();
+      cpu.ld_hl_nn(addr);
+      cpu.push_hl();
+      cpu.setC(1);
+
+      cpu.ret_nc();
+
+      assert.equal(cpu.pc(), pc, 'Does not jump');
+
+      cpu.setC(0);
+
+      cpu.ret_nc();
+
+      assert.equal(cpu.pc(), addr, 'Jumps');
+      assert.equal(cpu.sp(), sp, 'sp to original value');
+    });
+
+    it('should return if last operation carried', () => {
+      const addr = 0xabcd;
+      const sp = cpu.sp();
+      const pc = cpu.pc();
+      cpu.ld_hl_nn(addr);
+      cpu.push_hl();
+      cpu.setC(0);
+
+      cpu.ret_c();
+
+      assert.equal(cpu.pc(), pc, 'Does not jump');
+
+      cpu.setC(1);
+
+      cpu.ret_c();
+
+      assert.equal(cpu.pc(), addr, 'Jumps');
+      assert.equal(cpu.sp(), sp, 'sp to original value');
     });
 
   });
