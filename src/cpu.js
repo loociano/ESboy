@@ -514,13 +514,13 @@ export default class CPU {
           this._t++;
         }
         
-        if (this._r.pc === 0x0100){
+        if (this._r.pc === this.mmu.ADDR_GAME_START){
           this.mmu.inBIOS = false;
-          this.mmu.dumpMemoryToFile();
         }
       }
 
     } catch(e){
+      this.mmu.dumpMemoryToFile();
       Logger.error(e.stack);
     }
   }
