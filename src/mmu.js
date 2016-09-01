@@ -61,6 +61,7 @@ export default class MMU {
 
     this.memory = new Buffer(this.ADDR_MAX + 1);
     this.bios = this.getBIOS();
+    this.inBIOS = true;
 
     this._initMemory();
     this._loadROM(filename);
@@ -118,17 +119,16 @@ export default class MMU {
 
   /**
    * @param {number} addr
-   * @param {boolean} inBIOS
    * @return {number} byte at memory address
    */
-  readByteAt(addr, inBIOS = false) {
+  readByteAt(addr) {
 
     if (addr > this.ADDR_MAX || addr < 0){
       throw new Error(`Cannot read memory address ${Utils.hexStr(addr)}`);
     }
 
     if (addr <= this.ADDR_ROM_MAX){
-      if (inBIOS){
+      if (addr < this.ADDR_GAME_START && this.inBIOS){
         return this._biosByteAt(addr);
       }
       return this.romByteAt(addr);

@@ -367,8 +367,6 @@ export default class CPU {
    */
   start(pc_stop = -1){
 
-    let inBIOS = true;
-
     try {
       while(pc_stop === -1 || this._r.pc < pc_stop){
 
@@ -381,7 +379,7 @@ export default class CPU {
           }
         }
 
-        this.execute(inBIOS);
+        this.execute();
 
         if (this._t > 100){
           this.lcd.updateLY();
@@ -391,7 +389,7 @@ export default class CPU {
         }
         
         if (this._r.pc === 0x0100){
-          inBIOS = false;
+          this.mmu.inBIOS = false;
           this.mmu.dumpMemoryToFile();
         }
       }
@@ -411,18 +409,17 @@ export default class CPU {
 
   /**
    * Executes the next command and increases the pc.
-   * @param {boolean} inBIOS
    */
-  execute(inBIOS) {
+  execute() {
 
-    let opcode = this._nextOpcode(inBIOS);
+    let opcode = this._nextOpcode();
 
     if (opcode === this.EXTENDED_PREFIX){
-      opcode = (opcode << 8) + this._nextOpcode(inBIOS);
+      opcode = (opcode << 8) + this._nextOpcode();
     }
 
     const command = this._getCommand(opcode);
-    const param = this._getInstrParams(command.paramBytes, inBIOS);
+    const param = this._getInstrParams(command.paramBytes);
 
     Logger.state(this, command.fn, command.paramBytes, param);
 
@@ -436,16 +433,15 @@ export default class CPU {
 
   /**
    * @param numBytes
-   * @param inBIOS
    * @returns {*}
    * @private
    */
-  _getInstrParams(numBytes, inBIOS){
+  _getInstrParams(numBytes){
     let param;
     if(numBytes > 0){
-      param = this.mmu.readByteAt(this._r.pc++, inBIOS);
+      param = this.mmu.readByteAt(this._r.pc++);
       if (numBytes > 1){
-        param += this.mmu.readByteAt(this._r.pc++, inBIOS) << 8;
+        param += this.mmu.readByteAt(this._r.pc++) << 8;
       }
     }
     return param;
@@ -465,12 +461,11 @@ export default class CPU {
   }
 
   /**
-   * @param {boolean} inBIOS
    * @return {number} next opcode
    * @private
    */
-  _nextOpcode(inBIOS) {
-    return this.mmu.readByteAt(this._r.pc++, inBIOS);
+  _nextOpcode() {
+    return this.mmu.readByteAt(this._r.pc++);
   }
 
   /**
