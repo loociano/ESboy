@@ -210,11 +210,13 @@ export default class CPU {
       0xbe: {fn: this.cp_0xhl, paramBytes: 0},
       0xbf: {fn: this.cp_a, paramBytes: 0},
       0xc1: {fn: this.pop_bc, paramBytes: 0},
+      0xc2: {fn: this.jp_nz_nn, paramBytes: 2},
       0xc3: {fn: this.jp, paramBytes: 2},
       0xc5: {fn: this.push_bc, paramBytes: 0},
       0xc6: {fn: this.add_n, paramBytes: 1},
       0xc7: {fn: this.rst_00, paramBytes: 0},
       0xc9: {fn: this.ret, paramBytes: 0},
+      0xca: {fn: this.jp_z_nn, paramBytes: 2},
       0xcb10: {fn: this.rl_b, paramBytes: 0},
       0xcb11: {fn: this.rl_c, paramBytes: 0},
       0xcb12: {fn: this.rl_d, paramBytes: 0},
@@ -299,9 +301,11 @@ export default class CPU {
       0xcd: {fn: this.call, paramBytes: 2},
       0xcf: {fn: this.rst_08, paramBytes: 0},
       0xd1: {fn: this.pop_de, paramBytes: 0},
+      0xd2: {fn: this.jp_nc_nn, paramBytes: 2},
       0xd5: {fn: this.push_de, paramBytes: 0},
       0xd6: {fn: this.sub_n, paramBytes: 1},
       0xd7: {fn: this.rst_10, paramBytes: 0},
+      0xda: {fn: this.jp_c_nn, paramBytes: 2},
       0xdf: {fn: this.rst_18, paramBytes: 0},
       0xe0: {fn: this.ldh_n_a, paramBytes: 1},
       0xe1: {fn: this.pop_hl, paramBytes: 0},
@@ -1321,6 +1325,46 @@ export default class CPU {
     const value = this[r1+r2]() - 1;
     this._r[r1] = (value & 0xff00) >> 8;
     this._r[r2] = value & 0x00ff;
+  }
+
+  /**
+   * Jumps to address nn if last operation was not zero.
+   * @param nn
+   */
+  jp_nz_nn(nn){
+    if (this.Z() === 0){
+      this._r.pc = nn;
+    }
+  }
+
+  /**
+   * Jumps to address nn if last operation was zero.
+   * @param nn
+   */
+  jp_z_nn(nn){
+    if (this.Z() === 1){
+      this._r.pc = nn;
+    }
+  }
+
+  /**
+   * Jumps to address nn if last operation did not carry a bit.
+   * @param nn
+   */
+  jp_nc_nn(nn){
+    if (this.C() === 0){
+      this._r.pc = nn;
+    }
+  }
+
+  /**
+   * Jumps to address nn if last operation carried a bit.
+   * @param nn
+   */
+  jp_c_nn(nn){
+    if (this.C() === 1){
+      this._r.pc = nn;
+    }
   }
 
   /**
