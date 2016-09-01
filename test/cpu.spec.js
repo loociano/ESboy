@@ -753,32 +753,68 @@ describe('CPU Unit tests', function() {
 
     it('should add 16 bit register to hl', () => {
 
-      cpu.ld_hl_nn(0xc000);
-      cpu.ld_bc_nn(0x0001);
-      
-      cpu.add_hl_bc();
+      [ {ld: cpu.ld_bc_nn, add: cpu.add_hl_bc},
+        {ld: cpu.ld_de_nn, add: cpu.add_hl_de},
+        {ld: cpu.ld_sp_nn, add: cpu.add_hl_sp} ].map( ({ld, add}) => {
 
-      assert.equal(cpu.hl(), 0xc001, 'ADD BE to HL');
+        cpu.ld_hl_nn(0xc000);
+        ld.call(cpu, 0x0001);
+        
+        add.call(cpu);
+
+        assert.equal(cpu.hl(), 0xc001, `${add.name} to HL results 0xc001`);
+        assert.equal(cpu.N(), 0, 'N reset');
+        assert.equal(cpu.H(), 0, 'No carry bit 11');
+        assert.equal(cpu.C(), 0, 'No carry bit 15');
+
+        // Test half carry, bit 11
+        ld.call(cpu, 0x0fff);
+
+        add.call(cpu);
+
+        assert.equal(cpu.hl(), 0xd000, `${add.name} to HL results 0xd000`);
+        assert.equal(cpu.N(), 0, 'N reset');
+        assert.equal(cpu.H(), 1, 'Carry from bit 11');
+        assert.equal(cpu.C(), 0, 'No carry bit 15');
+
+        // Test carry, bit 15
+        ld.call(cpu, 0x3001);
+
+        add.call(cpu);
+
+        assert.equal(cpu.hl(), 0x0001, `${add.name} to HL results 0x0001`);
+        assert.equal(cpu.N(), 0, 'N reset');
+        assert.equal(cpu.H(), 0, 'No carry from bit 11');
+        assert.equal(cpu.C(), 1, 'Carry bit 15');
+      });
+    });
+
+    it('should add register hl to itself', () => {
+      cpu.ld_hl_nn(0x0001);
+
+      cpu.add_hl_hl();
+
+      assert.equal(cpu.hl(), 0x0002, 'ADD HL to itself');
       assert.equal(cpu.N(), 0, 'N reset');
       assert.equal(cpu.H(), 0, 'No carry bit 11');
       assert.equal(cpu.C(), 0, 'No carry bit 15');
 
       // Test half carry, bit 11
-      cpu.ld_bc_nn(0x0fff);
+      cpu.ld_hl_nn(0x0fff);
 
-      cpu.add_hl_bc();
+      cpu.add_hl_hl();
 
-      assert.equal(cpu.hl(), 0xd000, 'ADD BE to HL');
+      assert.equal(cpu.hl(), 0x1ffe, 'ADD HL to itself with half carry');
       assert.equal(cpu.N(), 0, 'N reset');
       assert.equal(cpu.H(), 1, 'Carry from bit 11');
       assert.equal(cpu.C(), 0, 'No carry bit 15');
 
       // Test carry, bit 15
-      cpu.ld_bc_nn(0x3001);
+      cpu.ld_hl_nn(0xf000);
 
-      cpu.add_hl_bc();
+      cpu.add_hl_hl();
 
-      assert.equal(cpu.hl(), 0x0001, 'ADD BE to HL');
+      assert.equal(cpu.hl(), 0xe000, 'ADD HL to itself with carry');
       assert.equal(cpu.N(), 0, 'N reset');
       assert.equal(cpu.H(), 0, 'No carry from bit 11');
       assert.equal(cpu.C(), 1, 'Carry bit 15');
