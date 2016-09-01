@@ -751,6 +751,39 @@ describe('CPU Unit tests', function() {
 
   describe('16 bits arithmetic', () => {
 
+    it('should add 16 bit register to hl', () => {
+
+      cpu.ld_hl_nn(0xc000);
+      cpu.ld_bc_nn(0x0001);
+      
+      cpu.add_hl_bc();
+
+      assert.equal(cpu.hl(), 0xc001, 'ADD BE to HL');
+      assert.equal(cpu.N(), 0, 'N reset');
+      assert.equal(cpu.H(), 0, 'No carry bit 11');
+      assert.equal(cpu.C(), 0, 'No carry bit 15');
+
+      // Test half carry, bit 11
+      cpu.ld_bc_nn(0x0fff);
+
+      cpu.add_hl_bc();
+
+      assert.equal(cpu.hl(), 0xd000, 'ADD BE to HL');
+      assert.equal(cpu.N(), 0, 'N reset');
+      assert.equal(cpu.H(), 1, 'Carry from bit 11');
+      assert.equal(cpu.C(), 0, 'No carry bit 15');
+
+      // Test carry, bit 15
+      cpu.ld_bc_nn(0x3001);
+
+      cpu.add_hl_bc();
+
+      assert.equal(cpu.hl(), 0x0001, 'ADD BE to HL');
+      assert.equal(cpu.N(), 0, 'N reset');
+      assert.equal(cpu.H(), 0, 'No carry from bit 11');
+      assert.equal(cpu.C(), 1, 'Carry bit 15');
+    });
+
     it('should decrement 16 bits registers', () => {
       assertDecrementRegister(cpu, cpu.bc, cpu.dec_bc);
       assertDecrementRegister(cpu, cpu.de, cpu.dec_de);
