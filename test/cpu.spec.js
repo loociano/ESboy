@@ -903,6 +903,9 @@ describe('CPU Unit tests', function() {
 
   describe('8 bits loads', () => {
     it('should load 8 bits into registers', () => {
+      cpu.ld_a_n(0xab);
+      assert.equal(cpu.a(), 0xab, 'load 0xab into a');
+
       cpu.ld_b_n(0xab);
       assert.equal(cpu.b(), 0xab, 'load 0xab into b');
 
@@ -951,11 +954,6 @@ describe('CPU Unit tests', function() {
       const value = cpu.mmu.readByteAt(0xabcd);
       cpu.ld_a_nn(0xabcd);
       assert.equal(cpu.a(), value, 'load value at memory 0xabcd into a');
-    });
-
-    it('should load a byte into a', () => {
-      cpu.ld_a_n(0xab);
-      assert.equal(cpu.a(), 0xab, 'load value 0xab into a');
     });
 
     it('should put memory address hl into a and decrement hl', () => {
