@@ -137,14 +137,6 @@ export default class MMU {
   }
 
   /**
-   * @param addr
-   * @returns {number}
-   */
-  readBIOSByteAt(addr){
-    return this.readByteAt(addr, true);
-  }
-
-  /**
    * Reads buffer from memory
    * @param {number} addr_start, 16 bits
    * @param {number} addr_end, 16 bits (exclusive)
