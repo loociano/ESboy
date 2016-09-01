@@ -39,6 +39,8 @@ export default class CPU {
       l: 0x4d
     };
 
+    this._attach_reset_bit_functions();
+
     this.commands = {
       0x00: {fn: this.nop, paramBytes: 0},
       0x01: {fn: this.ld_bc_nn, paramBytes: 2},
@@ -230,6 +232,70 @@ export default class CPU {
       0xcb36: {fn: this.swap_0xhl, paramBytes: 0},
       0xcb37: {fn: this.swap_a, paramBytes: 0},
       0xcb7c: {fn: this.bit_7_h, paramBytes: 0},
+      0xcb80: {fn: this.res_0_b, paramBytes: 0},
+      0xcb81: {fn: this.res_0_c, paramBytes: 0},
+      0xcb82: {fn: this.res_0_d, paramBytes: 0},
+      0xcb83: {fn: this.res_0_e, paramBytes: 0},
+      0xcb84: {fn: this.res_0_h, paramBytes: 0},
+      0xcb85: {fn: this.res_0_l, paramBytes: 0},
+      0xcb86: {fn: this.res_0_0xhl, paramBytes: 0},
+      0xcb87: {fn: this.res_0_a, paramBytes: 0},
+      0xcb88: {fn: this.res_1_b, paramBytes: 0},
+      0xcb89: {fn: this.res_1_c, paramBytes: 0},
+      0xcb8a: {fn: this.res_1_d, paramBytes: 0},
+      0xcb8b: {fn: this.res_1_e, paramBytes: 0},
+      0xcb8c: {fn: this.res_1_h, paramBytes: 0},
+      0xcb8d: {fn: this.res_1_l, paramBytes: 0},
+      0xcb8e: {fn: this.res_1_0xhl, paramBytes: 0},
+      0xcb8f: {fn: this.res_1_a, paramBytes: 0},
+      0xcb90: {fn: this.res_2_b, paramBytes: 0},
+      0xcb91: {fn: this.res_2_c, paramBytes: 0},
+      0xcb92: {fn: this.res_2_d, paramBytes: 0},
+      0xcb93: {fn: this.res_2_e, paramBytes: 0},
+      0xcb94: {fn: this.res_2_h, paramBytes: 0},
+      0xcb95: {fn: this.res_2_l, paramBytes: 0},
+      0xcb96: {fn: this.res_2_0xhl, paramBytes: 0},
+      0xcb97: {fn: this.res_2_a, paramBytes: 0},
+      0xcb98: {fn: this.res_3_b, paramBytes: 0},
+      0xcb99: {fn: this.res_3_c, paramBytes: 0},
+      0xcb9a: {fn: this.res_3_d, paramBytes: 0},
+      0xcb9b: {fn: this.res_3_e, paramBytes: 0},
+      0xcb9c: {fn: this.res_3_h, paramBytes: 0},
+      0xcb9d: {fn: this.res_3_l, paramBytes: 0},
+      0xcb9e: {fn: this.res_3_0xhl, paramBytes: 0},
+      0xcb9f: {fn: this.res_3_a, paramBytes: 0},
+      0xcba0: {fn: this.res_4_b, paramBytes: 0},
+      0xcba1: {fn: this.res_4_c, paramBytes: 0},
+      0xcba2: {fn: this.res_4_d, paramBytes: 0},
+      0xcba3: {fn: this.res_4_e, paramBytes: 0},
+      0xcba4: {fn: this.res_4_h, paramBytes: 0},
+      0xcba5: {fn: this.res_4_l, paramBytes: 0},
+      0xcba6: {fn: this.res_4_0xhl, paramBytes: 0},
+      0xcba7: {fn: this.res_4_a, paramBytes: 0},
+      0xcba8: {fn: this.res_5_b, paramBytes: 0},
+      0xcba9: {fn: this.res_5_c, paramBytes: 0},
+      0xcbaa: {fn: this.res_5_d, paramBytes: 0},
+      0xcbab: {fn: this.res_5_e, paramBytes: 0},
+      0xcbac: {fn: this.res_5_h, paramBytes: 0},
+      0xcbad: {fn: this.res_5_l, paramBytes: 0},
+      0xcbae: {fn: this.res_5_0xhl, paramBytes: 0},
+      0xcbaf: {fn: this.res_5_a, paramBytes: 0},
+      0xcbb0: {fn: this.res_6_b, paramBytes: 0},
+      0xcbb1: {fn: this.res_6_c, paramBytes: 0},
+      0xcbb2: {fn: this.res_6_d, paramBytes: 0},
+      0xcbb3: {fn: this.res_6_e, paramBytes: 0},
+      0xcbb4: {fn: this.res_6_h, paramBytes: 0},
+      0xcbb5: {fn: this.res_6_l, paramBytes: 0},
+      0xcbb6: {fn: this.res_6_0xhl, paramBytes: 0},
+      0xcbb7: {fn: this.res_6_a, paramBytes: 0},
+      0xcbb8: {fn: this.res_7_b, paramBytes: 0},
+      0xcbb9: {fn: this.res_7_c, paramBytes: 0},
+      0xcbba: {fn: this.res_7_d, paramBytes: 0},
+      0xcbbb: {fn: this.res_7_e, paramBytes: 0},
+      0xcbbc: {fn: this.res_7_h, paramBytes: 0},
+      0xcbbd: {fn: this.res_7_l, paramBytes: 0},
+      0xcbbe: {fn: this.res_7_0xhl, paramBytes: 0},
+      0xcbbf: {fn: this.res_7_a, paramBytes: 0},
       0xcd: {fn: this.call, paramBytes: 2},
       0xcf: {fn: this.rst_08, paramBytes: 0},
       0xd1: {fn: this.pop_de, paramBytes: 0},
@@ -1421,6 +1487,45 @@ export default class CPU {
       this.setZ(1);
     }
     this.setN(0); this.setH(1);
+  }
+
+  /**
+   * Attaches reset bit functions to the cpu programmatically.
+   * @private
+   */
+  _attach_reset_bit_functions() {
+    ['a', 'b', 'c', 'd', 'e', 'h', 'l', '0xhl'].map((r) => {
+      for (let b = 0; b < 8; b++) {
+        if (r === '0xhl'){
+          this[`res_${b}_0xhl`] = function() {
+            this.res_b_0xhl(b);
+          };
+        } else {
+          this[`res_${b}_${r}`] = function() {
+            this._res_b_r(b, r);
+          };
+        }
+      }
+    });
+  }
+
+  /**
+   * Resets bit b of register r.
+   * @param b
+   * @param r
+   * @private
+   */
+  _res_b_r(bit, r){
+    this._r[r] &= (0xff & (0 << bit));
+  }
+
+  /**
+   * Resets bit b of value at memory location hl.
+   * @param bit
+   */
+  res_b_0xhl(bit){
+    const value = this._0xhl() & (0xff & (0 << bit));
+    this.mmu.writeByteAt(this.hl(), value);
   }
 
   /**
