@@ -151,11 +151,11 @@ export default class MMU {
 
   /**
    * Returns the buffer given a tile number
-   * Tiles are numbered from 0x00 to 0x7f
+   * Tiles are numbered from 0x00 to 0xff
    * @param tile_number
    */
   readTile(tile_number){
-    if (tile_number < 0 || tile_number > 0x7f){
+    if (tile_number < 0 || tile_number > 0xff){
       throw new Error(`Cannot read tile ${tile_number}`);
     }
     const start_addr = 0x8000 + (tile_number << 4);
