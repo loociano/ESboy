@@ -47,6 +47,7 @@ export default class CPU {
       0x04: {fn: this.inc_c, paramBytes: 0},
       0x05: {fn: this.dec_b, paramBytes: 0},
       0x06: {fn: this.ld_b_n, paramBytes: 1},
+      0x09: {fn: this.add_hl_bc, paramBytes: 0},
       0x0a: {fn: this.ld_a_bc, paramBytes: 0},
       0x0b: {fn: this.dec_bc, paramBytes: 0},
       0x0c: {fn: this.inc_c, paramBytes: 0},
@@ -60,6 +61,7 @@ export default class CPU {
       0x16: {fn: this.ld_d_n, paramBytes: 1},
       0x17: {fn: this.rla, paramBytes: 0},
       0x18: {fn: this.jp_n, paramBytes: 1},
+      0x19: {fn: this.add_hl_de, paramBytes: 0},
       0x1a: {fn: this.ld_a_de, paramBytes: 0},
       0x1b: {fn: this.dec_de, paramBytes: 0},
       0x1c: {fn: this.inc_e, paramBytes: 0},
@@ -72,6 +74,7 @@ export default class CPU {
       0x24: {fn: this.inc_h, paramBytes: 0},
       0x25: {fn: this.dec_h, paramBytes: 0},
       0x28: {fn: this.jr_z_n, paramBytes: 1},
+      0x29: {fn: this.add_hl_hl, paramBytes: 0},
       0x2a: {fn: this.ldi_a_0xhl, paramBytes: 0},
       0x2b: {fn: this.dec_hl, paramBytes: 0},
       0x2c: {fn: this.inc_l, paramBytes: 0},
@@ -87,6 +90,7 @@ export default class CPU {
       0x35: {fn: this.dec_0xhl, paramBytes: 0},
       0x36: {fn: this.ld_0xhl_n, paramBytes: 1},
       0x38: {fn: this.jr_c_n, paramBytes: 0},
+      0x39: {fn: this.add_hl_sp, paramBytes: 0},
       0x3a: {fn: this.ldd_a_hl, paramBytes: 0},
       0x3b: {fn: this.dec_sp, paramBytes: 0},
       0x3d: {fn: this.dec_a, paramBytes: 0},
@@ -1973,10 +1977,43 @@ export default class CPU {
     }
   }
 
+  /**
+   * Adds register bc to hl
+   */
   add_hl_bc(){
-    const bc = this.bc();
+    this._add_hl_nn(this.bc());
+  }
+
+  /**
+   * Adds register de to hl
+   */
+  add_hl_de(){
+    this._add_hl_nn(this.de());
+  }
+
+  /**
+   * Adds register hl to hl
+   */
+  add_hl_hl(){
+    this._add_hl_nn(this.hl());
+  }
+
+  /**
+   * Adds stack pointer to hl
+   */
+  add_hl_sp(){
+    this._add_hl_nn(this.sp());
+  }
+
+  /**
+   * Adds 16 bits to hl
+   * @param nn
+   * @private
+   */
+  _add_hl_nn(nn){
+
     const hl = this.hl();
-    let value = hl + bc;
+    let value = hl + nn;
 
     if ((value & 0xf000) > (hl & 0xf000)){
       this.setH(1);
