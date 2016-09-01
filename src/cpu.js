@@ -96,11 +96,47 @@ export default class CPU {
       0x3d: {fn: this.dec_a, paramBytes: 0},
       0x3c: {fn: this.inc_a, paramBytes: 0},
       0x3e: {fn: this.ld_a_n, paramBytes: 1},
+      0x40: {fn: this.ld_b_b, paramBytes: 0},
+      0x41: {fn: this.ld_b_c, paramBytes: 0},
+      0x42: {fn: this.ld_b_d, paramBytes: 0},
+      0x43: {fn: this.ld_b_e, paramBytes: 0},
+      0x44: {fn: this.ld_b_h, paramBytes: 0},
+      0x45: {fn: this.ld_b_l, paramBytes: 0},
       0x47: {fn: this.ld_b_a, paramBytes: 0},
+      0x48: {fn: this.ld_c_b, paramBytes: 0},
+      0x49: {fn: this.ld_c_c, paramBytes: 0},
+      0x4a: {fn: this.ld_c_d, paramBytes: 0},
+      0x4b: {fn: this.ld_c_e, paramBytes: 0},
+      0x4c: {fn: this.ld_c_h, paramBytes: 0},
+      0x4d: {fn: this.ld_c_l, paramBytes: 0},
       0x4f: {fn: this.ld_c_a, paramBytes: 0},
+      0x50: {fn: this.ld_d_b, paramBytes: 0},
+      0x51: {fn: this.ld_d_c, paramBytes: 0},
+      0x52: {fn: this.ld_d_d, paramBytes: 0},
+      0x53: {fn: this.ld_d_e, paramBytes: 0},
+      0x54: {fn: this.ld_d_h, paramBytes: 0},
+      0x55: {fn: this.ld_d_l, paramBytes: 0},
       0x57: {fn: this.ld_d_a, paramBytes: 0},
+      0x58: {fn: this.ld_e_b, paramBytes: 0},
+      0x59: {fn: this.ld_e_c, paramBytes: 0},
+      0x5a: {fn: this.ld_e_d, paramBytes: 0},
+      0x5b: {fn: this.ld_e_e, paramBytes: 0},
+      0x5c: {fn: this.ld_e_h, paramBytes: 0},
+      0x5d: {fn: this.ld_e_l, paramBytes: 0},
       0x5f: {fn: this.ld_e_a, paramBytes: 0},
+      0x60: {fn: this.ld_h_b, paramBytes: 0},
+      0x61: {fn: this.ld_h_c, paramBytes: 0},
+      0x62: {fn: this.ld_h_d, paramBytes: 0},
+      0x63: {fn: this.ld_h_e, paramBytes: 0},
+      0x64: {fn: this.ld_h_h, paramBytes: 0},
+      0x65: {fn: this.ld_h_l, paramBytes: 0},
       0x67: {fn: this.ld_h_a, paramBytes: 0},
+      0x68: {fn: this.ld_l_b, paramBytes: 0},
+      0x69: {fn: this.ld_l_c, paramBytes: 0},
+      0x6a: {fn: this.ld_l_d, paramBytes: 0},
+      0x6b: {fn: this.ld_l_e, paramBytes: 0},
+      0x6c: {fn: this.ld_l_h, paramBytes: 0},
+      0x6d: {fn: this.ld_l_l, paramBytes: 0},
       0x6f: {fn: this.ld_l_a, paramBytes: 0},
       0x70: {fn: this.ld_0xhl_b, paramBytes: 0},
       0x71: {fn: this.ld_0xhl_c, paramBytes: 0},
@@ -1515,6 +1551,268 @@ export default class CPU {
    */
   _ld_r_a(r){
     this._r[r] = this._r.a;
+  }
+
+  /**
+   * Loads register r2 into r1
+   * @param r1
+   * @param r2
+   * @private
+   */
+  _ld_r_r(r1, r2){
+    this._r[r1] = this._r[r2];
+  }
+
+  /**
+   * Loads b into b
+   */
+  ld_b_b(){
+    // Nothing
+  }
+
+  /**
+   * Loads c into b
+   */
+  ld_b_c(){
+    this._ld_r_r('b', 'c');
+  }
+
+  /**
+   * Loads d into b
+   */
+  ld_b_d(){
+    this._ld_r_r('b', 'd');
+  }
+
+  /**
+   * Loads e into b
+   */
+  ld_b_e(){
+    this._ld_r_r('b', 'e');
+  }
+
+  /**
+   * Loads h into b
+   */
+  ld_b_h(){
+    this._ld_r_r('b', 'h');
+  }
+
+  /**
+   * Loads l into b
+   */
+  ld_b_l(){
+    this._ld_r_r('b', 'l');
+  }
+
+  /**
+   * Loads b into c
+   */
+  ld_c_b(){
+    this._ld_r_r('c', 'b');
+  }
+
+  /**
+   * Loads c into c
+   */
+  ld_c_c(){
+    // Nothing
+  }
+
+  /**
+   * Loads d into c
+   */
+  ld_c_d(){
+    this._ld_r_r('c', 'd');
+  }
+
+  /**
+   * Loads e into c
+   */
+  ld_c_e(){
+    this._ld_r_r('c', 'e');
+  }
+
+  /**
+   * Loads h into c
+   */
+  ld_c_h(){
+    this._ld_r_r('c', 'h');
+  }
+
+  /**
+   * Loads l into c
+   */
+  ld_c_l(){
+    this._ld_r_r('c', 'l');
+  }
+
+  /**
+   * Loads b into d
+   */
+  ld_d_b(){
+    this._ld_r_r('d', 'b');
+  }
+
+  /**
+   * Loads c into d
+   */
+  ld_d_c(){
+    this._ld_r_r('d', 'c');
+  }
+
+  /**
+   * Loads d into d
+   */
+  ld_d_d(){
+    // Nothing
+  }
+
+  /**
+   * Loads e into d
+   */
+  ld_d_e(){
+    this._ld_r_r('d', 'e');
+  }
+
+  /**
+   * Loads h into d
+   */
+  ld_d_h(){
+    this._ld_r_r('d', 'h');
+  }
+
+  /**
+   * Loads l into d
+   */
+  ld_d_l(){
+    this._ld_r_r('d', 'l');
+  }
+
+  /**
+   * Loads b into e
+   */
+  ld_e_b(){
+    this._ld_r_r('e', 'b');
+  }
+
+  /**
+   * Loads c into e
+   */
+  ld_e_c(){
+    this._ld_r_r('e', 'c');
+  }
+
+  /**
+   * Loads d into e
+   */
+  ld_e_d(){
+    this._ld_r_r('e', 'd');
+  }
+
+  /**
+   * Loads e into e
+   */
+  ld_e_e(){
+    // Nothing
+  }
+
+  /**
+   * Loads h into e
+   */
+  ld_e_h(){
+    this._ld_r_r('e', 'h');
+  }
+
+  /**
+   * Loads l into e
+   */
+  ld_e_l(){
+    this._ld_r_r('e', 'l');
+  }
+
+  /**
+   * Loads b into h
+   */
+  ld_h_b(){
+    this._ld_r_r('h', 'b');
+  }
+
+  /**
+   * Loads c into h
+   */
+  ld_h_c(){
+    this._ld_r_r('h', 'c');
+  }
+
+  /**
+   * Loads d into h
+   */
+  ld_h_d(){
+    this._ld_r_r('h', 'd');
+  }
+
+  /**
+   * Loads e into h
+   */
+  ld_h_e(){
+    this._ld_r_r('h', 'e');
+  }
+
+  /**
+   * Loads h into h
+   */
+  ld_h_h(){
+    this._ld_r_r('h', 'h');
+  }
+
+  /**
+   * Loads l into h
+   */
+  ld_h_l(){
+    this._ld_r_r('h', 'l');
+  }
+
+  /**
+   * Loads b into l
+   */
+  ld_l_b(){
+    this._ld_r_r('l', 'b');
+  }
+
+  /**
+   * Loads c into l
+   */
+  ld_l_c(){
+    this._ld_r_r('l', 'c');
+  }
+
+  /**
+   * Loads d into l
+   */
+  ld_l_d(){
+    this._ld_r_r('l', 'd');
+  }
+
+  /**
+   * Loads e into l
+   */
+  ld_l_e(){
+    this._ld_r_r('l', 'e');
+  }
+
+  /**
+   * Loads h into l
+   */
+  ld_l_h(){
+    this._ld_r_r('l', 'h');
+  }
+
+  /**
+   * Loads l into l
+   */
+  ld_l_l(){
+    // Nothing
   }
 
   /**
