@@ -1,6 +1,6 @@
 import CPU from './cpu';
 import config from './config';
-import {app, remote} from 'electron';
+import {app, remote, ipcRenderer} from 'electron';
 
 let cpu;
 
