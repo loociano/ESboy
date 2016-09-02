@@ -1,7 +1,10 @@
 import {ipcRenderer} from 'electron';
+import CPU from './cpu';
 
-// In renderer process (web page).
-ipcRenderer.on('asynchronous-reply', (event, arg) => {
-  alert(arg); // prints "pong"
+let cpu;
+
+ipcRenderer.on('start-cpu', (event, {filename, imageData}) => {
+  cpu = new CPU(filename, ipcRenderer, imageData).start(0x100);
 });
-ipcRenderer.send('asynchronous-message', 'ping');
+
+ipcRenderer.send('bg-ready');

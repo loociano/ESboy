@@ -28,6 +28,12 @@ const ctx = canvas.getContext('2d');
 
 function startGame(fileNames){
   if(fileNames !== undefined){
-    cpu = new CPU(fileNames[0], ctx).start();
+    ipcRenderer.send('load-game', fileNames[0]);
   }
 }
+
+ipcRenderer.on('update-canvas', (event, imageData) => {
+  ctx.putImageData(imageData, 0, 0);
+});
+
+ipcRenderer.send('ui-ready', ctx.createImageData(160, 144));

@@ -5,8 +5,9 @@ let bgWin;
 
 function createWindow() {
 
-  bgWin = new BrowserWindow({show: false});
+  bgWin = new BrowserWindow({show: true});
   bgWin.loadURL(`file://${__dirname}/../src/bg.html`);
+  bgWin.webContents.openDevTools();
 
   win = new BrowserWindow({
     width: 512,
@@ -42,7 +43,23 @@ app.on('activate', () => {
   }
 });
 
-ipcMain.on('asynchronous-message', (event, arg) => {
-  console.log(arg)  // prints "ping"
-  event.sender.send('asynchronous-reply', 'pong')
+let bg;
+let ui;
+let imageData;
+
+ipcMain.on('bg-ready', (event) => {
+  bg = event;
+});
+
+ipcMain.on('ui-ready', (event, data) => {
+  ui = event;
+  imageData = data;
+});
+
+ipcMain.on('load-game', (event, filename) => {
+  bg.sender.send('start-cpu', {filename, imageData});
+});
+
+ipcMain.on('paint-tile', (event, imageData) => {
+  ui.sender.send('update-canvas', imageData);
 });

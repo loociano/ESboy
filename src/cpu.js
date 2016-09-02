@@ -9,18 +9,22 @@ export default class CPU {
    * @param {string} filename
    * @param {Object} ctx
    */
-  constructor(filename, ctx) {
+  constructor(filename, ipc, imageData) {
 
     if (filename == null) {
       throw new Error('Missing ROM filename');
     }
 
-    if (ctx == null){
-      throw new Error('Missing canvas ctx');
+    if (ipc == null){
+      throw new Error('Missing ipc');
+    }
+
+    if (imageData == null){
+      throw new Error('Missing imageData');
     }
 
     this.mmu = new MMU(filename);
-    this.lcd = new LCD(this.mmu, ctx, 160, 144);
+    this.lcd = new LCD(this.mmu, ipc, imageData, 160, 144);
     this._t = 0; // measure CPU cycles
     this._refresh = 0;
 
