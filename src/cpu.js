@@ -508,6 +508,13 @@ export default class CPU {
   frame(pc_stop){
 
     do {
+
+      if (pc_stop !== -1 && this._r.pc >= pc_stop){
+        clearInterval(this._interval);
+        this._interval = null;
+        return;
+      }
+
       this.execute();
 
       if (this._t > 1000){
@@ -519,10 +526,6 @@ export default class CPU {
 
       if (this._r.pc === this.mmu.ADDR_GAME_START){
         this.mmu.inBIOS = false;
-      }
-
-      if (pc_stop !== -1 && this._r.pc >= pc_stop){
-        clearInterval(this._interval);
       }
 
     } while (!this.isVBlank());

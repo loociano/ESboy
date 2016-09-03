@@ -1,16 +1,15 @@
 import CPU from '../src/cpu';
+import MMU from '../src/mmu';
 import assert from 'assert';
-import config from '../src/config';
 import {describe, beforeEach, it} from 'mocha';
-import Utils from '../src/utils';
-import ContextMock from './mock/contextMock';
+import ipcMock from './mock/ipcMock';
 
 let cpu;
 
 describe('Start BIOS', () => {
 
   before(() => {
-    cpu = new CPU('./roms/blargg_cpu_instrs.gb', new ContextMock());
+    cpu = new CPU(new MMU('./roms/blargg_cpu_instrs.gb'), new ipcMock());
   });
 
   it('should start with pc, sp and registers at right values', () => {

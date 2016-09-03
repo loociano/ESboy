@@ -10,7 +10,6 @@ describe('LCD', () => {
   let lcd;
   const WIDTH = 160;
   const HEIGHT = 144;
-  const VBLANK = 10;
 
   beforeEach(function() {
     lcd = new LCD(new MMUMock(), new ContextMock(), WIDTH, HEIGHT);
@@ -109,29 +108,6 @@ describe('LCD', () => {
     lcd.assertBlackTile(0, 0);
     lcd.assertBlackTile(10, 9);
     lcd.assertBlackTile(19, 17);
-  });
-
-  it('should generate a vblank interruption', () => {
-
-    let count = 0;
-    for(let i = 0; i < HEIGHT + VBLANK; i++){
-      
-      if (lcd.isVBlank()) {
-        count++;
-        assert.equal(lcd.isControlOp(), true);
-        //assert.equal(lcd.getWindowTileMapSelect(), 0);
-        //assert.isTrue(lcd.isWindowDisplay());
-        assert.equal(lcd.getTileDataSelect(), 1);
-        //assert.equal(lcd.getTileMapSelect(), 0);
-        //assert.equal(lcd.getOBJSize(), 0);
-        //assert.equal(lcd.isOBJDisplay(), 0);
-        //assert.isFalse(lcd.isBGandWindowDisplay());*/
-      }
-      lcd.incrementLy();
-    }
-
-    assert.equal(count, 1, `Vertical blank occurs 1 time`);
-
   });
 
 });
