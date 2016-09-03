@@ -9,24 +9,21 @@ export default class CPU {
    * @param {string} filename
    * @param {Object} ctx
    */
-  constructor(filename, ipc, imageData) {
+  constructor(mmu, ipc) {
 
-    if (filename == null) {
-      throw new Error('Missing ROM filename');
+    if (mmu == null) {
+      throw new Error('Missing mmu');
     }
 
     if (ipc == null){
       throw new Error('Missing ipc');
     }
 
-    if (imageData == null){
-      throw new Error('Missing imageData');
-    }
+    this.mmu = mmu;
+    this.ipc = ipc;
 
-    this.mmu = new MMU(filename);
-    this.lcd = new LCD(this.mmu, ipc, imageData, 160, 144);
     this._t = 0; // measure CPU cycles
-    this._refresh = 0;
+    this.isPainting = false;
 
     this.EXTENDED_PREFIX = 0xcb;
 
@@ -498,35 +495,69 @@ export default class CPU {
   start(pc_stop = -1){
 
     try {
-      while(pc_stop === -1 || this._r.pc < pc_stop){
-
-        if (this.lcd.isVBlank()){
-          if (this._refresh > 100){
-            this.lcd.drawTiles();
-            this._refresh = 0;
-          } else {
-            this._refresh++;
-          }
-        }
-
-        this.execute();
-
-        if (this._t > 100){
-          this.lcd.updateLY();
-          this._t = 0;
-        } else {
-          this._t++;
-        }
-        
-        if (this._r.pc === this.mmu.ADDR_GAME_START){
-          this.mmu.inBIOS = false;
-        }
-      }
-
+      this._interval = setInterval( () => this.frame(pc_stop), 1);
     } catch(e){
       this.mmu.dumpMemoryToFile();
       Logger.error(e.stack);
     }
+  }
+
+  /**
+   * Runs cpu during a frame
+   */
+  frame(pc_stop){
+
+    do {
+      this.execute();
+
+      if (this._t > 1000){
+        this.incrementLy();
+        this._t = 0;
+      } else {
+        this._t++;
+      }
+
+      if (this._r.pc === this.mmu.ADDR_GAME_START){
+        this.mmu.inBIOS = false;
+      }
+
+      if (pc_stop !== -1 && this._r.pc >= pc_stop){
+        clearInterval(this._interval);
+      }
+
+    } while (!this.isVBlank());
+
+    this.paintFrame();
+  }
+
+  /**
+   * Request a frame paint
+   */
+  paintFrame(){
+    if (!this.isPainting) {
+      this.isPainting = true;
+      this.ipc.send('paint-frame');
+    }
+  }
+
+  /**
+   * @returns {boolean} true if vblank
+   */
+  isVBlank(){
+    return this.mmu.ly() === 144;
+  }
+
+  /**
+   * Increments LY by 1.
+   */
+  incrementLy(){
+    let ly = this.mmu.ly();
+    if (ly >= 153){
+      ly = 0;
+    } else {
+      ly++;
+    }
+    this.mmu.setLy(ly);
   }
 
   /**

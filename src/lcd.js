@@ -3,14 +3,14 @@ import Logger from './logger';
 
 export default class LCD {
 
-  constructor(mmu, ipc, imageData, width, height){
+  constructor(mmu, ctx, width, height){
     
     this.mmu = mmu;
-    this.ipc = ipc;
+    this.ctx = ctx;
     this.width = width;
     this.height = height;
 
-    this.imageData = imageData;
+    this.imageData = this.ctx.createImageData(this.width, this.height);
 
     // Constants
     this.TILE_WIDTH = 8;
@@ -38,7 +38,6 @@ export default class LCD {
    * Draw all tiles on screen
    */
   drawTiles(){
-    console.log('draw tiles');
     for(let x = 0; x < this.H_TILES; x++){
       for(let y = 0; y < this.V_TILES; y++){
         this.drawTile({tile_number: this.mmu.getTileNbAtCoord(x, y), grid_x: x, grid_y: y});
@@ -71,13 +70,8 @@ export default class LCD {
       }
       this.drawPixel(x++, y, array[i]);
     }
-    
-    this.paintTile();
-  }
 
-  paintTile(){
-    console.log('LCD - paintTile()');
-    this.ipc.send('paint-tile', this.imageData);
+    this.ctx.putImageData(this.imageData, 0, 0);
   }
 
   /**
@@ -126,20 +120,6 @@ export default class LCD {
   getPixelData(x, y){
     const index = (x + y * this.width) * 4;
     return this.imageData.data.slice(index, index + 4);
-  }
-
-  isVBlank(){
-    return this.mmu.ly() === 144;
-  }
-
-  updateLY(){
-    let ly = this.mmu.ly();
-    if (ly >= 153){
-      ly = 0;
-    } else {
-      ly++;
-    }
-    this.mmu.setLy(ly);
   }
 
   isControlOp(){

@@ -1,5 +1,4 @@
-import CPU from './cpu';
-import config from './config';
+import LCD from './lcd';
 import {app, remote, ipcRenderer} from 'electron';
 
 let cpu;
@@ -32,8 +31,14 @@ function startGame(fileNames){
   }
 }
 
-ipcRenderer.on('update-canvas', (event, imageData) => {
-  ctx.putImageData(imageData, 0, 0);
+let lcd;
+
+ipcRenderer.on('start-lcd', (event, filename) => {
+  lcd = new LCD(remote.getGlobal('mmu'), ctx, 160, 144);
+  event.sender.send('lcd-ready');
 });
 
-ipcRenderer.send('ui-ready', ctx.createImageData(160, 144));
+ipcRenderer.on('paint-frame', (event) => {
+  lcd.drawTiles();
+  event.sender.send('paint-end');
+});

@@ -127,7 +127,7 @@ describe('LCD', () => {
         //assert.equal(lcd.isOBJDisplay(), 0);
         //assert.isFalse(lcd.isBGandWindowDisplay());*/
       }
-      lcd.updateLY();
+      lcd.incrementLy();
     }
 
     assert.equal(count, 1, `Vertical blank occurs 1 time`);
