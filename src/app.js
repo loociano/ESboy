@@ -3,6 +3,8 @@ import MMU from './mmu';
 import CPU from './cpu';
 
 let win;
+let cpu;
+global.mmu; // shared by the ui and app
 
 function createWindow() {
 
@@ -20,28 +22,30 @@ function createWindow() {
   const menu = Menu.buildFromTemplate([]);
   Menu.setApplicationMenu(menu);
 
-  win.on('closed', () => {
-    win = null;
-  });
-
+  win.on('closed', close);
 }
 
-app.on('ready', createWindow);
+function close(){
+  if (cpu){
+    global.mmu.dumpMemoryToFile(cpu.pc());
+  }
+  win = null;
+}
 
-app.on('window-all-closed', () => {
+function quitApp(){
   if (process.platform !== 'darwin') {
     app.quit();
   }
-});
+}
+
+app.on('ready', createWindow);
+app.on('window-all-closed', quitApp);
 
 app.on('activate', () => {
   if (win === null) {
     createWindow();
   }
 });
-
-global.mmu = null;
-let cpu = null;
 
 ipcMain.on('load-game', (event, filename) => {
   global.mmu = new MMU(filename);
@@ -56,4 +60,10 @@ ipcMain.on('lcd-ready', (event) => {
 ipcMain.on('paint-end', (event) => {
   cpu.isPainting = false;
   cpu.start();
+});
+
+ipcMain.on('end', () => {
+  console.log('Closing');
+  close();
+  quitApp();
 });

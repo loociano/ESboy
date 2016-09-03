@@ -48,3 +48,7 @@ ipcRenderer.on('paint-frame', (event) => {
   }
   event.sender.send('paint-end');
 });
+
+ipcRenderer.on('end', (event) => {
+  event.sender.send('end'); // broadcast
+})

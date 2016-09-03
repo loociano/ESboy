@@ -488,12 +488,15 @@ export default class CPU {
     return this.mmu.readByteAt(0xff26);
   }
 
+  end(){
+    this.ipc.send('end');
+  }
+
   /**
    * Main loop
    * @param {number} pc_stop
    */
   start(pc_stop = -1){
-
     try {
       this.frame(pc_stop);
     } catch(e){
@@ -508,6 +511,12 @@ export default class CPU {
   frame(pc_stop){
 
     do {
+
+      if (pc_stop !== -1 && this._r.pc >= pc_stop){
+        this.end();
+        return;
+      }
+
       this.execute();
 
       if (this._t > 10){
