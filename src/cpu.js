@@ -495,7 +495,7 @@ export default class CPU {
   start(pc_stop = -1){
 
     try {
-      this._interval = setInterval( () => this.frame(pc_stop), 1);
+      this.frame(pc_stop);
     } catch(e){
       this.mmu.dumpMemoryToFile();
       Logger.error(e.stack);
@@ -508,16 +508,9 @@ export default class CPU {
   frame(pc_stop){
 
     do {
-
-      if (pc_stop !== -1 && this._r.pc >= pc_stop){
-        clearInterval(this._interval);
-        this._interval = null;
-        return;
-      }
-
       this.execute();
 
-      if (this._t > 1000){
+      if (this._t > 10){
         this.incrementLy();
         this._t = 0;
       } else {

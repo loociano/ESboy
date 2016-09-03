@@ -55,4 +55,5 @@ ipcMain.on('lcd-ready', (event) => {
 
 ipcMain.on('paint-end', (event) => {
   cpu.isPainting = false;
+  cpu.start();
 });

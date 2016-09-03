@@ -32,6 +32,7 @@ function startGame(fileNames){
 }
 
 let lcd;
+let _refresh = 0;
 
 ipcRenderer.on('start-lcd', (event, filename) => {
   lcd = new LCD(remote.getGlobal('mmu'), ctx, 160, 144);
@@ -39,6 +40,11 @@ ipcRenderer.on('start-lcd', (event, filename) => {
 });
 
 ipcRenderer.on('paint-frame', (event) => {
-  lcd.drawTiles();
+  if (_refresh > 100){
+    lcd.drawTiles();
+    _refresh = 0;
+  } else {
+    _refresh++;
+  }
   event.sender.send('paint-end');
 });
