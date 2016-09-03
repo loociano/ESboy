@@ -111,9 +111,9 @@ export default class LCD {
     const index = (x + y * this.width) * 4;
     const alpha = level === 0 ? 0 : 255;
 
-    this.imageData.data[index + 0] = intensity;
-    this.imageData.data[index + 1] = intensity;
-    this.imageData.data[index + 2] = intensity;
+    this.imageData.data[index + 0] = 255 - intensity;
+    this.imageData.data[index + 1] = 255 - intensity;
+    this.imageData.data[index + 2] = 255 - intensity;
     this.imageData.data[index + 3] = alpha;
   }
 
