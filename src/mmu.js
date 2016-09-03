@@ -336,13 +336,12 @@ export default class MMU {
   /**
    * Dumps memory to a file
    */
-  dumpMemoryToFile(){
+  dumpMemoryToFile(pc){
     try {
-      fs.writeFileSync('memory_dump', this.memory);
+      fs.writeFileSync(`${new Date().toISOString().replace(new RegExp(':', 'g'),'-')}_memory_dump_at_${Utils.hex4(pc)}`, this.memory);
     } catch(e){
       console.error('Problem writing memory dump');
     }
-
   }
 
   lcdc(){
