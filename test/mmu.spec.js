@@ -87,12 +87,12 @@ describe('MMU', () => {
 
   describe('ROM checks', () => {
 
-    xit('should read the game header', () => {
+    it('should read the game header', () => {
       assert.equal(mmu.getGameTitle(), 'CPU_INSTRS', 'should read title');
       assert.equal(mmu.isGameInColor(), true, 'is gb color');
       assert.equal(mmu.isGameSuperGB(), false, 'should not be super GB');
-      assert.equal(mmu.getCartridgeType(), 'ROM ONLY');
-      assert.equal(mmu.getRomSize(), '32KB');
+      assert.equal(mmu.getCartridgeType(), 'ROM+MBC1');
+      assert.equal(mmu.getRomSize(), '64KB');
       assert.equal(mmu.getRAMSize(), 'None');
       assert.equal(mmu.getDestinationCode(), 'Japanese');
     });
