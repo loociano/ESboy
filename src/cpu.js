@@ -518,6 +518,7 @@ export default class CPU {
         this.mmu.dumpMemoryToFile();
       }
       Logger.error(e.stack);
+      throw e;
     }
   }
 
