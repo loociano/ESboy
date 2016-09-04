@@ -37,7 +37,8 @@ export default class CPU {
       e: 0xd8,
       _f: 0xb0,
       h: 0x01,
-      l: 0x4d
+      l: 0x4d,
+      ime: 0
     };
 
     this._attach_reset_bit_functions();
@@ -426,6 +427,10 @@ export default class CPU {
    */
   f(){
     return (this._r._f & 0xf0) >> 4;
+  }
+
+  ime(){
+    return this._r.ime;
   }
 
   lcdc(){
@@ -1454,14 +1459,14 @@ export default class CPU {
    * Disables interruptions after executing the next instruction.
    */
   di(){
-    // TODO implement interrupts
+    this._r.ime = 0;
   }
 
   /** 
    * Enables interruptions after executing the next instruction.
    */
   ei(){
-    // TODO implement interrupts
+    this._r.ime = 1;
   }
 
   /**
