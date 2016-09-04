@@ -8,12 +8,16 @@ import ipcMock from './mock/ipcMock';
 
 describe('CPU Unit tests', function() {
 
-  config.DEBUG = true;
+  config.DEBUG = false;
   config.TEST = true;
   let cpu;
 
   beforeEach(function() {
     cpu = new CPU(new MMU('./roms/blargg_cpu_instrs.gb'), new ipcMock());
+    cpu.setPC = function(pc){
+      this.mmu.inBIOS = false;
+      this._r.pc = pc; // for testing!
+    };
   });
 
   describe('ROM file loading', () => {
@@ -1439,9 +1443,6 @@ describe('CPU Unit tests', function() {
   describe('Restarts', () => {
 
     it('should restart to address', () => {
-      cpu.setPC = function(pc){
-        this._r.pc = pc;
-      };
 
       [ {rst: cpu.rst_00, addr: 0x00},
         {rst: cpu.rst_08, addr: 0x08},
@@ -1485,14 +1486,6 @@ describe('CPU Unit tests', function() {
 
         if (cpu.isVBlank()) {
           count++;
-          //assert.equal(lcd.isControlOp(), true);
-          //assert.equal(lcd.getWindowTileMapSelect(), 0);
-          //assert.isTrue(lcd.isWindowDisplay());
-          //assert.equal(lcd.getTileDataSelect(), 1);
-          //assert.equal(lcd.getTileMapSelect(), 0);
-          //assert.equal(lcd.getOBJSize(), 0);
-          //assert.equal(lcd.isOBJDisplay(), 0);
-          //assert.isFalse(lcd.isBGandWindowDisplay());*/
         }
         cpu.incrementLy();
       }
