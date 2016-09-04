@@ -33,7 +33,8 @@ export default class MMU {
     this.IS_GB_COLOR = 0x80;
 
     // Cartridge types
-    this.ROM_ONLY = 0;
+    this._ROM_ONLY = 0;
+    this._ROM_MBC1 = 1;
     // TODO add rest of types
 
     // Rom sizes
@@ -249,11 +250,12 @@ export default class MMU {
    * @returns {string} cartridge type
    */
   getCartridgeType() {
-    switch(this.romByteAt(this.ADDR_CARTRIDGE_TYPE)){
-      case this.ROM_ONLY:
-        return 'ROM ONLY';
+    const type = this.romByteAt(this.ADDR_CARTRIDGE_TYPE)
+    switch(type){
+      case this._ROM_ONLY: return 'ROM ONLY';
+      case this._ROM_MBC1: return 'ROM+MBC1';
       default:
-        throw new Error('Cartridge type unknown');
+        throw new Error(`Cartridge type ${type} unknown`);
     }
   }
 
