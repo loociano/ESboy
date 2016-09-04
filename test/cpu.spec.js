@@ -1477,9 +1477,9 @@ describe('CPU Unit tests', function() {
       const sp = cpu.sp();
 
       assert.equal(cpu.ime(), 1, 'IME enabled');
-      cpu.setInterruptFlags(0b00001);
+      cpu.setIf(0b00001);
 
-      assert.equal(cpu.getIf(), 0b00001, 'Vertical blanking requested');
+      assert.equal(cpu.If(), 0b00001, 'Vertical blanking requested');
       cpu.start();
 
       assert.equal(cpu.ie(), 0b00001, 'Interrupt enabled');

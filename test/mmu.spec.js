@@ -120,6 +120,19 @@ describe('MMU', () => {
     assert.equal(mmu.lcdc(), 0xff, 'set lcdc');
   });
 
+  describe('Interruptions', () => {
+
+    it('should read/write the interrupt enable register', () => {
+      mmu.setIe(0x01);
+      assert.equal(mmu.ie(), 0x01);
+    });
+
+    it('should read/write the interrupt request register', () => {
+      mmu.setIf(0x01);
+      assert.equal(mmu.If(), 0x01);
+    });
+  });
+
   describe('Memory dumps', () => {
 
     it('should dump a memory snapshot', () => {
