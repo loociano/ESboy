@@ -516,7 +516,7 @@ export default class CPU {
       this.frame(pc_stop);
     } catch(e){
       if (!config.TEST) {
-      this.mmu.dumpMemoryToFile();
+        this.mmu.dumpMemoryToFile();
       }
       Logger.error(e.stack);
     }
@@ -548,7 +548,21 @@ export default class CPU {
 
     } while (!this.isVBlank());
 
-    this.paintFrame();
+    this._handleVBlank();
+  }
+
+  /**
+   * Handles vertical blank interruption
+   * @private
+   */
+  _handleVBlank(){
+    if (!this.mmu.inBIOS) {
+      this.mmu.setIe(0b00001);
+      this._r.ime = 0;
+      this._push_pc();
+      this.jp(this.ADDR_VBLANK_INTERRUPT);
+      this.paintFrame();
+    }
   }
 
   /**
@@ -565,7 +579,7 @@ export default class CPU {
    * @returns {boolean} true if vblank
    */
   isVBlank(){
-    return this.mmu.ly() === 144;
+    return (this.mmu.If() & 0x01) > 0;
   }
 
   /**
@@ -579,6 +593,12 @@ export default class CPU {
       ly++;
     }
     this.mmu.setLy(ly);
+
+    if (ly === 144){
+      this.mmu.setIf(0b00001);
+    } else {
+      this.mmu.setIf(0);
+    }
   }
 
   /**
