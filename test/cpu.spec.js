@@ -1465,8 +1465,18 @@ describe('CPU Unit tests', function() {
     });
   });
 
-  it('should generate a vblank interruption', () => {
+  describe('Interruptions', () => {
+    it('should disable interruptions', () => {
+      cpu.di();
+      assert.equal(cpu.ime(), 0, 'Interrupt Master Enable Flag disabled, all interruptions are prohibited.');
+    });
 
+    it('should enable interruptions', () => {
+      cpu.ei();
+      assert.equal(cpu.ime(), 1, 'Interrupt Master Enable Flag enabled.');
+    });
+
+    it('should generate a vblank interruption', () => {
     const VBLANK = 10;
     const HEIGHT = 144;
 
