@@ -83,10 +83,13 @@ describe('LCD', () => {
     lcd.drawPixel(WIDTH-1, 0, 2);
     lcd.drawPixel(WIDTH-1, HEIGHT-1, 3);
 
-    assert.deepEqual([data[0], data[1], data[2], data[3]], [0, 0, 0, 0]);
-    assert.deepEqual([data[4], data[5], data[6], data[7]], [85, 85, 85, 255]);
-    assert.deepEqual([data[WIDTH*4-4], data[WIDTH*4-3], data[WIDTH*4-2], data[WIDTH*4-1]], [170, 170, 170, 255]);
-    assert.deepEqual([data[lastIndex-3], data[lastIndex-2], data[lastIndex-1], data[lastIndex]], [255, 255, 255, 255]);
+    const black = 0, grey66 = 85, grey33 = 170, white = 255;
+    const transparent = 0, opaque = 255;
+
+    assert.deepEqual([data[0], data[1], data[2], data[3]], [white, white, white, transparent]);
+    assert.deepEqual([data[4], data[5], data[6], data[7]], [grey33, grey33, grey33, opaque]);
+    assert.deepEqual([data[WIDTH*4-4], data[WIDTH*4-3], data[WIDTH*4-2], data[WIDTH*4-1]], [grey66, grey66, grey66, opaque]);
+    assert.deepEqual([data[lastIndex-3], data[lastIndex-2], data[lastIndex-1], data[lastIndex]], [black, black, black, opaque]);
   });
 
   it('should write black tiles on screen', () => {
@@ -116,7 +119,7 @@ function assertBlackTile(grid_x, grid_y){
 
   for(let x = grid_x*8; x < (grid_x+1)*8; x++){
     for(let y = grid_y*8; y < (grid_y+1)*8; y++){
-       assert.deepEqual(this.getPixelData(x, y), [255, 255, 255, 255], 'pixel is black');
+       assert.deepEqual(this.getPixelData(x, y), [0, 0, 0, 255], 'pixel is black');
     } 
   }
 }
