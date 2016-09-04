@@ -515,7 +515,9 @@ export default class CPU {
     try {
       this.frame(pc_stop);
     } catch(e){
+      if (!config.TEST) {
       this.mmu.dumpMemoryToFile();
+      }
       Logger.error(e.stack);
     }
   }
