@@ -64,4 +64,8 @@ export default class Utils {
     const binary = number.toString(2);
     return '0'.repeat(8 - binary.length) + binary; // pad
   }
+
+  static toFsStamp(date = new Date()){
+    return date.toISOString().replace(/\.|:/g,'-');
+  }
 }
