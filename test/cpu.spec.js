@@ -1477,27 +1477,28 @@ describe('CPU Unit tests', function() {
     });
 
     it('should generate a vblank interruption', () => {
-    const VBLANK = 10;
-    const HEIGHT = 144;
+      const VBLANK = 10;
+      const HEIGHT = 144;
 
-    let count = 0;
-    for(let i = 0; i < HEIGHT + VBLANK; i++){
+      let count = 0;
+      for(let i = 0; i < HEIGHT + VBLANK; i++){
 
-      if (cpu.isVBlank()) {
-        count++;
-        //assert.equal(lcd.isControlOp(), true);
-        //assert.equal(lcd.getWindowTileMapSelect(), 0);
-        //assert.isTrue(lcd.isWindowDisplay());
-        //assert.equal(lcd.getTileDataSelect(), 1);
-        //assert.equal(lcd.getTileMapSelect(), 0);
-        //assert.equal(lcd.getOBJSize(), 0);
-        //assert.equal(lcd.isOBJDisplay(), 0);
-        //assert.isFalse(lcd.isBGandWindowDisplay());*/
+        if (cpu.isVBlank()) {
+          count++;
+          //assert.equal(lcd.isControlOp(), true);
+          //assert.equal(lcd.getWindowTileMapSelect(), 0);
+          //assert.isTrue(lcd.isWindowDisplay());
+          //assert.equal(lcd.getTileDataSelect(), 1);
+          //assert.equal(lcd.getTileMapSelect(), 0);
+          //assert.equal(lcd.getOBJSize(), 0);
+          //assert.equal(lcd.isOBJDisplay(), 0);
+          //assert.isFalse(lcd.isBGandWindowDisplay());*/
+        }
+        cpu.incrementLy();
       }
-      cpu.incrementLy();
-    }
 
-    assert.equal(count, 1, `Vertical blank occurs 1 time`);
+      assert.equal(count, 1, `Vertical blank occurs 1 time`);
+    });
 
   });
 
