@@ -26,7 +26,8 @@ export default class MMU {
 
     this.ADDR_LCDC = 0xff40;
     this.ADDR_LY = 0xff44;
-
+    this.ADDR_IF = 0xff0f;
+    this.ADDR_IE = 0xffff;
     this.ADDR_MAX = 0xffff;
 
     // Values
@@ -109,6 +110,8 @@ export default class MMU {
     this.memory[0xff21] = 0x00;
     this.memory[0xff22] = 0x00;
     this.memory[0xff23] = 0xbf;
+
+    this.memory[this.ADDR_IF] = 0x00;
   }
 
   /**
@@ -191,6 +194,38 @@ export default class MMU {
       throw new Error(`Cannot write ${n} in memory, it has more than 8 bits`);
     }
     this.memory[addr] = n;
+  }
+
+  /**
+   * Sets value on Interrupt Enable Register
+   * @param value
+   */
+  setIe(value){
+    this.memory[this.ADDR_IE] = value;
+  }
+
+  /**
+   * Reads the interrupt enable register
+   * @returns {number}
+   */
+  ie(){
+    return this.readByteAt(this.ADDR_IE);
+  }
+
+  /**
+   * Sets value on interrupt request register
+   * @param value
+   */
+  setIf(value){
+    this.memory[this.ADDR_IF] = value;
+  }
+
+  /**
+   * Reads the interrupt request register
+   * @returns {number}
+   */
+  If(){
+    return this.readByteAt(this.ADDR_IF);
   }
 
   /**

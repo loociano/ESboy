@@ -25,7 +25,9 @@ export default class CPU {
     this._t = 0; // measure CPU cycles
     this.isPainting = false;
 
+    // Constants
     this.EXTENDED_PREFIX = 0xcb;
+    this.ADDR_VBLANK_INTERRUPT = 0x0040;
 
     this._r = {
       pc: 0,
@@ -433,6 +435,18 @@ export default class CPU {
     return this._r.ime;
   }
 
+  ie(){
+    return this.mmu.ie();
+  }
+
+  If(){
+    return this.mmu.If();
+  }
+
+  setIf(value){
+    return this.mmu.setIf(value);
+  }
+
   lcdc(){
     return this.mmu.readByteAt(0xff40);
   }
@@ -467,10 +481,6 @@ export default class CPU {
 
   wx(){
     return this.mmu.readByteAt(0xff4b);
-  }
-
-  ie(){
-    return this.mmu.readByteAt(0xffff);
   }
 
   nr11(){
