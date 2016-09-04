@@ -1,7 +1,6 @@
 import Utils from './utils';
 import Logger from './logger';
-import MMU from './mmu';
-import LCD from './lcd';
+import config from './config';
 
 export default class CPU {
 
@@ -561,8 +560,8 @@ export default class CPU {
       this._r.ime = 0;
       this._push_pc();
       this.jp(this.ADDR_VBLANK_INTERRUPT);
-      this.paintFrame();
     }
+    this.paintFrame();
   }
 
   /**
