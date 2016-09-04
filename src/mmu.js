@@ -339,11 +339,13 @@ export default class MMU {
    * Dumps memory to a file
    */
   dumpMemoryToFile(pc){
+    const filename = `${Utils.toFsStamp()}_memory_dump_at_${Utils.hex4(pc)}.bin`;
     try {
-      fs.writeFileSync(`${new Date().toISOString().replace(new RegExp(':', 'g'),'-')}_memory_dump_at_${Utils.hex4(pc)}`, this.memory);
+      fs.writeFileSync(filename, this.memory);
     } catch(e){
       console.error('Problem writing memory dump');
     }
+    return filename;
   }
 
   lcdc(){
