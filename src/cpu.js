@@ -511,7 +511,6 @@ export default class CPU {
   frame(pc_stop){
 
     do {
-
       if (pc_stop !== -1 && this._r.pc >= pc_stop){
         this.end();
         return;
@@ -569,7 +568,7 @@ export default class CPU {
    * Start emulation until a given program counter. For tests.
    * @param {number} pc_stop
    */
-  startUntil(pc_stop){
+  runUntil(pc_stop){
     this.start(pc_stop);
   }
 
