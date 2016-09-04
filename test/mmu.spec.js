@@ -2,6 +2,7 @@ import MMU from '../src/mmu';
 import assert from 'assert';
 import config from '../src/config';
 import {describe, beforeEach, it} from 'mocha';
+import fs from 'fs';
 
 describe('MMU', () => {
 
@@ -117,6 +118,18 @@ describe('MMU', () => {
   it('should read lcdc', () => {
     mmu.setLcdc(0xff);
     assert.equal(mmu.lcdc(), 0xff, 'set lcdc');
-  })
+  });
+
+  describe('Memory dumps', () => {
+
+    it('should dump a memory snapshot', () => {
+      const filename = mmu.dumpMemoryToFile(); // TODO: mock fs in tests
+      assert.doesNotThrow( () => {
+          fs.accessSync(filename);
+      });
+      fs.unlinkSync(filename);
+
+    });
+  });
 
 });
