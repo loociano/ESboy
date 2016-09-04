@@ -1467,6 +1467,28 @@ describe('CPU Unit tests', function() {
   });
 
   describe('Interruptions', () => {
+
+    it('should handle vertical blanking interrupt', () => {
+      cpu.setPC(0x150);
+      cpu.ei();
+
+      const pc = cpu.pc();
+      const nextPC = pc + 1; // 0x150 is a nop
+      const sp = cpu.sp();
+
+      assert.equal(cpu.ime(), 1, 'IME enabled');
+      cpu.setInterruptFlags(0b00001);
+
+      assert.equal(cpu.getIf(), 0b00001, 'Vertical blanking requested');
+      cpu.start();
+
+      assert.equal(cpu.ie(), 0b00001, 'Interrupt enabled');
+      assert.equal(cpu.ime(), 0, 'IME disabled');
+      assert.equal(cpu.peek_stack(1), Utils.msb(nextPC), 'high pc on stack');
+      assert.equal(cpu.peek_stack(), Utils.lsb(nextPC), 'low pc on stack');
+      assert.equal(cpu.pc(), cpu.ADDR_VBLANK_INTERRUPT);
+    });
+
     it('should disable interruptions', () => {
       cpu.di();
       assert.equal(cpu.ime(), 0, 'Interrupt Master Enable Flag disabled, all interruptions are prohibited.');
