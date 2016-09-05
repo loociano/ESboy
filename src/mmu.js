@@ -31,6 +31,7 @@ export default class MMU {
     this.ADDR_LY = 0xff44;
     this.ADDR_DMA = 0xff46;
     this.ADDR_KEY1 = 0xff4d;
+    this.ADDR_VBK = 0xff4f;
     this.ADDR_SVBK = 0xff70;
     this.ADDR_IE = 0xffff;
     this.ADDR_MAX = 0xffff;
@@ -207,6 +208,11 @@ export default class MMU {
     }
     if (n < 0 || n > 0xff){
       throw new Error(`Cannot write ${n} in memory, it has more than 8 bits`);
+    }
+    switch(addr){
+      case this.ADDR_VBK:
+        Logger.info(`Cannot write on ${addr}`);
+        return;
     }
     this.memory[addr] = n;
   }
@@ -412,5 +418,13 @@ export default class MMU {
 
   setLy(line){
     this.writeByteAt(this.ADDR_LY, line);
+  }
+
+  /**
+   * Bank register for LCD display RAM.
+   * Always zero in DMG.
+   */
+  vbk(){
+    return this.readByteAt(this.ADDR_VBK);
   }
 }

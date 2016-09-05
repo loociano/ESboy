@@ -148,8 +148,14 @@ describe('MMU', () => {
 
   describe('Bank Registers (CGB only)', () => {
     it('should detect bank register', () => {
-      assert.throws( () => mmu.readByteAt(mmu.ADDR_SVBK), Error, 'SVBK register unsupported');
-      assert.throws( () => mmu.readByteAt(mmu.ADDR_KEY1), Error, 'KEY1 unsupported');
+      assert.throws(() => mmu.readByteAt(mmu.ADDR_SVBK), Error, 'SVBK register unsupported');
+      assert.throws(() => mmu.readByteAt(mmu.ADDR_KEY1), Error, 'KEY1 unsupported');
+    });
+
+    it('should not write VBK in DMG mode', () => {
+      assert.equal(mmu.vbk(), 0, 'VBK always zero in DMG');
+      mmu.writeByteAt(mmu.ADDR_VBK, 0xab);
+      assert.equal(mmu.vbk(), 0, 'VBK always zero in DMG');
     });
   });
 
