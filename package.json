@@ -27,6 +27,7 @@
     "sinon": "^1.17.5"
   },
   "dependencies": {
+    "command-line-args": "^3.0.1",
     "electron": "^1.3.3",
     "ipc": "0.0.1"
   }

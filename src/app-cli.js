@@ -3,17 +3,18 @@ import MMU from './mmu';
 import IPCMock from '../lib/mock/ipcMock';
 import config from './config';
 import Logger from './logger';
+import commandLineArgs from 'command-line-args';
 
-// Options
-for(let i = 0; i < process.argv.length; i++){
-    const option = process.argv[i];
-    if (option === '--debug'){
-      config.DEBUG = true;
-    }
-    if (option === '--log-bios'){
-      config.LOG_BIOS = true;
-    }
-}
+const optionDefinitions = [
+  { name: 'input-rom', alias: 'i', type: String },
+  { name: 'debug', alias: 'D', type: Boolean },
+  { name: 'log-bios', type: Boolean }
+];
+
+const options = commandLineArgs(optionDefinitions);
+
+config.DEBUG = options.debug;
+config.LOG_BIOS = options['log-bios'];
 
 function init(filename){
 
@@ -37,4 +38,4 @@ function init(filename){
   console.log(`Took: ${new Date() - date} millis`);
 }
 
-init(process.argv[2]);
+init(options['input-rom']);
