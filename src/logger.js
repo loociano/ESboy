@@ -25,13 +25,13 @@ export default class Logger {
 
   static info(msg){
     if (config.DEBUG) {
-      console.info(msg);
+      console.info(`<info> ${msg}`);
     }
   }
 
   static error(msg){
     if (!config.TEST) {
-      console.error(msg);
+      console.error(`<error> ${msg}`);
     }
   }
 }
