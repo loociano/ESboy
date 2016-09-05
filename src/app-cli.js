@@ -12,20 +12,26 @@ for(let i = 0; i < process.argv.length; i++){
     }
 }
 
-const filename = process.argv[2];
-const mmu = new MMU(filename);
-const ipc = new IPCMock();
+function init(filename){
 
-const date = new Date();
-const cpu = new CPU(mmu, ipc);
-ipc.setCpu(cpu);
+  if (!filename) throw new Error('Missing filename');
 
-try {
-  while(true) {
-    cpu.start();
+  const date = new Date();
+
+  const mmu = new MMU(filename);
+  const ipc = new IPCMock();
+  const cpu = new CPU(mmu, ipc);
+  ipc.setCpu(cpu);
+
+  try {
+    while(true) {
+      cpu.start();
+    }
+  } catch(e){
+    Logger.error(e);
   }
-} catch(e){
-  Logger.error(e);
+
+  console.log(`Took: ${new Date() - date} millis`);
 }
 
-console.log(`Took: ${new Date() - date} millis`);
+init(process.argv[2]);
