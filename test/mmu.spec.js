@@ -133,6 +133,17 @@ describe('MMU', () => {
     });
   });
 
+  describe('DMA', () => {
+
+    it('should detect DMA', () => {
+
+      assert.throws( () => {
+        mmu.readByteAt(mmu.ADDR_DMA);
+      }, Error, 'DMA unsupported');
+    });
+
+  });
+
   describe('Memory dumps', () => {
 
     it('should dump a memory snapshot', () => {

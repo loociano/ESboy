@@ -24,9 +24,10 @@ export default class MMU {
     this.ADDR_COMPLEMENT_CHECK = 0x14d;
     this.ADDR_ROM_MAX = 0x7fff;
 
+    this.ADDR_IF = 0xff0f;
     this.ADDR_LCDC = 0xff40;
     this.ADDR_LY = 0xff44;
-    this.ADDR_IF = 0xff0f;
+    this.ADDR_DMA = 0xff46;
     this.ADDR_IE = 0xffff;
     this.ADDR_MAX = 0xffff;
 
@@ -131,12 +132,17 @@ export default class MMU {
       throw new Error(`Cannot read memory address ${Utils.hexStr(addr)}`);
     }
 
+    if (addr === this.ADDR_DMA){
+      throw new Error('DMA unsupported');
+    }
+
     if (addr <= this.ADDR_ROM_MAX){
       if (addr < this.ADDR_GAME_START && this.inBIOS){
         return this._biosByteAt(addr);
       }
       return this.romByteAt(addr);
     }
+
     return this.memory[addr];
   }
 
