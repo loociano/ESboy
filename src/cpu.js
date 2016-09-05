@@ -28,6 +28,10 @@ export default class CPU {
     this.EXTENDED_PREFIX = 0xcb;
     this.ADDR_VBLANK_INTERRUPT = 0x0040;
 
+    // Masks
+    this.IF_VBLANK_ON = 0b00001;
+    this.IF_VBLANK_OFF = 0b11110;
+
     this._r = {
       pc: 0,
       sp: this.mmu.ADDR_MAX - 1,
@@ -539,7 +543,7 @@ export default class CPU {
 
       this.execute();
 
-      if (this._t > 10){
+      if (this._t > 0xff){
         this.incrementLy();
         this._t = 0;
       } else {
@@ -583,7 +587,7 @@ export default class CPU {
    * @returns {boolean} true if vblank
    */
   isVBlank(){
-    return (this.mmu.If() & 0x01) > 0;
+    return (this.mmu.If() & this.IF_VBLANK_ON) > 0;
   }
 
   /**
@@ -599,10 +603,18 @@ export default class CPU {
     this.mmu.setLy(ly);
 
     if (ly === 144){
-      this.mmu.setIf(0b00001);
+      this._interruptVBlank();
     } else {
-      this.mmu.setIf(0);
+      this._haltVBlank();
     }
+  }
+
+  _interruptVBlank(){
+    this.mmu.setIf(this.If() | this.IF_VBLANK_ON);
+  }
+
+  _haltVBlank(){
+    this.mmu.setIf(this.If() & this.IF_VBLANK_OFF);
   }
 
   /**
