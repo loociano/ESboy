@@ -447,7 +447,7 @@ export default class CPU {
   }
 
   lcdc(){
-    return this.mmu.readByteAt(0xff40);
+    return this.mmu.lcdc();
   }
 
   scy(){
@@ -500,10 +500,6 @@ export default class CPU {
 
   nr52(){
     return this.mmu.readByteAt(0xff26);
-  }
-
-  end(){
-    this.ipc.send('end');
   }
 
   /**
@@ -607,6 +603,13 @@ export default class CPU {
    */
   runUntil(pc_stop){
     this.start(pc_stop);
+  }
+
+  /**
+   * Sends a end message to LCD
+   */
+  end(){
+    this.ipc.send('end');
   }
 
   /**
