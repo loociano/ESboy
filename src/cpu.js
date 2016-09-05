@@ -450,6 +450,14 @@ export default class CPU {
     return this.mmu.lcdc();
   }
 
+  /**
+   * LCD Status Flag
+   * @returns {number}
+   */
+  stat(){
+    return this.mmu.stat();
+  }
+
   scy(){
     return this.mmu.readByteAt(0xff42);
   }

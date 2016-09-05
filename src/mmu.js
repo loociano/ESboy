@@ -28,6 +28,7 @@ export default class MMU {
     this.ADDR_SC = 0xff02;
     this.ADDR_IF = 0xff0f;
     this.ADDR_LCDC = 0xff40;
+    this.ADDR_STAT = 0xff41;
     this.ADDR_LY = 0xff44;
     this.ADDR_DMA = 0xff46;
     this.ADDR_KEY1 = 0xff4d;
@@ -213,6 +214,9 @@ export default class MMU {
       case this.ADDR_VBK:
         Logger.info(`Cannot write on ${addr}`);
         return;
+      case this.ADDR_STAT:
+        n |= 0x80; // Bit 7 is always set
+        break;
     }
     this.memory[addr] = n;
   }
@@ -410,6 +414,14 @@ export default class MMU {
    */
   lcdc(){
     return this.readByteAt(this.ADDR_LCDC);
+  }
+
+  /**
+   * LCDC Status Flag
+   * @returns {number}
+   */
+  stat(){
+    return this.readByteAt(this.ADDR_STAT);
   }
 
   ly(){

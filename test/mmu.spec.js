@@ -122,6 +122,16 @@ describe('MMU', () => {
     });
   });
 
+  describe('STAT or LCDC Status Flag', () => {
+    it('should read/write STAT', () => {
+      mmu.writeByteAt(mmu.ADDR_STAT, 0x00);
+      assert.equal(mmu.stat(), 0x80, 'STAT.7 always set');
+
+      mmu.writeByteAt(mmu.ADDR_STAT, 0xff);
+      assert.equal(mmu.stat(), 0xff, 'STAT set');
+    });
+  });
+
   describe('Interruptions', () => {
 
     it('should read/write the interrupt enable register', () => {
