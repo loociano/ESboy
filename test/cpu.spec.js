@@ -1111,7 +1111,7 @@ describe('CPU Unit tests', function() {
 
     it('should put a into memory address 0xff00 + c', () => {
       const value = 0xab;
-      const offset = 0x01;
+      const offset = 0x44; // ly
       cpu.ld_c_n(offset);
       cpu.ld_a_n(value);
       cpu.ld_0xc_a();

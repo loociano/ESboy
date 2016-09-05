@@ -143,7 +143,7 @@ export default class MMU {
       case this.ADDR_SC:
       case this.ADDR_SVBK:
       case this.ADDR_KEY1:
-        throw new Error('DMA unsupported');
+        throw new Error('Unsupported');
     }
 
     if (addr <= this.ADDR_ROM_MAX){
