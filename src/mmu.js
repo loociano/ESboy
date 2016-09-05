@@ -24,10 +24,14 @@ export default class MMU {
     this.ADDR_COMPLEMENT_CHECK = 0x14d;
     this.ADDR_ROM_MAX = 0x7fff;
 
+    this.ADDR_SB = 0xff01;
+    this.ADDR_SC = 0xff02;
     this.ADDR_IF = 0xff0f;
     this.ADDR_LCDC = 0xff40;
     this.ADDR_LY = 0xff44;
     this.ADDR_DMA = 0xff46;
+    this.ADDR_KEY1 = 0xff4d;
+    this.ADDR_SVBK = 0xff70;
     this.ADDR_IE = 0xffff;
     this.ADDR_MAX = 0xffff;
 
@@ -132,8 +136,13 @@ export default class MMU {
       throw new Error(`Cannot read memory address ${Utils.hexStr(addr)}`);
     }
 
-    if (addr === this.ADDR_DMA){
-      throw new Error('DMA unsupported');
+    switch(addr){
+      case this.ADDR_DMA:
+      case this.ADDR_SB:
+      case this.ADDR_SC:
+      case this.ADDR_SVBK:
+      case this.ADDR_KEY1:
+        throw new Error('DMA unsupported');
     }
 
     if (addr <= this.ADDR_ROM_MAX){

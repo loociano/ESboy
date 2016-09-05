@@ -134,14 +134,23 @@ describe('MMU', () => {
   });
 
   describe('DMA', () => {
-
     it('should detect DMA', () => {
-
-      assert.throws( () => {
-        mmu.readByteAt(mmu.ADDR_DMA);
-      }, Error, 'DMA unsupported');
+      assert.throws( () => mmu.readByteAt(mmu.ADDR_DMA), Error, 'DMA unsupported');
     });
+  });
 
+  describe('Serial Cable Communication', () => {
+    it('should detect serial communication', () => {
+      assert.throws( () => mmu.readByteAt(mmu.ADDR_SB), Error, 'SB register unsupported');
+      assert.throws( () => mmu.readByteAt(mmu.ADDR_SC), Error, 'SC register unsupported');
+    });
+  });
+
+  describe('Bank Registers (CGB only)', () => {
+    it('should detect bank register', () => {
+      assert.throws( () => mmu.readByteAt(mmu.ADDR_SVBK), Error, 'SVBK register unsupported');
+      assert.throws( () => mmu.readByteAt(mmu.ADDR_KEY1), Error, 'KEY1 unsupported');
+    });
   });
 
   describe('Memory dumps', () => {
