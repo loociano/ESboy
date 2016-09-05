@@ -404,12 +404,12 @@ export default class MMU {
     return filename;
   }
 
+  /**
+   * Returns the value of LCD Control register
+   * @returns {number}
+   */
   lcdc(){
     return this.readByteAt(this.ADDR_LCDC);
-  }
-
-  setLcdc(value){
-    this.writeByteAt(this.ADDR_LCDC, value);
   }
 
   ly(){

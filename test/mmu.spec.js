@@ -115,9 +115,11 @@ describe('MMU', () => {
     assert.equal(mmu.ly(), 0x01, 'set ly');
   });
 
-  it('should read lcdc', () => {
-    mmu.setLcdc(0xff);
-    assert.equal(mmu.lcdc(), 0xff, 'set lcdc');
+  describe('LCD Control Register', () => {
+    it('should read/write lcdc', () => {
+      mmu.writeByteAt(mmu.ADDR_LCDC, 0xff);
+      assert.equal(mmu.lcdc(), 0xff, 'set lcdc');
+    });
   });
 
   describe('Interruptions', () => {
