@@ -8,7 +8,10 @@ import Logger from './logger';
 for(let i = 0; i < process.argv.length; i++){
     const option = process.argv[i];
     if (option === '--debug'){
-        config.DEBUG = true;
+      config.DEBUG = true;
+    }
+    if (option === '--log-bios'){
+      config.LOG_BIOS = true;
     }
 }
 
