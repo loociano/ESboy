@@ -552,7 +552,7 @@ export default class CPU {
       this.execute();
       this._t++;
 
-      if (this._t > 0xff){
+      if (this._t > 0x80){
         this.incrementLy();
         this._t = 0;
       }
@@ -1561,9 +1561,7 @@ export default class CPU {
    * @param {number} n
    */
   ldh_n_a(n){
-    if (n < 0xff){
-      this.mmu.writeByteAt(0xff00 + n, this._r.a);
-    }
+    this.mmu.writeByteAt(0xff00 + n, this._r.a);
   }
 
   /**

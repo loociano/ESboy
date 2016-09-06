@@ -213,6 +213,7 @@ export default class MMU {
     }
     switch(addr){
       case this.ADDR_VBK:
+      case this.ADDR_IF:
         Logger.info(`Cannot write on ${Utils.hex4(addr)}`);
         return;
       case this.ADDR_STAT:

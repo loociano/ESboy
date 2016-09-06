@@ -1084,11 +1084,11 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.mmu.readByteAt(0xfffe), 0xab, 'memory 0xfffe has value 0xab');
     });
 
-    it('should not write a into address 0xff00 + 0xff', () => {
-      const value = cpu.mmu.readByteAt(0xfffe);
-      cpu.ld_a_n(0xab);
+    it('should write a into address 0xff00 + 0xff', () => {
+      cpu.ld_a_n(0x01);
       cpu.ldh_n_a(0xff);
-      assert.equal(cpu.mmu.readByteAt(0xfffe), value, 'value at memory 0xffff does not change');
+      assert.equal(cpu.mmu.readByteAt(0xffff), 0x01, 'value at memory 0xffff has value 0xab');
+      assert.equal(cpu.ie(), 0x01);
     });
 
     it('should put value at memory address 0xff00 + 0 into a', () => {
