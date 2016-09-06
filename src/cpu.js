@@ -553,9 +553,16 @@ export default class CPU {
         this.mmu.inBIOS = false;
       }
 
-    } while (!this.isVBlank());
+    } while (!this._isVBlankTriggered());
 
-    this._handleVBlank();
+    this._handleVBlankInterrupt();
+  }
+
+  _isVBlankTriggered(){
+    if (this._r.ime === 0){
+      return false;
+    }
+    return this.isVBlank();
   }
 
   /**
