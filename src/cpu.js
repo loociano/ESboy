@@ -542,34 +542,37 @@ export default class CPU {
       }
 
       this.execute();
+      this._t++;
 
       if (this._t > 0xff){
         this.incrementLy();
         this._t = 0;
-      } else {
-        this._t++;
       }
 
       if (this._r.pc === this.mmu.ADDR_GAME_START){
         this.mmu.inBIOS = false;
       }
 
-    } while (!this.isVBlank());
+    } while (!this._isVBlankTriggered());
 
-    this._handleVBlank();
+    this._handleVBlankInterrupt();
+  }
+
+  _isVBlankTriggered(){
+    if (this._r.ime === 0){
+      return false;
+    }
+    return this.isVBlank();
   }
 
   /**
    * Handles vertical blank interruption
    * @private
    */
-  _handleVBlank(){
-    if (!this.mmu.inBIOS) {
-      this.mmu.setIe(0b00001);
-      this._r.ime = 0;
-      this._push_pc();
-      this.jp(this.ADDR_VBLANK_INTERRUPT);
-    }
+  _handleVBlankInterrupt(){
+    this._r.ime = 0;
+    this._push_pc();
+    this.jp(this.ADDR_VBLANK_INTERRUPT);
     this.paintFrame();
   }
 
@@ -587,7 +590,7 @@ export default class CPU {
    * @returns {boolean} true if vblank
    */
   isVBlank(){
-    return (this.mmu.If() & this.IF_VBLANK_ON) > 0;
+    return (this.mmu.ie() & this.mmu.If() & this.IF_VBLANK_ON) === 1;
   }
 
   /**
@@ -603,13 +606,13 @@ export default class CPU {
     this.mmu.setLy(ly);
 
     if (ly === 144){
-      this._interruptVBlank();
+      this._triggerVBlank();
     } else {
       this._haltVBlank();
     }
   }
 
-  _interruptVBlank(){
+  _triggerVBlank(){
     this.mmu.setIf(this.If() | this.IF_VBLANK_ON);
   }
 

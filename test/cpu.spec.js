@@ -1118,17 +1118,16 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.mmu.readByteAt(0xff00 + offset), value, 'value at memory address 0xff00 + c');
     });
 
-    it('should not write memory address 0xff00 + 0xff', () => {
+    it('should write in memory address 0xff00 + 0xff', () => {
       const offset = 0xff;
-      const ie = cpu.ie();
+      const value = 0x0f;
       cpu.ld_c_n(offset);
-      cpu.ld_a_n(0xab);
+      cpu.ld_a_n(value);
 
-      assert.doesNotThrow( () => {
-        cpu.ld_0xc_a();
-      }, Error, 'should not write on 0xffff silently');
-
-      assert.equal(cpu.mmu.readByteAt(0xff00 + offset), ie, 'ie is not overridden.');
+      cpu.ld_0xc_a();
+    
+      assert.equal(cpu.mmu.readByteAt(0xff00 + offset), value, '0xffff is written');
+      assert.equal(cpu.ie(), value, 'ie is written');
     });
 
     it('should copy register a into other registers and memory locations', () => {
@@ -1470,23 +1469,29 @@ describe('CPU Unit tests', function() {
 
     it('should handle vertical blanking interrupt', () => {
       cpu.setPC(0x150);
+      cpu.setIf(0b00001);
+      cpu._t = 0xff;
       cpu.ei();
+      cpu.mmu.writeByteAt(cpu.mmu.ADDR_IE, 0x01); // Allow vblank
 
       const pc = cpu.pc();
-      const nextPC = pc + 1; // 0x150 is a nop
+      const nextPC = pc + 1; // 0x150 is a nop, next is 0x151
       const sp = cpu.sp();
 
       assert.equal(cpu.ime(), 1, 'IME enabled');
-      cpu.setIf(0b00001);
-
-      assert.equal(cpu.If(), 0b00001, 'Vertical blanking requested');
+      assert.equal(cpu.ie() & 0x01, 1, 'Vblank allowed');
+      assert.equal(cpu.If(), 0b00001, 'Vblank requested');
+      
       cpu.start();
 
-      assert.equal(cpu.ie(), 0b00001, 'Interrupt enabled');
       assert.equal(cpu.ime(), 0, 'IME disabled');
       assert.equal(cpu.peek_stack(1), Utils.msb(nextPC), 'high pc on stack');
       assert.equal(cpu.peek_stack(), Utils.lsb(nextPC), 'low pc on stack');
       assert.equal(cpu.pc(), cpu.ADDR_VBLANK_INTERRUPT);
+
+      cpu.runUntil(cpu.ADDR_VBLANK_INTERRUPT + 1);
+
+      assert.equal(cpu.pc(), cpu.ADDR_VBLANK_INTERRUPT + 1, 'PC advances in vblank routine');
     });
 
     it('should disable interruptions', () => {

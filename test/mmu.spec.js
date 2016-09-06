@@ -20,14 +20,9 @@ describe('MMU', () => {
     assert.equal(mmu.readByteAt(0xc000), 0xab, 'write 0xab in memory address 0xc000');
   });
 
-  it('should not write in Interrupt Enable register', () => {
-    const ie = mmu.readByteAt(0xffff);
-
-    assert.doesNotThrow( () => {
-      mmu.writeByteAt(0xffff, 0xab);
-    }, Error, 'should not write on 0xffff silently');
-
-    assert.equal(mmu.readByteAt(0xffff), ie, 'should not write on 0xffff');
+  it('should write in Interrupt Enable register', () => {
+    mmu.writeByteAt(0xffff, 0x0f);
+    assert.equal(mmu.ie(), 0x0f, 'should write on 0xffff');
   });
 
   it('should not write bytes in ROM', () => {
