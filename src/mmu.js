@@ -212,7 +212,7 @@ export default class MMU {
     }
     switch(addr){
       case this.ADDR_VBK:
-        Logger.info(`Cannot write on ${addr}`);
+        Logger.info(`Cannot write on ${Utils.hex4(addr)}`);
         return;
       case this.ADDR_STAT:
         n |= 0x80; // Bit 7 is always set
