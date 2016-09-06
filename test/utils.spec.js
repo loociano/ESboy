@@ -4,6 +4,11 @@ import {describe, beforeEach, it} from 'mocha';
 
 describe('Utils', () => {
 
+  it('should pad string with spaces', () => {
+    assert.equal(Utils.str20(''), '                    ');
+    assert.equal(Utils.str20('abc'), 'abc                 ');
+  });
+
   it('should print hex string', () => {
 
     assert.equal(Utils.hexStr(0), '0x0');

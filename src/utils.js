@@ -1,6 +1,15 @@
 export default class Utils {
 
   /**
+   * Pads with spaces to fill 20 characters.
+   * @param string
+   * @returns {string}
+   */
+  static str20(string){
+    return string + ' '.repeat(20 - string.length);
+  }
+
+  /**
    * @param number
    * @returns {string} hexadecimal, example: 0xab
    */
