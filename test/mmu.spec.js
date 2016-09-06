@@ -68,6 +68,7 @@ describe('MMU', () => {
     assert.equal(mmu.readByteAt(0xff21), 0x00);
     assert.equal(mmu.readByteAt(0xff22), 0x00);
     assert.equal(mmu.readByteAt(0xff23), 0xbf);
+    assert.equal(mmu.readByteAt(mmu.ADDR_IE), 0x01); // Allow vblank
   });
 
   it('should load the BIOS in memory', () => {

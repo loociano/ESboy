@@ -47,7 +47,9 @@ describe('BIOS', () => {
     assert.equal(cpu.bgp(), 0xfc, 'BGP Background Palette is initialized');
     assert.equal(cpu.wy(), 0x00, 'WY initialized');
     assert.equal(cpu.wx(), 0x00, 'WX initialized');
+    assert.equal(cpu.If(), 0x01, 'IF initialized, triggered vblank'); // TODO: bits 7,6,5 should be always set
     assert.equal(cpu.ie(), 0x00, 'IE initialized');
+    assert.equal(cpu.ime(), 1, 'Interrupt Master Enabled');
   });
 
   it('should override BIOS with ROM in range 0x0000 - 0x00ff', function() {
