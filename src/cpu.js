@@ -603,13 +603,13 @@ export default class CPU {
     this.mmu.setLy(ly);
 
     if (ly === 144){
-      this._interruptVBlank();
+      this._triggerVBlank();
     } else {
       this._haltVBlank();
     }
   }
 
-  _interruptVBlank(){
+  _triggerVBlank(){
     this.mmu.setIf(this.If() | this.IF_VBLANK_ON);
   }
 
