@@ -2453,6 +2453,14 @@ export default class CPU {
   }
 
   /**
+   * Returns from interruption routine
+   */
+  reti(){
+    this.jp(this._pop_nn());
+    this._r.ime = 1;
+  }
+
+  /**
    * Subtract a from a
    */
   sub_a(){

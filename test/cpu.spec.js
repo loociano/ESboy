@@ -1395,6 +1395,21 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.sp(), sp, 'sp to original value');
     });
 
+    it('should return from interruption', () => {
+      const addr = 0xabcd;
+      const sp = cpu.sp();
+      const pc = cpu.pc();
+      cpu.ld_hl_nn(addr);
+      cpu.push_hl();
+      assert.equal(cpu.sp(), sp - 2, 'sp decreased');
+
+      cpu.reti();
+
+      assert.equal(cpu.sp(), sp, 'sp to original value');
+      assert.equal(cpu.pc(), addr, `program to continue on ${addr}`);
+      assert.equal(cpu.ime(), 1, 'Master interruption enabled');
+    });
+
   });
 
   describe('Miscellaneous', () => {
