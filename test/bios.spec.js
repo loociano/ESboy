@@ -43,6 +43,7 @@ describe('BIOS', () => {
     // TODO: implement LCDC interruptions to decrease it to 0x00 (scrolling down Nintendo logo)
     //assert.equal(cpu.scy(), 0x00, 'SCY initialized'); // BIOS setting it at 0x64!
     assert.equal(cpu.scx(), 0x00, 'SCX initialized');
+    assert.equal(cpu.ly(), 0x00, 'LY initialized');
     assert.equal(cpu.lyc(), 0x00, 'LYC initialized');
     assert.equal(cpu.bgp(), 0xfc, 'BGP Background Palette is initialized');
     assert.equal(cpu.wy(), 0x00, 'WY initialized');
