@@ -203,7 +203,7 @@ export default class MMU {
    * @param {number} byte
    */
   writeByteAt(addr, n){
-    if (addr >= this.ADDR_MAX || addr < 0 || addr <= this.ADDR_ROM_MAX){
+    if (addr > this.ADDR_MAX || addr < 0 || addr <= this.ADDR_ROM_MAX){
       Logger.error(`Cannot set memory address ${Utils.hexStr(addr)}`);
       return;
     }
