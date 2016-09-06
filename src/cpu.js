@@ -470,6 +470,14 @@ export default class CPU {
     return this.mmu.readByteAt(0xff43);
   }
 
+  /**
+   * LCDC Y Coordinate (read-only)
+   * @returns {*}
+   */
+  ly(){
+    return this.mmu.ly();
+  }
+
   lyc(){
     return this.mmu.readByteAt(0xff45);
   }
@@ -550,13 +558,22 @@ export default class CPU {
       }
 
       if (this._r.pc === this.mmu.ADDR_GAME_START){
-        this.mmu.inBIOS = false;
-        this.mmu.setIe(0x00);
+        this._afterBIOS();
       }
 
     } while (!this._isVBlankTriggered());
 
     this._handleVBlankInterrupt();
+  }
+
+  /**
+   * Sets adjustments before game starts.
+   * @private
+   */
+  _afterBIOS(){
+    this.mmu.inBIOS = false;
+    this.mmu.setIe(0x00);
+    this.mmu.setLy(0x00);
   }
 
   /**

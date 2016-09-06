@@ -425,10 +425,18 @@ export default class MMU {
     return this.readByteAt(this.ADDR_STAT);
   }
 
+  /**
+   * LCDC Y-Coordinate (read-only)
+   * @returns {number}
+   */
   ly(){
     return this.readByteAt(this.ADDR_LY);
   }
 
+  /**
+   * Sets value at register LY (emulates hardware)
+   * @param {number} line
+   */
   setLy(line){
     this.writeByteAt(this.ADDR_LY, line);
   }
