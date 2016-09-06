@@ -4,7 +4,7 @@ import assert from 'assert';
 import {describe, beforeEach, it} from 'mocha';
 import IPCMock from './mock/ipcMock';
 
-describe('BIOS', () => {
+describe('BIOS execution', () => {
 
   const stopAt = 0x0100;
 
@@ -66,6 +66,18 @@ describe('BIOS', () => {
     assert.equal(cpu.mmu.readByteAt(0x30), 0x3c);
     assert.equal(cpu.mmu.readByteAt(0x38), 0x3c);
   });
+
+  it('should end up with the right values on registers', () => {
+    assert.equal(cpu.a(), 0x01, 'a');
+    assert.equal(cpu.b(), 0x00, 'b');
+    assert.equal(cpu.c(), 0x13, 'c');
+    assert.equal(cpu.d(), 0x00, 'd');
+    assert.equal(cpu.e(), 0xd8, 'e');
+    assert.equal(cpu.h(), 0x01, 'h');
+    assert.equal(cpu.l(), 0x4d, 'l');
+    assert.equal(cpu.sp(), 0xfffe, 'a');
+    assert.equal(cpu.f(), 0b1011, 'flags');
+  })
 
 });
 
