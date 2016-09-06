@@ -43,7 +43,7 @@ export default class CPU {
       _f: 0xb0,
       h: 0x01,
       l: 0x4d,
-      ime: 0
+      ime: 1
     };
 
     this._attach_reset_bit_functions();
@@ -551,6 +551,7 @@ export default class CPU {
 
       if (this._r.pc === this.mmu.ADDR_GAME_START){
         this.mmu.inBIOS = false;
+        this.mmu.setIe(0x00);
       }
 
     } while (!this._isVBlankTriggered());
@@ -558,6 +559,10 @@ export default class CPU {
     this._handleVBlankInterrupt();
   }
 
+  /**
+   * @returns {boolean}
+   * @private
+   */
   _isVBlankTriggered(){
     if (this._r.ime === 0){
       return false;
@@ -570,11 +575,15 @@ export default class CPU {
    * @private
    */
   _handleVBlankInterrupt(){
-    this.di();
-    this._push_pc();
-    this.jp(this.ADDR_VBLANK_INTERRUPT);
+    // BIOS does not have an vblank routine to execute
+    if (!this.mmu.inBIOS) {
+      this.di();
+      this._rst_40();
+    }
     this.paintFrame();
   }
+
+
 
   /**
    * Request a frame paint
@@ -2881,6 +2890,14 @@ export default class CPU {
    */
   rst_38(){
     this._rst_n(0x38);
+  }
+
+  /**
+   * Restarts to vblank interrupt routine
+   * @private
+   */
+  _rst_40(){
+    this._rst_n(this.ADDR_VBLANK_INTERRUPT);
   }
 
   /**

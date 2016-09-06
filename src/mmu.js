@@ -119,6 +119,7 @@ export default class MMU {
     this.memory[0xff23] = 0xbf;
 
     this.memory[this.ADDR_IF] = 0x00;
+    this.memory[this.ADDR_IE] = 0x01;
   }
 
   /**
