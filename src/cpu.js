@@ -562,13 +562,10 @@ export default class CPU {
    * Handles vertical blank interruption
    * @private
    */
-  _handleVBlank(){
-    if (!this.mmu.inBIOS) {
-      this.mmu.setIe(0b00001);
-      this._r.ime = 0;
-      this._push_pc();
-      this.jp(this.ADDR_VBLANK_INTERRUPT);
-    }
+  _handleVBlankInterrupt(){
+    this._r.ime = 0;
+    this._push_pc();
+    this.jp(this.ADDR_VBLANK_INTERRUPT);
     this.paintFrame();
   }
 
