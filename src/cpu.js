@@ -574,6 +574,7 @@ export default class CPU {
     this.mmu.inBIOS = false;
     this.mmu.setIe(0x00);
     this.mmu.setLy(0x00);
+    this._r.c = 0x13; // there's a bug somewhere that leaves c=0x14
   }
 
   /**
