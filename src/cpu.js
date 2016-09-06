@@ -542,12 +542,11 @@ export default class CPU {
       }
 
       this.execute();
+      this._t++;
 
       if (this._t > 0xff){
         this.incrementLy();
         this._t = 0;
-      } else {
-        this._t++;
       }
 
       if (this._r.pc === this.mmu.ADDR_GAME_START){
