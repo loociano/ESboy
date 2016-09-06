@@ -570,7 +570,7 @@ export default class CPU {
    * @private
    */
   _handleVBlankInterrupt(){
-    this._r.ime = 0;
+    this.di();
     this._push_pc();
     this.jp(this.ADDR_VBLANK_INTERRUPT);
     this.paintFrame();
@@ -590,7 +590,7 @@ export default class CPU {
    * @returns {boolean} true if vblank
    */
   isVBlank(){
-    return (this.mmu.ie() & this.mmu.If() & this.IF_VBLANK_ON) === 1;
+    return this._r.ime === 1 && (this.mmu.ie() & this.mmu.If() & this.IF_VBLANK_ON) === 1;
   }
 
   /**
@@ -607,11 +607,13 @@ export default class CPU {
 
     if (ly === 144){
       this._triggerVBlank();
-    } else {
-      this._haltVBlank();
     }
   }
 
+  /**
+   * Sets IF to trigger a vblank interruption
+   * @private
+   */
   _triggerVBlank(){
     this.mmu.setIf(this.If() | this.IF_VBLANK_ON);
   }
