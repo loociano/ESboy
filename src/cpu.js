@@ -316,6 +316,7 @@ export default class CPU {
       0xd6: {fn: this.sub_n, paramBytes: 1},
       0xd7: {fn: this.rst_10, paramBytes: 0},
       0xd8: {fn: this.ret_c, paramBytes: 0},
+      0xd9: {fn: this.reti, paramBytes: 0},
       0xda: {fn: this.jp_c_nn, paramBytes: 2},
       0xdf: {fn: this.rst_18, paramBytes: 0},
       0xe0: {fn: this.ldh_n_a, paramBytes: 1},
