@@ -587,7 +587,7 @@ export default class CPU {
    * @returns {boolean} true if vblank
    */
   isVBlank(){
-    return (this.mmu.If() & this.IF_VBLANK_ON) > 0;
+    return (this.mmu.ie() & this.mmu.If() & this.IF_VBLANK_ON) === 1;
   }
 
   /**
