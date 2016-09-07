@@ -544,6 +544,8 @@ export default class CPU {
    */
   frame(pc_stop){
 
+    this.waitedOne = false;
+
     do {
       if (pc_stop !== -1 && this._r.pc >= pc_stop){
         this.end();
@@ -579,7 +581,7 @@ export default class CPU {
   }
 
   /**
-   * @returns {boolean}
+   * @returns {boolean} if vblank interrupt should be triggered
    * @private
    */
   _isVBlankTriggered(){
@@ -618,7 +620,15 @@ export default class CPU {
    * @returns {boolean} true if vblank
    */
   isVBlank(){
-    return this._r.ime === 1 && (this.mmu.ie() & this.mmu.If() & this.IF_VBLANK_ON) === 1;
+    if (this._r.ime === 1 && (this.mmu.ie() & this.mmu.If() & this.IF_VBLANK_ON) === 1){
+      if (!this.waitedOne){
+        this.waitedOne = true;
+      } else {
+        this.waitedOne = false;
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

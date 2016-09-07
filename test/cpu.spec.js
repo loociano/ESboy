@@ -1482,33 +1482,6 @@ describe('CPU Unit tests', function() {
 
   describe('Interruptions', () => {
 
-    it('should handle vertical blanking interrupt', () => {
-      cpu.setPC(0x150);
-      cpu.setIf(0b00001);
-      cpu._t = 0xff;
-      cpu.ei();
-      cpu.mmu.writeByteAt(cpu.mmu.ADDR_IE, 0x01); // Allow vblank
-
-      const pc = cpu.pc();
-      const nextPC = pc + 1; // 0x150 is a nop, next is 0x151
-      const sp = cpu.sp();
-
-      assert.equal(cpu.ime(), 1, 'IME enabled');
-      assert.equal(cpu.ie() & 0x01, 1, 'Vblank allowed');
-      assert.equal(cpu.If(), 0b00001, 'Vblank requested');
-      
-      cpu.start();
-
-      assert.equal(cpu.ime(), 0, 'IME disabled');
-      assert.equal(cpu.peek_stack(1), Utils.msb(nextPC), 'high pc on stack');
-      assert.equal(cpu.peek_stack(), Utils.lsb(nextPC), 'low pc on stack');
-      assert.equal(cpu.pc(), cpu.ADDR_VBLANK_INTERRUPT);
-
-      cpu.runUntil(cpu.ADDR_VBLANK_INTERRUPT + 1);
-
-      assert.equal(cpu.pc(), cpu.ADDR_VBLANK_INTERRUPT + 1, 'PC advances in vblank routine');
-    });
-
     it('should disable interruptions', () => {
       cpu.di();
       assert.equal(cpu.ime(), 0, 'Interrupt Master Enable Flag disabled, all interruptions are prohibited.');
