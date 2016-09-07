@@ -1708,7 +1708,7 @@ export default class CPU {
    * @private
    */
   _res_b_r(bit, r){
-    this._r[r] &= (0xff & (0 << bit));
+    this._r[r] &= Utils.bitMask(bit);
   }
 
   /**
