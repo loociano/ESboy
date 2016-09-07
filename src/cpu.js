@@ -23,6 +23,7 @@ export default class CPU {
 
     this._t = 0; // measure CPU cycles
     this.isPainting = false;
+    this.waited1AfterIe = false;
 
     // Constants
     this.EXTENDED_PREFIX = 0xcb;
@@ -544,8 +545,6 @@ export default class CPU {
    */
   frame(pc_stop){
 
-    this.waitedOne = false;
-
     do {
       if (pc_stop !== -1 && this._r.pc >= pc_stop){
         this.end();
@@ -621,11 +620,11 @@ export default class CPU {
    */
   isVBlank(){
     if (this._r.ime === 1 && (this.mmu.ie() & this.mmu.If() & this.IF_VBLANK_ON) === 1){
-      if (!this.waitedOne){
-        this.waitedOne = true;
-      } else {
-        this.waitedOne = false;
+      if (this.waited1AfterIe){
+        this.waited1AfterIe = false;
         return true;
+      } else {
+        this.waited1AfterIe = true;
       }
     }
     return false;
@@ -1565,6 +1564,7 @@ export default class CPU {
    */
   ei(){
     this._r.ime = 1;
+    this.waited1AfterIe = false;
   }
 
   /**

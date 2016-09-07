@@ -28,7 +28,9 @@ describe('Interruptions', () => {
       assert.equal(this.cpu.ie() & 0x01, 1, 'Vblank allowed');
 
       const pc = this.cpu.pc();
-      const returnPC = 0x0637; // must execute pc+1 (JP 0x0637), next pc is 0x0637 
+      assert.equal(this.cpu.pc(), 0x100);
+
+      const returnPC = 0x0637; // must execute pc+1 (JP 0x0637), next pc is 0x0637
       const sp = this.cpu.sp();
 
       assert.equal(this.cpu.ime(), 1, 'IME enabled');
