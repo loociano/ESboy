@@ -2783,7 +2783,7 @@ export default class CPU {
    * Complements register a
    */
   cpl() {
-    this._r.a = ~this._r.a;
+    this._r.a = Utils.cplBin8(this._r.a);
     this.setN(1); this.setH(1);
   }
 
