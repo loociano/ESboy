@@ -57,6 +57,11 @@ describe('Utils', () => {
 
   });
 
+  it('should complement a binary string', () => {
+    assert.equal(Utils.cplBin8(0), 0xff);
+    assert.equal(Utils.cplBin8(0xff), 0x00);
+  });
+
   it('should generate a timestamp valid for fs', () => {
     const date = new Date(2016, 0, 2, 10, 20, 30, 400);
     assert.equal(Utils.toFsStamp(date), '2016-01-02T10-20-30-400Z');

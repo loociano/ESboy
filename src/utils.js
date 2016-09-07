@@ -77,4 +77,22 @@ export default class Utils {
   static toFsStamp(date = new Date()){
     return date.toISOString().replace(/\.|:/g,'-');
   }
+
+  /**
+   * Complements bit of a 8 bit number
+   * @param number
+   * @returns {number}
+   */
+  static cplBin8(number){
+    const binStr = Utils.toBin8(number);
+    let complStr = '';
+    for(let b = 0; b < binStr.length; b++){
+      if (binStr[b] === '1'){
+        complStr += '0';
+      } else if (binStr[b] === '0') {
+        complStr += '1';
+      }
+    }
+    return parseInt(complStr, 2);
+  }
 }
