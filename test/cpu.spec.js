@@ -1229,6 +1229,12 @@ describe('CPU Unit tests', function() {
       });
     });
 
+    it('should reset a single bit', () => {
+      cpu.ld_a_n(0xff);
+      cpu.res_0_a();
+      assert.equal(cpu.a(), 0xfe, 'Reset bit 0');
+    });
+
     it('should reset bits at memory location hl', () => {
 
       cpu.ld_hl_nn(0xc000);
