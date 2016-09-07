@@ -62,6 +62,13 @@ describe('Utils', () => {
     assert.equal(Utils.cplBin8(0xff), 0x00);
   });
 
+  it('should create a 8 bit mask', () => {
+    assert.equal(Utils.bitMask(0), 0b11111110);
+    assert.equal(Utils.bitMask(3), 0b11110111);
+    assert.equal(Utils.bitMask(7), 0b01111111);
+    assert.throws( () => Utils.bitMask(8) );
+  });
+
   it('should generate a timestamp valid for fs', () => {
     const date = new Date(2016, 0, 2, 10, 20, 30, 400);
     assert.equal(Utils.toFsStamp(date), '2016-01-02T10-20-30-400Z');

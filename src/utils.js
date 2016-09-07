@@ -95,4 +95,16 @@ export default class Utils {
     }
     return parseInt(complStr, 2);
   }
+
+  static bitMask(bit){
+    if (bit > 7) throw new Error('Bit must be [0,7]');
+
+    let result = 0;
+    for(let b = 0; b < 8; b++){
+      if (b != bit){
+        result |= (1 << b);
+      }
+    }
+    return result;
+  }
 }
