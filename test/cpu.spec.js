@@ -1415,13 +1415,19 @@ describe('CPU Unit tests', function() {
   describe('Miscellaneous', () => {
 
     it('should complement register a', () => {
-      cpu.ld_a_n(0x33);
+      cpu.ld_a_n(0b00110011);
       
       cpu.cpl();
 
-      assert.equal(cpu.a(), ~0x33, 'Complement a');
+      assert.equal(cpu.a(), 0b11001100, 'Complement a');
       assert.equal(cpu.N(), 1, 'N always set');
       assert.equal(cpu.H(), 1, 'H always set');
+
+      cpu.ld_a_n(0b00010000);
+
+      cpu.cpl();
+
+      assert.equal(cpu.a(), 0b11101111, 'Complement a');
     });
 
     it('should swap nybbles', () => {
