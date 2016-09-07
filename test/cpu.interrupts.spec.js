@@ -46,5 +46,6 @@ describe('Interruptions', () => {
       this.cpu.runUntil(this.cpu.ADDR_VBLANK_INTERRUPT + 1);
 
       assert.equal(this.cpu.pc(), this.cpu.ADDR_VBLANK_INTERRUPT + 1, 'PC advances in vblank routine');
+      assert.equal(this.cpu.If(), 0x00, 'Vblank dispatched');
   });
 });

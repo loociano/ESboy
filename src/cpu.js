@@ -655,7 +655,11 @@ export default class CPU {
     this.mmu.setIf(this.If() | this.IF_VBLANK_ON);
   }
 
-  _haltVBlank(){
+  /**
+   * Resets vblank when dispatched.
+   * @private
+   */
+  _resetVBlank(){
     this.mmu.setIf(this.If() & this.IF_VBLANK_OFF);
   }
 
@@ -2932,6 +2936,7 @@ export default class CPU {
    * @private
    */
   _rst_40(){
+    this._resetVBlank();
     this._rst_n(this.ADDR_VBLANK_INTERRUPT);
   }
 
