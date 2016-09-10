@@ -22,16 +22,15 @@ describe('CPU Unit tests', function() {
 
   describe('ROM file loading', () => {
     it('should handle missing ROM filename', () => {
-
-      assert.throws(() => {
-        let cpu = new CPU();
-      }, Error);
+      assert.throws(() => new CPU(), Error);
     });
 
     it('should handle missing ROM file', () => {
-      assert.throws(() => {
-        let cpu = new CPU('./roms/nope.gb');
-      }, Error);
+      assert.throws(() => new CPU(new MMU('./roms/nope.gb')), Error);
+    });
+
+    it('should handle missing ipc', () => {
+      assert.throws( () => new CPU(new MMU(), null), Error, 'Missing ipc');
     });
   });
 

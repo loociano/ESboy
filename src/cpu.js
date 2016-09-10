@@ -343,38 +343,65 @@ export default class CPU {
     };
   }
 
+  /**
+   * @returns {number} Accumulator
+   */
   a(){
     return this._r.a;
   }
 
+  /**
+   * @returns {number} register b
+   */
   b(){
     return this._r.b;
   }
 
+  /**
+   * @returns {number} register c
+   */
   c(){
     return this._r.c;
   }
 
+  /**
+   * @returns {number} register d
+   */
   d(){
     return this._r.d;
   }
 
+  /**
+   * @returns {number} register e
+   */
   e(){
     return this._r.e;
   }
 
+  /**
+   * @returns {number} register h
+   */
   h(){
     return this._r.h;
   }
 
+  /**
+   * @returns {number} register l
+   */
   l(){
     return this._r.l;
   }
 
+  /**
+   * @returns {number} program counter
+   */
   pc(){
     return this._r.pc;
   }
 
+  /**
+   * @returns {number} stack pointer
+   */
   sp(){
     return this._r.sp;
   }
@@ -416,6 +443,11 @@ export default class CPU {
     return (this._r.h << 8) + this._r.l;
   }
 
+  /**
+   * Sets register hl
+   * @param nn
+   * @private
+   */
   _set_hl(nn){
     this._r.h = nn >> 8 & 0x00ff;
     this._r.l = nn & 0x00ff;
@@ -436,22 +468,40 @@ export default class CPU {
     return (this._r._f & 0xf0) >> 4;
   }
 
+  /**
+   * @returns {number} interrupt master enable
+   */
   ime(){
     return this._r.ime;
   }
 
+  /**
+   * @returns {number} interrupt enable register
+   */
   ie(){
     return this.mmu.ie();
   }
 
+  /**
+   * @returns {*|number} interrupt flags
+   * @constructor
+   */
   If(){
     return this.mmu.If();
   }
 
+  /**
+   * Sets Interrupt flags
+   * @param value
+   * @returns {*}
+   */
   setIf(value){
-    return this.mmu.setIf(value);
+    this.mmu.setIf(value);
   }
 
+  /**
+   * @returns {number} LCD Control Register
+   */
   lcdc(){
     return this.mmu.lcdc();
   }
