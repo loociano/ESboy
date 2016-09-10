@@ -1587,11 +1587,7 @@ export default class CPU {
    * @param {number} n, signed integer
    */
   jr_nz_n(n){
-    if (this.Z() === 0){
-      this.jp_n(n);
-    } else {
-      this._m += 2;
-    }
+    this._jr_flag_n(this.Z(), 0, n);
   }
 
   /**
@@ -1599,11 +1595,7 @@ export default class CPU {
    * @param {number} n, signed integer
    */
   jr_z_n(n){
-    if (this.Z() === 1){
-      this.jp_n(n);
-    } else {
-      this._m += 2;
-    }
+    this._jr_flag_n(this.Z(), 1, n);
   }
 
   /**
