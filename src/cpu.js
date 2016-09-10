@@ -1579,9 +1579,7 @@ export default class CPU {
    * @param nn
    */
   jp_c_nn(nn){
-    if (this.C() === 1){
-      this._r.pc = nn;
-    }
+    this._jp_flag_nn(this.C(), 1, nn);
   }
 
   /**
@@ -1636,9 +1634,7 @@ export default class CPU {
    * @param {number} n signed integer
    */
   jr_c_n(n){
-    if (this.C() === 1){
-      this._r.pc += Utils.uint8ToInt8(n);
-    }
+    this._jr_flag_n(this.C(), 1, n);
   }
 
   /** 

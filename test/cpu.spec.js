@@ -297,15 +297,23 @@ describe('CPU Unit tests', function() {
     describe('Jump C with address', () => {
       it('should jump to address if Carry is set', () => {
         cpu.setC(1);
+        const m = cpu.m();
+
         cpu.jp_c_nn(0xc000);
+
         assert.equal(cpu.pc(), 0xc000, 'jump to address');
+        assert.equal(cpu.m(), m+4, 'Runs in 4 machine cycles if jumps');
       });
 
       it('should not jump to address if Carry is reset', () => {
         cpu.setC(0);
         const pc = cpu.pc();
+        const m = cpu.m();
+
         cpu.jp_c_nn(0xc000);
+
         assert.equal(cpu.pc(), pc, 'do not jump to address');
+        assert.equal(cpu.m(), m+3, 'Runs in 3 machine cycles if does not jump');
       });
     });
 
@@ -313,28 +321,35 @@ describe('CPU Unit tests', function() {
       it('should jump forward if C is set', () => {
         cpu.setC(1);
         const pc = cpu.pc();
+        const m = cpu.m();
 
         cpu.jr_c_n(0x05);
 
         assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0x05), 'jump forward');
+        assert.equal(cpu.m(), m+3, 'Runs in 3 machine cycles if jumps');
       });
 
       it('should jump backwards if C is set', () => {
+        cpu.setPC(0x100);
         cpu.setC(1);
         const pc = cpu.pc();
+        const m = cpu.m();
 
         cpu.jr_c_n(0xfc);
 
         assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0xfc), 'jump backward');
+        assert.equal(cpu.m(), m+3, 'Runs in 3 machine cycles if jumps');
       });
 
       it('should not jump if C is reset', () => {
         cpu.setC(0);
         const pc = cpu.pc();
+        const m = cpu.m();
 
         cpu.jr_c_n(0xfc);
 
         assert.equal(cpu.pc(), pc, 'do not jump, move to the next instruction');
+        assert.equal(cpu.m(), m+2, 'Runs in 2 machine cycles if does not jump');
       });
     });
 
