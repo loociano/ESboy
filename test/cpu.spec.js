@@ -77,16 +77,22 @@ describe('CPU Unit tests', function() {
 
   describe('Jumps', () => {
     it('should jump to address', () => {
+      const m = cpu.m();
+
       cpu.jp(0x123);
+
       assert.equal(cpu.pc(), 0x123);
+      assert.equal(cpu.m(), m+4, 'JP runs in 4 machine cycles');
     });
 
     it('should jump to address contained in hl', () => {
       cpu.ld_hl_nn(0xc000);
+      const m = cpu.m();
 
       cpu.jp_hl();
 
       assert.equal(cpu.pc(), 0xc000);
+      assert.equal(cpu.m(), m+1, 'JP (HL) runs in 1 machine cycle');
     });
 
     it('should jump to signed offset', () => {
@@ -97,9 +103,11 @@ describe('CPU Unit tests', function() {
         cpu.jp_n(0xff); // -1
       }, Error, 'cannot jump outside memory space');
 
+      const m = cpu.m();
       cpu.jp_n(0x05);
 
       assert.equal(cpu.pc(), pc + offset, `jump forward ${offset}`);
+      assert.equal(cpu.m(), m+3, 'JP e runs in 3 machine cycles');
 
       pc = cpu.pc();
       offset = Utils.uint8ToInt8(0xff);
@@ -107,21 +115,28 @@ describe('CPU Unit tests', function() {
       cpu.jp_n(0xff);
 
       assert.equal(cpu.pc(), pc + offset, `jump backward ${offset}`);
-
     });
 
     describe('Jump NZ with address', () => {
       it('should jump to address if Z is reset', () => {
         cpu.setZ(0);
+        const m = cpu.m();
+
         cpu.jp_nz_nn(0xc000);
+
         assert.equal(cpu.pc(), 0xc000, 'jump to address');
+        assert.equal(cpu.m(), m+4, 'JP NZ runs in 4 machine cycles if jumps');
       });
 
       it('should not jump to address if Z is set', () => {
         cpu.setZ(1);
         const pc = cpu.pc();
+        const m = cpu.m();
+
         cpu.jp_nz_nn(0xc000);
+
         assert.equal(cpu.pc(), pc, 'do not jump to address');
+        assert.equal(cpu.m(), m+3, 'JP NZ runs in 3 machine cycles if does not jump');
       });
     });
 
@@ -129,43 +144,58 @@ describe('CPU Unit tests', function() {
       it('should jump forward if Z is reset', () => {
         cpu.setZ(0);
         const pc = cpu.pc();
+        const m = cpu.m();
 
         cpu.jr_nz_n(0x05);
 
         assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0x05), 'jump forward');
+        assert.equal(cpu.m(), m+3, 'JR NZ runs in 3 machine cycles if jumps');
       });
 
       it('should jump backwards if Z is reset', () => {
+        cpu.setPC(0x100);
         cpu.setZ(0);
         const pc = cpu.pc();
+        const m = cpu.m();
 
-        cpu.jr_nz_n(0xfc);
+        cpu.jr_nz_n(0xfc); // -4
 
         assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0xfc), 'jump backward');
+        assert.equal(cpu.m(), m+3, 'JR NZ runs in 3 machine cycles if jumps');
       });
 
       it('should not jump if Z is set', () => {
         cpu.setZ(1);
         const pc = cpu.pc();
+        const m = cpu.m();
 
         cpu.jr_nz_n(0xfc);
 
         assert.equal(cpu.pc(), pc, 'do not jump, move to the next instruction');
+        assert.equal(cpu.m(), m+2, 'JR NZ runs in 2 machine cycles if does not jump');
       });
     });
 
     describe('Jump Z with address', () => {
       it('should jump to address if Z is set', () => {
         cpu.setZ(1);
+        const m = cpu.m();
+
         cpu.jp_z_nn(0xc000);
+
         assert.equal(cpu.pc(), 0xc000, 'jump to address');
+        assert.equal(cpu.m(), m+4, 'JP Z nn runs in 4 machine cycles if jumps');
       });
 
       it('should not jump to address if Z is reset', () => {
         cpu.setZ(0);
         const pc = cpu.pc();
+        const m = cpu.m();
+
         cpu.jp_z_nn(0xc000);
+
         assert.equal(cpu.pc(), pc, 'do not jump to address');
+        assert.equal(cpu.m(), m+3, 'JP Z runs in 3 machine cycles if does not jump');
       });
     });
 
@@ -173,28 +203,35 @@ describe('CPU Unit tests', function() {
       it('should jump forward if Z is set', () => {
         cpu.setZ(1);
         const pc = cpu.pc();
+        const m = cpu.m();
 
         cpu.jr_z_n(0x05);
 
         assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0x05), 'jump forward');
+        assert.equal(cpu.m(), m+3, 'JR Z e runs in 3 machine cycles if jumps');
       });
 
       it('should jump backwards if Z is set', () => {
+        cpu.setPC(0x100);
         cpu.setZ(1);
         const pc = cpu.pc();
+        const m = cpu.m();
 
-        cpu.jr_z_n(0xfc);
+        cpu.jr_z_n(0xfc); // -4
 
         assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0xfc), 'jump backward');
+        assert.equal(cpu.m(), m+3, 'JR Z e runs in 3 machine cycles if jumps');
       });
 
       it('should not jump if Z is reset', () => {
         cpu.setZ(0);
         const pc = cpu.pc();
+        const m = cpu.m();
 
         cpu.jr_z_n(0xfc);
 
         assert.equal(cpu.pc(), pc, 'do not jump, move to the next instruction');
+        assert.equal(cpu.m(), m+2, 'JR Z e runs in 2 machine cycles if jumps');
       });
     });
 

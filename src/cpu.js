@@ -799,6 +799,7 @@ export default class CPU {
    */
   jp(nn){
     this._r.pc = nn;
+    this._m += 4;
   }
 
   /**
@@ -811,6 +812,7 @@ export default class CPU {
       throw new Error(`Program counter outside memory space at ${Utils.hex4(this._r.pc)}`);
     }
     this._r.pc = nextAddress;
+    this._m += 3;
   }
 
   /**
@@ -818,6 +820,7 @@ export default class CPU {
    */
   jp_hl(){
     this._r.pc = this.hl();
+    this._m++;
   }
 
   /**
@@ -1538,7 +1541,9 @@ export default class CPU {
    */
   jp_nz_nn(nn){
     if (this.Z() === 0){
-      this._r.pc = nn;
+      this.jp(nn);
+    } else {
+      this._m += 3;
     }
   }
 
@@ -1548,7 +1553,9 @@ export default class CPU {
    */
   jp_z_nn(nn){
     if (this.Z() === 1){
-      this._r.pc = nn;
+      this.jp(nn);
+    } else {
+      this._m += 3;
     }
   }
 
@@ -1578,7 +1585,9 @@ export default class CPU {
    */
   jr_nz_n(n){
     if (this.Z() === 0){
-      this._r.pc += Utils.uint8ToInt8(n);
+      this.jp_n(n);
+    } else {
+      this._m += 2;
     }
   }
 
@@ -1588,7 +1597,9 @@ export default class CPU {
    */
   jr_z_n(n){
     if (this.Z() === 1){
-      this._r.pc += Utils.uint8ToInt8(n);
+      this.jp_n(n);
+    } else {
+      this._m += 2;
     }
   }
 
