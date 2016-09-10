@@ -1540,11 +1540,7 @@ export default class CPU {
    * @param nn
    */
   jp_nz_nn(nn){
-    if (this.Z() === 0){
-      this.jp(nn);
-    } else {
-      this._m += 3;
-    }
+    this._jp_flag_nn(this.Z(), 0, nn);
   }
 
   /**
@@ -1552,7 +1548,18 @@ export default class CPU {
    * @param nn
    */
   jp_z_nn(nn){
-    if (this.Z() === 1){
+    this._jp_flag_nn(this.Z(), 1, nn);
+  }
+
+  /**
+   * Jumps to memory nn if the given flag has the given value.
+   * @param flag
+   * @param valueToJump
+   * @param nn
+   * @private
+   */
+  _jp_flag_nn(flag, valueToJump, nn){
+    if (this.Z() === valueToJump){
       this.jp(nn);
     } else {
       this._m += 3;
