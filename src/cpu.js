@@ -25,6 +25,8 @@ export default class CPU {
     this.isPainting = false;
     this.waited1AfterIe = false;
 
+    this._m = 0;
+
     // Constants
     this.EXTENDED_PREFIX = 0xcb;
     this.ADDR_VBLANK_INTERRUPT = 0x0040;
@@ -819,9 +821,11 @@ export default class CPU {
   }
 
   /**
-   * Does nothing
+   * No operation.
    */
-  nop(){}
+  nop(){
+    this._m++;
+  }
 
   /**
    * Register a AND a

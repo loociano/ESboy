@@ -14,10 +14,14 @@ describe('CPU Unit tests', function() {
 
   beforeEach(function() {
     cpu = new CPU(new MMU('./roms/blargg_cpu_instrs.gb'), new ipcMock());
+
     cpu.setPC = function(pc){
       this.mmu.inBIOS = false;
-      this._r.pc = pc; // for testing!
+      this._r.pc = pc;
     };
+    cpu.m = function(){
+      return this._m;
+    }
   });
 
   describe('ROM file loading', () => {
@@ -61,6 +65,14 @@ describe('CPU Unit tests', function() {
       testSetGetFlag(cpu, cpu.setC, cpu.C);
     });
 
+  });
+
+  describe('NOP', () => {
+    it('should run NOP in 1 machine cycle', () => {
+      const m = cpu.m();
+      cpu.nop();
+      assert.equal(cpu.m(), m+1, 'NOP runs in 1 machine cycle.');
+    });
   });
 
   describe('Jumps', () => {
