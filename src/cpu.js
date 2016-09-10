@@ -1559,7 +1559,7 @@ export default class CPU {
    * @private
    */
   _jp_flag_nn(flag, valueToJump, nn){
-    if (this.Z() === valueToJump){
+    if (flag === valueToJump){
       this.jp(nn);
     } else {
       this._m += 3;
@@ -1571,9 +1571,7 @@ export default class CPU {
    * @param nn
    */
   jp_nc_nn(nn){
-    if (this.C() === 0){
-      this._r.pc = nn;
-    }
+    this._jp_flag_nn(this.C(), 0, nn);
   }
 
   /**
@@ -1611,13 +1609,26 @@ export default class CPU {
   }
 
   /**
+   * Jumps to signed value n if given flag matches given value
+   * @param flag
+   * @param valueToJump
+   * @param n
+   * @private
+   */
+  _jr_flag_n(flag, valueToJump, n){
+    if (flag === valueToJump){
+      this.jp_n(n);
+    } else {
+      this._m += 2;
+    }
+  }
+
+  /**
    * Jumps to current address + n if last operation did not carry 1 bit.
    * @param {number} n, signed integer
    */
   jr_nc_n(n){
-    if (this.C() === 0){
-      this._r.pc += Utils.uint8ToInt8(n);
-    }
+    this._jr_flag_n(this.C(), 0, n);
   }
 
   /**
