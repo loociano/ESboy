@@ -20,4 +20,4 @@ Run all tests:
 
 Debug game in console without GUI:
 
-`npm run cli ./roms/blargg_cpu_instrs.gb -- --debug`
+`npm run cli -- -i ./roms/blargg_cpu_instrs.gb --debug --log-bios`
