@@ -19,9 +19,6 @@ describe('CPU Unit tests', function() {
       this.mmu.inBIOS = false;
       this._r.pc = pc;
     };
-    cpu.m = function(){
-      return this._m;
-    }
   });
 
   describe('ROM file loading', () => {

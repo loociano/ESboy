@@ -577,6 +577,13 @@ export default class CPU {
   }
 
   /**
+   * @returns {number} machine cycles, for TDD
+   */
+  m(){
+    return this._m;
+  }
+
+  /**
    * Main loop
    * @param {number} pc_stop
    */
