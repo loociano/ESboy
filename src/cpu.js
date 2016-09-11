@@ -21,15 +21,15 @@ export default class CPU {
     this.mmu = mmu;
     this.ipc = ipc;
 
-    this._t = 0; // measure CPU cycles
     this.isPainting = false;
     this.waited1AfterIe = false;
 
-    this._m = 0;
+    this._m = 0; // machine cycles for line
 
     // Constants
     this.EXTENDED_PREFIX = 0xcb;
     this.ADDR_VBLANK_INTERRUPT = 0x0040;
+    this.M_CYCLES_PER_LINE = 114;
 
     // Masks
     this.IF_VBLANK_ON = 0b00001;
@@ -604,7 +604,7 @@ export default class CPU {
    */
   frame(pc_stop){
 
-    this._t = 0;
+    this._m = 0;
 
     do {
       if (pc_stop !== -1 && this._r.pc >= pc_stop){
@@ -613,12 +613,7 @@ export default class CPU {
       }
 
       this.execute();
-      this._t++;
-
-      if (this._t > 0x80){
-        this.incrementLy();
-        this._t = 0;
-      }
+      this._handle_ly();
 
       if (this._r.pc === this.mmu.ADDR_GAME_START){
         this._afterBIOS();
@@ -627,6 +622,36 @@ export default class CPU {
     } while (!this._isVBlankTriggered());
 
     this._handleVBlankInterrupt();
+  }
+
+  /**
+   * Handles LY
+   * @private
+   */
+  _handle_ly(){
+    if (this._is_lcd_on()) {
+
+      if (this._m >= this.M_CYCLES_PER_LINE) {
+        this.incrementLy();
+
+        this._m -= this.M_CYCLES_PER_LINE;
+
+        if (this.ly() === 144) {
+          this._triggerVBlank();
+        }
+      }
+
+    } else {
+      this._m = 0;
+    }
+  }
+
+  /**
+   * @returns {boolean} true if LCD is on
+   * @private
+   */
+  _is_lcd_on(){
+    return (this.lcdc() & 0x80) === 0x80;
   }
 
   /**
@@ -702,10 +727,6 @@ export default class CPU {
       ly++;
     }
     this.mmu.setLy(ly);
-
-    if (ly === 144){
-      this._triggerVBlank();
-    }
   }
 
   /**
