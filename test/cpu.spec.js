@@ -1582,25 +1582,6 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.ime(), 1, 'Interrupt Master Enable Flag enabled.');
     });
 
-    it('should generate a vblank interruption', () => {
-      const VBLANK = 10;
-      const HEIGHT = 144;
-      cpu.ei();
-      cpu.mmu.setIe(0x01); // allow vblank
-      cpu.mmu.setLy(0x00);
-
-      let count = 0;
-      for(let i = 0; i < HEIGHT + VBLANK; i++){
-        if (cpu.isVBlank()) {
-          cpu.di();
-          count++;
-        }
-        cpu.incrementLy();
-      }
-
-      assert.equal(count, 1, 'Vertical blank occurs once');
-    });
-
   });
 
 });

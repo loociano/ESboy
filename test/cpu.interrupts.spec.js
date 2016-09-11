@@ -19,6 +19,40 @@ describe('Interruptions', () => {
   });
 
   describe('VBL Interrupt', () => {
+
+    it('should not scan lines with lcd off', function() {
+
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b00000000); // LCD off
+      assert.equal(this.cpu.ly(), 0x00, 'LY reset');
+
+      for (let i = 0; i < this.cpu.M_CYCLES_PER_LINE * this.cpu.mmu.NUM_LINES; i++) {
+        this.cpu.nop();
+      }
+
+      assert.equal(this.cpu.ly(), 0x00, 'LY remains reset');
+    });
+
+    it('should scan lines with lcd on', function() {
+
+      let ly = 0x00;
+      assert.equal(this.cpu.ly(), ly, 'LY reset');
+
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
+
+      this.cpu.execute = () => this.cpu.nop();
+      this.cpu.frame();
+
+      assert.equal(this.cpu.ly(), 144, `LY increased to 144`);
+    });
+
+    it('should restart scan line when lcd is turned off', function() {
+
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
+      this.cpu.mmu.setLy(0x05);
+
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b00000000); // LCD off
+      assert.equal(this.cpu.ly(), 0x00, 'LY reset');
+    });
   
     it('should handle vertical blanking interrupt', function() {
 
