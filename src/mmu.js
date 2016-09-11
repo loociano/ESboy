@@ -37,6 +37,9 @@ export default class MMU {
     this.ADDR_IE = 0xffff;
     this.ADDR_MAX = 0xffff;
 
+    // LCD
+    this.NUM_LINES = 153;
+
     // Values
     this.IS_GB_COLOR = 0x80;
 
@@ -218,8 +221,34 @@ export default class MMU {
       case this.ADDR_STAT:
         n |= 0x80; // Bit 7 is always set
         break;
+      case this.ADDR_LCDC:
+        this._handle_lcdc(n);
+        break;
     }
     this.memory[addr] = n;
+  }
+
+  /**
+   * Handles updates to LCD Control Register (LCDC)
+   * @param n
+   * @private
+   */
+  _handle_lcdc(n){
+    switch(n & 0x80){
+      case 0:
+        this._handle_lcd_off();
+        break;
+      case 1:
+        break;
+    }
+  }
+
+  /**
+   * Handles actions when LCD turns off
+   * @private
+   */
+  _handle_lcd_off(){
+    this.setLy(0x00);
   }
 
   /**
