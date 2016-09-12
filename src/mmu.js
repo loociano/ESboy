@@ -470,6 +470,19 @@ export default class MMU {
     this.writeByteAt(this.ADDR_LY, line);
   }
 
+    /**
+   * Increments register LY by 1. Resets after 153.
+   */
+  incrementLy(){
+    let ly = this.ly();
+    if (ly >= 153){
+      ly = 0;
+    } else {
+      ly++;
+    }
+    this.setLy(ly);
+  }
+
   /**
    * Bank register for LCD display RAM.
    * Always zero in DMG.

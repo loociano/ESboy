@@ -632,7 +632,7 @@ export default class CPU {
     if (this._is_lcd_on()) {
 
       if (this._m >= this.M_CYCLES_PER_LINE) {
-        this.incrementLy();
+        this.mmu.incrementLy();
 
         this._m -= this.M_CYCLES_PER_LINE;
 
@@ -714,19 +714,6 @@ export default class CPU {
       }
     }
     return false;
-  }
-
-  /**
-   * Increments LY by 1.
-   */
-  incrementLy(){
-    let ly = this.mmu.ly();
-    if (ly >= 153){
-      ly = 0;
-    } else {
-      ly++;
-    }
-    this.mmu.setLy(ly);
   }
 
   /**
