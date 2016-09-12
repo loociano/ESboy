@@ -106,9 +106,28 @@ describe('MMU', () => {
 
   });
 
-  it('should write ly', () => {
-    mmu.setLy(0x01);
-    assert.equal(mmu.ly(), 0x01, 'set ly');
+  describe('LY Register', () => {
+
+    it('should write ly', () => {
+      mmu.setLy(0x01);
+      assert.equal(mmu.ly(), 0x01, 'set ly');
+    });
+
+    it('should increment ly', () => {
+      mmu.setLy(0);
+      mmu.incrementLy();
+      mmu.incrementLy();
+      assert.equal(mmu.ly(), 2, 'LY incremented one');
+    });
+
+    it('should restart ly', () => {
+      mmu.setLy(153);
+
+      mmu.incrementLy();
+
+      assert.equal(mmu.ly(), 0, 'LY reset');
+    });
+
   });
 
   describe('LCD Control Register', () => {
