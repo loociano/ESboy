@@ -24,6 +24,9 @@ export default class MMU {
     this.ADDR_COMPLEMENT_CHECK = 0x14d;
     this.ADDR_ROM_MAX = 0x7fff;
 
+    this.BG_CHAR_DATA_8000 = 0x8000;
+    this.BG_CHAR_DATA_8800 = 0x8800;
+
     this.ADDR_SB = 0xff01;
     this.ADDR_SC = 0xff02;
     this.ADDR_IF = 0xff0f;
@@ -36,6 +39,14 @@ export default class MMU {
     this.ADDR_SVBK = 0xff70;
     this.ADDR_IE = 0xffff;
     this.ADDR_MAX = 0xffff;
+
+    // Masks
+    this.MASK_BG_CHAR_DATA = 0x10;
+    this.MASK_BG_CHAR_DATA_8000 = 0x10;
+    this.MASK_BG_CHAR_DATA_8800 = 0xef;
+
+    // Character Data
+    this.CHAR_SIZE = 0x10; // 0x00 to 0x0f
 
     // LCD
     this.NUM_LINES = 153;
@@ -183,8 +194,20 @@ export default class MMU {
     if (tile_number < 0 || tile_number > 0xff){
       throw new Error(`Cannot read tile ${tile_number}`);
     }
-    const start_addr = 0x8000 + (tile_number << 4);
-    return this.memory.slice(start_addr, start_addr + 16);
+    const start_addr = this._getBgCharDataStartAddr() + (tile_number << 4);
+    return this.memory.slice(start_addr, start_addr + this.CHAR_SIZE);
+  }
+
+  /**
+   * @returns {number} start address of background character data based on LCDC
+   * @private
+   */
+  _getBgCharDataStartAddr(){
+    if ((this.lcdc() & this.MASK_BG_CHAR_DATA) === 0){
+      return this.BG_CHAR_DATA_8800;
+    } else {
+      return this.BG_CHAR_DATA_8000;
+    }
   }
 
   /**
