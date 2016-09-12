@@ -135,6 +135,29 @@ describe('MMU', () => {
       mmu.writeByteAt(mmu.ADDR_LCDC, 0xff);
       assert.equal(mmu.lcdc(), 0xff, 'set lcdc');
     });
+
+    it('should read character data 0x8000-0x8fff based on LCDC bit 4', () => {
+      
+      // Mock some character data
+      mmu.memory[0x8000] = 0xab;
+      mmu.memory[0x800f] = 0xcd;
+
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_CHAR_DATA_8000);
+      
+      assert(mmu.readTile(0).equals(new Buffer('ab0000000000000000000000000000cd', 'hex')), 'Character data matches');     
+    });
+
+    it('should read character data 0x8800-0x97ff based on LCDC bit 4', () => {
+      
+      mmu.memory[0x8800] = 0xde;
+      mmu.memory[0x880f] = 0xff;
+
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_CHAR_DATA_8800);
+
+      assert(mmu.readTile(0).equals(new Buffer('de0000000000000000000000000000ff', 'hex')), 'Character data matches');
+    });
+
+
   });
 
   describe('STAT or LCDC Status Flag', () => {
