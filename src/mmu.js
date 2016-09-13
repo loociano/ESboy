@@ -46,11 +46,14 @@ export default class MMU {
     this.LCDC_ON = 0x80;
     this.LCDC_WINDOW = 0x20;
     this.LCDC_OBJ = 0x02;
+    this.LCDC_BG = 0x01;
 
     // Masks
     this.MASK_BG_CHAR_DATA = 0x10;
     this.MASK_WINDOW_ON = 0x20;
     this.MASK_OBJ_ON = 0x02;
+    this.MASK_BG_ON = 0x01;
+    this.MASK_BG_OFF = 0xfe;
 
     this.MASK_BG_CHAR_DATA_8000 = 0x10;
     this.MASK_BG_CHAR_DATA_8800 = 0xef;
@@ -216,8 +219,21 @@ export default class MMU {
     if (tile_number < 0 || tile_number > 0xff){
       throw new Error(`Cannot read tile ${tile_number}`);
     }
+
+    if ((this.lcdc() & this.LCDC_BG) === 0){
+      return this._genEmptyCharBuffer();
+    }
+
     const start_addr = this._getBgCharDataStartAddr() + (tile_number << 4);
     return this.memory.slice(start_addr, start_addr + this.CHAR_SIZE);
+  }
+
+  /**
+   * @returns {Buffer} generates an char-size, empty buffer
+   * @private
+   */
+  _genEmptyCharBuffer(){
+    return new Buffer(this.CHAR_SIZE).fill(0);
   }
 
   /**
