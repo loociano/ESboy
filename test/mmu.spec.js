@@ -155,6 +155,15 @@ describe('MMU', () => {
       assert(mmu.readTile(0).equals(chrData), 'Character data matches');
     });
 
+    it('should read character code', () => {
+      mmu.writeByteAt(0x9800, 0xab);
+      mmu.writeByteAt(0x9bff, 0xcd);
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_CODE_AREA_9800);
+
+      assert.equal(mmu.getCharCode(0, 0), 0xab, 'Block 0');
+      assert.equal(mmu.getCharCode(31, 31), 0xcd, 'Block 1023');
+    });
+
   });
 
   describe('STAT or LCDC Status Flag', () => {
