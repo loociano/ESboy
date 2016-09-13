@@ -42,8 +42,13 @@ export default class MMU {
     this.ADDR_IE = 0xffff;
     this.ADDR_MAX = 0xffff;
 
+    // LCDC
+    this.LCDC_ON = 0x80;
+    this.LCDC_WINDOW = 0x20;
+
     // Masks
     this.MASK_BG_CHAR_DATA = 0x10;
+    this.MASK_WINDOW_ON = 0x20;
     this.MASK_BG_CHAR_DATA_8000 = 0x10;
     this.MASK_BG_CHAR_DATA_8800 = 0xef;
     this.MASK_BG_CODE_AREA_1 = 0xf7;
@@ -283,12 +288,16 @@ export default class MMU {
    * @private
    */
   _handle_lcdc(n){
-    switch(n & 0x80){
+    switch(n & this.LCDC_ON){
       case 0:
         this._handle_lcd_off();
         break;
-      case 1:
+    }
+    switch(n & this.LCDC_WINDOW){
+      case 0:
         break;
+      default:
+        throw new Error('Windowing unsupported');
     }
   }
 
