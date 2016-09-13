@@ -181,6 +181,15 @@ export default class MMU {
     return this.memory.slice(addr_start, addr_end);
   }
 
+  /**
+   * @param buffer
+   * @param addr_start
+   */
+  writeBuffer(buffer, addr_start){
+    if (!addr_start) throw new Error('Must indicate start address');
+    buffer.copy(this.memory, addr_start);
+  }
+
   readBIOSBuffer(){
     return this.bios.slice(0, this.ADDR_GAME_START);
   }
