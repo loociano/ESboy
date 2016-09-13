@@ -133,8 +133,14 @@ describe('MMU', () => {
   describe('LCD Control Register', () => {
 
     it('should read/write lcdc', () => {
-      mmu.writeByteAt(mmu.ADDR_LCDC, 0xff);
-      assert.equal(mmu.lcdc(), 0xff, 'set lcdc');
+      mmu.writeByteAt(mmu.ADDR_LCDC, 0x80);
+      assert.equal(mmu.lcdc(), 0x80, 'LCD on');
+    });
+
+    it('should ignore window as it is unsupported', () => {
+      assert.throws( () => {
+        mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_WINDOW_ON);
+      }, Error, 'Window unsupported');
     });
 
     it('should read character data 0x8000-0x8fff based on LCDC bit 4', () => {
