@@ -26,6 +26,8 @@ export default class MMU {
 
     this.BG_CHAR_DATA_8000 = 0x8000;
     this.BG_CHAR_DATA_8800 = 0x8800;
+    this.BG_DISPLAY_DATA_1 = 0x9800;
+    this.BG_DISPLAY_DATA_2 = 0x9c00;
 
     this.ADDR_SB = 0xff01;
     this.ADDR_SC = 0xff02;
@@ -44,12 +46,14 @@ export default class MMU {
     this.MASK_BG_CHAR_DATA = 0x10;
     this.MASK_BG_CHAR_DATA_8000 = 0x10;
     this.MASK_BG_CHAR_DATA_8800 = 0xef;
+    this.MASK_BG_CODE_AREA_9800 = 0xf7;
 
     // Character Data
     this.CHAR_SIZE = 0x10; // 0x00 to 0x0f
 
     // LCD
     this.NUM_LINES = 153;
+    this.CHARS_PER_LINE = 32;
 
     // Values
     this.IS_GB_COLOR = 0x80;
@@ -229,7 +233,7 @@ export default class MMU {
     if (x < 0 || x > 0x1f || y < 0 || y > 0x1f){
       throw new Error(`Cannot read tile at coord ${x}, ${y}`);
     }
-    const addr = 0x9800 + x + (y * 0x20);
+    const addr = this.BG_DISPLAY_DATA_1 + x + (y * this.CHARS_PER_LINE);
     return this.readByteAt(addr);
   }
 
