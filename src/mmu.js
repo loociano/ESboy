@@ -46,7 +46,8 @@ export default class MMU {
     this.MASK_BG_CHAR_DATA = 0x10;
     this.MASK_BG_CHAR_DATA_8000 = 0x10;
     this.MASK_BG_CHAR_DATA_8800 = 0xef;
-    this.MASK_BG_CODE_AREA_9800 = 0xf7;
+    this.MASK_BG_CODE_AREA_1 = 0xf7;
+    this.MASK_BG_CODE_AREA_2 = 0x08;
 
     // Character Data
     this.CHAR_SIZE = 0x10; // 0x00 to 0x0f
@@ -233,8 +234,20 @@ export default class MMU {
     if (x < 0 || x > 0x1f || y < 0 || y > 0x1f){
       throw new Error(`Cannot read tile at coord ${x}, ${y}`);
     }
-    const addr = this.BG_DISPLAY_DATA_1 + x + (y * this.CHARS_PER_LINE);
+    const addr = this._getBgDisplayDataStartAddr() + x + (y * this.CHARS_PER_LINE);
     return this.readByteAt(addr);
+  }
+
+  /**
+   * @returns {number} start address of the background display data
+   * @private
+   */
+  _getBgDisplayDataStartAddr(){
+    if((this.lcdc() & this.MASK_BG_CODE_AREA_2) === 0){
+      return this.BG_DISPLAY_DATA_1;
+    } else {
+      return this.BG_DISPLAY_DATA_2;
+    }
   }
 
   /**
