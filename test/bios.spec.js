@@ -36,8 +36,8 @@ describe.skip('BIOS execution', function() {
   });
 
   it('should write the map to tiles', function() {
-    assert.equal(cpu.mmu.getTileNbAtCoord(0x04, 0x08), 0x01, 'Tile 1 at 0x04,0x08');
-    assert.equal(cpu.mmu.getTileNbAtCoord(0x10, 0x08), 0x19, 'Tile 19 at 0x10,0x08');
+    assert.equal(cpu.mmu.getCharCode(0x04, 0x08), 0x01, 'Tile 1 at 0x04,0x08');
+    assert.equal(cpu.mmu.getCharCode(0x10, 0x08), 0x19, 'Tile 19 at 0x10,0x08');
   });
 
   it('should init IO registers', function() {

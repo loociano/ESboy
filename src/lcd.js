@@ -40,7 +40,7 @@ export default class LCD {
   drawTiles(){
     for(let x = 0; x < this.H_TILES; x++){
       for(let y = 0; y < this.V_TILES; y++){
-        this.drawTile({tile_number: this.mmu.getTileNbAtCoord(x, y), grid_x: x, grid_y: y});
+        this.drawTile({tile_number: this.mmu.getCharCode(x, y), grid_x: x, grid_y: y});
       }
     }
   }

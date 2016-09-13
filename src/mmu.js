@@ -220,12 +220,12 @@ export default class MMU {
   }
 
   /**
-   * Returns the tile number given the map hex coordinates.
-   * @param x
-   * @param y
+   * Returns the char code given the x,y lcd coordinates
+   * @param {number} x between 0 and 31
+   * @param {number} y between 0 and 31
    * @returns {number}
    */
-  getTileNbAtCoord(x, y){
+  getCharCode(x, y){
     if (x < 0 || x > 0x1f || y < 0 || y > 0x1f){
       throw new Error(`Cannot read tile at coord ${x}, ${y}`);
     }
