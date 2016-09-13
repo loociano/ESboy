@@ -179,6 +179,12 @@ describe('MMU', () => {
       assert.equal(mmu.getCharCode(31, 31), 0xcd, 'Block 1023');
     });
 
+    it('should ignore OBJ as they are unsupported', () => {
+      assert.throws( () => {
+        mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_OBJ_ON);
+      }, Error, 'OBJ unsupported');
+    });
+
   });
 
   describe('STAT or LCDC Status Flag', () => {

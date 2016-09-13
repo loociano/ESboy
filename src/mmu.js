@@ -45,10 +45,13 @@ export default class MMU {
     // LCDC
     this.LCDC_ON = 0x80;
     this.LCDC_WINDOW = 0x20;
+    this.LCDC_OBJ = 0x02;
 
     // Masks
     this.MASK_BG_CHAR_DATA = 0x10;
     this.MASK_WINDOW_ON = 0x20;
+    this.MASK_OBJ_ON = 0x02;
+
     this.MASK_BG_CHAR_DATA_8000 = 0x10;
     this.MASK_BG_CHAR_DATA_8800 = 0xef;
     this.MASK_BG_CODE_AREA_1 = 0xf7;
@@ -298,6 +301,12 @@ export default class MMU {
         break;
       default:
         throw new Error('Windowing unsupported');
+    }
+    switch(n & this.LCDC_OBJ){
+      case 0:
+        break;
+      default:
+        throw new Error('OBJ unsupported');
     }
   }
 
