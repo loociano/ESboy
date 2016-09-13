@@ -147,7 +147,7 @@ describe('MMU', () => {
       const chrData = new Buffer('ab0000000000000000000000000000cd', 'hex');
       mmu.writeBuffer(chrData, 0x8000);
 
-      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_CHAR_DATA_8000);
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_CHAR_DATA_8000 | mmu.MASK_BG_ON);
       
       assert(mmu.readTile(0).equals(chrData), 'Character data matches');
     });
@@ -156,7 +156,7 @@ describe('MMU', () => {
       const chrData = new Buffer('ab0000000000000000000000000000cd', 'hex');
       mmu.writeBuffer(chrData, 0x8800);
 
-      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_CHAR_DATA_8800);
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_CHAR_DATA_8800 | mmu.MASK_BG_ON);
 
       assert(mmu.readTile(0).equals(chrData), 'Character data matches');
     });
@@ -183,6 +183,18 @@ describe('MMU', () => {
       assert.throws( () => {
         mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_OBJ_ON);
       }, Error, 'OBJ unsupported');
+    });
+
+    it('should turn on/off background', () => {
+      const chrData = new Buffer('ab0000000000000000000000000000cd', 'hex');
+      mmu.writeBuffer(chrData, 0x8000);
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_ON | mmu.MASK_BG_CHAR_DATA_8000);
+
+      assert(mmu.readTile(0).equals(chrData), 'Character data matches');
+
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_OFF);
+
+      assert(mmu.readTile(0).equals(new Buffer('00000000000000000000000000000000', 'hex')), 'Transparent');
     });
 
   });
