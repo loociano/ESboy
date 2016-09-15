@@ -18,6 +18,15 @@ describe('Interruptions', () => {
     };
   });
 
+  describe('LCD modes', () => {
+
+    it('should start on LCD mode 0', function() {
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
+      assert.equal(this.cpu.mmu.getLCDMode(), 0, 'Mode 0');
+    });
+
+  });
+
   describe('VBL Interrupt', () => {
 
     it('should not scan lines with lcd off', function() {
@@ -43,6 +52,7 @@ describe('Interruptions', () => {
       this.cpu.frame();
 
       assert.equal(this.cpu.ly(), 144, `LY increased to 144`);
+      assert.equal(this.cpu.clk(), 70224, 'Clocks in complete refresh');
     });
 
     it('should restart scan line when lcd is turned off', function() {
