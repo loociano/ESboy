@@ -489,26 +489,62 @@ describe('CPU Unit tests', function() {
         assert.equal(cpu.f(), 0b1000, 'Zero flag set');
       });
     });
-   
-    it('should XOR register a', () => {
-      cpu.xor_a();
-      assert.equal(cpu.a(), 0x00);
-      assert.equal(cpu.f(), 0b1000, 'Z=1, N=0, h=0, c=0');
-    });
 
-    it('should XOR register a with n', () => {
-      const a = cpu.a();
-      cpu.xor_n(a);
-      assert.equal(cpu.a(), 0x00, 'register a should be zero.');
-      assert.equal(cpu.f(), 0b1000, 'Z=1, N=0, h=0, c=0');
-    });
+    describe('XOR', () => {
 
-    it('should xor register a with memory address hl', () => {
-      const a = cpu.a();
-      const hl = cpu.hl();
-      const value = cpu.mmu.readByteAt(hl);
-      cpu.xor_0xhl();
-      assert.equal(cpu.a(), a ^ value, `register a should be ${Utils.hexStr(a)} xor ${Utils.hexStr(value)}`);
+      it('should XOR register a', () => {
+        const m = cpu.m();
+
+        cpu.xor_a();
+
+        assert.equal(cpu.a(), 0x00);
+        assert.equal(cpu.f(), 0b1000, 'Z=1, N=0, h=0, c=0');
+        assert.equal(cpu.m(), m+1, 'XOR A,A runs in 1 machine cycle');
+      });
+
+      it('should XOR register a with register r', () => {
+
+        [{ld: cpu.ld_b_n, xor: cpu.xor_b},
+          {ld: cpu.ld_c_n, xor: cpu.xor_c},
+          {ld: cpu.ld_d_n, xor: cpu.xor_d},
+          {ld: cpu.ld_e_n, xor: cpu.xor_e},
+          {ld: cpu.ld_h_n, xor: cpu.xor_h},
+          {ld: cpu.ld_l_n, xor: cpu.xor_l}].map(({ld, xor}) => {
+
+          const m = cpu.m();
+          cpu.ld_a_n(0x11);
+          ld.call(cpu, 0x22);
+
+          xor.call(cpu);
+
+          assert.equal(cpu.a(), 0x11 ^ 0x22, `a ${xor.name}`);
+          assert.equal(cpu.f(), 0b0000, `All flags zero with ${xor.name}`);
+          assert.equal(cpu.m(), m+1, 'XOR A,r runs in 1 machine cycle');
+        });
+      });
+
+      it('should XOR register a with n', () => {
+        const m = cpu.m();
+        cpu.ld_a_n(0x00);
+
+        cpu.xor_n(0x00);
+
+        assert.equal(cpu.a(), 0x00, 'register a should be zero.');
+        assert.equal(cpu.f(), 0b1000, 'Z=1, N=0, h=0, c=0');
+        assert.equal(cpu.m(), m+2, 'XOR A,n runs in 2 machine cycle');
+      });
+
+      it('should xor register a with memory address hl', () => {
+        const m = cpu.m();
+        const a = cpu.a();
+        const hl = cpu.hl();
+        const value = cpu.mmu.readByteAt(hl);
+
+        cpu.xor_0xhl();
+
+        assert.equal(cpu.a(), a ^ value, `register a should be ${Utils.hexStr(a)} xor ${Utils.hexStr(value)}`);
+        assert.equal(cpu.m(), m+2, 'XOR A,(HL) runs in 2 machine cycle');
+      });
     });
 
     it('should decrement 8 bits register', () => {

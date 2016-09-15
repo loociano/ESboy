@@ -1111,6 +1111,7 @@ export default class CPU {
    */
   xor_n(n){
     this._xor(n);
+    this._m++;
   }
 
   /**
@@ -1124,6 +1125,7 @@ export default class CPU {
     if (this._r.a === 0){
       this.setZ(1);
     }
+    this._m++;
   }
 
   /**
