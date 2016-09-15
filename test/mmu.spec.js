@@ -207,6 +207,25 @@ describe('MMU', () => {
       mmu.writeByteAt(mmu.ADDR_STAT, 0xff);
       assert.equal(mmu.stat(), 0xff, 'STAT set');
     });
+
+    it('should handle VRAM and OAM restrictions', () => {
+      mmu.mockScreenMode = function(mode){
+        if (mode > 3 || mode < 0) return;
+        this.memory[this.ADDR_LCDC] &= 0xfc;
+        this.memory[this.ADDR_LCDC] += mode;
+      }
+
+      mmu.mockScreenMode(2);
+      assert.throws( () => mmu.writeByteAt(mmu.ADDR_OAM_START, 0x00), Error, 'Cannot write OAM on mode 2');
+      assert.throws( () => mmu.readByteAt(mmu.ADDR_OAM_START), Error, 'Cannot read OAM on mode 2');
+
+      mmu.mockScreenMode(3);
+      assert.throws( () => mmu.writeByteAt(mmu.ADDR_OAM_START, 0x00), Error, 'Cannot write OAM on mode 3');
+      assert.throws( () => mmu.readByteAt(mmu.ADDR_OAM_START), Error, 'Cannot read OAM on mode 3');
+      assert.throws( () => mmu.writeByteAt(mmu.ADDR_VRAM_START, 0x00), Error, 'Cannot write VRAM on mode 3');
+      assert.throws( () => mmu.readByteAt(mmu.ADDR_VRAM_START), Error, 'Cannot read VRAM on mode 3');
+    });
+
   });
 
   describe('Interruptions', () => {
