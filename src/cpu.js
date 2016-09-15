@@ -22,9 +22,10 @@ export default class CPU {
     this.ipc = ipc;
 
     this.isPainting = false;
-    this.waited1AfterIe = false;
+    this._lastInstrWasEI = false;
 
     this._m = 0; // machine cycles for line
+    this._clk = 0;
 
     // Constants
     this.EXTENDED_PREFIX = 0xcb;
@@ -583,6 +584,10 @@ export default class CPU {
     return this._m;
   }
 
+  clk(){
+    return this._clk;
+  }
+
   /**
    * Main loop
    * @param {number} pc_stop
@@ -605,6 +610,7 @@ export default class CPU {
   frame(pc_stop){
 
     this._m = 0;
+    this._clk = 0;
 
     do {
       if (pc_stop !== -1 && this._r.pc >= pc_stop){
@@ -613,7 +619,7 @@ export default class CPU {
       }
 
       this.execute();
-      this._handle_ly();
+      this._handle_lcd();
 
       if (this._r.pc === this.mmu.ADDR_GAME_START){
         this._afterBIOS();
@@ -625,10 +631,10 @@ export default class CPU {
   }
 
   /**
-   * Handles LY
+   * Handles LCD updates
    * @private
    */
-  _handle_ly(){
+  _handle_lcd(){
     if (this._is_lcd_on()) {
 
       if (this._m >= this.M_CYCLES_PER_LINE) {
@@ -639,11 +645,30 @@ export default class CPU {
         if (this.ly() === 144) {
           this._triggerVBlank();
         }
+        if (this.ly() >= 144){
+          this.mmu.setLCDMode(1);
+        } else {
+          this.mmu.setLCDMode(0);
+        }
+
+      } else if (this.mmu.getLCDMode() === 0 && this._clk > (this._clkStartAtLine() + 207)){
+        this.mmu.setLCDMode(2);
+      } else if (this.mmu.getLCDMode() === 2 && this._clk > (this._clkStartAtLine() + 207 + 83)) {
+        this.mmu.setLCDMode(3);
       }
 
     } else {
       this._m = 0;
+      this._clk = 0;
     }
+  }
+
+  /**
+   * @returns {number} clock start value for a given lcd line
+   * @private
+   */
+  _clkStartAtLine(){
+    return this.ly() * 456;
   }
 
   /**
@@ -686,10 +711,12 @@ export default class CPU {
       this.di();
       this._rst_40();
     }
+
     this.paintFrame();
+
+    this._clk += 4560; // Add ten scanlines
+    this._m += 1140;
   }
-
-
 
   /**
    * Request a frame paint
@@ -706,11 +733,11 @@ export default class CPU {
    */
   isVBlank(){
     if (this._r.ime === 1 && (this.mmu.ie() & this.mmu.If() & this.IF_VBLANK_ON) === 1){
-      if (this.waited1AfterIe){
-        this.waited1AfterIe = false;
-        return true;
+      if (this._lastInstrWasEI){
+        this._lastInstrWasEI = false;
+        return false; // wait one instruction more
       } else {
-        this.waited1AfterIe = true;
+        return true;
       }
     }
     return false;
@@ -843,6 +870,7 @@ export default class CPU {
    */
   nop(){
     this._m++;
+    this._clk += 4;
   }
 
   /**
@@ -1656,7 +1684,7 @@ export default class CPU {
    */
   ei(){
     this._r.ime = 1;
-    this.waited1AfterIe = false;
+    this._lastInstrWasEI = true;
   }
 
   /**
