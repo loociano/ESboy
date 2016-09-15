@@ -24,11 +24,19 @@ export default class MMU {
     this.ADDR_COMPLEMENT_CHECK = 0x14d;
     this.ADDR_ROM_MAX = 0x7fff;
 
+    // VRAM
+    this.ADDR_VRAM_START = 0x8000;
     this.BG_CHAR_DATA_8000 = 0x8000;
     this.BG_CHAR_DATA_8800 = 0x8800;
     this.BG_DISPLAY_DATA_1 = 0x9800;
     this.BG_DISPLAY_DATA_2 = 0x9c00;
+    this.ADDR_VRAM_END = 0x9fff;
 
+    // OAM
+    this.ADDR_OAM_START = 0xfe00;
+    this.ADDR_OAM_END = 0xfe9f;
+
+    // IO
     this.ADDR_SB = 0xff01;
     this.ADDR_SC = 0xff02;
     this.ADDR_IF = 0xff0f;
@@ -59,6 +67,8 @@ export default class MMU {
     this.MASK_BG_CHAR_DATA_8800 = 0xef;
     this.MASK_BG_CODE_AREA_1 = 0xf7;
     this.MASK_BG_CODE_AREA_2 = 0x08;
+
+    this.MASK_STAT_MODE = 0x03;
 
     // Character Data
     this.CHAR_SIZE = 0x10; // 0x00 to 0x0f
@@ -178,6 +188,13 @@ export default class MMU {
         throw new Error('Unsupported');
     }
 
+    if (this._isOAMAddr(addr) && !this._canAccessOAM()){
+      throw new Error('Cannot read OAM');
+    }
+    if (this._isVRAMAddr(addr) && !this._canAccessVRAM()){
+      throw new Error('Cannot read VRAM');
+    }
+
     if (addr <= this.ADDR_ROM_MAX){
       if (addr < this.ADDR_GAME_START && this.inBIOS){
         return this._biosByteAt(addr);
@@ -287,6 +304,13 @@ export default class MMU {
     if (n < 0 || n > 0xff){
       throw new Error(`Cannot write ${n} in memory, it has more than 8 bits`);
     }
+    if (this._isOAMAddr(addr) && !this._canAccessOAM()){
+      throw new Error('Cannot write OAM');
+    }
+    if (this._isVRAMAddr(addr) && !this._canAccessVRAM()){
+      throw new Error('Cannot write on VRAM');
+    }
+
     switch(addr){
       case this.ADDR_VBK:
         Logger.info(`Cannot write on ${Utils.hex4(addr)}`);
@@ -299,6 +323,49 @@ export default class MMU {
         break;
     }
     this.memory[addr] = n;
+  }
+
+  /**
+   * @param addr
+   * @returns {boolean} true if addr is in OAM range
+   * @private
+   */
+  _isOAMAddr(addr){
+    return (addr >= this.ADDR_OAM_START) && (addr <= this.ADDR_OAM_END);
+  }
+
+  /**
+   * @param addr
+   * @returns {boolean} true if addr is in VRAM range
+   * @private
+   */
+  _isVRAMAddr(addr){
+    return (addr >= this.ADDR_VRAM_START) && (addr <= this.ADDR_VRAM_END);
+  }
+
+  /**
+   * @returns {boolean} true OAM is accessible
+   * @private
+   */
+  _canAccessOAM(){
+    const mode = this._getLCDMode();
+    return  mode !== 2 && mode !== 3;
+  }
+
+  /**
+   * @returns {boolean} true if VRAM is accessible
+   * @private
+   */
+  _canAccessVRAM(){
+    return this._getLCDMode() !== 3;
+  }
+
+  /**
+   * @returns {number} LCD Mode: [0,3]
+   * @private
+   */
+  _getLCDMode(){
+    return this.lcdc() & this.MASK_STAT_MODE;
   }
 
   /**
