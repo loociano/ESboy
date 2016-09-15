@@ -1121,7 +1121,7 @@ export default class CPU {
    */
   _xor(n){
     this._r.a ^= n;
-    this.resetFlags();
+    this._resetAllFlags();
     if (this._r.a === 0){
       this.setZ(1);
     }
@@ -1129,10 +1129,10 @@ export default class CPU {
   }
 
   /**
-   * Resets all flags.
+   * @private
    */
-  resetFlags(){
-    this.setZ(0); this.setN(0); this.setH(0); this.setC(0);
+  _resetAllFlags(){
+    this._r._f &= 0x0f;
   }
 
   /**
