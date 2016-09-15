@@ -425,12 +425,14 @@ describe('CPU Unit tests', function() {
     describe('OR', () => {
 
       it('should OR register a with itself', () => {
+        const m = cpu.m();
         cpu.ld_a_n(0x11);
         
         cpu.or_a();
         
         assert.equal(cpu.a(), cpu.a(), 'a OR a does not change a');
         assert.equal(cpu.f(), 0b0000, 'OR a with positive number resets all flags');
+        assert.equal(cpu.m(), m+1, 'OR A,A runs in 1 machine cycle');
       });
 
       it('should OR register a with register r', () => {
@@ -442,6 +444,7 @@ describe('CPU Unit tests', function() {
           {ld: cpu.ld_h_n, or: cpu.or_h},
           {ld: cpu.ld_l_n, or: cpu.or_l} ].map( ({ld, or}) => {
 
+            const m = cpu.m();
             cpu.ld_a_n(0x11);
             ld.call(cpu, 0x22);
 
@@ -449,10 +452,12 @@ describe('CPU Unit tests', function() {
 
             assert.equal(cpu.a(), 0x11 | 0x22, `a ${or.name}`);
             assert.equal(cpu.f(), 0b0000, `All flags zero with ${or.name}`);
+            assert.equal(cpu.m(), m+1, 'OR A,r runs in 1 machine cycle');
         });
       });
 
       it('should OR a with memory location hl', () => {
+        const m = cpu.m();
         cpu.ld_a_n(0x11);
         cpu.ld_hl_nn(0xc000);
         cpu.mmu.writeByteAt(0xc000, 0x22);
@@ -461,15 +466,18 @@ describe('CPU Unit tests', function() {
 
         assert.equal(cpu.a(), 0x11 | 0x22, 'a OR (hl)');
         assert.equal(cpu.f(), 0b0000, 'All flags zero with OR (hl)');
+        assert.equal(cpu.m(), m+2, 'OR A,(HL) runs in 2 machine cycle');
       });
 
       it('should OR a with byte n', () => {
+        const m = cpu.m();
         cpu.ld_a_n(0x11);
         
         cpu.or_n(0x22);
 
         assert.equal(cpu.a(), 0x11 | 0x22, 'a OR n');
         assert.equal(cpu.f(), 0b0000, 'All flags zero with OR n');
+        assert.equal(cpu.m(), m+2, 'OR A,n runs in 2 machine cycle');
       });
 
       it('should set flag Z if OR result is zero', () => {

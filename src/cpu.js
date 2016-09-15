@@ -463,6 +463,7 @@ export default class CPU {
    * @private
    */
   _0xhl(){
+    this._m++;
     return this.mmu.readByteAt(this.hl());
   }
 
@@ -943,7 +944,6 @@ export default class CPU {
    */
   and_0xhl(){
     this._and_n(this._0xhl());
-    this._m++;
   }
 
   /**
@@ -974,56 +974,65 @@ export default class CPU {
    * Register a OR a. Does nothing.
    */
   or_a(){
-    this.or_n(this._r.b);
+    this._or_n(this._r.a);
   }
 
   /**
    * Register a OR b
    */
   or_b(){
-    this.or_n(this._r.b);
+    this._or_n(this._r.b);
   }
 
   /**
    * Register a OR c
    */
   or_c(){
-    this.or_n(this._r.c);
+    this._or_n(this._r.c);
   }
 
   /**
    * Register a OR d
    */
   or_d(){
-    this.or_n(this._r.d);
+    this._or_n(this._r.d);
   }
 
   /**
    * Register a OR e
    */
   or_e(){
-    this.or_n(this._r.e);
+    this._or_n(this._r.e);
   }
 
   /**
    * Register a OR h
    */
   or_h(){
-    this.or_n(this._r.h);
+    this._or_n(this._r.h);
   }
 
   /**
    * Register a OR l
    */
   or_l(){
-    this.or_n(this._r.l);
+    this._or_n(this._r.l);
   }
 
   /**
    * Register a OR memory location hl
    */
   or_0xhl(){
-    this.or_n(this._0xhl());
+    this._or_n(this._0xhl());
+  }
+
+  /**
+   * Register a OR n
+   * @param n
+   */
+  or_n(n){
+    this._or_n(n);
+    this._m++;
   }
   
   /**
@@ -1031,13 +1040,14 @@ export default class CPU {
    * @param {number} n
    * @private
    */
-  or_n(n){
+  _or_n(n){
     if (this._r.a |= n){
       this.setZ(0);
     } else {
       this.setZ(1);
     }
     this.setN(0); this.setH(0); this.setC(0);
+    this._m++;
   }
 
   /**
