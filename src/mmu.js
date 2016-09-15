@@ -368,6 +368,16 @@ export default class MMU {
   }
 
   /**
+   * Sets LCD Mode
+   * @param {number} mode [0,3]
+   */
+  setLCDMode(mode){
+    if (mode > 3 || mode < 0) return;
+    this.memory[this.ADDR_LCDC] &= 0xfc;
+    this.memory[this.ADDR_LCDC] += mode;
+  };
+
+  /**
    * Handles updates to LCD Control Register (LCDC)
    * @param n
    * @private
