@@ -348,7 +348,7 @@ export default class MMU {
    * @private
    */
   _canAccessOAM(){
-    const mode = this._getLCDMode();
+    const mode = this.getLCDMode();
     return  mode !== 2 && mode !== 3;
   }
 
@@ -357,14 +357,13 @@ export default class MMU {
    * @private
    */
   _canAccessVRAM(){
-    return this._getLCDMode() !== 3;
+    return this.getLCDMode() !== 3;
   }
 
   /**
    * @returns {number} LCD Mode: [0,3]
-   * @private
    */
-  _getLCDMode(){
+  getLCDMode(){
     return this.lcdc() & this.MASK_STAT_MODE;
   }
 
