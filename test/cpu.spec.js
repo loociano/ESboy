@@ -357,12 +357,14 @@ describe('CPU Unit tests', function() {
     describe('AND', () => {
 
       it('should AND register a with itself', () => {
+        const m = cpu.m();
         cpu.ld_a_n(0x11);
         
         cpu.and_a();
         
         assert.equal(cpu.a(), cpu.a(), 'a AND a does not change a');
         assert.equal(cpu.f(), 0b0010, 'AND a with positive result sets only H');
+        assert.equal(cpu.m(), m+1, 'ADD A,A runs in 1 machine cycle.');
       });
 
       it('should AND register a with register r', () => {
@@ -374,6 +376,7 @@ describe('CPU Unit tests', function() {
           {ld: cpu.ld_h_n, and: cpu.and_h},
           {ld: cpu.ld_l_n, and: cpu.and_l} ].map( ({ld, and}) => {
 
+            const m = cpu.m();
             cpu.ld_a_n(0x11);
             ld.call(cpu, 0x33);
 
@@ -381,10 +384,12 @@ describe('CPU Unit tests', function() {
 
             assert.equal(cpu.a(), 0x11 & 0x33, `a ${and.name}`);
             assert.equal(cpu.f(), 0b0010, `${and.name} with positive result sets only H`);
+            assert.equal(cpu.m(), m+1, 'AND A,r runs in 1 machine cycle.');
         });
       });
 
       it('should AND a with memory location hl', () => {
+        const m = cpu.m();
         cpu.ld_a_n(0x11);
         cpu.ld_hl_nn(0xc000);
         cpu.mmu.writeByteAt(0xc000, 0x33);
@@ -393,15 +398,18 @@ describe('CPU Unit tests', function() {
 
         assert.equal(cpu.a(), 0x11 & 0x33, 'a AND (hl)');
         assert.equal(cpu.f(), 0b0010, 'OR (hl) with positive result sets only H');
+        assert.equal(cpu.m(), m+2, 'AND A,(HL) runs in 2 machine cycle.');
       });
 
       it('should AND a with byte n', () => {
+        const m = cpu.m();
         cpu.ld_a_n(0x11);
         
         cpu.and_n(0x33);
 
         assert.equal(cpu.a(), 0x11 & 0x33, 'a AND n');
         assert.equal(cpu.f(), 0b0010, 'AND n with positive result sets only H');
+        assert.equal(cpu.m(), m+2, 'AND A,n runs in 2 machine cycle.');
       });
 
       it('should set flag Z if AND result is zero', () => {
