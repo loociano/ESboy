@@ -893,56 +893,57 @@ export default class CPU {
    * Register a AND a
    */
   and_a(){
-    this.and_n(this._r.a);
+    this._and_n(this._r.a);
   }
 
   /**
    * Register a AND b
    */
   and_b(){
-    this.and_n(this._r.b);
+    this._and_n(this._r.b);
   }
 
   /**
    * Register a AND c
    */
   and_c(){
-    this.and_n(this._r.c);
+    this._and_n(this._r.c);
   }
 
   /**
    * Register a AND d
    */
   and_d(){
-    this.and_n(this._r.d);
+    this._and_n(this._r.d);
   }
 
   /**
    * Register a AND e
    */
   and_e(){
-    this.and_n(this._r.e);
+    this._and_n(this._r.e);
   }
 
   /**
    * Register a AND h
    */
   and_h(){
-    this.and_n(this._r.h);
+    this._and_n(this._r.h);
   }
 
   /**
    * Register a AND l
    */
   and_l(){
-    this.and_n(this._r.l);
+    this._and_n(this._r.l);
   }
 
   /**
    * Register a AND value at memory location hl
    */
   and_0xhl(){
-    this.and_n(this._0xhl());
+    this._and_n(this._0xhl());
+    this._m++;
   }
 
   /**
@@ -950,12 +951,23 @@ export default class CPU {
    * @param n
    */
   and_n(n){
+    this._and_n(n);
+    this._m++;
+  }
+
+  /**
+   * Register a AND n
+   * @param n
+   * @private
+   */
+  _and_n(n){
     if (this._r.a &= n){
       this.setZ(0);
     } else {
       this.setZ(1);
     }
     this.setN(0); this.setH(1); this.setC(0);
+    this._m++;
   }
 
   /** 
