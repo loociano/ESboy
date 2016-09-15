@@ -52,7 +52,7 @@ describe('Interruptions', () => {
       this.cpu.frame();
 
       assert.equal(this.cpu.ly(), 144, `LY increased to 144`);
-      assert.equal(this.cpu.clk(), 70224, 'Clocks in complete refresh');
+      assert.equal(this.cpu.m(), 70224/4, 'Machine cycles in complete refresh');
     });
 
     it('should restart scan line when lcd is turned off', function() {

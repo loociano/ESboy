@@ -24,13 +24,15 @@ export default class CPU {
     this.isPainting = false;
     this._lastInstrWasEI = false;
 
-    this._m = 0; // machine cycles for line
-    this._clk = 0;
+    this._m = 0; // machine cycles for lcd
 
     // Constants
     this.EXTENDED_PREFIX = 0xcb;
     this.ADDR_VBLANK_INTERRUPT = 0x0040;
     this.M_CYCLES_PER_LINE = 114;
+    this.M_CYCLES_STOP_MODE_0 = 4;
+    this.M_CYCLES_STOP_MODE_2 = 20;
+    this.M_CYCLES_STOP_MODE_3 = 40; // Naive
 
     // Masks
     this.IF_VBLANK_ON = 0b00001;
@@ -584,10 +586,6 @@ export default class CPU {
     return this._m;
   }
 
-  clk(){
-    return this._clk;
-  }
-
   /**
    * Main loop
    * @param {number} pc_stop
@@ -610,7 +608,6 @@ export default class CPU {
   frame(pc_stop){
 
     this._m = 0;
-    this._clk = 0;
 
     do {
       if (pc_stop !== -1 && this._r.pc >= pc_stop){
@@ -635,31 +632,52 @@ export default class CPU {
    * @private
    */
   _handle_lcd(){
-    if (this._is_lcd_on()) {
 
-      if (this._m >= this.M_CYCLES_PER_LINE) {
-        this.mmu.incrementLy();
+    if (!this._is_lcd_on()){
+      this._m = 0;
+      return;
+    }
 
-        this._m -= this.M_CYCLES_PER_LINE;
+    if (this._m >= (this._mLyOffset() + this.M_CYCLES_PER_LINE)) {
 
-        if (this.ly() === 144) {
-          this._triggerVBlank();
-        }
-        if (this.ly() >= 144){
-          this.mmu.setLCDMode(1);
-        } else {
-          this.mmu.setLCDMode(0);
-        }
+      this.mmu.incrementLy();
 
-      } else if (this.mmu.getLCDMode() === 0 && this._clk > (this._clkStartAtLine() + 207)){
-        this.mmu.setLCDMode(2);
-      } else if (this.mmu.getLCDMode() === 2 && this._clk > (this._clkStartAtLine() + 207 + 83)) {
-        this.mmu.setLCDMode(3);
+      if (this.ly() === 0) {
+        this.mmu.setLCDMode(0);
+      }
+
+      if (this.ly() === this.mmu.LCDC_LINE_VBLANK) {
+        this.mmu.setLCDMode(1);
+        this._triggerVBlank();
       }
 
     } else {
-      this._m = 0;
-      this._clk = 0;
+      this._handleTransitionsBeforeVBL();
+    }
+  }
+
+  /**
+   * @private
+   */
+  _handleTransitionsBeforeVBL() {
+    switch (this.mmu.getLCDMode()) {
+      case 0:
+        if (this._m < (this._mLyOffset() + this.M_CYCLES_STOP_MODE_0)) {
+          this.mmu.setLCDMode(2);
+        }
+        break;
+      case 1:
+        break; // No transition during vblank
+      case 2:
+        if (this._m < (this._mLyOffset() + this.M_CYCLES_STOP_MODE_2)) {
+          this.mmu.setLCDMode(3);
+        }
+        break;
+      case 3:
+        if (this._m < (this._mLyOffset() + this.M_CYCLES_STOP_MODE_3)) {
+          this.mmu.setLCDMode(0);
+        }
+        break;
     }
   }
 
@@ -667,8 +685,8 @@ export default class CPU {
    * @returns {number} clock start value for a given lcd line
    * @private
    */
-  _clkStartAtLine(){
-    return this.ly() * 456;
+  _mLyOffset(){
+    return this.ly() * this.M_CYCLES_PER_LINE;
   }
 
   /**
@@ -714,7 +732,6 @@ export default class CPU {
 
     this.paintFrame();
 
-    this._clk += 4560; // Add ten scanlines
     this._m += 1140;
   }
 
@@ -870,7 +887,6 @@ export default class CPU {
    */
   nop(){
     this._m++;
-    this._clk += 4;
   }
 
   /**

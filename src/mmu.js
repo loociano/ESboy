@@ -55,6 +55,7 @@ export default class MMU {
     this.LCDC_WINDOW = 0x20;
     this.LCDC_OBJ = 0x02;
     this.LCDC_BG = 0x01;
+    this.LCDC_LINE_VBLANK = 0x90; // 114
 
     // Masks
     this.MASK_BG_CHAR_DATA = 0x10;
