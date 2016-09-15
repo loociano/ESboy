@@ -547,52 +547,77 @@ describe('CPU Unit tests', function() {
       });
     });
 
-    it('should decrement 8 bits register', () => {
-      assertDecrementRegister(cpu, cpu.a, cpu.dec_a);
-      assertDecrementRegister(cpu, cpu.b, cpu.dec_b);
-      assertDecrementRegister(cpu, cpu.c, cpu.dec_c);
-      assertDecrementRegister(cpu, cpu.d, cpu.dec_d);
-      assertDecrementRegister(cpu, cpu.e, cpu.dec_e);
-      assertDecrementRegister(cpu, cpu.h, cpu.dec_h);
-      assertDecrementRegister(cpu, cpu.l, cpu.dec_l);
-    });
+    describe('DEC', () => {
 
-    it('should set flags on decrement', () => {
-      cpu.ld_b_n(0xff);
-      cpu.dec_b();
-      assert.equal(cpu.b(), 0xfe);
-      assert.equal(cpu.Z(), 0, 'Not result zero');
-      assert.equal(cpu.N(), 1, 'Substracting');
-      assert.equal(cpu.H(), 0, 'Not half carry');
-    });
+      it('should decrement 8 bits register', () => {
 
-    it('should set half carry on decrement', () => {
-      cpu.ld_b_n(0xf0);
-      cpu.dec_b();
-      assert.equal(cpu.b(), 0xef);
-      assert.equal(cpu.Z(), 0, 'Not result zero');
-      assert.equal(cpu.N(), 1, 'Substracting');
-      assert.equal(cpu.H(), 1, 'Half carry');
-    });
+        [ {r: cpu.a, dec: cpu.dec_a},
+          {r: cpu.b, dec: cpu.dec_b},
+          {r: cpu.c, dec: cpu.dec_c},
+          {r: cpu.d, dec: cpu.dec_d},
+          {r: cpu.e, dec: cpu.dec_e},
+          {r: cpu.h, dec: cpu.dec_h},
+          {r: cpu.l, dec: cpu.dec_l} ].map(({r, dec}) => {
 
-    it('should loop value on decrement', () => {
-      cpu.ld_a_n(0x00);
-      cpu.dec_a();
-      assert.equal(cpu.a(), 0xff, 'loop value');
-      assert.equal(cpu.Z(), 0, 'Not result zero');
-      assert.equal(cpu.N(), 1, 'Substracting');
-      assert.equal(cpu.H(), 1, 'Half carry');
-    });
+            const value = r.call(cpu);
+            const m = cpu.m();
+            let expected = value - 1;
+            if (value === 0) expected = 0xff;
 
-    // TODO decrement with 0x01 to assert flag Z
+            dec.call(cpu);
 
-    it('should decrement a value at a memory location', () => {
-      const value = 0xab;
-      cpu.mmu.writeByteAt(0xdfff, value);
-      cpu.ld_hl_nn(0xdfff);
-      cpu.dec_0xhl();
-      assert.equal(cpu.mmu.readByteAt(0xdfff), value - 1, 'Value at memory 0xdfff is decremented');
-      // TODO check flags
+            assert.equal(r.call(cpu), expected, `decrement ${r.name}`);
+            assert.equal(cpu.m(), m+1, `DEC ${r.name} runs in 1 machine cycle`);
+        });
+      });
+
+      it('should set flags on decrement', () => {
+        cpu.ld_b_n(0xff);
+
+        cpu.dec_b();
+
+        assert.equal(cpu.b(), 0xfe);
+        assert.equal(cpu.Z(), 0, 'Not result zero');
+        assert.equal(cpu.N(), 1, 'Substracting');
+        assert.equal(cpu.H(), 0, 'Not half carry');
+      });
+
+      it('should set half carry on decrement', () => {
+        cpu.ld_b_n(0xf0);
+
+        cpu.dec_b();
+
+        assert.equal(cpu.b(), 0xef);
+        assert.equal(cpu.Z(), 0, 'Not result zero');
+        assert.equal(cpu.N(), 1, 'Substracting');
+        assert.equal(cpu.H(), 1, 'Half carry');
+      });
+
+      it('should loop value on decrement', () => {
+        cpu.ld_a_n(0x00);
+
+        cpu.dec_a();
+
+        assert.equal(cpu.a(), 0xff, 'loop value');
+        assert.equal(cpu.Z(), 0, 'Not result zero');
+        assert.equal(cpu.N(), 1, 'Substracting');
+        assert.equal(cpu.H(), 1, 'Half carry');
+      });
+
+      // TODO decrement with 0x01 to assert flag Z
+
+      it('should decrement a value at a memory location', () => {
+        const m = cpu.m();
+        const value = 0xab;
+        cpu.mmu.writeByteAt(0xdfff, value);
+        cpu.ld_hl_nn(0xdfff);
+
+        cpu.dec_0xhl();
+
+        assert.equal(cpu.mmu.readByteAt(0xdfff), value - 1, 'Value at memory 0xdfff is decremented');
+        // TODO check flags
+        assert.equal(cpu.m(), m+3, 'DEC (HL) runs in 3 machine cycle');
+      });
     });
 
     it('should compare register a with itself', () => {
@@ -1637,16 +1662,19 @@ describe('CPU Unit tests', function() {
 
 /**
  * Asserts that a register is decremented.
- * @param scope
+ * @param cpu
  * @param registerFn
  * @param decFn
  */
-function assertDecrementRegister(scope, registerFn, decFn){
-  const value = registerFn.call(scope);
+function assertDecrementRegister(cpu, registerFn, decFn){
+  const value = registerFn.call(cpu);
+  const m = cpu.m();
   let expected = value - 1;
   if (value === 0) expected = 0xff;
-  decFn.call(scope);
-  assert.equal(registerFn.call(scope), expected, `decrement ${registerFn.name}`);
+
+  decFn.call(cpu);
+
+  assert.equal(registerFn.call(cpu), expected, `decrement ${registerFn.name}`);
 }
 
 function testSetGetFlag(cpu, setFn, getFn){
