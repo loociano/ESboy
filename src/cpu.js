@@ -1568,6 +1568,7 @@ export default class CPU {
     } else {
       this.setZ(0);
     }
+    this._m++;
   }
 
   /**
@@ -1576,6 +1577,7 @@ export default class CPU {
   dec_0xhl(){
     let value = this._0xhl();
     this.mmu.writeByteAt(this.hl(), --value);
+    this._m += 2;
   }
 
   /**
