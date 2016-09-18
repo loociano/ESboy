@@ -2485,6 +2485,7 @@ export default class CPU {
   _pop(r1, r2){
     this._r[r2] = this.mmu.readByteAt(this._r.sp++);
     this._r[r1] = this.mmu.readByteAt(this._r.sp++);
+    this._m += 3;
   }
 
   /**
