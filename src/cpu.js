@@ -1862,6 +1862,7 @@ export default class CPU {
       this.setZ(1);
     }
     this.setN(0); this.setH(1);
+    this._m += 2;
   }
 
   /**
@@ -1892,6 +1893,7 @@ export default class CPU {
    */
   _res_b_r(bit, r){
     this._r[r] &= Utils.bitMask(bit);
+    this._m += 2;
   }
 
   /**
@@ -1901,6 +1903,7 @@ export default class CPU {
   res_b_0xhl(bit){
     const value = this._0xhl() & (0xff & (0 << bit));
     this.mmu.writeByteAt(this.hl(), value);
+    this._m += 3;
   }
 
   /**
