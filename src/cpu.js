@@ -1453,7 +1453,7 @@ export default class CPU {
    * @param n
    */
   ld_a_n(n){
-    this._r.a = n;
+    this._ld_r_n('a', n);
   }
 
   /**
