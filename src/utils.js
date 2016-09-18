@@ -107,4 +107,15 @@ export default class Utils {
     }
     return result;
   }
+
+  /**
+   * Swaps nybbles in a byte
+   * @param byte
+   * @returns {number}
+   */
+  static swapNybbles(byte){
+    if (byte > 0xff) throw new Error('Not a byte');
+    if (byte == null) throw new Error('No byte');
+    return (byte >> 4 & 0x0f) + (byte << 4 & 0xf0);
+  }
 }
