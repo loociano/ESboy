@@ -1807,6 +1807,57 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.C(), 1, 'Carry 1');
       assert.equal(cpu.m(), m + 1, 'RLA machine cycles');
     });
+
+    it('should swap nybbles from registers', () => {
+
+      [ {r: cpu.a, ld: cpu.ld_a_n, swap: cpu.swap_a},
+        {r: cpu.b, ld: cpu.ld_b_n, swap: cpu.swap_b},
+        {r: cpu.c, ld: cpu.ld_c_n, swap: cpu.swap_c},
+        {r: cpu.d, ld: cpu.ld_d_n, swap: cpu.swap_d},
+        {r: cpu.e, ld: cpu.ld_e_n, swap: cpu.swap_e},
+        {r: cpu.h, ld: cpu.ld_h_n, swap: cpu.swap_h},
+        {r: cpu.l, ld: cpu.ld_l_n, swap: cpu.swap_l} ].map( ({r, ld, swap}) => {
+
+          ld.call(cpu, 0xab);
+          let m = cpu.m();
+
+          swap.call(cpu);
+
+          assert.equal(r.call(cpu), 0xba, `${swap.name} swapped nybbles`);
+          assert.equal(cpu.f(), 0b0000, `${swap.name} resets all flags for positive result`);
+          assert.equal(cpu.m() - m, 2, 'Machine cycles');
+
+          ld.call(cpu, 0x00);
+          m = cpu.m();
+
+          swap.call(cpu);
+
+          assert.equal(r.call(cpu), 0x00, `${swap.name} does not modify zero`);
+          assert.equal(cpu.f(), 0b1000, `${swap.name} sets Z with zero result`);
+          assert.equal(cpu.m() - m, 2, 'Machine cycles');
+      });
+    });
+
+    it('should swap nybbles from value at memory location hl', () => {
+      cpu.ld_hl_nn(0xc000);
+      cpu.ld_0xhl_n(0xab);
+      let m = cpu.m();
+
+      cpu.swap_0xhl();
+
+      assert.equal(cpu.$hl(), 0xba, 'Swapped nybbles on (hl)');
+      assert.equal(cpu.f(), 0b0000, 'resets all flags for positive result');
+      assert.equal(cpu.m() - m, 4, 'Machine cycles');
+
+      cpu.ld_0xhl_n(0x00);
+      m = cpu.m();
+
+      cpu.swap_0xhl();
+
+      assert.equal(cpu.$hl(), 0x00, 'Identical');
+      assert.equal(cpu.f(), 0b1000, 'Sets Z with zero result');
+      assert.equal(cpu.m() - m, 4, 'Machine cycles');
+    });
   });
 
   describe('Returns', () => {
@@ -1960,35 +2011,6 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.a(), 0b11101111, 'Complement a');
       assert.equal(cpu.m() - m, 1, 'Machine cycles');
     });
-
-    it('should swap nybbles', () => {
-
-      cpu.ld_hl_nn(0xc000);
-
-      [ {r: cpu._0xhl, ld: cpu.ld_0xhl_n, swap: cpu.swap_0xhl},
-        {r: cpu.a, ld: cpu.ld_a_n, swap: cpu.swap_a},
-        {r: cpu.b, ld: cpu.ld_b_n, swap: cpu.swap_b},
-        {r: cpu.c, ld: cpu.ld_c_n, swap: cpu.swap_c},
-        {r: cpu.d, ld: cpu.ld_d_n, swap: cpu.swap_d},
-        {r: cpu.e, ld: cpu.ld_e_n, swap: cpu.swap_e},
-        {r: cpu.h, ld: cpu.ld_h_n, swap: cpu.swap_h},
-        {r: cpu.l, ld: cpu.ld_l_n, swap: cpu.swap_l} ].map( ({r, ld, swap}) => {
-          ld.call(cpu, 0xab);
-
-          swap.call(cpu);
-
-          assert.equal(r.call(cpu), 0xba, `${swap.name} swapped nybbles`);
-          assert.equal(cpu.f(), 0b0000, `${swap.name} resets all flags for positive result`);
-
-          ld.call(cpu, 0x00);
-
-          swap.call(cpu);
-
-          assert.equal(r.call(cpu), 0x00, `${swap.name} does not modify zero`);
-          assert.equal(cpu.f(), 0b1000, `${swap.name} sets Z with zero result`);
-      });
-    });
-
   });
 
   describe('Restarts', () => {
