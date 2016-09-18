@@ -1317,6 +1317,7 @@ export default class CPU {
    */
   _ld_r_n(r, n){
     this._r[r] = n;
+    this._m += 2;
   }
 
   /**
