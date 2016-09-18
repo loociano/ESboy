@@ -2647,6 +2647,9 @@ export default class CPU {
   ret_nz(){
     if (this.Z() === 0){
       this.jp(this._pop_nn());
+      this._m++;
+    } else {
+      this._m += 2;
     }
   }
 
@@ -2656,6 +2659,9 @@ export default class CPU {
   ret_z(){
     if (this.Z() === 1){
       this.jp(this._pop_nn());
+      this._m++;
+    } else {
+      this._m += 2;
     }
   }
 
@@ -2665,6 +2671,9 @@ export default class CPU {
   ret_nc(){
     if (this.C() === 0){
       this.jp(this._pop_nn());
+      this._m++;
+    } else {
+      this._m += 2;
     }
   }
 
@@ -2674,6 +2683,9 @@ export default class CPU {
   ret_c(){
     if (this.C() === 1){
       this.jp(this._pop_nn());
+      this._m++;
+    } else {
+      this._m += 2;
     }
   }
 
