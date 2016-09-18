@@ -1621,11 +1621,13 @@ describe('CPU Unit tests', function() {
       const addr = 0xc000;
       cpu.ld_a_n(value);
       cpu.ld_hl_nn(addr);
-      
+      const m = cpu.m();
+
       cpu.ldi_0xhl_a();
 
       assert.equal(cpu.mmu.readByteAt(addr), value, 'Regiter a into (hl)');
       assert.equal(cpu.hl(), addr + 1, 'hl incremented');
+      assert.equal(cpu.m(), m + 2, 'LDI (hl),a machine cycles');
     });
 
     it('should load registers into memory location hl', () => {
@@ -1638,15 +1640,23 @@ describe('CPU Unit tests', function() {
 
           cpu.ld_hl_nn(0xc000);
           ld.call(cpu, 0xc0);
+          const m = cpu.m();
+
           ld_0xhl.call(cpu);
+
           assert.equal(cpu.mmu.readByteAt(0xc000), 0xc0, `${ld_0xhl.name} applied.`);
-
+          assert.equal(cpu.m(), m + 2, `${ld_0xhl.name} machine cycles`);
       });
+    });
 
-      // Special case, immediate byte
+    it('should load value nn into memory address hl', () => {
       cpu.ld_hl_nn(0xc000);
+      const m = cpu.m();
+
       cpu.ld_0xhl_n(0x01);
+
       assert.equal(cpu.mmu.readByteAt(0xc000), 0x01, 'loaded n into memory location hl');
+      assert.equal(cpu.m(), m + 3, 'LD (hl),n machine cycles');
     });
 
   });
