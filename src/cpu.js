@@ -1484,7 +1484,7 @@ export default class CPU {
    * Puts a into memory address hl. Increments hl.
    */
   ldi_0xhl_a(){
-    this.ld_0xhl_a();
+    this._ld_0xnn_a(this.hl());
     this.inc_hl();
   }
 
@@ -2742,7 +2742,18 @@ export default class CPU {
    * @param {number} n
    */
   ld_0xhl_n(n){
+    this._ld_0xhl_n(n);
+    this._m++;
+  }
+
+  /**
+   * Writes a value n into memory address hl
+   * @param {number} n
+   * @private
+   */
+  _ld_0xhl_n(n){
     this.mmu.writeByteAt(this.hl(), n);
+    this._m += 2;
   }
 
   /**
@@ -2943,42 +2954,42 @@ export default class CPU {
    * Loads register b into memory location hl
    */
   ld_0xhl_b(){
-    this.ld_0xhl_n(this._r.b);
+    this._ld_0xhl_n(this._r.b);
   }
 
   /**
    * Loads register c into memory location hl
    */
   ld_0xhl_c(){
-    this.ld_0xhl_n(this._r.c);
+    this._ld_0xhl_n(this._r.c);
   }
 
   /**
    * Loads register d into memory location hl
    */
   ld_0xhl_d(){
-    this.ld_0xhl_n(this._r.d);
+    this._ld_0xhl_n(this._r.d);
   }
 
   /**
    * Loads register e into memory location hl
    */
   ld_0xhl_e(){
-    this.ld_0xhl_n(this._r.e);
+    this._ld_0xhl_n(this._r.e);
   }
 
   /**
    * Loads register h into memory location hl
    */
   ld_0xhl_h(){
-    this.ld_0xhl_n(this._r.h);
+    this._ld_0xhl_n(this._r.h);
   }
 
   /**
    * Loads register l into memory location hl
    */
   ld_0xhl_l(){
-    this.ld_0xhl_n(this._r.l);
+    this._ld_0xhl_n(this._r.l);
   }
 
   /** 
@@ -3049,7 +3060,7 @@ export default class CPU {
     } else {
       this.setZ(1);
     }
-    this.ld_0xhl_n(swapped);
+    this._ld_0xhl_n(swapped);
     this.setN(0); this.setH(0); this.setC(0);
   }
 
