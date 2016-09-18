@@ -1160,6 +1160,7 @@ describe('CPU Unit tests', function() {
         {ld: cpu.ld_de_nn, add: cpu.add_hl_de},
         {ld: cpu.ld_sp_nn, add: cpu.add_hl_sp} ].map( ({ld, add}) => {
 
+        const m = cpu.m();
         cpu.ld_hl_nn(0xc000);
         ld.call(cpu, 0x0001);
         
@@ -1169,6 +1170,7 @@ describe('CPU Unit tests', function() {
         assert.equal(cpu.N(), 0, 'N reset');
         assert.equal(cpu.H(), 0, 'No carry bit 11');
         assert.equal(cpu.C(), 0, 'No carry bit 15');
+        assert.equal(cpu.m(), m+2, `${add.name} machine cycles`);
 
         // Test half carry, bit 11
         ld.call(cpu, 0x0fff);
@@ -1179,6 +1181,7 @@ describe('CPU Unit tests', function() {
         assert.equal(cpu.N(), 0, 'N reset');
         assert.equal(cpu.H(), 1, 'Carry from bit 11');
         assert.equal(cpu.C(), 0, 'No carry bit 15');
+        assert.equal(cpu.m(), m+4, `${add.name} machine cycles`);
 
         // Test carry, bit 15
         ld.call(cpu, 0x3001);
@@ -1189,10 +1192,12 @@ describe('CPU Unit tests', function() {
         assert.equal(cpu.N(), 0, 'N reset');
         assert.equal(cpu.H(), 0, 'No carry from bit 11');
         assert.equal(cpu.C(), 1, 'Carry bit 15');
+        assert.equal(cpu.m(), m+6, `${add.name} machine cycles`);
       });
     });
 
     it('should add register hl to itself', () => {
+      const m = cpu.m();
       cpu.ld_hl_nn(0x0001);
 
       cpu.add_hl_hl();
@@ -1201,6 +1206,7 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.N(), 0, 'N reset');
       assert.equal(cpu.H(), 0, 'No carry bit 11');
       assert.equal(cpu.C(), 0, 'No carry bit 15');
+      assert.equal(cpu.m(), m+2, 'ADD hl, hl machine cycles');
 
       // Test half carry, bit 11
       cpu.ld_hl_nn(0x0fff);
@@ -1211,6 +1217,7 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.N(), 0, 'N reset');
       assert.equal(cpu.H(), 1, 'Carry from bit 11');
       assert.equal(cpu.C(), 0, 'No carry bit 15');
+      assert.equal(cpu.m(), m+4, 'ADD hl, hl machine cycles');
 
       // Test carry, bit 15
       cpu.ld_hl_nn(0xf000);
@@ -1221,6 +1228,7 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.N(), 0, 'N reset');
       assert.equal(cpu.H(), 0, 'No carry from bit 11');
       assert.equal(cpu.C(), 1, 'Carry bit 15');
+      assert.equal(cpu.m(), m+6, 'ADD hl, hl machine cycles');
     });
 
     it('should decrement 16 bits registers', () => {
