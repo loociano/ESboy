@@ -1663,17 +1663,27 @@ describe('CPU Unit tests', function() {
 
   describe('Bit operations', () => {
     it('should test bits', () => {
+      // TODO: test any bit, not only bit 7
+
       cpu.ld_h_n(0x00);
+      let m = cpu.m();
+
       cpu.bit_7_h();
+
       assert.equal(cpu.Z(), 1, 'bit 7 is zero');
       assert.equal(cpu.N(), 0, 'N always reset');
       assert.equal(cpu.H(), 1, 'H always set');
+      assert.equal(cpu.m(), m+2, 'BIT 7,h machine cycles');
 
       cpu.ld_h_n(0b10000000);
+      m = cpu.m();
+
       cpu.bit_7_h();
+
       assert.equal(cpu.Z(), 0, 'bit 7 is not zero');
       assert.equal(cpu.N(), 0, 'N always reset');
       assert.equal(cpu.H(), 1, 'H always set');
+      assert.equal(cpu.m(), m+2, 'BIT 7,h machine cycles');
     });
 
     it('should reset bits', () => {
@@ -1684,19 +1694,25 @@ describe('CPU Unit tests', function() {
         for(let b = 0; b < 8; b++) {
           const func = `res_${b}_${r}`;
           assert.ok(cpu[func], `${func} exists`);
+          const m = cpu.m();
 
           cpu[func].call(cpu); // reset bit b
+
+          assert.equal(cpu.m(), m + 2, `${func} machine cycles`);
         }
 
         assert.equal(cpu[r].call(cpu), 0x00, `RES b,${r} 0..b..7 resets all bits`);
-
       });
     });
 
     it('should reset a single bit', () => {
       cpu.ld_a_n(0xff);
+      const m = cpu.m();
+
       cpu.res_0_a();
+
       assert.equal(cpu.a(), 0xfe, 'Reset bit 0');
+      assert.equal(cpu.m(), m + 2, 'RES 0,a machine cycles');
     });
 
     it('should reset bits at memory location hl', () => {
@@ -1705,7 +1721,11 @@ describe('CPU Unit tests', function() {
       cpu.mmu.writeByteAt(cpu.hl(), 0xff);
 
       for(let b = 0; b < 8; b++) {
+        const m = cpu.m();
+
         cpu.res_b_0xhl(b);
+
+        assert.equal(cpu.m(), m + 4, `RES ${b},(hl) machine cycles`);
       }
 
       assert.equal(cpu._0xhl(), 0x00, 'RES b,(hl) with 0..b..7 resets all bits');
