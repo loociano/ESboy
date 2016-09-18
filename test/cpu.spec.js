@@ -1461,7 +1461,7 @@ describe('CPU Unit tests', function() {
       const value = cpu.mmu.readByteAt(hl);
       const m = cpu.m();
 
-      cpu.ldd_a_hl();
+      cpu.ldd_a_0xhl();
 
       assert.equal(cpu.a(), value, `register a has memory value ${value}`);
       assert.equal(cpu.hl(), hl - 1, 'hl is decremented 1');
@@ -1474,7 +1474,7 @@ describe('CPU Unit tests', function() {
       cpu.ld_hl_nn(hl);
       const m = cpu.m();
 
-      cpu.ldd_hl_a();
+      cpu.ldd_0xhl_a();
 
       assert.equal(cpu.mmu.readByteAt(hl), a, `memory ${Utils.hexStr(hl)} has value ${a}`);
       assert.equal(cpu.hl(), hl - 1, 'hl is decremented by 1');

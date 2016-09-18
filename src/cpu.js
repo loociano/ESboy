@@ -99,14 +99,14 @@ export default class CPU {
       0x26: {fn: this.ld_h_n, paramBytes: 1},
       0x30: {fn: this.jr_nc_n, paramBytes: 1},
       0x31: {fn: this.ld_sp_nn, paramBytes: 2},
-      0x32: {fn: this.ldd_hl_a, paramBytes: 0},
+      0x32: {fn: this.ldd_0xhl_a, paramBytes: 0},
       0x33: {fn: this.inc_sp, paramBytes: 0},
       0x34: {fn: this.inc_0xhl, paramBytes: 0},
       0x35: {fn: this.dec_0xhl, paramBytes: 0},
       0x36: {fn: this.ld_0xhl_n, paramBytes: 1},
       0x38: {fn: this.jr_c_n, paramBytes: 0},
       0x39: {fn: this.add_hl_sp, paramBytes: 0},
-      0x3a: {fn: this.ldd_a_hl, paramBytes: 0},
+      0x3a: {fn: this.ldd_a_0xhl, paramBytes: 0},
       0x3b: {fn: this.dec_sp, paramBytes: 0},
       0x3d: {fn: this.dec_a, paramBytes: 0},
       0x3c: {fn: this.inc_a, paramBytes: 0},
@@ -1467,7 +1467,7 @@ export default class CPU {
   /**
    * Loads a with value at address hl. Decrements hl.
    */
-  ldd_a_hl(){
+  ldd_a_0xhl(){
     this._r.a = this._0xhl();
     this.dec_hl();
   }
@@ -1475,7 +1475,7 @@ export default class CPU {
   /**
    * Puts a into memory address hl. Decrements hl.
    */
-  ldd_hl_a(){
+  ldd_0xhl_a(){
     this._ld_0xnn_a(this.hl());
     this.dec_hl();
   }
