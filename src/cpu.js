@@ -1629,6 +1629,7 @@ export default class CPU {
     const value = this[r1+r2]() - 1;
     this._r[r1] = (value & 0xff00) >> 8;
     this._r[r2] = value & 0x00ff;
+    this._m++;
   }
 
   /**
@@ -1746,6 +1747,7 @@ export default class CPU {
    */
   ldh_n_a(n){
     this.mmu.writeByteAt(0xff00 + n, this._r.a);
+    this._m += 3;
   }
 
   /**
@@ -1754,6 +1756,7 @@ export default class CPU {
    */
   ldh_a_n(n){
     this._r.a = this.mmu.readByteAt(0xff00 + n);
+    this._m += 3;
   }
 
   /**
@@ -1905,6 +1908,7 @@ export default class CPU {
    */
   ld_0xc_a(){
     this.mmu.writeByteAt(0xff00 + this._r.c, this._r.a);
+    this._m += 2;
   }
 
   /**
@@ -2000,6 +2004,7 @@ export default class CPU {
       this._r[r1] = (value & 0xff00) >> 8;
       this._r[r2] = value & 0x00ff;
     }
+    this._m++;
   }
 
   /**
@@ -2398,6 +2403,7 @@ export default class CPU {
    */
   _ld_0xnn_a(addr){
     this.mmu.writeByteAt(addr, this._r.a);
+    this._m++;
   }
 
   /**
