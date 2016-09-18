@@ -1738,57 +1738,74 @@ describe('CPU Unit tests', function() {
       const pc = cpu.pc();
       const sp = cpu.sp();
       const addr = 0x1234;
+      const m = cpu.m();
 
       cpu.call(addr);
+
       assert.equal(cpu.mmu.readByteAt(sp - 1), Utils.msb(pc), 'store the lsb into stack');
       assert.equal(cpu.mmu.readByteAt(sp - 2), Utils.lsb(pc), 'store the msb into stack');
       assert.equal(cpu.sp(), sp - 2, 'sp moved down 2 bytes');
       assert.equal(cpu.pc(), addr, 'jump to address');
+      assert.equal(cpu.m(), m + 6, 'CALL machine cycles');
     });
   });
 
   describe('Rotates and Shifts', () => {
     it('should rotate registers left', () => {
 
-      [ {r: cpu.a, ld: cpu.ld_a_n, rl: cpu.rl_a},
+      [{r: cpu.a, ld: cpu.ld_a_n, rl: cpu.rl_a},
         {r: cpu.b, ld: cpu.ld_b_n, rl: cpu.rl_b},
         {r: cpu.c, ld: cpu.ld_c_n, rl: cpu.rl_c},
         {r: cpu.d, ld: cpu.ld_d_n, rl: cpu.rl_d},
         {r: cpu.e, ld: cpu.ld_e_n, rl: cpu.rl_e},
         {r: cpu.h, ld: cpu.ld_h_n, rl: cpu.rl_h},
-        {r: cpu.l, ld: cpu.ld_l_n, rl: cpu.rl_l} ].map( ({r, ld, rl}) => {
+        {r: cpu.l, ld: cpu.ld_l_n, rl: cpu.rl_l}].map(({r, ld, rl}) => {
 
         cpu.setC(0);
         ld.call(cpu, 0x80);
+        const m = cpu.m();
+
         rl.call(cpu);
+
         assert.equal(r.call(cpu), 0x00, `${r.name} rotated left`);
         assert.equal(cpu.Z(), 1, 'Result was zero');
         assert.equal(cpu.N(), 0, 'N reset');
         assert.equal(cpu.H(), 0, 'H reset');
         assert.equal(cpu.C(), 1, 'Carry set');
+        assert.equal(cpu.m(), m + 2, `RL ${r.name} machine cycles`);
       });
+    });
 
+    it('should rotate value at memory location hl left', () => {
       const addr = 0xc000;
       cpu.ld_hl_nn(addr);
       cpu.mmu.writeByteAt(addr, 0x11);
       cpu.setC(1);
+      const m = cpu.m();
+
       cpu.rl_0xhl();
+
       assert.equal(cpu.mmu.readByteAt(addr), 0x22, 'value at memory hl rotated left');
       assert.equal(cpu.Z(), 0, 'Result was positive');
       assert.equal(cpu.N(), 0, 'N reset');
       assert.equal(cpu.H(), 0, 'H reset');
       assert.equal(cpu.C(), 0, 'C reset');
+      assert.equal(cpu.m(), m + 4, 'RL (hl) machine cycles');
     });
 
     it('should rotate a to the left', () => {
       cpu.setC(1);
       cpu.ld_a_n(           0b10010101);
+      const m = cpu.m();
+
       cpu.rla();
+
       assert.equal(cpu.a(), 0b00101011, 'Rotate a left');
       assert.equal(cpu.Z(), 0, 'Result was positive');
       assert.equal(cpu.N(), 0, 'N reset');
       assert.equal(cpu.H(), 0, 'H reset');
       assert.equal(cpu.C(), 1, 'Carry 1');
+      assert.equal(cpu.m(), m + 1, 'RLA machine cycles');
     });
   });
 
