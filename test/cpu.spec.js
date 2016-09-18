@@ -1406,10 +1406,12 @@ describe('CPU Unit tests', function() {
           const value = cpu[r2].call(cpu);
           const func = `ld_${r1}_${r2}`;
           assert.ok(cpu[func], `${func} does not exist`);
+          const m = cpu.m();
 
           cpu[func].call(cpu);
 
           assert.equal(cpu[r1].call(cpu), value, `load ${r2} into ${r1}`);
+          assert.equal(cpu.m(), m + 1, `${func} machine cycles`);
         });
       });
     });
