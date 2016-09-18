@@ -1815,11 +1815,13 @@ describe('CPU Unit tests', function() {
       const sp = cpu.sp();
       cpu.ld_hl_nn(addr);
       cpu.push_hl();
+      const m = cpu.m();
       
       cpu.ret();
 
       assert.equal(cpu.sp(), sp, 'sp to be original value');
-      assert.equal(cpu.pc(), addr, `program to continue on ${addr}`)
+      assert.equal(cpu.pc(), addr, `program to continue on ${addr}`);
+      assert.equal(cpu.m() - m, 4, 'RET machine cycles');
     });
 
     it('should return if last operation was not zero', () => {
@@ -1829,17 +1831,21 @@ describe('CPU Unit tests', function() {
       cpu.ld_hl_nn(addr);
       cpu.push_hl();
       cpu.setZ(1);
+      let m = cpu.m();
 
       cpu.ret_nz();
 
       assert.equal(cpu.pc(), pc, 'Does not jump');
+      assert.equal(cpu.m() - m, 2, 'RET NZ without jump');
 
       cpu.setZ(0);
+      m = cpu.m();
 
       cpu.ret_nz();
 
       assert.equal(cpu.pc(), addr, 'Jumps');
       assert.equal(cpu.sp(), sp, 'sp to original value');
+      assert.equal(cpu.m() - m, 5, 'RET NZ without jump');
     });
 
     it('should return if last operation was zero', () => {
@@ -1849,17 +1855,21 @@ describe('CPU Unit tests', function() {
       cpu.ld_hl_nn(addr);
       cpu.push_hl();
       cpu.setZ(0);
+      let m = cpu.m();
 
       cpu.ret_z();
 
       assert.equal(cpu.pc(), pc, 'Does not jump');
+      assert.equal(cpu.m() - m, 2, 'RET Z without jump');
 
       cpu.setZ(1);
+      m = cpu.m();
 
       cpu.ret_z();
 
       assert.equal(cpu.pc(), addr, 'Jumps');
       assert.equal(cpu.sp(), sp, 'sp to original value');
+      assert.equal(cpu.m() - m, 5, 'RET Z with jump');
     });
 
     it('should return if last operation did not carry', () => {
@@ -1869,17 +1879,21 @@ describe('CPU Unit tests', function() {
       cpu.ld_hl_nn(addr);
       cpu.push_hl();
       cpu.setC(1);
+      let m = cpu.m();
 
       cpu.ret_nc();
 
       assert.equal(cpu.pc(), pc, 'Does not jump');
+      assert.equal(cpu.m() - m, 2, 'RET NC without jump');
 
       cpu.setC(0);
+      m = cpu.m();
 
       cpu.ret_nc();
 
       assert.equal(cpu.pc(), addr, 'Jumps');
       assert.equal(cpu.sp(), sp, 'sp to original value');
+      assert.equal(cpu.m() - m, 5, 'RET CZ with jump');
     });
 
     it('should return if last operation carried', () => {
@@ -1889,17 +1903,21 @@ describe('CPU Unit tests', function() {
       cpu.ld_hl_nn(addr);
       cpu.push_hl();
       cpu.setC(0);
+      let m = cpu.m();
 
       cpu.ret_c();
 
       assert.equal(cpu.pc(), pc, 'Does not jump');
+      assert.equal(cpu.m() - m, 2, 'RET C without jump');
 
       cpu.setC(1);
+      m = cpu.m();
 
       cpu.ret_c();
 
       assert.equal(cpu.pc(), addr, 'Jumps');
       assert.equal(cpu.sp(), sp, 'sp to original value');
+      assert.equal(cpu.m() - m, 5, 'RET C without jump');
     });
 
     it('should return from interruption', () => {
@@ -1909,12 +1927,14 @@ describe('CPU Unit tests', function() {
       cpu.ld_hl_nn(addr);
       cpu.push_hl();
       assert.equal(cpu.sp(), sp - 2, 'sp decreased');
+      const m = cpu.m();
 
       cpu.reti();
 
       assert.equal(cpu.sp(), sp, 'sp to original value');
       assert.equal(cpu.pc(), addr, `program to continue on ${addr}`);
       assert.equal(cpu.ime(), 1, 'Master interruption enabled');
+      assert.equal(cpu.m() - m, 4, 'RETI machine cycles');
     });
 
   });
