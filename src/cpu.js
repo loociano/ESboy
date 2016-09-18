@@ -1738,6 +1738,7 @@ export default class CPU {
    */
   di(){
     this._r.ime = 0;
+    this._m++;
   }
 
   /** 
@@ -1746,6 +1747,7 @@ export default class CPU {
   ei(){
     this._r.ime = 1;
     this._lastInstrWasEI = true;
+    this._m++;
   }
 
   /**
