@@ -1367,26 +1367,20 @@ describe('CPU Unit tests', function() {
 
   describe('8 bits loads', () => {
     it('should load 8 bits into registers', () => {
-      cpu.ld_a_n(0xab);
-      assert.equal(cpu.a(), 0xab, 'load 0xab into a');
 
-      cpu.ld_b_n(0xab);
-      assert.equal(cpu.b(), 0xab, 'load 0xab into b');
+      [ {r: cpu.a, ld: cpu.ld_a_n},
+        {r: cpu.b, ld: cpu.ld_b_n},
+        {r: cpu.c, ld: cpu.ld_c_n},
+        {r: cpu.d, ld: cpu.ld_d_n},
+        {r: cpu.e, ld: cpu.ld_e_n},
+        {r: cpu.h, ld: cpu.ld_h_n},
+        {r: cpu.l, ld: cpu.ld_l_n}].map( ({r, ld}) => {
+          const m = cpu.m();
 
-      cpu.ld_c_n(0xab);
-      assert.equal(cpu.c(), 0xab, 'load 0xab into c');
+          ld.call(cpu, 0xab);
 
-      cpu.ld_d_n(0xab);
-      assert.equal(cpu.d(), 0xab, 'load 0xab into d');
-
-      cpu.ld_e_n(0xab);
-      assert.equal(cpu.e(), 0xab, 'load 0xab into e');
-
-      cpu.ld_h_n(0xab);
-      assert.equal(cpu.h(), 0xab, 'load 0xab into h');
-
-      cpu.ld_l_n(0xab);
-      assert.equal(cpu.l(), 0xab, 'load 0xab into l');
+          assert.equal(r.call(cpu), 0xab, `load 0xab into ${r.name}`);
+      });
     });
 
     it('should load registers into register other registers', () => {
