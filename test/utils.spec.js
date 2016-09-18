@@ -78,4 +78,11 @@ describe('Utils', () => {
     });
   });
 
+  it('should swap nybbles in a byte', () => {
+    assert.equal(Utils.swapNybbles(0xab), 0xba);
+    assert.equal(Utils.swapNybbles(0x00), 0x00);
+    assert.throws( () => Utils.swapNybbles(0x100), Error, 'Not a byte');
+    assert.throws( () => Utils.swapNybbles(), Error, 'Missing byte');
+  });
+
 });
