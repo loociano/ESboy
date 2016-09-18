@@ -1459,68 +1459,102 @@ describe('CPU Unit tests', function() {
     it('should put memory address hl into a and decrement hl', () => {
       const hl = cpu.hl();
       const value = cpu.mmu.readByteAt(hl);
+      const m = cpu.m();
+
       cpu.ldd_a_hl();
+
       assert.equal(cpu.a(), value, `register a has memory value ${value}`);
       assert.equal(cpu.hl(), hl - 1, 'hl is decremented 1');
+      assert.equal(cpu.m(), m + 2, 'LDD a,(hl) machine cycles');
     });
 
     it('should put a into memory address hl and decrement hl', () => {
       const a = cpu.a();
       const hl = 0xdfff;
       cpu.ld_hl_nn(hl);
+      const m = cpu.m();
+
       cpu.ldd_hl_a();
+
       assert.equal(cpu.mmu.readByteAt(hl), a, `memory ${Utils.hexStr(hl)} has value ${a}`);
       assert.equal(cpu.hl(), hl - 1, 'hl is decremented by 1');
+      assert.equal(cpu.m(), m + 2, 'LDD (HL),a machine cycles');
     });
 
     it('should load value at memory address hl into a and increment hl', () => {
       const hl = 0xc000;
       cpu.ld_hl_nn(hl);
       cpu.mmu.writeByteAt(hl, 0xf1);
+      const m = cpu.m();
 
       cpu.ldi_a_0xhl();
 
       assert.equal(cpu.a(), 0xf1, `register a has value 0xf1`);
       assert.equal(cpu.hl(), hl + 1, 'hl is incremented by 1');
+      assert.equal(cpu.m(), m + 2, 'LDI a,(hl) machine cycles');
     });
 
     it('should put a into memory address 0xff00 + 0', () => {
       const value = cpu.mmu.readByteAt(0xff00);
       cpu.ld_a_n(0xab);
+      const m = cpu.m();
+
       cpu.ldh_n_a(0);
+
       assert.equal(cpu.mmu.readByteAt(0xff00), 0xab, 'memory 0xff00 has value 0xab');
+      assert.equal(cpu.m(), m + 3, 'LD (ff00+n),a machine cycles');
     });
 
     it('should put a into memory address 0xff00 + 0xfe', () => {
       const value = cpu.mmu.readByteAt(0xfffe);
       cpu.ld_a_n(0xab);
+      const m = cpu.m();
+
       cpu.ldh_n_a(0xfe);
+
       assert.equal(cpu.mmu.readByteAt(0xfffe), 0xab, 'memory 0xfffe has value 0xab');
+      assert.equal(cpu.m(), m + 3, 'LD (ff00+n),a machine cycles');
     });
 
     it('should write a into address 0xff00 + 0xff', () => {
       cpu.ld_a_n(0x01);
+      const m = cpu.m();
+
       cpu.ldh_n_a(0xff);
+
       assert.equal(cpu.mmu.readByteAt(0xffff), 0x01, 'value at memory 0xffff has value 0xab');
+      assert.equal(cpu.m(), m + 3, 'LD (ff00+n),a machine cycles');
       assert.equal(cpu.ie(), 0x01);
     });
 
     it('should put value at memory address 0xff00 + 0 into a', () => {
       const value = cpu.mmu.readByteAt(0xff00);
+      const m = cpu.m();
+
       cpu.ldh_a_n(0);
+
       assert.equal(cpu.a(), value, '(0xff00) into a');
+      assert.equal(cpu.m(), m + 3, 'LD a,(ff00+n) machine cycles');
     });
 
     it('should put value at memory address 0xff00 + 0xfe into a', () => {
       const value = cpu.mmu.readByteAt(0xff00 + 0xfe);
+      const m = cpu.m();
+
       cpu.ldh_a_n(0xfe);
+
       assert.equal(cpu.a(), value, '(0xfffe) into a');
+      assert.equal(cpu.m(), m + 3, 'LD a,(ff00+n) machine cycles');
     });
 
     it('should put value at memory address 0xff00 + 0xff into a', () => {
       const value = cpu.mmu.readByteAt(0xff00 + 0xff);
+      const m = cpu.m();
+
       cpu.ldh_a_n(0xff);
+
       assert.equal(cpu.a(), value, '(0xffff) into a');
+      assert.equal(cpu.m(), m + 3, 'LD a,(ff00+n) machine cycles');
     });
 
     it('should put a into memory address 0xff00 + c', () => {
@@ -1528,8 +1562,12 @@ describe('CPU Unit tests', function() {
       const offset = 0x44; // ly
       cpu.ld_c_n(offset);
       cpu.ld_a_n(value);
+      const m = cpu.m();
+
       cpu.ld_0xc_a();
+
       assert.equal(cpu.mmu.readByteAt(0xff00 + offset), value, 'value at memory address 0xff00 + c');
+      assert.equal(cpu.m(), m + 2, 'LD (ff00+c),a machine cycles');
     });
 
     it('should write in memory address 0xff00 + 0xff', () => {
@@ -1537,10 +1575,12 @@ describe('CPU Unit tests', function() {
       const value = 0x0f;
       cpu.ld_c_n(offset);
       cpu.ld_a_n(value);
+      const m = cpu.m();
 
       cpu.ld_0xc_a();
     
       assert.equal(cpu.mmu.readByteAt(0xff00 + offset), value, '0xffff is written');
+      assert.equal(cpu.m(), m + 2, 'LD (ff00+c),a machine cycles');
       assert.equal(cpu.ie(), value, 'ie is written');
     });
 
