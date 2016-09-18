@@ -1422,10 +1422,12 @@ describe('CPU Unit tests', function() {
         cpu.mmu.writeByteAt(cpu.hl(), 0xab);
         const func = `ld_${r}_0xhl`;
         assert.ok(cpu[func], `${func} does not exist`);
+        const m = cpu.m();
 
         cpu[func].call(cpu);
 
         assert.equal(cpu[r].call(cpu), 0xab, `load (hl) into ${r}`);
+        assert.equal(cpu.m(), m + 2, `${func} machine cycles`);
       });
     });
 
