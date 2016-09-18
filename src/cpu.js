@@ -2911,6 +2911,7 @@ export default class CPU {
     this._set_hl(value);
 
     this.setN(0);
+    this._m += 2;
   }
 
   /**
