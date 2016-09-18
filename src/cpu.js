@@ -1452,6 +1452,7 @@ export default class CPU {
    */
   ld_a_nn(nn){
     this.ld_a_n(this.mmu.readByteAt(nn));
+    this._m += 2;
   }
 
   /**
