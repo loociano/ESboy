@@ -1310,22 +1310,34 @@ describe('CPU Unit tests', function() {
     describe('PUSH', () => {
 
       it('should push registers into the stack', () => {
+        let m = cpu.m();
 
         cpu.push_af();
+
         assert.equal(cpu.mmu.readByteAt(cpu.sp() + 1), cpu.a(), 'store a into stack');
         assert.equal(cpu.mmu.readByteAt(cpu.sp()), cpu.f() << 4, 'store f into stack');
+        assert.equal(cpu.m(), m+4, 'Machine cycles');
 
+        m = cpu.m();
         cpu.push_bc();
+
         assert.equal(cpu.mmu.readByteAt(cpu.sp() + 1), cpu.b(), 'store b into stack');
         assert.equal(cpu.mmu.readByteAt(cpu.sp()), cpu.c(), 'store c into stack');
+        assert.equal(cpu.m(), m+4, 'Machine cycles');
 
+        m = cpu.m();
         cpu.push_de();
+
         assert.equal(cpu.mmu.readByteAt(cpu.sp() + 1), cpu.d(), 'store d into stack');
         assert.equal(cpu.mmu.readByteAt(cpu.sp()), cpu.e(), 'store e into stack');
+        assert.equal(cpu.m(), m+4, 'Machine cycles');
 
+        m = cpu.m();
         cpu.push_hl();
+
         assert.equal(cpu.mmu.readByteAt(cpu.sp() + 1), cpu.h(), 'store h into stack');
         assert.equal(cpu.mmu.readByteAt(cpu.sp()), cpu.l(), 'store l into stack');
+        assert.equal(cpu.m(), m+4, 'Machine cycles');
       });
     });
 
