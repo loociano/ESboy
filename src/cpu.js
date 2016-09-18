@@ -2004,12 +2004,14 @@ export default class CPU {
       this.mmu.writeByteAt(this.hl(), ++value);
       this.setZ(0);
     }
+
     if (value === 0x10){
       this.setH(1);
     } else {
       this.setH(0);
     }
     this.setN(0);
+    this._m += 2;
   }
 
   /**
@@ -2031,6 +2033,7 @@ export default class CPU {
       this.setH(0);
     }
     this.setN(0);
+    this._m++;
   }
 
   /**
