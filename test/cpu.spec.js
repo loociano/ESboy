@@ -1273,27 +1273,33 @@ describe('CPU Unit tests', function() {
   describe('16 bits loads', () => {
 
     describe('LD rr,nn', () => {
-      it('should load 16 bits into register', () => {
-        let m = cpu.m();
+      it('should load 16 bits into register bc', () => {
+        const m = cpu.m();
 
         cpu.ld_bc_nn(0xabcd);
 
         assert.equal(cpu.bc(), 0xabcd, 'load 0xabcd into bc');
-        assert.equal(cpu.m(), m+3, 'Machine cycles');
+        assert.equal(cpu.m(), m + 3, 'Machine cycles');
+      });
 
-        m = cpu.m();
+      it('should load 16  bits into register de', () => {
+        const m = cpu.m();
         cpu.ld_de_nn(0xabcd);
 
         assert.equal(cpu.de(), 0xabcd, 'load 0xabcd into de');
-        assert.equal(cpu.m(), m+3, 'Machine cycles');
+        assert.equal(cpu.m(), m + 3, 'Machine cycles');
+      });
 
-        m = cpu.m();
+      it('should load 16 bits into register hl', () => {
+        const m = cpu.m();
         cpu.ld_hl_nn(0xabcd);
 
         assert.equal(cpu.hl(), 0xabcd, 'load 0xabcd into hl');
-        assert.equal(cpu.m(), m+3, 'Machine cycles');
+        assert.equal(cpu.m(), m + 3, 'Machine cycles');
+      });
 
-        m = cpu.m();
+      it('should load 16 bits into stack pointer', () => {
+        const m = cpu.m();
         cpu.ld_sp_nn(0xabcd);
 
         assert.equal(cpu.sp(), 0xabcd, 'load 0xabcd into sp');
