@@ -2421,6 +2421,7 @@ export default class CPU {
   call(addr){
     this._push_pc();
     this._r.pc = addr;
+    this._m += 6;
   }
 
   /**
@@ -2526,13 +2527,14 @@ export default class CPU {
    */
   rl_a(){
     this._rl_r('a');
+    this._m++;
   }
 
   /**
    * Rotates left register a
    */
   rla(){
-    this.rl_a();
+    this._rl_r('a');
   }
 
   /**
@@ -2540,6 +2542,7 @@ export default class CPU {
    */
   rl_b(){
     this._rl_r('b');
+    this._m++;
   }
 
   /**
@@ -2547,6 +2550,7 @@ export default class CPU {
    */
   rl_c(){
     this._rl_r('c');
+    this._m++;
   }
 
   /**
@@ -2554,6 +2558,7 @@ export default class CPU {
    */
   rl_d(){
     this._rl_r('d');
+    this._m++;
   }
 
   /**
@@ -2561,6 +2566,7 @@ export default class CPU {
    */
   rl_e(){
     this._rl_r('e');
+    this._m++;
   }
 
   /**
@@ -2568,6 +2574,7 @@ export default class CPU {
    */
   rl_h(){
     this._rl_r('h');
+    this._m++;
   }
 
   /**
@@ -2575,6 +2582,7 @@ export default class CPU {
    */
   rl_l(){
     this._rl_r('l');
+    this._m++;
   }
 
   /**
@@ -2596,6 +2604,7 @@ export default class CPU {
 
     this.setN(0);
     this.setH(0);
+    this._m++;
   }
 
   /**
@@ -2622,6 +2631,7 @@ export default class CPU {
 
     this.setN(0);
     this.setH(0);
+    this._m += 3;
   }
 
   /** 
