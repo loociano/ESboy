@@ -2445,6 +2445,7 @@ export default class CPU {
   _push(r1, r2){
     this.mmu.writeByteAt(--this._r.sp, this._r[r1]);
     this.mmu.writeByteAt(--this._r.sp, this._r[r2]);
+    this._m += 4;
   }
 
   /**
