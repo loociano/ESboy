@@ -468,6 +468,13 @@ export default class CPU {
   }
 
   /**
+   * @returns {number} byte at memory location hl
+   */
+  $hl(){
+    return this.mmu.readByteAt(this.hl());
+  }
+
+  /**
    * @returns {number} flags (4 bits)
    */
   f(){
@@ -3088,6 +3095,7 @@ export default class CPU {
     }
     this._ld_0xhl_n(swapped);
     this.setN(0); this.setH(0); this.setC(0);
+    this._m++;
   }
 
   /**
@@ -3102,6 +3110,7 @@ export default class CPU {
       this.setZ(1);
     }
     this.setN(0); this.setH(0); this.setC(0);
+    this._m += 2;
   }
 
   /**
