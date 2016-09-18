@@ -2027,28 +2027,36 @@ describe('CPU Unit tests', function() {
         {rst: cpu.rst_38, addr: 0x38} ].map( ({rst, addr}) => {
 
           cpu.setPC(0x0150);
+          const m = cpu.m();
 
           rst.call(cpu);
 
           assert.equal(cpu.peek_stack(+1), 0x01, 'top nybble');
           assert.equal(cpu.peek_stack(), 0x50, 'bottom nybble');
           assert.equal(cpu.pc(), addr);
+          assert.equal(cpu.m() - m, 4, 'Machine cycles');
       });
-
-
     });
   });
 
   describe('Interruptions', () => {
 
     it('should disable interruptions', () => {
+      const m = cpu.m();
+
       cpu.di();
+
       assert.equal(cpu.ime(), 0, 'Interrupt Master Enable Flag disabled, all interruptions are prohibited.');
+      assert.equal(cpu.m() - m, 1, 'Machine cycles');
     });
 
     it('should enable interruptions', () => {
+      const m = cpu.m();
+
       cpu.ei();
+
       assert.equal(cpu.ime(), 1, 'Interrupt Master Enable Flag enabled.');
+      assert.equal(cpu.m() - m, 1, 'Machine cycles');
     });
 
   });
