@@ -1943,18 +1943,22 @@ describe('CPU Unit tests', function() {
 
     it('should complement register a', () => {
       cpu.ld_a_n(0b00110011);
+      let m = cpu.m();
       
       cpu.cpl();
 
       assert.equal(cpu.a(), 0b11001100, 'Complement a');
       assert.equal(cpu.N(), 1, 'N always set');
       assert.equal(cpu.H(), 1, 'H always set');
+      assert.equal(cpu.m() - m, 1, 'Machine cycles');
 
       cpu.ld_a_n(0b00010000);
+      m = cpu.m();
 
       cpu.cpl();
 
       assert.equal(cpu.a(), 0b11101111, 'Complement a');
+      assert.equal(cpu.m() - m, 1, 'Machine cycles');
     });
 
     it('should swap nybbles', () => {
