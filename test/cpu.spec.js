@@ -620,81 +620,114 @@ describe('CPU Unit tests', function() {
       });
     });
 
-    it('should compare register a with itself', () => {
-      cpu.ld_a_n(0xab);
-      cpu.cp_a();
-      assertFlagsCompareEqualValue(cpu);
-    });
+    describe('CP', () => {
 
-    it('it should compare registers with register a', () => {
-
-      [ {ld: cpu.ld_b_n, cp: cpu.cp_b},
-        {ld: cpu.ld_c_n, cp: cpu.cp_c},
-        {ld: cpu.ld_d_n, cp: cpu.cp_d},
-        {ld: cpu.ld_e_n, cp: cpu.cp_e},
-        {ld: cpu.ld_h_n, cp: cpu.cp_h},
-        {ld: cpu.ld_l_n, cp: cpu.cp_l} ].map( ({ld, cp}) => {
-
+      it('should compare register a with itself', () => {
+        const m = cpu.m();
         cpu.ld_a_n(0xab);
 
-        // Same value
-        ld.call(cpu, 0xab);
-        cp.call(cpu);
+        cpu.cp_a();
+
         assertFlagsCompareEqualValue(cpu);
-
-        // Lower value
-        ld.call(cpu, 0x01);
-        cp.call(cpu);
-        assertFlagsCompareLowerValue(cpu);
-
-        // Greater value
-        ld.call(cpu, 0xff);
-        cp.call(cpu);
-        assertFlagsCompareGreaterValue(cpu);
-
+        assert.equal(cpu.m(), m+1, 'Compare cycles');
       });
-    });
 
-    it('should compare register a with value at memory address hl', () => {
+      it('it should compare registers with register a', () => {
 
-      cpu.ld_a_n(0xab);
-      cpu.ld_hl_nn(0xfffe);
+        [{ld: cpu.ld_b_n, cp: cpu.cp_b},
+          {ld: cpu.ld_c_n, cp: cpu.cp_c},
+          {ld: cpu.ld_d_n, cp: cpu.cp_d},
+          {ld: cpu.ld_e_n, cp: cpu.cp_e},
+          {ld: cpu.ld_h_n, cp: cpu.cp_h},
+          {ld: cpu.ld_l_n, cp: cpu.cp_l}].map(({ld, cp}) => {
 
-      // Lower value
-      cpu.mmu.writeByteAt(cpu.hl(), 0x01);
-      cpu.cp_0xhl();
-      assertFlagsCompareLowerValue(cpu);
+          const m = cpu.m();
+          cpu.ld_a_n(0xab);
 
-      // Equal value
-      cpu.mmu.writeByteAt(cpu.hl(), 0xab);
-      cpu.cp_0xhl();
-      assertFlagsCompareEqualValue(cpu);
+          ld.call(cpu, 0xab); // Same value
 
-      // Greater value
-      cpu.mmu.writeByteAt(cpu.hl(), 0xff);
-      cpu.cp_0xhl();
-      assertFlagsCompareGreaterValue(cpu);
-    });
+          cp.call(cpu);
 
-    it('should compare register a with lower value n', () => {
-      const n = 0x01;
-      cpu.ld_a_n(0xab);
-      cpu.cp_n(n);
-      assertFlagsCompareLowerValue(cpu);
-    });
+          assertFlagsCompareEqualValue(cpu);
+          assert.equal(cpu.m(), m+1, 'Compare cycles');
 
-    it('should compare register a with equal value n', () => {
-      const n = 0xab;
-      cpu.ld_a_n(0xab);
-      cpu.cp_n(n);
-      assertFlagsCompareEqualValue(cpu);
-    });
+          ld.call(cpu, 0x01); // Lower value
 
-    it('should compare register a with greater value n', () => {
-      const n = 0xff;
-      cpu.ld_a_n(0xab);
-      cpu.cp_n(n);
-      assertFlagsCompareGreaterValue(cpu);
+          cp.call(cpu);
+
+          assertFlagsCompareLowerValue(cpu);
+          assert.equal(cpu.m(), m+2, 'Compare cycles');
+
+          ld.call(cpu, 0xff); // Greater value
+
+          cp.call(cpu);
+
+          assertFlagsCompareGreaterValue(cpu);
+          assert.equal(cpu.m(), m+3, 'Compare cycles');
+        });
+      });
+
+      it('should compare register a with value at memory address hl', () => {
+
+        const m = cpu.m();
+        cpu.ld_a_n(0xab);
+        cpu.ld_hl_nn(0xfffe);
+
+        cpu.mmu.writeByteAt(cpu.hl(), 0x01); // Lower value
+
+        cpu.cp_0xhl();
+
+        assertFlagsCompareLowerValue(cpu);
+        assert.equal(cpu.m(), m+2, 'Compare cycles');
+
+        cpu.mmu.writeByteAt(cpu.hl(), 0xab); // Equal value
+
+        cpu.cp_0xhl();
+
+        assertFlagsCompareEqualValue(cpu);
+        assert.equal(cpu.m(), m+4, 'Compare cycles');
+
+
+        cpu.mmu.writeByteAt(cpu.hl(), 0xff); // Greater value
+
+        cpu.cp_0xhl();
+
+        assertFlagsCompareGreaterValue(cpu);
+        assert.equal(cpu.m(), m+6, 'Compare cycles');
+      });
+
+      it('should compare register a with lower value n', () => {
+        const m = cpu.m();
+        const n = 0x01;
+        cpu.ld_a_n(0xab);
+
+        cpu.cp_n(n);
+
+        assertFlagsCompareLowerValue(cpu);
+        assert.equal(cpu.m(), m+2, 'Compare cycles');
+      });
+
+      it('should compare register a with equal value n', () => {
+        const m = cpu.m();
+        const n = 0xab;
+        cpu.ld_a_n(0xab);
+
+        cpu.cp_n(n);
+
+        assertFlagsCompareEqualValue(cpu);
+        assert.equal(cpu.m(), m+2, 'Compare cycles');
+      });
+
+      it('should compare register a with greater value n', () => {
+        const m = cpu.m();
+        const n = 0xff;
+        cpu.ld_a_n(0xab);
+
+        cpu.cp_n(n);
+
+        assertFlagsCompareGreaterValue(cpu);
+        assert.equal(cpu.m(), m+2, 'Compare cycles');
+      });
     });
 
     it('should increment register by 1', () => {
