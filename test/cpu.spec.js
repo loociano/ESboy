@@ -730,82 +730,90 @@ describe('CPU Unit tests', function() {
       });
     });
 
-    it('should increment register by 1', () => {
+    describe('INC', () => {
 
-      [ {r: cpu.a, ld: cpu.ld_a_n, inc: cpu.inc_a},
-        {r: cpu.b, ld: cpu.ld_b_n, inc: cpu.inc_b},
-        {r: cpu.c, ld: cpu.ld_c_n, inc: cpu.inc_c},
-        {r: cpu.d, ld: cpu.ld_d_n, inc: cpu.inc_d},
-        {r: cpu.e, ld: cpu.ld_e_n, inc: cpu.inc_e},
-        {r: cpu.h, ld: cpu.ld_h_n, inc: cpu.inc_h},
-        {r: cpu.l, ld: cpu.ld_l_n, inc: cpu.inc_l} ].map( ({r, ld, inc}) => {
+      it('should increment register by 1', () => {
 
-        ld.call(cpu, 0x00);
-        let value = r.call(cpu);
-        
-        inc.call(cpu);
-        
-        assert.equal(r.call(cpu), value+1, 'a incremented.');
+        [{r: cpu.a, ld: cpu.ld_a_n, inc: cpu.inc_a},
+          {r: cpu.b, ld: cpu.ld_b_n, inc: cpu.inc_b},
+          {r: cpu.c, ld: cpu.ld_c_n, inc: cpu.inc_c},
+          {r: cpu.d, ld: cpu.ld_d_n, inc: cpu.inc_d},
+          {r: cpu.e, ld: cpu.ld_e_n, inc: cpu.inc_e},
+          {r: cpu.h, ld: cpu.ld_h_n, inc: cpu.inc_h},
+          {r: cpu.l, ld: cpu.ld_l_n, inc: cpu.inc_l}].map(({r, ld, inc}) => {
+
+          const m = cpu.m();
+          ld.call(cpu, 0x00);
+          let value = r.call(cpu);
+
+          inc.call(cpu);
+
+          assert.equal(r.call(cpu), value + 1, 'a incremented.');
+          assert.equal(cpu.Z(), 0, 'Z set if result is zero');
+          assert.equal(cpu.N(), 0, 'N is always reset');
+          assert.equal(cpu.H(), 0, 'H reset as no half carry');
+          assert.equal(cpu.m(), m+1, 'INC r machine cycle');
+
+          ld.call(cpu, 0x0f); // Test half carry
+          value = r.call(cpu);
+
+          inc.call(cpu);
+
+          assert.equal(r.call(cpu), value + 1, 'a incremented.');
+          assert.equal(cpu.Z(), 0, 'Z set if result is zero');
+          assert.equal(cpu.N(), 0, 'N is always reset');
+          assert.equal(cpu.H(), 1, 'H set as half carry');
+          assert.equal(cpu.m(), m+2, 'INC r machine cycle');
+
+          ld.call(cpu, 0xff); // Test value loop
+
+          inc.call(cpu);
+
+          assert.equal(r.call(cpu), 0x00, 'a resets to 0x00.');
+          assert.equal(cpu.Z(), 1, 'Z set if result is zero');
+          assert.equal(cpu.N(), 0, 'N is always reset');
+          assert.equal(cpu.H(), 0, 'H reset as no half carry');
+          assert.equal(cpu.m(), m+3, 'INC r machine cycle');
+        });
+      });
+
+      it('should increment memory value at hl 0x00 by 1', () => {
+        const m = cpu.m();
+        const addr = 0xc000;
+        cpu.ld_hl_nn(addr);
+        let value = 0x00;
+        cpu.mmu.writeByteAt(addr, value);
+
+        cpu.inc_0xhl();
+
+        assert.equal(cpu.mmu.readByteAt(cpu.hl()), value + 1, 'value at memory (hl) incremented.');
         assert.equal(cpu.Z(), 0, 'Z set if result is zero');
         assert.equal(cpu.N(), 0, 'N is always reset');
         assert.equal(cpu.H(), 0, 'H reset as no half carry');
+        assert.equal(cpu.m(), m+3, 'INC (HL) machine cycle');
 
-        ld.call(cpu, 0x0f);
-        value = r.call(cpu);
-        
-        inc.call(cpu);
-        
-        assert.equal(r.call(cpu), value+1, 'a incremented.');
+        value = 0x0f; // Test half carry
+        cpu.mmu.writeByteAt(addr, value);
+
+        cpu.inc_0xhl();
+
+        assert.equal(cpu.mmu.readByteAt(cpu.hl()), value + 1, 'value at memory (hl) incremented.');
         assert.equal(cpu.Z(), 0, 'Z set if result is zero');
         assert.equal(cpu.N(), 0, 'N is always reset');
         assert.equal(cpu.H(), 1, 'H set as half carry');
+        assert.equal(cpu.m(), m+6, 'INC (HL) machine cycle');
 
-        ld.call(cpu, 0xff);
-        
-        inc.call(cpu);
-        
-        assert.equal(r.call(cpu), 0x00, 'a resets to 0x00.');
+        value = 0xff; // Test value loop
+        cpu.mmu.writeByteAt(addr, value);
+
+        cpu.inc_0xhl();
+
+        assert.equal(cpu.mmu.readByteAt(cpu.hl()), 0x00, 'value at memory (hl) resets to 0x00.');
         assert.equal(cpu.Z(), 1, 'Z set if result is zero');
         assert.equal(cpu.N(), 0, 'N is always reset');
         assert.equal(cpu.H(), 0, 'H reset as no half carry');
-
+        assert.equal(cpu.m(), m+9, 'INC (HL) machine cycle');
       });
-    });
-
-    it('should increment memory value at hl 0x00 by 1', () => {
-
-      const addr = 0xc000;
-      cpu.ld_hl_nn(addr);
-      let value = 0x00;
-      cpu.mmu.writeByteAt(addr, value);
-
-      cpu.inc_0xhl();
-
-      assert.equal(cpu.mmu.readByteAt(cpu.hl()), value+1, 'value at memory (hl) incremented.');
-      assert.equal(cpu.Z(), 0, 'Z set if result is zero');
-      assert.equal(cpu.N(), 0, 'N is always reset');
-      assert.equal(cpu.H(), 0, 'H reset as no half carry');
-
-      value = 0x0f;
-      cpu.mmu.writeByteAt(addr, value);
-
-      cpu.inc_0xhl();
-
-      assert.equal(cpu.mmu.readByteAt(cpu.hl()), value+1, 'value at memory (hl) incremented.');
-      assert.equal(cpu.Z(), 0, 'Z set if result is zero');
-      assert.equal(cpu.N(), 0, 'N is always reset');
-      assert.equal(cpu.H(), 1, 'H set as half carry');
-
-      value = 0xff;
-      cpu.mmu.writeByteAt(addr, value);
-
-      cpu.inc_0xhl();
-
-      assert.equal(cpu.mmu.readByteAt(cpu.hl()), 0x00, 'value at memory (hl) resets to 0x00.');
-      assert.equal(cpu.Z(), 1, 'Z set if result is zero');
-      assert.equal(cpu.N(), 0, 'N is always reset');
-      assert.equal(cpu.H(), 0, 'H reset as no half carry');
-
     });
 
     it('should subtract n from register a', () =>{
