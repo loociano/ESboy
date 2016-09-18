@@ -1749,63 +1749,73 @@ export default class CPU {
    * Compares register a with register a
    */
   cp_a(){
-    this.cp_n(this._r.a);
+    this._cp_n(this._r.a);
   }
 
   /**
    * Compares register b with register a
    */
   cp_b(){
-    this.cp_n(this._r.b);
+    this._cp_n(this._r.b);
   }
 
   /**
    * Compares register c with register a
    */
   cp_c(){
-    this.cp_n(this._r.c);
+    this._cp_n(this._r.c);
   }
 
   /**
    * Compares register d with register a
    */
   cp_d(){
-    this.cp_n(this._r.d);
+    this._cp_n(this._r.d);
   }
 
   /**
    * Compares register e with register a
    */
   cp_e(){
-    this.cp_n(this._r.e);
+    this._cp_n(this._r.e);
   }
 
   /**
    * Compares register h with register a
    */
   cp_h(){
-    this.cp_n(this._r.h);
+    this._cp_n(this._r.h);
   }
 
   /**
    * Compares register l with register a
    */
   cp_l(){
-    this.cp_n(this._r.l);
+    this._cp_n(this._r.l);
   }
 
   /**
    * Compares memory location hl with register a
    */
   cp_0xhl(){
-    this.cp_n(this._0xhl());
+    this._cp_n(this._0xhl());
+  }
+
+  /**
+   * Compares n with register a.
+   * @param n
+   */
+  cp_n(n){
+    this._cp_n(n);
+    this._m++;
   }
 
   /**
    * Compares n with register a.
    * @param {number} n
+   * @private
    */
-  cp_n(n){
+  _cp_n(n){
     
     this.setN(1); this.setZ(0); this.setC(0);
     const diff = this._r.a - n;
@@ -1815,6 +1825,7 @@ export default class CPU {
     } else if (diff < 0){
        this.setC(1);
     }
+    this._m++;
   }
 
   /**
