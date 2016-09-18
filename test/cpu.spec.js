@@ -1344,7 +1344,7 @@ describe('CPU Unit tests', function() {
     describe('POP', () => {
 
       it('should pop registers into the stack', () => {
-        [{r: cpu.af, pop: cpu.pop_af},
+        [ {r: cpu.af, pop: cpu.pop_af},
           {r: cpu.bc, pop: cpu.pop_bc},
           {r: cpu.de, pop: cpu.pop_de},
           {r: cpu.hl, pop: cpu.pop_hl}].map(({r, pop}) => {
@@ -1354,9 +1354,12 @@ describe('CPU Unit tests', function() {
           cpu.mmu.writeByteAt(--sp, 0xcd); // sp: 0xfffc
           cpu.ld_sp_nn(sp);
 
+          const m = cpu.m();
           pop.call(cpu);
+
           assert.equal(r.call(cpu), 0xabcd, `Pop into ${r.name}`);
           assert.equal(cpu.sp(), sp + 2, 'sp incremented twice');
+          assert.equal(cpu.m(), m+3, 'Pop rr machine cycles');
         });
       });
     });
