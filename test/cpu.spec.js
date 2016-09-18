@@ -389,11 +389,11 @@ describe('CPU Unit tests', function() {
       });
 
       it('should AND a with memory location hl', () => {
-        const m = cpu.m();
         cpu.ld_a_n(0x11);
         cpu.ld_hl_nn(0xc000);
         cpu.mmu.writeByteAt(0xc000, 0x33);
 
+        const m = cpu.m();
         cpu.and_0xhl();
 
         assert.equal(cpu.a(), 0x11 & 0x33, 'a AND (hl)');
@@ -457,11 +457,11 @@ describe('CPU Unit tests', function() {
       });
 
       it('should OR a with memory location hl', () => {
-        const m = cpu.m();
         cpu.ld_a_n(0x11);
         cpu.ld_hl_nn(0xc000);
         cpu.mmu.writeByteAt(0xc000, 0x22);
 
+        const m = cpu.m();
         cpu.or_0xhl();
 
         assert.equal(cpu.a(), 0x11 | 0x22, 'a OR (hl)');
@@ -607,11 +607,11 @@ describe('CPU Unit tests', function() {
       // TODO decrement with 0x01 to assert flag Z
 
       it('should decrement a value at a memory location', () => {
-        const m = cpu.m();
         const value = 0xab;
         cpu.mmu.writeByteAt(0xdfff, value);
         cpu.ld_hl_nn(0xdfff);
 
+        const m = cpu.m();
         cpu.dec_0xhl();
 
         assert.equal(cpu.mmu.readByteAt(0xdfff), value - 1, 'Value at memory 0xdfff is decremented');
@@ -668,13 +668,12 @@ describe('CPU Unit tests', function() {
       });
 
       it('should compare register a with value at memory address hl', () => {
-
-        const m = cpu.m();
         cpu.ld_a_n(0xab);
         cpu.ld_hl_nn(0xfffe);
 
         cpu.mmu.writeByteAt(cpu.hl(), 0x01); // Lower value
 
+        const m = cpu.m();
         cpu.cp_0xhl();
 
         assertFlagsCompareLowerValue(cpu);
@@ -778,12 +777,12 @@ describe('CPU Unit tests', function() {
       });
 
       it('should increment memory value at hl 0x00 by 1', () => {
-        const m = cpu.m();
         const addr = 0xc000;
         cpu.ld_hl_nn(addr);
         let value = 0x00;
         cpu.mmu.writeByteAt(addr, value);
 
+        const m = cpu.m();
         cpu.inc_0xhl();
 
         assert.equal(cpu.mmu.readByteAt(cpu.hl()), value + 1, 'value at memory (hl) incremented.');
@@ -891,12 +890,11 @@ describe('CPU Unit tests', function() {
       });
 
       it('should subtract value at memory location hl from register a', () =>{
-
-        const m = cpu.m();
         cpu.ld_hl_nn(0xc000);
         cpu.ld_a_n(0x12);
         cpu.ld_0xhl_n(0x02);
 
+        const m = cpu.m();
         cpu.sub_0xhl(); // Positive result
 
         assert.equal(cpu.a(), 0x10, 'a subtracted two from (hl)');
@@ -1059,11 +1057,11 @@ describe('CPU Unit tests', function() {
       });
 
       it('should add value at memory location hl to a', () => {
-        const m = cpu.m();
         cpu.ld_hl_nn(0xc000);
         cpu.ld_a_n(0x12);
         cpu.ld_0xhl_n(0x02);
 
+        let m = cpu.m();
         cpu.add_0xhl(); // Result is positive
 
         assert.equal(cpu.a(), 0x14, 'a 0x12 plus 0x02');
@@ -1076,6 +1074,7 @@ describe('CPU Unit tests', function() {
         cpu.ld_a_n(0x0f);
         cpu.ld_0xhl_n(0x01);
 
+        m = cpu.m();
         cpu.add_0xhl(); // Test carry from bit 3
 
         assert.equal(cpu.a(), 0x10, 'a 0x0f plus two with half carry');
@@ -1083,11 +1082,12 @@ describe('CPU Unit tests', function() {
         assert.equal(cpu.N(), 0, 'N always reset');
         assert.equal(cpu.H(), 1, 'Carry from bit 3');
         assert.equal(cpu.C(), 0, 'No carry');
-        assert.equal(cpu.m(), m + 4, 'ADD (HL) machine cycles');
+        assert.equal(cpu.m(), m + 2, 'ADD (HL) machine cycles');
 
         cpu.ld_a_n(0xf0);
         cpu.ld_0xhl_n(0x10);
 
+        m = cpu.m();
         cpu.add_0xhl(); // Test a result zero
 
         assert.equal(cpu.a(), 0x00, 'a 0xf0 plus 0x10 is zero');
@@ -1095,11 +1095,12 @@ describe('CPU Unit tests', function() {
         assert.equal(cpu.N(), 0, 'N always reset');
         assert.equal(cpu.H(), 1, 'Carry from bit 3');
         assert.equal(cpu.C(), 1, 'Carry');
-        assert.equal(cpu.m(), m + 6, 'ADD (HL) machine cycles');
+        assert.equal(cpu.m(), m + 2, 'ADD (HL) machine cycles');
 
         cpu.ld_a_n(0xf0);
         cpu.ld_0xhl_n(0x12);
 
+        m = cpu.m();
         cpu.add_0xhl(); // Result overflows from positive number in a
 
         assert.equal(cpu.a(), 0x02, 'a 0xf0 overflows to 0x02');
@@ -1107,11 +1108,12 @@ describe('CPU Unit tests', function() {
         assert.equal(cpu.N(), 0, 'N always reset');
         assert.equal(cpu.H(), 1, 'Carry from bit 3');
         assert.equal(cpu.C(), 1, 'Carry');
-        assert.equal(cpu.m(), m + 8, 'ADD (HL) machine cycles');
+        assert.equal(cpu.m(), m + 2, 'ADD (HL) machine cycles');
 
         cpu.ld_a_n(0x02);
         cpu.ld_0xhl_n(0xff);
 
+        m = cpu.m();
         cpu.add_0xhl(); // Test max addition
 
         assert.equal(cpu.a(), 0x01, 'a 0x02 plus 0xff overflows to 0x01');
@@ -1119,7 +1121,7 @@ describe('CPU Unit tests', function() {
         assert.equal(cpu.N(), 0, 'N always reset');
         assert.equal(cpu.H(), 1, 'Carry from bit 3');
         assert.equal(cpu.C(), 1, 'Carry');
-        assert.equal(cpu.m(), m + 10, 'ADD (HL) machine cycles');
+        assert.equal(cpu.m(), m + 2, 'ADD (HL) machine cycles');
       });
 
       it('should add a to a (double a)', () => {
@@ -1162,10 +1164,10 @@ describe('CPU Unit tests', function() {
           {ld: cpu.ld_de_nn, add: cpu.add_hl_de},
           {ld: cpu.ld_sp_nn, add: cpu.add_hl_sp}].map(({ld, add}) => {
 
-          const m = cpu.m();
           cpu.ld_hl_nn(0xc000);
           ld.call(cpu, 0x0001);
 
+          let m = cpu.m();
           add.call(cpu);
 
           assert.equal(cpu.hl(), 0xc001, `${add.name} to HL results 0xc001`);
@@ -1177,31 +1179,33 @@ describe('CPU Unit tests', function() {
           // Test half carry, bit 11
           ld.call(cpu, 0x0fff);
 
+          m = cpu.m();
           add.call(cpu);
 
           assert.equal(cpu.hl(), 0xd000, `${add.name} to HL results 0xd000`);
           assert.equal(cpu.N(), 0, 'N reset');
           assert.equal(cpu.H(), 1, 'Carry from bit 11');
           assert.equal(cpu.C(), 0, 'No carry bit 15');
-          assert.equal(cpu.m(), m + 4, `${add.name} machine cycles`);
+          assert.equal(cpu.m(), m + 2, `${add.name} machine cycles`);
 
           // Test carry, bit 15
           ld.call(cpu, 0x3001);
 
+          m = cpu.m();
           add.call(cpu);
 
           assert.equal(cpu.hl(), 0x0001, `${add.name} to HL results 0x0001`);
           assert.equal(cpu.N(), 0, 'N reset');
           assert.equal(cpu.H(), 0, 'No carry from bit 11');
           assert.equal(cpu.C(), 1, 'Carry bit 15');
-          assert.equal(cpu.m(), m + 6, `${add.name} machine cycles`);
+          assert.equal(cpu.m(), m + 2, `${add.name} machine cycles`);
         });
       });
 
       it('should add register hl to itself', () => {
-        const m = cpu.m();
         cpu.ld_hl_nn(0x0001);
 
+        let m = cpu.m();
         cpu.add_hl_hl();
 
         assert.equal(cpu.hl(), 0x0002, 'ADD HL to itself');
@@ -1213,24 +1217,26 @@ describe('CPU Unit tests', function() {
         // Test half carry, bit 11
         cpu.ld_hl_nn(0x0fff);
 
+        m = cpu.m();
         cpu.add_hl_hl();
 
         assert.equal(cpu.hl(), 0x1ffe, 'ADD HL to itself with half carry');
         assert.equal(cpu.N(), 0, 'N reset');
         assert.equal(cpu.H(), 1, 'Carry from bit 11');
         assert.equal(cpu.C(), 0, 'No carry bit 15');
-        assert.equal(cpu.m(), m + 4, 'ADD hl, hl machine cycles');
+        assert.equal(cpu.m(), m + 2, 'ADD hl, hl machine cycles');
 
         // Test carry, bit 15
         cpu.ld_hl_nn(0xf000);
 
+        m = cpu.m();
         cpu.add_hl_hl();
 
         assert.equal(cpu.hl(), 0xe000, 'ADD HL to itself with carry');
         assert.equal(cpu.N(), 0, 'N reset');
         assert.equal(cpu.H(), 0, 'No carry from bit 11');
         assert.equal(cpu.C(), 1, 'Carry bit 15');
-        assert.equal(cpu.m(), m + 6, 'ADD hl, hl machine cycles');
+        assert.equal(cpu.m(), m + 2, 'ADD hl, hl machine cycles');
       });
     });
 
