@@ -3023,6 +3023,7 @@ export default class CPU {
   cpl() {
     this._r.a = Utils.cplBin8(this._r.a);
     this.setN(1); this.setH(1);
+    this._m++;
   }
 
   /**
