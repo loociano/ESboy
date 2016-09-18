@@ -1432,19 +1432,28 @@ describe('CPU Unit tests', function() {
     });
 
     it('should copy memory locations into register a', () => {
-      [ {r2: cpu.bc, r1: cpu.a, ld: cpu.ld_a_0xbc},
+      [{r2: cpu.bc, r1: cpu.a, ld: cpu.ld_a_0xbc},
         {r2: cpu.de, r1: cpu.a, ld: cpu.ld_a_0xde},
-        {r2: cpu.hl, r1: cpu.a, ld: cpu.ld_a_0xhl}].map( ({r2, r1, ld}) => {
+        {r2: cpu.hl, r1: cpu.a, ld: cpu.ld_a_0xhl}].map(({r2, r1, ld}) => {
 
         const value = cpu.mmu.readByteAt(r2.call(cpu));
+        const m = cpu.m();
+
         ld.call(cpu);
+
         assert.equal(r1.call(cpu), value, `load ${r2.name} into ${r1.name}`);
-
+        assert.equal(cpu.m(), m + 2, `${ld.name} machine cycles`);
       });
+    });
 
+    it('should copy the value at memory location into a', () => {
       const value = cpu.mmu.readByteAt(0xabcd);
+      const m = cpu.m();
+
       cpu.ld_a_nn(0xabcd);
+
       assert.equal(cpu.a(), value, 'load value at memory 0xabcd into a');
+      assert.equal(cpu.m(), m + 4, 'LD a,(nn) machine cycles');
     });
 
     it('should put memory address hl into a and decrement hl', () => {
