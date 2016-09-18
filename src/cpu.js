@@ -1476,7 +1476,7 @@ export default class CPU {
    * Puts a into memory address hl. Decrements hl.
    */
   ldd_hl_a(){
-    this.ld_0xhl_a();
+    this._ld_0xnn_a(this.hl());
     this.dec_hl();
   }
 
@@ -2372,6 +2372,7 @@ export default class CPU {
    */
   ld_0xbc_a(){
     this._ld_0xnn_a(this.bc());
+    this._m++;
   }
 
   /**
@@ -2379,6 +2380,7 @@ export default class CPU {
    */
   ld_0xde_a(){
     this._ld_0xnn_a(this.de());
+    this._m++;
   }
 
   /**
@@ -2386,6 +2388,7 @@ export default class CPU {
    */
   ld_0xhl_a(){
     this._ld_0xnn_a(this.hl());
+    this._m++;
   }
 
   /**
@@ -2394,6 +2397,7 @@ export default class CPU {
    */
   ld_0xnn_a(addr){
     this._ld_0xnn_a(addr);
+    this._m += 3;
   }
 
   /**
