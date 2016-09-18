@@ -816,102 +816,172 @@ describe('CPU Unit tests', function() {
       });
     });
 
-    it('should subtract n from register a', () =>{
+    describe('SUB', () => {
 
-      cpu.ld_hl_nn(0xc000);
+      it('should subtract n from register a', () => {
 
-      // Do SUB (hl) first, as h and l will be overridden later
-      [ {ld: cpu.ld_0xhl_n, sub: cpu.sub_0xhl},
-        {ld: cpu.ld_b_n, sub: cpu.sub_b},
-        {ld: cpu.ld_c_n, sub: cpu.sub_c},
-        {ld: cpu.ld_d_n, sub: cpu.sub_d},
-        {ld: cpu.ld_e_n, sub: cpu.sub_e},
-        {ld: cpu.ld_h_n, sub: cpu.sub_h},
-        {ld: cpu.ld_l_n, sub: cpu.sub_l} ].map( ({ld, sub}) => {
+        [ {ld: cpu.ld_b_n, sub: cpu.sub_b},
+          {ld: cpu.ld_c_n, sub: cpu.sub_c},
+          {ld: cpu.ld_d_n, sub: cpu.sub_d},
+          {ld: cpu.ld_e_n, sub: cpu.sub_e},
+          {ld: cpu.ld_h_n, sub: cpu.sub_h},
+          {ld: cpu.ld_l_n, sub: cpu.sub_l}].map(({ld, sub}) => {
 
-        // Result positive
+          const m = cpu.m();
+          cpu.ld_a_n(0x12);
+          ld.call(cpu, 0x02);
+
+          sub.call(cpu); // Positive result
+
+          assert.equal(cpu.a(), 0x10, `a subtracted two, ${sub.name}`);
+          assert.equal(cpu.Z(), 0, 'Result not zero');
+          assert.equal(cpu.N(), 1, 'N always set');
+          assert.equal(cpu.H(), 0, 'No borrow from bit 4');
+          assert.equal(cpu.C(), 0, 'No borrow from carry');
+          assert.equal(cpu.m(), m+1, 'SUB r machine cycles');
+
+          cpu.ld_a_n(0x10);
+          ld.call(cpu, 0x02);
+
+          sub.call(cpu); // Borrow from bit 4
+
+          assert.equal(cpu.a(), 0x0e, `a subtracted two with half carry, ${sub.name}`);
+          assert.equal(cpu.Z(), 0, 'Result not zero');
+          assert.equal(cpu.N(), 1, 'N always set');
+          assert.equal(cpu.H(), 1, 'Borrow from bit 4');
+          assert.equal(cpu.C(), 0, 'No borrow from carry');
+          assert.equal(cpu.m(), m+2, 'SUB r machine cycles');
+
+          cpu.ld_a_n(0x0e);
+          ld.call(cpu, 0x0e);
+
+          sub.call(cpu);  // Result zero
+
+          assert.equal(cpu.a(), 0x00, `a subtracted 0x0e, ${sub.name}`);
+          assert.equal(cpu.Z(), 1, 'Result is zero');
+          assert.equal(cpu.N(), 1, 'N always set');
+          assert.equal(cpu.H(), 0, 'No borrow from bit 4');
+          assert.equal(cpu.C(), 0, 'No borrow from carry');
+          assert.equal(cpu.m(), m+3, 'SUB r machine cycles');
+
+          cpu.ld_a_n(0x05);
+          ld.call(cpu, 0x08);
+
+          sub.call(cpu); // Result negative from positive number in a
+
+          assert.equal(cpu.a(), 0xfd, `a loops back to 0xfd, ${sub.name}`);
+          assert.equal(cpu.Z(), 0, 'Result not zero');
+          assert.equal(cpu.N(), 1, 'N always set');
+          assert.equal(cpu.H(), 0, 'No borrow from bit 4');
+          assert.equal(cpu.C(), 1, 'Borrow from carry');
+          assert.equal(cpu.m(), m+4, 'SUB r machine cycles');
+
+          cpu.ld_a_n(0x01);
+          ld.call(cpu, 0xff);
+
+          sub.call(cpu); // Max subtraction
+
+          assert.equal(cpu.a(), 0x02, 'a loops back to 0x02');
+          assert.equal(cpu.Z(), 0, 'Result not zero');
+          assert.equal(cpu.N(), 1, 'N always set');
+          assert.equal(cpu.H(), 0, 'No borrow from bit 4');
+          assert.equal(cpu.C(), 1, 'Borrow from carry');
+          assert.equal(cpu.m(), m+5, 'SUB r machine cycles');
+        });
+      });
+
+      it('should subtract value at memory location hl from register a', () =>{
+
+        const m = cpu.m();
+        cpu.ld_hl_nn(0xc000);
         cpu.ld_a_n(0x12);
-        ld.call(cpu, 0x02);
+        cpu.ld_0xhl_n(0x02);
 
-        sub.call(cpu);
+        cpu.sub_0xhl(); // Positive result
 
-        assert.equal(cpu.a(), 0x10, `a subtracted two, ${sub.name}`);
+        assert.equal(cpu.a(), 0x10, 'a subtracted two from (hl)');
         assert.equal(cpu.Z(), 0, 'Result not zero');
         assert.equal(cpu.N(), 1, 'N always set');
         assert.equal(cpu.H(), 0, 'No borrow from bit 4');
         assert.equal(cpu.C(), 0, 'No borrow from carry');
+        assert.equal(cpu.m(), m+2, 'SUB r machine cycles');
 
-        // Borrow from bit 4
         cpu.ld_a_n(0x10);
-        ld.call(cpu, 0x02);
-        sub.call(cpu);
+        cpu.ld_0xhl_n(0x02);
 
-        assert.equal(cpu.a(), 0x0e, `a subtracted two with half carry, ${sub.name}`);
+        cpu.sub_0xhl(); // Borrow from bit 4
+
+        assert.equal(cpu.a(), 0x0e, 'a subtracted two with half carry from (hl)');
         assert.equal(cpu.Z(), 0, 'Result not zero');
         assert.equal(cpu.N(), 1, 'N always set');
         assert.equal(cpu.H(), 1, 'Borrow from bit 4');
         assert.equal(cpu.C(), 0, 'No borrow from carry');
+        assert.equal(cpu.m(), m+4, 'SUB r machine cycles');
 
-        // Result zero
         cpu.ld_a_n(0x0e);
-        ld.call(cpu, 0x0e);
+        cpu.ld_0xhl_n(0x0e);
 
-        sub.call(cpu);
+        cpu.sub_0xhl();  // Result zero
 
-        assert.equal(cpu.a(), 0x00, `a subtracted 0x0e, ${sub.name}`);
+        assert.equal(cpu.a(), 0x00, 'a subtracted 0x0e, from (hl)');
         assert.equal(cpu.Z(), 1, 'Result is zero');
         assert.equal(cpu.N(), 1, 'N always set');
         assert.equal(cpu.H(), 0, 'No borrow from bit 4');
         assert.equal(cpu.C(), 0, 'No borrow from carry');
+        assert.equal(cpu.m(), m+6, 'SUB r machine cycles');
 
-        // Result negative from positive number in a
         cpu.ld_a_n(0x05);
-        ld.call(cpu, 0x08);
+        cpu.ld_0xhl_n(0x08);
 
-        sub.call(cpu);
+        cpu.sub_0xhl(); // Result negative from positive number in a
 
-        assert.equal(cpu.a(), 0xfd, `a loops back to 0xfd, ${sub.name}`);
+        assert.equal(cpu.a(), 0xfd, 'a loops back to 0xfd, from (hl)');
         assert.equal(cpu.Z(), 0, 'Result not zero');
         assert.equal(cpu.N(), 1, 'N always set');
         assert.equal(cpu.H(), 0, 'No borrow from bit 4');
         assert.equal(cpu.C(), 1, 'Borrow from carry');
+        assert.equal(cpu.m(), m+8, 'SUB r machine cycles');
 
-        // Max subtraction
         cpu.ld_a_n(0x01);
-        ld.call(cpu, 0xff);
+        cpu.ld_0xhl_n(0xff);
 
-        sub.call(cpu);
+        cpu.sub_0xhl(); // Max subtraction
 
-        assert.equal(cpu.a(), 0x02, 'a loops back to 0x02');
+        assert.equal(cpu.a(), 0x02, 'a loops back to 0x02 from (hl)');
         assert.equal(cpu.Z(), 0, 'Result not zero');
         assert.equal(cpu.N(), 1, 'N always set');
         assert.equal(cpu.H(), 0, 'No borrow from bit 4');
         assert.equal(cpu.C(), 1, 'Borrow from carry');
-
+        assert.equal(cpu.m(), m+10, 'SUB r machine cycles');
       });
 
-      // Sub a is a special case
-      cpu.ld_a_n(0x12);
+      it('should subtract a from a', () => {
+        const m = cpu.m();
+        cpu.ld_a_n(0x12);
 
-      cpu.sub_a();
+        cpu.sub_a();
 
-      assert.equal(cpu.a(), 0x00, 'a subtracted itself');
-      assert.equal(cpu.Z(), 1, 'Result is zero');
-      assert.equal(cpu.N(), 1, 'N always set');
-      assert.equal(cpu.H(), 1, 'No borrow from bit 4');
-      assert.equal(cpu.C(), 0, 'No borrow from carry');
+        assert.equal(cpu.a(), 0x00, 'a subtracted itself');
+        assert.equal(cpu.Z(), 1, 'Result is zero');
+        assert.equal(cpu.N(), 1, 'N always set');
+        assert.equal(cpu.H(), 1, 'No borrow from bit 4');
+        assert.equal(cpu.C(), 0, 'No borrow from carry');
+        assert.equal(cpu.m(), m+1, 'SUB r machine cycles');
+      });
 
-      // Sub n, most common case
-      cpu.ld_a_n(0x09);
+      it('should subtract n from a', () => {
+        const m = cpu.m();
+        cpu.ld_a_n(0x09);
 
-      cpu.sub_n(0x04);
+        cpu.sub_n(0x04);
 
-      assert.equal(cpu.a(), 0x05, 'a minus n');
-      assert.equal(cpu.Z(), 0, 'Result not zero');
-      assert.equal(cpu.N(), 1, 'N always set');
-      assert.equal(cpu.H(), 0, 'No borrow from bit 4');
-      assert.equal(cpu.C(), 0, 'No borrow from carry');
-
+        assert.equal(cpu.a(), 0x05, 'a minus n');
+        assert.equal(cpu.Z(), 0, 'Result not zero');
+        assert.equal(cpu.N(), 1, 'N always set');
+        assert.equal(cpu.H(), 0, 'No borrow from bit 4');
+        assert.equal(cpu.C(), 0, 'No borrow from carry');
+        assert.equal(cpu.m(), m+2, 'SUB n machine cycles');
+      });
     });
 
     it('should add n to register a', () =>{
