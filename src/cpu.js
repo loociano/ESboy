@@ -2709,6 +2709,7 @@ export default class CPU {
    */
   sub_n(n){
     this._sub_r(n);
+    this._m++;
   }
 
   /**
@@ -2754,6 +2755,7 @@ export default class CPU {
       this.setH(0);
       this.setC(1);
     }
+    this._m++;
   }
 
   /**
