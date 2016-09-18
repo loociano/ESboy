@@ -1267,6 +1267,7 @@ export default class CPU {
    */
   ld_b_n(n){
     this._ld_r_n('b', n);
+    this._m++;
   }
 
   /**
@@ -1275,6 +1276,7 @@ export default class CPU {
    */
   ld_c_n(n){
     this._ld_r_n('c', n);
+    this._m++;
   }
 
   /**
@@ -1283,6 +1285,7 @@ export default class CPU {
    */
   ld_d_n(n){
     this._ld_r_n('d', n);
+    this._m++;
   }
 
   /**
@@ -1291,6 +1294,7 @@ export default class CPU {
    */
   ld_e_n(n){
     this._ld_r_n('e', n);
+    this._m++;
   }
 
   /**
@@ -1299,6 +1303,7 @@ export default class CPU {
    */
   ld_h_n(n){
     this._ld_r_n('h', n);
+    this._m++;
   }
 
   /**
@@ -1307,6 +1312,7 @@ export default class CPU {
    */
   ld_l_n(n){
     this._ld_r_n('l', n);
+    this._m++;
   }
 
   /**
@@ -1317,7 +1323,7 @@ export default class CPU {
    */
   _ld_r_n(r, n){
     this._r[r] = n;
-    this._m += 2;
+    this._m++;
   }
 
   /**
@@ -1387,7 +1393,7 @@ export default class CPU {
    * Loads address memory of hl into a.
    */
   ld_a_0xhl(){
-    this.ld_a_n(this._0xhl());
+    this._ld_r_0xhl('a');
   }
 
   /**
@@ -1454,6 +1460,7 @@ export default class CPU {
    */
   ld_a_n(n){
     this._ld_r_n('a', n);
+    this._m++;
   }
 
   /**
