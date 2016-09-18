@@ -1324,49 +1324,49 @@ export default class CPU {
    * Loads register a into a.
    */
   ld_a_a(){
-    this.ld_a_n(this._r.a);
+    this._ld_r_r('a', 'a');
   }
 
   /**
    * Loads register b into a.
    */
   ld_a_b(){
-    this.ld_a_n(this._r.b);
+    this._ld_r_r('a', 'b');
   }
 
   /**
    * Loads register c into a.
    */
   ld_a_c(){
-    this.ld_a_n(this._r.c);
+    this._ld_r_r('a', 'c');
   }
 
   /**
    * Loads register a into d.
    */
   ld_a_d(){
-    this.ld_a_n(this._r.d);
+    this._ld_r_r('a', 'd');
   }
 
   /**
    * Loads register e into a.
    */
   ld_a_e(){
-    this.ld_a_n(this._r.e);
+    this._ld_r_r('a', 'e');
   }
 
   /**
    * Loads register h into a.
    */
   ld_a_h(){
-    this.ld_a_n(this._r.h);
+    this._ld_r_r('a', 'h');
   }
 
   /**
    * Loads register l into a.
    */
   ld_a_l(){
-    this.ld_a_n(this._r.l);
+    this._ld_r_r('a', 'l');
   }
 
   /**
@@ -2088,6 +2088,7 @@ export default class CPU {
    */
   _ld_r_a(r){
     this._r[r] = this._r.a;
+    this._m++;
   }
 
   /**
@@ -2098,13 +2099,14 @@ export default class CPU {
    */
   _ld_r_r(r1, r2){
     this._r[r1] = this._r[r2];
+    this._m++;
   }
 
   /**
    * Loads b into b
    */
   ld_b_b(){
-    // Nothing
+    this._ld_r_r('b', 'b');
   }
 
   /**
@@ -2153,7 +2155,7 @@ export default class CPU {
    * Loads c into c
    */
   ld_c_c(){
-    // Nothing
+    this._ld_r_r('c', 'c');
   }
 
   /**
@@ -2202,7 +2204,7 @@ export default class CPU {
    * Loads d into d
    */
   ld_d_d(){
-    // Nothing
+    this._ld_r_r('d', 'd');
   }
 
   /**
@@ -2251,7 +2253,7 @@ export default class CPU {
    * Loads e into e
    */
   ld_e_e(){
-    // Nothing
+    this._ld_r_r('e', 'e');
   }
 
   /**
@@ -2349,7 +2351,7 @@ export default class CPU {
    * Loads l into l
    */
   ld_l_l(){
-    // Nothing
+    this._ld_r_r('l', 'l');
   }
 
   /**
