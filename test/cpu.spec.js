@@ -1154,162 +1154,176 @@ describe('CPU Unit tests', function() {
 
   describe('16 bits arithmetic', () => {
 
-    it('should add 16 bit register to hl', () => {
+    describe('ADD', () => {
 
-      [ {ld: cpu.ld_bc_nn, add: cpu.add_hl_bc},
-        {ld: cpu.ld_de_nn, add: cpu.add_hl_de},
-        {ld: cpu.ld_sp_nn, add: cpu.add_hl_sp} ].map( ({ld, add}) => {
+      it('should add 16 bit register to hl', () => {
 
+        [{ld: cpu.ld_bc_nn, add: cpu.add_hl_bc},
+          {ld: cpu.ld_de_nn, add: cpu.add_hl_de},
+          {ld: cpu.ld_sp_nn, add: cpu.add_hl_sp}].map(({ld, add}) => {
+
+          const m = cpu.m();
+          cpu.ld_hl_nn(0xc000);
+          ld.call(cpu, 0x0001);
+
+          add.call(cpu);
+
+          assert.equal(cpu.hl(), 0xc001, `${add.name} to HL results 0xc001`);
+          assert.equal(cpu.N(), 0, 'N reset');
+          assert.equal(cpu.H(), 0, 'No carry bit 11');
+          assert.equal(cpu.C(), 0, 'No carry bit 15');
+          assert.equal(cpu.m(), m + 2, `${add.name} machine cycles`);
+
+          // Test half carry, bit 11
+          ld.call(cpu, 0x0fff);
+
+          add.call(cpu);
+
+          assert.equal(cpu.hl(), 0xd000, `${add.name} to HL results 0xd000`);
+          assert.equal(cpu.N(), 0, 'N reset');
+          assert.equal(cpu.H(), 1, 'Carry from bit 11');
+          assert.equal(cpu.C(), 0, 'No carry bit 15');
+          assert.equal(cpu.m(), m + 4, `${add.name} machine cycles`);
+
+          // Test carry, bit 15
+          ld.call(cpu, 0x3001);
+
+          add.call(cpu);
+
+          assert.equal(cpu.hl(), 0x0001, `${add.name} to HL results 0x0001`);
+          assert.equal(cpu.N(), 0, 'N reset');
+          assert.equal(cpu.H(), 0, 'No carry from bit 11');
+          assert.equal(cpu.C(), 1, 'Carry bit 15');
+          assert.equal(cpu.m(), m + 6, `${add.name} machine cycles`);
+        });
+      });
+
+      it('should add register hl to itself', () => {
         const m = cpu.m();
-        cpu.ld_hl_nn(0xc000);
-        ld.call(cpu, 0x0001);
-        
-        add.call(cpu);
+        cpu.ld_hl_nn(0x0001);
 
-        assert.equal(cpu.hl(), 0xc001, `${add.name} to HL results 0xc001`);
+        cpu.add_hl_hl();
+
+        assert.equal(cpu.hl(), 0x0002, 'ADD HL to itself');
         assert.equal(cpu.N(), 0, 'N reset');
         assert.equal(cpu.H(), 0, 'No carry bit 11');
         assert.equal(cpu.C(), 0, 'No carry bit 15');
-        assert.equal(cpu.m(), m+2, `${add.name} machine cycles`);
+        assert.equal(cpu.m(), m + 2, 'ADD hl, hl machine cycles');
 
         // Test half carry, bit 11
-        ld.call(cpu, 0x0fff);
+        cpu.ld_hl_nn(0x0fff);
 
-        add.call(cpu);
+        cpu.add_hl_hl();
 
-        assert.equal(cpu.hl(), 0xd000, `${add.name} to HL results 0xd000`);
+        assert.equal(cpu.hl(), 0x1ffe, 'ADD HL to itself with half carry');
         assert.equal(cpu.N(), 0, 'N reset');
         assert.equal(cpu.H(), 1, 'Carry from bit 11');
         assert.equal(cpu.C(), 0, 'No carry bit 15');
-        assert.equal(cpu.m(), m+4, `${add.name} machine cycles`);
+        assert.equal(cpu.m(), m + 4, 'ADD hl, hl machine cycles');
 
         // Test carry, bit 15
-        ld.call(cpu, 0x3001);
+        cpu.ld_hl_nn(0xf000);
 
-        add.call(cpu);
+        cpu.add_hl_hl();
 
-        assert.equal(cpu.hl(), 0x0001, `${add.name} to HL results 0x0001`);
+        assert.equal(cpu.hl(), 0xe000, 'ADD HL to itself with carry');
         assert.equal(cpu.N(), 0, 'N reset');
         assert.equal(cpu.H(), 0, 'No carry from bit 11');
         assert.equal(cpu.C(), 1, 'Carry bit 15');
-        assert.equal(cpu.m(), m+6, `${add.name} machine cycles`);
+        assert.equal(cpu.m(), m + 6, 'ADD hl, hl machine cycles');
       });
     });
 
-    it('should add register hl to itself', () => {
-      const m = cpu.m();
-      cpu.ld_hl_nn(0x0001);
+    describe('DEC', () => {
 
-      cpu.add_hl_hl();
-
-      assert.equal(cpu.hl(), 0x0002, 'ADD HL to itself');
-      assert.equal(cpu.N(), 0, 'N reset');
-      assert.equal(cpu.H(), 0, 'No carry bit 11');
-      assert.equal(cpu.C(), 0, 'No carry bit 15');
-      assert.equal(cpu.m(), m+2, 'ADD hl, hl machine cycles');
-
-      // Test half carry, bit 11
-      cpu.ld_hl_nn(0x0fff);
-
-      cpu.add_hl_hl();
-
-      assert.equal(cpu.hl(), 0x1ffe, 'ADD HL to itself with half carry');
-      assert.equal(cpu.N(), 0, 'N reset');
-      assert.equal(cpu.H(), 1, 'Carry from bit 11');
-      assert.equal(cpu.C(), 0, 'No carry bit 15');
-      assert.equal(cpu.m(), m+4, 'ADD hl, hl machine cycles');
-
-      // Test carry, bit 15
-      cpu.ld_hl_nn(0xf000);
-
-      cpu.add_hl_hl();
-
-      assert.equal(cpu.hl(), 0xe000, 'ADD HL to itself with carry');
-      assert.equal(cpu.N(), 0, 'N reset');
-      assert.equal(cpu.H(), 0, 'No carry from bit 11');
-      assert.equal(cpu.C(), 1, 'Carry bit 15');
-      assert.equal(cpu.m(), m+6, 'ADD hl, hl machine cycles');
-    });
-
-    it('should decrement 16 bits registers', () => {
-      assertDecrementRegister(cpu, cpu.bc, cpu.dec_bc);
-      assertDecrementRegister(cpu, cpu.de, cpu.dec_de);
-      assertDecrementRegister(cpu, cpu.hl, cpu.dec_hl);
-      assertDecrementRegister(cpu, cpu.sp, cpu.dec_sp);
-      // TODO check flags
-    });
-
-    it('should increment 16 bits registers', () => {
-
-      [ {r: cpu.bc, ld: cpu.ld_bc_nn, inc: cpu.inc_bc},
-        {r: cpu.de, ld: cpu.ld_de_nn, inc: cpu.inc_de},
-        {r: cpu.hl, ld: cpu.ld_hl_nn, inc: cpu.inc_hl},
-        {r: cpu.sp, ld: cpu.ld_sp_nn, inc: cpu.inc_sp} ].map( ({r, ld, inc}) => {
-
-        const value = 0xc000;
-        ld.call(cpu, value);
-        inc.call(cpu);
-        assert.equal(r.call(cpu), value + 1, `register ${r} incremented`);
-        // No flags are affected
+      it('should decrement 16 bits registers', () => {
+        assertDecrementRegister(cpu, cpu.bc, cpu.dec_bc);
+        assertDecrementRegister(cpu, cpu.de, cpu.dec_de);
+        assertDecrementRegister(cpu, cpu.hl, cpu.dec_hl);
+        assertDecrementRegister(cpu, cpu.sp, cpu.dec_sp);
+        // TODO check flags
       });
-
     });
 
-    it('should push registers into the stack', () => {
+    describe('INC', () => {
 
-      cpu.push_af();
-      assert.equal(cpu.mmu.readByteAt(cpu.sp() + 1), cpu.a(), 'store a into stack');
-      assert.equal(cpu.mmu.readByteAt(cpu.sp()), cpu.f() << 4, 'store f into stack');
+      it('should increment 16 bits registers', () => {
 
-      cpu.push_bc();
-      assert.equal(cpu.mmu.readByteAt(cpu.sp() + 1), cpu.b(), 'store b into stack');
-      assert.equal(cpu.mmu.readByteAt(cpu.sp()), cpu.c(), 'store c into stack');
+        [{r: cpu.bc, ld: cpu.ld_bc_nn, inc: cpu.inc_bc},
+          {r: cpu.de, ld: cpu.ld_de_nn, inc: cpu.inc_de},
+          {r: cpu.hl, ld: cpu.ld_hl_nn, inc: cpu.inc_hl},
+          {r: cpu.sp, ld: cpu.ld_sp_nn, inc: cpu.inc_sp}].map(({r, ld, inc}) => {
 
-      cpu.push_de();
-      assert.equal(cpu.mmu.readByteAt(cpu.sp() + 1), cpu.d(), 'store d into stack');
-      assert.equal(cpu.mmu.readByteAt(cpu.sp()), cpu.e(), 'store e into stack');
-
-      cpu.push_hl();
-      assert.equal(cpu.mmu.readByteAt(cpu.sp() + 1), cpu.h(), 'store h into stack');
-      assert.equal(cpu.mmu.readByteAt(cpu.sp()), cpu.l(), 'store l into stack');
-    });
-
-    it('should pop registers into the stack', () => {
-      [ {r: cpu.af, pop: cpu.pop_af},
-        {r: cpu.bc, pop: cpu.pop_bc},
-        {r: cpu.de, pop: cpu.pop_de},
-        {r: cpu.hl, pop: cpu.pop_hl} ].map( ({r, pop}) => {
-
-        let sp = cpu.sp(); // sp: 0xfffe
-        cpu.mmu.writeByteAt(--sp, 0xab); // sp: 0xfffd
-        cpu.mmu.writeByteAt(--sp, 0xcd); // sp: 0xfffc
-        cpu.ld_sp_nn(sp);
-
-        pop.call(cpu);
-        assert.equal(r.call(cpu), 0xabcd, `Pop into ${r.name}`);
-        assert.equal(cpu.sp(), sp + 2, 'sp incremented twice');
+          const value = 0xc000;
+          ld.call(cpu, value);
+          inc.call(cpu);
+          assert.equal(r.call(cpu), value + 1, `register ${r} incremented`);
+          // No flags are affected
+        });
       });
     });
   });
 
   describe('16 bits loads', () => {
 
-    it('should load 16 bits into register', () => {
+    describe('LD rr,nn', () => {
+      it('should load 16 bits into register', () => {
 
-      cpu.ld_bc_nn(0xabcd);
-      assert.equal(cpu.bc(), 0xabcd, 'load 0xabcd into bc');
+        cpu.ld_bc_nn(0xabcd);
+        assert.equal(cpu.bc(), 0xabcd, 'load 0xabcd into bc');
 
-      cpu.ld_de_nn(0xabcd);
-      assert.equal(cpu.de(), 0xabcd, 'load 0xabcd into de');
+        cpu.ld_de_nn(0xabcd);
+        assert.equal(cpu.de(), 0xabcd, 'load 0xabcd into de');
 
-      cpu.ld_hl_nn(0xabcd);
-      assert.equal(cpu.hl(), 0xabcd, 'load 0xabcd into hl');
+        cpu.ld_hl_nn(0xabcd);
+        assert.equal(cpu.hl(), 0xabcd, 'load 0xabcd into hl');
 
-      cpu.ld_sp_nn(0xabcd);
-      assert.equal(cpu.sp(), 0xabcd, 'load 0xabcd into sp');
-
+        cpu.ld_sp_nn(0xabcd);
+        assert.equal(cpu.sp(), 0xabcd, 'load 0xabcd into sp');
+      });
     });
 
+    describe('PUSH', () => {
+
+      it('should push registers into the stack', () => {
+
+        cpu.push_af();
+        assert.equal(cpu.mmu.readByteAt(cpu.sp() + 1), cpu.a(), 'store a into stack');
+        assert.equal(cpu.mmu.readByteAt(cpu.sp()), cpu.f() << 4, 'store f into stack');
+
+        cpu.push_bc();
+        assert.equal(cpu.mmu.readByteAt(cpu.sp() + 1), cpu.b(), 'store b into stack');
+        assert.equal(cpu.mmu.readByteAt(cpu.sp()), cpu.c(), 'store c into stack');
+
+        cpu.push_de();
+        assert.equal(cpu.mmu.readByteAt(cpu.sp() + 1), cpu.d(), 'store d into stack');
+        assert.equal(cpu.mmu.readByteAt(cpu.sp()), cpu.e(), 'store e into stack');
+
+        cpu.push_hl();
+        assert.equal(cpu.mmu.readByteAt(cpu.sp() + 1), cpu.h(), 'store h into stack');
+        assert.equal(cpu.mmu.readByteAt(cpu.sp()), cpu.l(), 'store l into stack');
+      });
+    });
+
+    describe('POP', () => {
+
+      it('should pop registers into the stack', () => {
+        [{r: cpu.af, pop: cpu.pop_af},
+          {r: cpu.bc, pop: cpu.pop_bc},
+          {r: cpu.de, pop: cpu.pop_de},
+          {r: cpu.hl, pop: cpu.pop_hl}].map(({r, pop}) => {
+
+          let sp = cpu.sp(); // sp: 0xfffe
+          cpu.mmu.writeByteAt(--sp, 0xab); // sp: 0xfffd
+          cpu.mmu.writeByteAt(--sp, 0xcd); // sp: 0xfffc
+          cpu.ld_sp_nn(sp);
+
+          pop.call(cpu);
+          assert.equal(r.call(cpu), 0xabcd, `Pop into ${r.name}`);
+          assert.equal(cpu.sp(), sp + 2, 'sp incremented twice');
+        });
+      });
+    });
   });
 
   describe('8 bits loads', () => {
