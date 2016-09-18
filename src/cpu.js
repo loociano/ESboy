@@ -2820,6 +2820,7 @@ export default class CPU {
    */
   add_n(n){
     this._add_r(n);
+    this._m++;
   }
 
   /**
@@ -2853,6 +2854,7 @@ export default class CPU {
     } else {
       this.setZ(0);
     }
+    this._m++;
   }
 
   /**
