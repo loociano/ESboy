@@ -34,9 +34,7 @@ function init(filename, stop_at=-1){
         cpu.start();
       }
     } else {
-      while(cpu.pc() < stop_at) {
-        cpu.runUntil(stop_at);
-      }
+      cpu.runUntil(stop_at);
     }
   } catch(e){
     Logger.error(e);
