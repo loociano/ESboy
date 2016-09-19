@@ -615,8 +615,6 @@ export default class CPU {
    */
   frame(pc_stop){
 
-    this._m = 0;
-
     do {
       if (pc_stop !== -1 && this._r.pc >= pc_stop){
         this.end();
@@ -651,6 +649,7 @@ export default class CPU {
       this.mmu.incrementLy();
 
       if (this.ly() === 0) {
+        this._m = 0;
         this.mmu.setLCDMode(0);
       }
 
@@ -732,6 +731,9 @@ export default class CPU {
    * @private
    */
   _handleVBlankInterrupt(){
+
+    this._resetVBlank();
+
     // BIOS does not have an vblank routine to execute
     if (!this.mmu.inBIOS) {
       this.di();
@@ -739,8 +741,6 @@ export default class CPU {
     }
 
     this.paintFrame();
-
-    this._m += 1140;
   }
 
   /**
@@ -3178,7 +3178,6 @@ export default class CPU {
    * @private
    */
   _rst_40(){
-    this._resetVBlank();
     this._rst_n(this.ADDR_VBLANK_INTERRUPT);
   }
 
