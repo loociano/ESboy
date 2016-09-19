@@ -365,7 +365,7 @@ export default class MMU {
    * @returns {number} LCD Mode: [0,3]
    */
   getLCDMode(){
-    return this.lcdc() & this.MASK_STAT_MODE;
+    return this.stat() & this.MASK_STAT_MODE;
   }
 
   /**
@@ -374,8 +374,8 @@ export default class MMU {
    */
   setLCDMode(mode){
     if (mode > 3 || mode < 0) return;
-    this.memory[this.ADDR_LCDC] &= 0xfc;
-    this.memory[this.ADDR_LCDC] += mode;
+    this.memory[this.ADDR_STAT] &= 0xfc;
+    this.memory[this.ADDR_STAT] += mode;
   };
 
   /**
