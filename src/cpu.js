@@ -676,12 +676,12 @@ export default class CPU {
       case 1:
         break; // No transition during vblank
       case 2:
-        if (this._m < (this._mLyOffset() + this.M_CYCLES_STOP_MODE_2)) {
+        if (this._m > (this._mLyOffset() + this.M_CYCLES_STOP_MODE_2)) {
           this.mmu.setLCDMode(3);
         }
         break;
       case 3:
-        if (this._m < (this._mLyOffset() + this.M_CYCLES_STOP_MODE_3)) {
+        if (this._m > (this._mLyOffset() + this.M_CYCLES_STOP_MODE_3)) {
           this.mmu.setLCDMode(0);
         }
         break;
