@@ -3088,7 +3088,7 @@ export default class CPU {
    * Swaps nybbles of value at memory location hl
    */
   swap_0xhl(){
-    const swapped = this._swap4bits(this._0xhl());
+    const swapped = Utils.swapNybbles(this._0xhl());
 
     if (swapped){
       this.setZ(0);
@@ -3106,23 +3106,13 @@ export default class CPU {
    * @private
    */
   _swap_n(r){
-    if (this._r[r] = this._swap4bits(this._r[r])){
+    if (this._r[r] = Utils.swapNybbles(this._r[r])){
       this.setZ(0);
     } else {
       this.setZ(1);
     }
     this.setN(0); this.setH(0); this.setC(0);
     this._m += 2;
-  }
-
-  /**
-   * Swaps top-bottom 4 bits in a byte.
-   * @param byte
-   * @returns {number}
-   * @private
-   */
-  _swap4bits(byte){
-    return (byte >> 4 & 0x0f) + (byte << 4 & 0xf0);
   }
 
   /**
