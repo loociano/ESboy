@@ -789,7 +789,9 @@ export default class CPU {
    * @param {number} pc_stop
    */
   runUntil(pc_stop){
-    this.start(pc_stop);
+    while (this.pc() < pc_stop){
+      this.start(pc_stop);
+    }
   }
 
   /**

@@ -5,7 +5,7 @@ import {describe, beforeEach, it} from 'mocha';
 import IPCMock from './mock/ipcMock';
 import config from '../src/config';
 
-describe.skip('BIOS execution', function() {
+describe('BIOS execution', function() {
 
   config.DEBUG = true;
 
@@ -15,9 +15,7 @@ describe.skip('BIOS execution', function() {
   const cpu = new CPU(new MMU('./roms/blargg_cpu_instrs.gb'), ipcMock);
   ipcMock.setCpu(cpu);
 
-  /*while (cpu.pc() < stopAt){
-    cpu.runUntil(stopAt);
-  }*/
+  cpu.runUntil(stopAt);
 
   it('BIOS should start sound', function() {
     assert.equal(cpu.nr52(), 0x80, 'NR52');
@@ -80,7 +78,7 @@ describe.skip('BIOS execution', function() {
     assert.equal(cpu.l(), 0x4d, 'l');
     assert.equal(cpu.sp(), 0xfffe, 'a');
     assert.equal(cpu.f(), 0b1011, 'flags');
-  })
+  });
 
 });
 
