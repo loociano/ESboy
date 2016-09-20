@@ -52,7 +52,7 @@ export default class CPU {
       ime: 1
     };
 
-    this._attach_reset_bit_functions();
+    this._attach_bit_functions();
 
     this.commands = {
       0x00: {fn: this.nop, paramBytes: 0},
@@ -256,6 +256,14 @@ export default class CPU {
       0xcb35: {fn: this.swap_l, paramBytes: 0},
       0xcb36: {fn: this.swap_0xhl, paramBytes: 0},
       0xcb37: {fn: this.swap_a, paramBytes: 0},
+      0xcb46: {fn: this.bit_0_0xhl, paramBytes: 0},
+      0xcb4e: {fn: this.bit_1_0xhl, paramBytes: 0},
+      0xcb56: {fn: this.bit_2_0xhl, paramBytes: 0},
+      0xcb5e: {fn: this.bit_3_0xhl, paramBytes: 0},
+      0xcb66: {fn: this.bit_4_0xhl, paramBytes: 0},
+      0xcb6e: {fn: this.bit_5_0xhl, paramBytes: 0},
+      0xcb76: {fn: this.bit_6_0xhl, paramBytes: 0},
+      0xcb7e: {fn: this.bit_7_0xhl, paramBytes: 0},
       0xcb7c: {fn: this.bit_7_h, paramBytes: 0},
       0xcb80: {fn: this.res_0_b, paramBytes: 0},
       0xcb81: {fn: this.res_0_c, paramBytes: 0},
@@ -1869,19 +1877,51 @@ export default class CPU {
   }
 
   /**
-   * Tests bit b in register r
+   * Tests bit b in value
    * @param b
-   * @param r
+   * @param value
    * @private
    */
-  _bit_b_r(b, r) {
-    if ((r & (1 << b)) >> b) {
+  _bit_b_r(b, value) {
+    if ((value & (1 << b)) >> b) {
       this.setZ(0);
     } else {
       this.setZ(1);
     }
     this.setN(0); this.setH(1);
     this._m += 2;
+  }
+
+  /**
+   * Tests bit b at memory location hl
+   * @param b
+   * @private
+   */
+  _bit_b_0xhl(b){
+    this._bit_b_r(b, this._0xhl());
+  }
+
+  /**
+   * Attaches bit functions programmatically.
+   * @private
+   */
+  _attach_bit_functions(){
+    this._attach_test_bit_functions();
+    this._attach_reset_bit_functions();
+    // TODO: attach set functions
+  }
+
+  /**
+   * Attaches test bit functions to the cpu programmatically.
+   * @private
+   */
+  _attach_test_bit_functions(){
+    // TODO: add functions for registers
+    for (let b = 0; b < 8; b++) {
+      this[`bit_${b}_0xhl`] = function () {
+        this._bit_b_0xhl(b);
+      };
+    }
   }
 
   /**
