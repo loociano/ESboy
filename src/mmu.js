@@ -37,6 +37,7 @@ export default class MMU {
     this.ADDR_OAM_END = 0xfe9f;
 
     // IO
+    this.ADDR_P1 = 0xff00;
     this.ADDR_SB = 0xff01;
     this.ADDR_SC = 0xff02;
     this.ADDR_IF = 0xff0f;
@@ -57,7 +58,14 @@ export default class MMU {
     this.LCDC_BG = 0x01;
     this.LCDC_LINE_VBLANK = 0x90; // 114
 
-    // Masks
+    // P1 masks
+    this.MASK_P1_RW = 0xcf;
+    this.MASK_P1_RIGHT = this.MASK_P1_A = 0xfe;
+    this.MASK_P1_LEFT = this.MASK_P1_B = 0xfd;
+    this.MASK_P1_UP = this.MASK_P1_SELECT = 0xfb;
+    this.MASK_P1_DOWN = this.MASK_P1_START = 0xf7;
+
+    // LCDC masks
     this.MASK_BG_CHAR_DATA = 0x10;
     this.MASK_WINDOW_ON = 0x20;
     this.MASK_OBJ_ON = 0x02;
@@ -142,6 +150,7 @@ export default class MMU {
   _initMemory() {
     this.memory.fill(0); // Buffers are created with random data
 
+    this.memory[this.ADDR_P1] = 0xff;
     this.memory[0xff05] = 0x00;
     this.memory[0xff06] = 0x00;
     this.memory[0xff07] = 0x00;
@@ -313,6 +322,9 @@ export default class MMU {
     }
 
     switch(addr){
+      case this.ADDR_P1:
+        n |= this.MASK_P1_RW;
+        break;
       case this.ADDR_VBK:
         Logger.info(`Cannot write on ${Utils.hex4(addr)}`);
         return;
@@ -649,5 +661,41 @@ export default class MMU {
    */
   vbk(){
     return this.readByteAt(this.ADDR_VBK);
+  }
+
+  p1(){
+    return this.readByteAt(this.ADDR_P1);
+  }
+
+  pressRight(){
+    this.memory[this.ADDR_P1] &= this.MASK_P1_RIGHT;
+  }
+
+  pressLeft(){
+    this.memory[this.ADDR_P1] &= this.MASK_P1_LEFT;
+  }
+
+  pressUp(){
+    this.memory[this.ADDR_P1] &= this.MASK_P1_UP;
+  }
+
+  pressDown(){
+    this.memory[this.ADDR_P1] &= this.MASK_P1_DOWN;
+  }
+
+  pressA(){
+    this.memory[this.ADDR_P1] &= this.MASK_P1_A;
+  }
+
+  pressB(){
+    this.memory[this.ADDR_P1] &= this.MASK_P1_B;
+  }
+
+  pressSELECT(){
+    this.memory[this.ADDR_P1] &= this.MASK_P1_SELECT;
+  }
+
+  pressSTART(){
+    this.memory[this.ADDR_P1] &= this.MASK_P1_START;
   }
 }
