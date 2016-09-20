@@ -1884,6 +1884,7 @@ describe('CPU Unit tests', function() {
           assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
         });
       });
+
       it('should shift value at memory location hl to the left', () => {
         cpu.ld_hl_nn(0xc000);
         cpu.ld_0xhl_n(0b01100000);
@@ -1908,6 +1909,71 @@ describe('CPU Unit tests', function() {
         cpu.sla_0xhl();
 
         assert.equal(cpu.$hl(), 0b00000000, 'Shifted left');
+        assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+      });
+
+      it('should shift registers to the right', () => {
+
+        [ {r: cpu.a, ld: cpu.ld_a_n, srl: cpu.srl_a},
+          {r: cpu.b, ld: cpu.ld_b_n, srl: cpu.srl_b},
+          {r: cpu.c, ld: cpu.ld_c_n, srl: cpu.srl_c},
+          {r: cpu.d, ld: cpu.ld_d_n, srl: cpu.srl_d},
+          {r: cpu.e, ld: cpu.ld_e_n, srl: cpu.srl_e},
+          {r: cpu.h, ld: cpu.ld_h_n, srl: cpu.srl_h},
+          {r: cpu.l, ld: cpu.ld_l_n, srl: cpu.srl_l} ].map(({r, ld, srl}) => {
+
+          cpu.setC(0);
+          ld.call(cpu, 0b00000110);
+          const m = cpu.m();
+
+          srl.call(cpu);
+
+          assert.equal(r.call(cpu), 0b00000011, 'Shifted right');
+          assert.equal(cpu.f(), 0b0000, 'No carry');
+          assert.equal(cpu.m() - m, 2, 'Machine cycles');
+
+          srl.call(cpu);
+
+          assert.equal(r.call(cpu), 0b00000001, 'Shifted right');
+          assert.equal(cpu.f(), 0b0001, 'Carry');
+
+          srl.call(cpu);
+
+          assert.equal(r.call(cpu), 0b00000000, 'Shifted right');
+          assert.equal(cpu.f(), 0b1001, 'Zero result with carry');
+
+          srl.call(cpu);
+
+          assert.equal(r.call(cpu), 0b00000000, 'Shifted left');
+          assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+        });
+      });
+
+      it('should shift value at memory location hl to the right', () => {
+        cpu.setC(0);
+        cpu.ld_hl_nn(0xc000);
+        cpu.ld_0xhl_n(0b00000110);
+        const m = cpu.m();
+
+        cpu.srl_0xhl();
+
+        assert.equal(cpu.$hl(), 0b00000011, 'Shifted right');
+        assert.equal(cpu.f(), 0b0000, 'No carry');
+        assert.equal(cpu.m() - m, 4, 'Machine cycles');
+
+        cpu.srl_0xhl();
+
+        assert.equal(cpu.$hl(), 0b00000001, 'Shifted right');
+        assert.equal(cpu.f(), 0b0001, 'Carry');
+
+        cpu.srl_0xhl();
+
+        assert.equal(cpu.$hl(), 0b00000000, 'Shifted right');
+        assert.equal(cpu.f(), 0b1001, 'Zero result with carry');
+
+        cpu.srl_0xhl();
+
+        assert.equal(cpu.$hl(), 0b00000000, 'Shifted right');
         assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
       });
     });
