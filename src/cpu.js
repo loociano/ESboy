@@ -62,6 +62,7 @@ export default class CPU {
       0x04: {fn: this.inc_c, paramBytes: 0},
       0x05: {fn: this.dec_b, paramBytes: 0},
       0x06: {fn: this.ld_b_n, paramBytes: 1},
+      0x07: {fn: this.rlca, paramBytes: 0},
       0x09: {fn: this.add_hl_bc, paramBytes: 0},
       0x0a: {fn: this.ld_a_0xbc, paramBytes: 0},
       0x0b: {fn: this.dec_bc, paramBytes: 0},
@@ -3460,5 +3461,34 @@ export default class CPU {
    */
   srl_l(){
     this._srl_r('l');
+  }
+
+  /**
+   * Rotates left a with copy to carry
+   */
+  rlca(){
+    this._rlc_r('a');
+  }
+
+  /**
+   * Rotates left r with copy to carry
+   * @param r
+   * @private
+   */
+  _rlc_r(r){
+    const rotated = (this._r[r] << 1);
+    const carry = (rotated & 0x100) >> 8;
+    this.setC(carry);
+    this._r[r] = (rotated & 0xff) + carry;
+
+    if (this._r[r] === 0){
+      this.setZ(1);
+    } else {
+      this.setZ(0);
+    }
+
+    this.setN(0);
+    this.setH(0);
+    this._m++;
   }
 }
