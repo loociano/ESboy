@@ -1667,7 +1667,26 @@ export default class CPU {
    */
   dec_0xhl(){
     let value = this._0xhl();
-    this.mmu.writeByteAt(this.hl(), --value);
+    this.setN(1); // subtracting
+
+    if ((value & 0x0f) === 0){
+      this.setH(1); // half carry
+    } else {
+      this.setH(0);
+    }
+
+    if (value === 0){
+      value = 0xff; // loop value
+    } else {
+      value--;
+    }
+
+    if (value === 0){
+      this.setZ(1); // result is zero
+    } else {
+      this.setZ(0);
+    }
+    this.mmu.writeByteAt(this.hl(), value);
     this._m += 2;
   }
 
