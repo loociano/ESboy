@@ -246,6 +246,7 @@ export default class CPU {
       0xcb23: {fn: this.sla_e, paramBytes: 0},
       0xcb24: {fn: this.sla_h, paramBytes: 0},
       0xcb25: {fn: this.sla_l, paramBytes: 0},
+      0xcb26: {fn: this.sla_0xhl, paramBytes: 0},
       0xcb27: {fn: this.sla_a, paramBytes: 0},
       0xcb30: {fn: this.swap_b, paramBytes: 0},
       0xcb31: {fn: this.swap_c, paramBytes: 0},
@@ -3251,5 +3252,12 @@ export default class CPU {
   _sla_r(r){
     this._rl_r(r, 0);
     this._m++;
+  }
+
+  /**
+   * Shifts left the value at memory location hl
+   */
+  sla_0xhl(){
+    this.rl_0xhl(0);
   }
 }
