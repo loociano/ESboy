@@ -256,15 +256,70 @@ export default class CPU {
       0xcb35: {fn: this.swap_l, paramBytes: 0},
       0xcb36: {fn: this.swap_0xhl, paramBytes: 0},
       0xcb37: {fn: this.swap_a, paramBytes: 0},
+      0xcb40: {fn: this.bit_0_b, paramBytes: 0},
+      0xcb41: {fn: this.bit_0_c, paramBytes: 0},
+      0xcb42: {fn: this.bit_0_d, paramBytes: 0},
+      0xcb43: {fn: this.bit_0_e, paramBytes: 0},
+      0xcb44: {fn: this.bit_0_h, paramBytes: 0},
+      0xcb45: {fn: this.bit_0_l, paramBytes: 0},
       0xcb46: {fn: this.bit_0_0xhl, paramBytes: 0},
+      0xcb47: {fn: this.bit_0_a, paramBytes: 0},
+      0xcb48: {fn: this.bit_1_b, paramBytes: 0},
+      0xcb49: {fn: this.bit_1_c, paramBytes: 0},
+      0xcb4a: {fn: this.bit_1_d, paramBytes: 0},
+      0xcb4b: {fn: this.bit_1_e, paramBytes: 0},
+      0xcb4c: {fn: this.bit_1_h, paramBytes: 0},
+      0xcb4d: {fn: this.bit_1_l, paramBytes: 0},
       0xcb4e: {fn: this.bit_1_0xhl, paramBytes: 0},
+      0xcb4f: {fn: this.bit_1_a, paramBytes: 0},
+      0xcb50: {fn: this.bit_2_b, paramBytes: 0},
+      0xcb51: {fn: this.bit_2_c, paramBytes: 0},
+      0xcb52: {fn: this.bit_2_d, paramBytes: 0},
+      0xcb53: {fn: this.bit_2_e, paramBytes: 0},
+      0xcb54: {fn: this.bit_2_h, paramBytes: 0},
+      0xcb55: {fn: this.bit_2_l, paramBytes: 0},
       0xcb56: {fn: this.bit_2_0xhl, paramBytes: 0},
+      0xcb57: {fn: this.bit_2_a, paramBytes: 0},
+      0xcb58: {fn: this.bit_3_b, paramBytes: 0},
+      0xcb59: {fn: this.bit_3_c, paramBytes: 0},
+      0xcb5a: {fn: this.bit_3_d, paramBytes: 0},
+      0xcb5b: {fn: this.bit_3_e, paramBytes: 0},
+      0xcb5c: {fn: this.bit_3_h, paramBytes: 0},
+      0xcb5d: {fn: this.bit_3_l, paramBytes: 0},
       0xcb5e: {fn: this.bit_3_0xhl, paramBytes: 0},
+      0xcb5f: {fn: this.bit_3_a, paramBytes: 0},
+      0xcb60: {fn: this.bit_4_b, paramBytes: 0},
+      0xcb61: {fn: this.bit_4_c, paramBytes: 0},
+      0xcb62: {fn: this.bit_4_d, paramBytes: 0},
+      0xcb63: {fn: this.bit_4_e, paramBytes: 0},
+      0xcb64: {fn: this.bit_4_h, paramBytes: 0},
+      0xcb65: {fn: this.bit_4_l, paramBytes: 0},
       0xcb66: {fn: this.bit_4_0xhl, paramBytes: 0},
+      0xcb67: {fn: this.bit_4_a, paramBytes: 0},
+      0xcb68: {fn: this.bit_5_b, paramBytes: 0},
+      0xcb69: {fn: this.bit_5_c, paramBytes: 0},
+      0xcb6a: {fn: this.bit_5_d, paramBytes: 0},
+      0xcb6b: {fn: this.bit_5_e, paramBytes: 0},
+      0xcb6c: {fn: this.bit_5_h, paramBytes: 0},
+      0xcb6d: {fn: this.bit_5_l, paramBytes: 0},
       0xcb6e: {fn: this.bit_5_0xhl, paramBytes: 0},
+      0xcb6f: {fn: this.bit_5_a, paramBytes: 0},
+      0xcb70: {fn: this.bit_6_b, paramBytes: 0},
+      0xcb71: {fn: this.bit_6_c, paramBytes: 0},
+      0xcb72: {fn: this.bit_6_d, paramBytes: 0},
+      0xcb73: {fn: this.bit_6_e, paramBytes: 0},
+      0xcb74: {fn: this.bit_6_h, paramBytes: 0},
+      0xcb75: {fn: this.bit_6_l, paramBytes: 0},
       0xcb76: {fn: this.bit_6_0xhl, paramBytes: 0},
-      0xcb7e: {fn: this.bit_7_0xhl, paramBytes: 0},
+      0xcb77: {fn: this.bit_6_a, paramBytes: 0},
+      0xcb78: {fn: this.bit_7_b, paramBytes: 0},
+      0xcb79: {fn: this.bit_7_c, paramBytes: 0},
+      0xcb7a: {fn: this.bit_7_d, paramBytes: 0},
+      0xcb7b: {fn: this.bit_7_e, paramBytes: 0},
       0xcb7c: {fn: this.bit_7_h, paramBytes: 0},
+      0xcb7d: {fn: this.bit_7_l, paramBytes: 0},
+      0xcb7e: {fn: this.bit_7_0xhl, paramBytes: 0},
+      0xcb7f: {fn: this.bit_7_a, paramBytes: 0},
       0xcb80: {fn: this.res_0_b, paramBytes: 0},
       0xcb81: {fn: this.res_0_c, paramBytes: 0},
       0xcb82: {fn: this.res_0_d, paramBytes: 0},
@@ -1870,13 +1925,6 @@ export default class CPU {
   }
 
   /**
-   * Tests bit 7 in h
-   */
-  bit_7_h() {
-    this._bit_b_r(7, this._r.h);
-  }
-
-  /**
    * Tests bit b in value
    * @param b
    * @param value
@@ -1902,43 +1950,18 @@ export default class CPU {
   }
 
   /**
-   * Attaches bit functions programmatically.
-   * @private
-   */
-  _attach_bit_functions(){
-    this._attach_test_bit_functions();
-    this._attach_reset_bit_functions();
-    // TODO: attach set functions
-  }
-
-  /**
-   * Attaches test bit functions to the cpu programmatically.
-   * @private
-   */
-  _attach_test_bit_functions(){
-    // TODO: add functions for registers
-    for (let b = 0; b < 8; b++) {
-      this[`bit_${b}_0xhl`] = function () {
-        this._bit_b_0xhl(b);
-      };
-    }
-  }
-
-  /**
    * Attaches reset bit functions to the cpu programmatically.
    * @private
    */
-  _attach_reset_bit_functions() {
+  _attach_bit_functions() {
     ['a', 'b', 'c', 'd', 'e', 'h', 'l', '0xhl'].map((r) => {
       for (let b = 0; b < 8; b++) {
         if (r === '0xhl'){
-          this[`res_${b}_0xhl`] = function() {
-            this.res_b_0xhl(b);
-          };
+          this[`bit_${b}_0xhl`] = function() { this._bit_b_0xhl(b); };
+          this[`res_${b}_0xhl`] = function() { this.res_b_0xhl(b); };
         } else {
-          this[`res_${b}_${r}`] = function() {
-            this._res_b_r(b, r);
-          };
+          this[`bit_${b}_${r}`] = function() { this._bit_b_r(b, this._r[r]); };
+          this[`res_${b}_${r}`] = function() { this._res_b_r(b, r); };
         }
       }
     });
