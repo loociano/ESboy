@@ -240,6 +240,7 @@ export default class CPU {
       0xcb15: {fn: this.rl_l, paramBytes: 0},
       0xcb16: {fn: this.rl_0xhl, paramBytes: 0},
       0xcb17: {fn: this.rl_a, paramBytes: 0},
+      0xcb27: {fn: this.sla_a, paramBytes: 0},
       0xcb30: {fn: this.swap_b, paramBytes: 0},
       0xcb31: {fn: this.swap_c, paramBytes: 0},
       0xcb32: {fn: this.swap_d, paramBytes: 0},
@@ -2599,11 +2600,12 @@ export default class CPU {
   /**
    * Rotates left register r with carry flag.
    * @param r
+   * @param carried
    * @private
    */
-  _rl_r(r){
+  _rl_r(r, carried=this.C()){
 
-    const rotated = (this._r[r] << 1) + this.C();
+    const rotated = (this._r[r] << 1) + carried;
     this._r[r] = rotated & 0xff;
     this.setC((rotated & 0x100) >> 8);
 
@@ -3189,5 +3191,13 @@ export default class CPU {
   _rst_n(n){
     this._push_pc();
     this.jp(n);
+  }
+
+  /**
+   * Shifts register a left
+   */
+  sla_a(){
+    this._rl_r('a', 0);
+    this._m++;
   }
 }
