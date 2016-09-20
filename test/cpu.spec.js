@@ -1839,7 +1839,13 @@ describe('CPU Unit tests', function() {
     describe('Rotates', () => {
       it('should rotate registers to the left', () => {
 
-        [{r: cpu.a, ld: cpu.ld_a_n, sla: cpu.sla_a}].map(({r, ld, sla}) => {
+        [ {r: cpu.a, ld: cpu.ld_a_n, sla: cpu.sla_a},
+          {r: cpu.b, ld: cpu.ld_b_n, sla: cpu.sla_b},
+          {r: cpu.c, ld: cpu.ld_c_n, sla: cpu.sla_c},
+          {r: cpu.d, ld: cpu.ld_d_n, sla: cpu.sla_d},
+          {r: cpu.e, ld: cpu.ld_e_n, sla: cpu.sla_e},
+          {r: cpu.h, ld: cpu.ld_h_n, sla: cpu.sla_h},
+          {r: cpu.l, ld: cpu.ld_l_n, sla: cpu.sla_l} ].map(({r, ld, sla}) => {
 
           ld.call(cpu, 0b01100000);
           const m = cpu.m();
