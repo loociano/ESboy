@@ -1840,6 +1840,30 @@ describe('CPU Unit tests', function() {
         assert.equal(cpu.f(), 0b0001, 'Carry');
         assert.equal(cpu.m() - m, 1, 'RLA machine cycles');
       });
+
+      it('should rotate a to the left and copy to carry', () => {
+        cpu.setC(0);
+        cpu.ld_a_n(0b10000101);
+        const m = cpu.m();
+
+        cpu.rlca();
+
+        assert.equal(cpu.a(), 0b00001011, 'Rotate left');
+        assert.equal(cpu.f(), 0b0001, 'bit 7 copied to carry');
+        assert.equal(cpu.m() - m, 1, 'Machine cycles');
+
+        cpu.rlca();
+
+        assert.equal(cpu.a(), 0b00010110, 'Rotate left');
+        assert.equal(cpu.f(), 0b0000, 'bit 7 copied to carry');
+
+        cpu.ld_a_n(0x00);
+
+        cpu.rlca();
+
+        assert.equal(cpu.a(), 0x00, 'Identical');
+        assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+      });
     });
 
     describe('Shifts', () => {
