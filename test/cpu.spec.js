@@ -606,16 +606,30 @@ describe('CPU Unit tests', function() {
       // TODO decrement with 0x01 to assert flag Z
 
       it('should decrement a value at a memory location', () => {
-        const value = 0xab;
-        cpu.mmu.writeByteAt(0xdfff, value);
-        cpu.ld_hl_nn(0xdfff);
+        cpu.setC(0);
+        cpu.ld_hl_nn(0xc000);
+        cpu.ld_0xhl_n(0xab);
 
         const m = cpu.m();
         cpu.dec_0xhl();
 
-        assert.equal(cpu.mmu.readByteAt(0xdfff), value - 1, 'Value at memory 0xdfff is decremented');
-        // TODO check flags
-        assert.equal(cpu.m(), m+3, 'DEC (HL) runs in 3 machine cycle');
+        assert.equal(cpu.$hl(), 0xaa, 'Value at memory 0xdfff is decremented');
+        assert.equal(cpu.f(), 0b0100, 'Not zero without half carry');
+        assert.equal(cpu.m() - m, 3, 'DEC (HL) runs in 3 machine cycle');
+
+        cpu.ld_0xhl_n(0x01);
+
+        cpu.dec_0xhl();
+
+        assert.equal(cpu.$hl(), 0x00, 'Decrements to zero');
+        assert.equal(cpu.f(), 0b1100, 'Zero without half carry');
+
+        cpu.ld_0xhl_n(0x00);
+
+        cpu.dec_0xhl();
+
+        assert.equal(cpu.$hl(), 0xff, 'Value loops');
+        assert.equal(cpu.f(), 0b0110, 'Not zero with half carry');
       });
     });
 
