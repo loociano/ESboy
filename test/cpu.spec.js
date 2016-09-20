@@ -1749,108 +1749,79 @@ describe('CPU Unit tests', function() {
   });
 
   describe('Rotates and Shifts', () => {
-    it('should rotate registers left', () => {
-
-      [{r: cpu.a, ld: cpu.ld_a_n, rl: cpu.rl_a},
-        {r: cpu.b, ld: cpu.ld_b_n, rl: cpu.rl_b},
-        {r: cpu.c, ld: cpu.ld_c_n, rl: cpu.rl_c},
-        {r: cpu.d, ld: cpu.ld_d_n, rl: cpu.rl_d},
-        {r: cpu.e, ld: cpu.ld_e_n, rl: cpu.rl_e},
-        {r: cpu.h, ld: cpu.ld_h_n, rl: cpu.rl_h},
-        {r: cpu.l, ld: cpu.ld_l_n, rl: cpu.rl_l}].map(({r, ld, rl}) => {
-
-        cpu.setC(0);
-        ld.call(cpu, 0x80);
-        const m = cpu.m();
-
-        rl.call(cpu);
-
-        assert.equal(r.call(cpu), 0x00, `${r.name} rotated left`);
-        assert.equal(cpu.Z(), 1, 'Result was zero');
-        assert.equal(cpu.N(), 0, 'N reset');
-        assert.equal(cpu.H(), 0, 'H reset');
-        assert.equal(cpu.C(), 1, 'Carry set');
-        assert.equal(cpu.m(), m + 2, `RL ${r.name} machine cycles`);
-      });
-    });
-
-    it('should rotate value at memory location hl left', () => {
-      cpu.ld_hl_nn(0xc000);
-      cpu.ld_0xhl_n(0b01010001);
-      cpu.setC(0);
-      const m = cpu.m();
-
-      cpu.rl_0xhl();
-
-      assert.equal(cpu.$hl(), 0b10100010, 'value at memory hl rotated left');
-      assert.equal(cpu.f(), 0b0000, 'No carry');
-      assert.equal(cpu.m() - m, 4, 'RL (hl) machine cycles');
-
-      cpu.rl_0xhl();
-
-      assert.equal(cpu.$hl(), 0b01000100, 'value at memory hl rotated left');
-      assert.equal(cpu.f(), 0b0001, 'Carry');
-
-      cpu.rl_0xhl();
-
-      assert.equal(cpu.$hl(), 0b10001001, 'value at memory hl rotated left');
-      assert.equal(cpu.f(), 0b0000, 'No carry');
-
-      cpu.ld_0xhl_n(0x00);
-
-      cpu.rl_0xhl();
-
-      assert.equal(cpu.$hl(), 0x00, 'Identical');
-      assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
-    });
-
-    it('should rotate a to the left', () => {
-      cpu.setC(1);
-      cpu.ld_a_n(           0b10010101);
-      const m = cpu.m();
-
-      cpu.rla();
-
-      assert.equal(cpu.a(), 0b00101011, 'Rotate a left');
-      assert.equal(cpu.Z(), 0, 'Result was positive');
-      assert.equal(cpu.N(), 0, 'N reset');
-      assert.equal(cpu.H(), 0, 'H reset');
-      assert.equal(cpu.C(), 1, 'Carry 1');
-      assert.equal(cpu.m(), m + 1, 'RLA machine cycles');
-    });
-
-    it('should swap nybbles from registers', () => {
-
-      [ {r: cpu.a, ld: cpu.ld_a_n, swap: cpu.swap_a},
-        {r: cpu.b, ld: cpu.ld_b_n, swap: cpu.swap_b},
-        {r: cpu.c, ld: cpu.ld_c_n, swap: cpu.swap_c},
-        {r: cpu.d, ld: cpu.ld_d_n, swap: cpu.swap_d},
-        {r: cpu.e, ld: cpu.ld_e_n, swap: cpu.swap_e},
-        {r: cpu.h, ld: cpu.ld_h_n, swap: cpu.swap_h},
-        {r: cpu.l, ld: cpu.ld_l_n, swap: cpu.swap_l} ].map( ({r, ld, swap}) => {
-
-          ld.call(cpu, 0xab);
-          let m = cpu.m();
-
-          swap.call(cpu);
-
-          assert.equal(r.call(cpu), 0xba, `${swap.name} swapped nybbles`);
-          assert.equal(cpu.f(), 0b0000, `${swap.name} resets all flags for positive result`);
-          assert.equal(cpu.m() - m, 2, 'Machine cycles');
-
-          ld.call(cpu, 0x00);
-          m = cpu.m();
-
-          swap.call(cpu);
-
-          assert.equal(r.call(cpu), 0x00, `${swap.name} does not modify zero`);
-          assert.equal(cpu.f(), 0b1000, `${swap.name} sets Z with zero result`);
-          assert.equal(cpu.m() - m, 2, 'Machine cycles');
-      });
-    });
 
     describe('Rotates', () => {
-      it('should rotate registers to the left', () => {
+      it('should rotate registers left', () => {
+
+        [{r: cpu.a, ld: cpu.ld_a_n, rl: cpu.rl_a},
+          {r: cpu.b, ld: cpu.ld_b_n, rl: cpu.rl_b},
+          {r: cpu.c, ld: cpu.ld_c_n, rl: cpu.rl_c},
+          {r: cpu.d, ld: cpu.ld_d_n, rl: cpu.rl_d},
+          {r: cpu.e, ld: cpu.ld_e_n, rl: cpu.rl_e},
+          {r: cpu.h, ld: cpu.ld_h_n, rl: cpu.rl_h},
+          {r: cpu.l, ld: cpu.ld_l_n, rl: cpu.rl_l}].map(({r, ld, rl}) => {
+
+          cpu.setC(0);
+          ld.call(cpu, 0x80);
+          const m = cpu.m();
+
+          rl.call(cpu);
+
+          assert.equal(r.call(cpu), 0x00, `${r.name} rotated left`);
+          assert.equal(cpu.Z(), 1, 'Result was zero');
+          assert.equal(cpu.N(), 0, 'N reset');
+          assert.equal(cpu.H(), 0, 'H reset');
+          assert.equal(cpu.C(), 1, 'Carry set');
+          assert.equal(cpu.m(), m + 2, `RL ${r.name} machine cycles`);
+        });
+      });
+      it('should rotate value at memory location hl left', () => {
+        cpu.ld_hl_nn(0xc000);
+        cpu.ld_0xhl_n(0b01010001);
+        cpu.setC(0);
+        const m = cpu.m();
+
+        cpu.rl_0xhl();
+
+        assert.equal(cpu.$hl(), 0b10100010, 'value at memory hl rotated left');
+        assert.equal(cpu.f(), 0b0000, 'No carry');
+        assert.equal(cpu.m() - m, 4, 'RL (hl) machine cycles');
+
+        cpu.rl_0xhl();
+
+        assert.equal(cpu.$hl(), 0b01000100, 'value at memory hl rotated left');
+        assert.equal(cpu.f(), 0b0001, 'Carry');
+
+        cpu.rl_0xhl();
+
+        assert.equal(cpu.$hl(), 0b10001001, 'value at memory hl rotated left');
+        assert.equal(cpu.f(), 0b0000, 'No carry');
+
+        cpu.ld_0xhl_n(0x00);
+
+        cpu.rl_0xhl();
+
+        assert.equal(cpu.$hl(), 0x00, 'Identical');
+        assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+      });
+      it('should rotate a to the left', () => {
+        cpu.setC(1);
+        cpu.ld_a_n(0b10010101);
+        const m = cpu.m();
+
+        cpu.rla();
+
+        assert.equal(cpu.a(), 0b00101011, 'Rotate a left');
+        assert.equal(cpu.Z(), 0, 'Result was positive');
+        assert.equal(cpu.N(), 0, 'N reset');
+        assert.equal(cpu.H(), 0, 'H reset');
+        assert.equal(cpu.C(), 1, 'Carry 1');
+        assert.equal(cpu.m(), m + 1, 'RLA machine cycles');
+      });
+    });
+
+    describe('Shifts', () => {
+      it('should shift registers to the left', () => {
 
         [ {r: cpu.a, ld: cpu.ld_a_n, sla: cpu.sla_a},
           {r: cpu.b, ld: cpu.ld_b_n, sla: cpu.sla_b},
@@ -1885,8 +1856,7 @@ describe('CPU Unit tests', function() {
           assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
         });
       });
-
-      it('should rotate value at memory location hl to the left', () => {
+      it('should shift value at memory location hl to the left', () => {
         cpu.ld_hl_nn(0xc000);
         cpu.ld_0xhl_n(0b01100000);
         const m = cpu.m();
@@ -1914,25 +1884,56 @@ describe('CPU Unit tests', function() {
       });
     });
 
-    it('should swap nybbles from value at memory location hl', () => {
-      cpu.ld_hl_nn(0xc000);
-      cpu.ld_0xhl_n(0xab);
-      let m = cpu.m();
+    describe('Swaps', () => {
+      it('should swap nybbles from registers', () => {
 
-      cpu.swap_0xhl();
+        [ {r: cpu.a, ld: cpu.ld_a_n, swap: cpu.swap_a},
+          {r: cpu.b, ld: cpu.ld_b_n, swap: cpu.swap_b},
+          {r: cpu.c, ld: cpu.ld_c_n, swap: cpu.swap_c},
+          {r: cpu.d, ld: cpu.ld_d_n, swap: cpu.swap_d},
+          {r: cpu.e, ld: cpu.ld_e_n, swap: cpu.swap_e},
+          {r: cpu.h, ld: cpu.ld_h_n, swap: cpu.swap_h},
+          {r: cpu.l, ld: cpu.ld_l_n, swap: cpu.swap_l} ].map( ({r, ld, swap}) => {
 
-      assert.equal(cpu.$hl(), 0xba, 'Swapped nybbles on (hl)');
-      assert.equal(cpu.f(), 0b0000, 'resets all flags for positive result');
-      assert.equal(cpu.m() - m, 4, 'Machine cycles');
+          ld.call(cpu, 0xab);
+          let m = cpu.m();
 
-      cpu.ld_0xhl_n(0x00);
-      m = cpu.m();
+          swap.call(cpu);
 
-      cpu.swap_0xhl();
+          assert.equal(r.call(cpu), 0xba, `${swap.name} swapped nybbles`);
+          assert.equal(cpu.f(), 0b0000, `${swap.name} resets all flags for positive result`);
+          assert.equal(cpu.m() - m, 2, 'Machine cycles');
 
-      assert.equal(cpu.$hl(), 0x00, 'Identical');
-      assert.equal(cpu.f(), 0b1000, 'Sets Z with zero result');
-      assert.equal(cpu.m() - m, 4, 'Machine cycles');
+          ld.call(cpu, 0x00);
+          m = cpu.m();
+
+          swap.call(cpu);
+
+          assert.equal(r.call(cpu), 0x00, `${swap.name} does not modify zero`);
+          assert.equal(cpu.f(), 0b1000, `${swap.name} sets Z with zero result`);
+          assert.equal(cpu.m() - m, 2, 'Machine cycles');
+        });
+      });
+      it('should swap nybbles from value at memory location hl', () => {
+        cpu.ld_hl_nn(0xc000);
+        cpu.ld_0xhl_n(0xab);
+        let m = cpu.m();
+
+        cpu.swap_0xhl();
+
+        assert.equal(cpu.$hl(), 0xba, 'Swapped nybbles on (hl)');
+        assert.equal(cpu.f(), 0b0000, 'resets all flags for positive result');
+        assert.equal(cpu.m() - m, 4, 'Machine cycles');
+
+        cpu.ld_0xhl_n(0x00);
+        m = cpu.m();
+
+        cpu.swap_0xhl();
+
+        assert.equal(cpu.$hl(), 0x00, 'Identical');
+        assert.equal(cpu.f(), 0b1000, 'Sets Z with zero result');
+        assert.equal(cpu.m() - m, 4, 'Machine cycles');
+      });
     });
   });
 
