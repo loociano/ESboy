@@ -1775,20 +1775,26 @@ describe('CPU Unit tests', function() {
     });
 
     it('should rotate value at memory location hl left', () => {
-      const addr = 0xc000;
-      cpu.ld_hl_nn(addr);
-      cpu.mmu.writeByteAt(addr, 0x11);
-      cpu.setC(1);
+      cpu.ld_hl_nn(0xc000);
+      cpu.ld_0xhl_n(0b01010001);
+      cpu.setC(0);
       const m = cpu.m();
 
       cpu.rl_0xhl();
 
-      assert.equal(cpu.mmu.readByteAt(addr), 0x22, 'value at memory hl rotated left');
-      assert.equal(cpu.Z(), 0, 'Result was positive');
-      assert.equal(cpu.N(), 0, 'N reset');
-      assert.equal(cpu.H(), 0, 'H reset');
-      assert.equal(cpu.C(), 0, 'C reset');
-      assert.equal(cpu.m(), m + 4, 'RL (hl) machine cycles');
+      assert.equal(cpu.$hl(), 0b10100010, 'value at memory hl rotated left');
+      assert.equal(cpu.f(), 0b0000, 'No carry');
+      assert.equal(cpu.m() - m, 4, 'RL (hl) machine cycles');
+
+      cpu.rl_0xhl();
+
+      assert.equal(cpu.$hl(), 0b01000100, 'value at memory hl rotated left');
+      assert.equal(cpu.f(), 0b0001, 'Carry');
+
+      cpu.rl_0xhl();
+
+      assert.equal(cpu.$hl(), 0b10001001, 'value at memory hl rotated left');
+      assert.equal(cpu.f(), 0b0000, 'No carry');
     });
 
     it('should rotate a to the left', () => {
