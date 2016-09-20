@@ -118,7 +118,7 @@ export default class MMU {
     this.NON_JAPANESE = 0x1;
 
     this._memory = new Buffer(this.ADDR_MAX + 1);
-    this.bios = this.getBIOS();
+    this._bios = this.getBIOS();
     this.inBIOS = true;
 
     this._initMemory();
@@ -234,7 +234,7 @@ export default class MMU {
   }
 
   readBIOSBuffer(){
-    return this.bios.slice(0, this.ADDR_GAME_START);
+    return this._bios.slice(0, this.ADDR_GAME_START);
   }
 
   /**
@@ -470,7 +470,7 @@ export default class MMU {
     if (addr >= this.ADDR_GAME_START || addr < 0){
       throw new Error(`Cannot read bios address ${Utils.hexStr(addr)}`);
     }
-    return this.bios[addr];
+    return this._bios[addr];
   }
 
   /**
