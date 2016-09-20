@@ -1505,14 +1505,13 @@ describe('CPU Unit tests', function() {
     });
 
     it('should put a into memory address 0xff00 + 0xfe', () => {
-      const value = cpu.mmu.readByteAt(0xfffe);
       cpu.ld_a_n(0xab);
       const m = cpu.m();
 
       cpu.ldh_n_a(0xfe);
 
       assert.equal(cpu.mmu.readByteAt(0xfffe), 0xab, 'memory 0xfffe has value 0xab');
-      assert.equal(cpu.m(), m + 3, 'LD (ff00+n),a machine cycles');
+      assert.equal(cpu.m() - m, 3, 'LD (ff00+n),a machine cycles');
     });
 
     it('should write a into address 0xff00 + 0xff', () => {
@@ -1522,7 +1521,7 @@ describe('CPU Unit tests', function() {
       cpu.ldh_n_a(0xff);
 
       assert.equal(cpu.mmu.readByteAt(0xffff), 0x01, 'value at memory 0xffff has value 0xab');
-      assert.equal(cpu.m(), m + 3, 'LD (ff00+n),a machine cycles');
+      assert.equal(cpu.m() - m, 3, 'LD (ff00+n),a machine cycles');
       assert.equal(cpu.ie(), 0x01);
     });
 
