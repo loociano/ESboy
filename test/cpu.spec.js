@@ -1796,11 +1796,8 @@ describe('CPU Unit tests', function() {
           rl.call(cpu);
 
           assert.equal(r.call(cpu), 0x00, `${r.name} rotated left`);
-          assert.equal(cpu.Z(), 1, 'Result was zero');
-          assert.equal(cpu.N(), 0, 'N reset');
-          assert.equal(cpu.H(), 0, 'H reset');
-          assert.equal(cpu.C(), 1, 'Carry set');
-          assert.equal(cpu.m(), m + 2, `RL ${r.name} machine cycles`);
+          assert.equal(cpu.f(), 0b1001, 'Zero result with carry');
+          assert.equal(cpu.m() - m, 2, `RL ${r.name} machine cycles`);
         });
       });
       it('should rotate value at memory location hl left', () => {
@@ -1832,7 +1829,7 @@ describe('CPU Unit tests', function() {
         assert.equal(cpu.$hl(), 0x00, 'Identical');
         assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
       });
-      it('should rotate a to the left', () => {
+      it('should rotate a to the left through carry', () => {
         cpu.setC(1);
         cpu.ld_a_n(0b10010101);
         const m = cpu.m();
@@ -1840,11 +1837,8 @@ describe('CPU Unit tests', function() {
         cpu.rla();
 
         assert.equal(cpu.a(), 0b00101011, 'Rotate a left');
-        assert.equal(cpu.Z(), 0, 'Result was positive');
-        assert.equal(cpu.N(), 0, 'N reset');
-        assert.equal(cpu.H(), 0, 'H reset');
-        assert.equal(cpu.C(), 1, 'Carry 1');
-        assert.equal(cpu.m(), m + 1, 'RLA machine cycles');
+        assert.equal(cpu.f(), 0b0001, 'Carry');
+        assert.equal(cpu.m() - m, 1, 'RLA machine cycles');
       });
     });
 
