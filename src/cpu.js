@@ -256,6 +256,14 @@ export default class CPU {
       0xcb35: {fn: this.swap_l, paramBytes: 0},
       0xcb36: {fn: this.swap_0xhl, paramBytes: 0},
       0xcb37: {fn: this.swap_a, paramBytes: 0},
+      0xcb38: {fn: this.srl_b, paramBytes: 0},
+      0xcb39: {fn: this.srl_c, paramBytes: 0},
+      0xcb3a: {fn: this.srl_d, paramBytes: 0},
+      0xcb3b: {fn: this.srl_e, paramBytes: 0},
+      0xcb3c: {fn: this.srl_h, paramBytes: 0},
+      0xcb3d: {fn: this.srl_l, paramBytes: 0},
+      0xcb3e: {fn: this.srl_0xhl, paramBytes: 0},
+      0xcb3f: {fn: this.srl_a, paramBytes: 0},
       0xcb40: {fn: this.bit_0_b, paramBytes: 0},
       0xcb41: {fn: this.bit_0_c, paramBytes: 0},
       0xcb42: {fn: this.bit_0_d, paramBytes: 0},
@@ -2710,6 +2718,29 @@ export default class CPU {
   }
 
   /**
+   * Rotates right register r
+   * @param r
+   * @param carried
+   * @private
+   */
+  _rr_r(r, carried=this.C()){
+
+    this.setC(this._r[r] & 0x01);
+    const rotated = (this._r[r] >> 1) + (carried << 7);
+    this._r[r] = rotated & 0xff;
+
+    if (this._r[r] === 0){
+      this.setZ(1);
+    } else {
+      this.setZ(0);
+    }
+
+    this.setN(0);
+    this.setH(0);
+    this._m++;
+  }
+
+  /**
    * Rotates left the value at memory hl. Sets carry flag.
    */
   rl_0xhl(carried=this.C()){
@@ -2718,6 +2749,28 @@ export default class CPU {
 
     const rotated = (value << 1) + carried;
     this.setC((rotated & 0x100) >> 8);
+    this.mmu.writeByteAt(this.hl(), rotated & 0xff);
+
+    if ((rotated & 0xff) === 0){
+      this.setZ(1);
+    } else {
+      this.setZ(0);
+    }
+
+    this.setN(0);
+    this.setH(0);
+    this._m += 3;
+  }
+
+  /**
+   * Rotates right the value at memory hl. Sets carry flag.
+   */
+  rr_0xhl(carried=this.C()){
+
+    const value = this._0xhl();
+
+    this.setC(value & 0x01);
+    const rotated = (value >> 1) + (carried << 7);
     this.mmu.writeByteAt(this.hl(), rotated & 0xff);
 
     if ((rotated & 0xff) === 0){
@@ -3341,5 +3394,71 @@ export default class CPU {
    */
   sla_0xhl(){
     this.rl_0xhl(0);
+  }
+
+  /**
+   * Shifts right the value at memory location hl
+   */
+  srl_0xhl(){
+    this.rr_0xhl(0);
+  }
+
+  /**
+   * Shifts register r right
+   * @param r
+   * @private
+   */
+  _srl_r(r){
+    this._rr_r(r, 0);
+    this._m++;
+  }
+
+  /**
+   * Shifts register a right
+   */
+  srl_a(){
+    this._srl_r('a');
+  }
+
+  /**
+   * Shifts register b right
+   */
+  srl_b(){
+    this._srl_r('b');
+  }
+
+  /**
+   * Shifts register c right
+   */
+  srl_c(){
+    this._srl_r('c');
+  }
+
+  /**
+   * Shifts register d right
+   */
+  srl_d(){
+    this._srl_r('d');
+  }
+
+  /**
+   * Shifts register e right
+   */
+  srl_e(){
+    this._srl_r('e');
+  }
+
+  /**
+   * Shifts register h right
+   */
+  srl_h(){
+    this._srl_r('h');
+  }
+
+  /**
+   * Shifts register l right
+   */
+  srl_l(){
+    this._srl_r('l');
   }
 }
