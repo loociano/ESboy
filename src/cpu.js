@@ -616,7 +616,7 @@ export default class CPU {
   frame(pc_stop){
 
     do {
-      if (pc_stop !== -1 && this._r.pc >= pc_stop){
+      if (pc_stop !== -1 && this._r.pc === pc_stop){
         this.end();
         return;
       }
