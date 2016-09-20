@@ -1837,37 +1837,34 @@ describe('CPU Unit tests', function() {
     });
 
     describe('Rotates', () => {
-      it('should rotate register a to the left', () => {
-        cpu.ld_a_n(0x80);
-        const m = cpu.m();
+      it('should rotate registers to the left', () => {
 
-        cpu.sla_a();
+        [{r: cpu.a, ld: cpu.ld_a_n, sla: cpu.sla_a}].map(({r, ld, sla}) => {
 
-        assert.equal(cpu.a(), 0x00, 'Shifted left');
-        assert.equal(cpu.f(), 0b1001, 'Flags');
-        assert.equal(cpu.m() - m, 2, 'Machine cycles');
-      });
+          ld.call(cpu, 0b01100000);
+          const m = cpu.m();
 
-      it('should rotate register a to the left with positive result', () => {
-        cpu.ld_a_n(0b11000000);
-        const m = cpu.m();
+          sla.call(cpu);
 
-        cpu.sla_a();
+          assert.equal(r.call(cpu), 0b11000000, 'Shifted left');
+          assert.equal(cpu.f(), 0b0000, 'No carry');
+          assert.equal(cpu.m() - m, 2, 'Machine cycles');
 
-        assert.equal(cpu.a(), 0b10000000, 'Shifted left');
-        assert.equal(cpu.f(), 0b0001, 'Flags');
-        assert.equal(cpu.m() - m, 2, 'Machine cycles');
-      });
+          sla.call(cpu);
 
-      it('should rotate register a to the left without carry', () => {
-        cpu.ld_a_n(0b01000000);
-        const m = cpu.m();
+          assert.equal(r.call(cpu), 0b10000000, 'Shifted left');
+          assert.equal(cpu.f(), 0b0001, 'Carry');
 
-        cpu.sla_a();
+          sla.call(cpu);
 
-        assert.equal(cpu.a(), 0b10000000, 'Shifted left');
-        assert.equal(cpu.f(), 0b0000, 'Flags');
-        assert.equal(cpu.m() - m, 2, 'Machine cycles');
+          assert.equal(r.call(cpu), 0b00000000, 'Shifted left');
+          assert.equal(cpu.f(), 0b1001, 'Zero result with carry');
+
+          sla.call(cpu);
+
+          assert.equal(r.call(cpu), 0b00000000, 'Shifted left');
+          assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+        });
       });
     });
 
