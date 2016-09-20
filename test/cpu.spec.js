@@ -1684,6 +1684,21 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.m(), m+2, 'BIT 7,h machine cycles');
     });
 
+    it('should test bits at memory location hl', () => {
+      cpu.ld_hl_nn(0xc000);
+      cpu.ld_0xhl_n(0xff);
+      cpu.setC(0);
+
+      for(let b = 0; b < 8; b++){
+        const m = cpu.m();
+
+        cpu[`bit_${b}_0xhl`].call(cpu);
+        
+        assert.equal(cpu.f(), 0b0010, 'Not zero');
+        assert.equal(cpu.m() - m, 3, 'Machine cycles');
+      }
+    });
+
     it('should reset bits', () => {
       ['a', 'b', 'c', 'd', 'e', 'h', 'l'].map( (r) => {
 
