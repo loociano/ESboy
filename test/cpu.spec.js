@@ -1660,28 +1660,27 @@ describe('CPU Unit tests', function() {
   });
 
   describe('Bit operations', () => {
+
     it('should test bits', () => {
-      // TODO: test any bit, not only bit 7
+      cpu.setC(0);
+      ['a', 'b', 'c', 'd', 'e', 'h', 'l'].map( (r) => {
 
-      cpu.ld_h_n(0x00);
-      let m = cpu.m();
+        cpu[`ld_${r}_n`].call(cpu, 0b01010101);
 
-      cpu.bit_7_h();
+        for(let b = 0; b < 8; b++) {
+          const func = `bit_${b}_${r}`;
+          const m = cpu.m();
 
-      assert.equal(cpu.Z(), 1, 'bit 7 is zero');
-      assert.equal(cpu.N(), 0, 'N always reset');
-      assert.equal(cpu.H(), 1, 'H always set');
-      assert.equal(cpu.m(), m+2, 'BIT 7,h machine cycles');
+          cpu[func].call(cpu); // test bit b
 
-      cpu.ld_h_n(0b10000000);
-      m = cpu.m();
-
-      cpu.bit_7_h();
-
-      assert.equal(cpu.Z(), 0, 'bit 7 is not zero');
-      assert.equal(cpu.N(), 0, 'N always reset');
-      assert.equal(cpu.H(), 1, 'H always set');
-      assert.equal(cpu.m(), m+2, 'BIT 7,h machine cycles');
+          if (b % 2 === 0){
+            assert.equal(cpu.f(), 0b0010, 'Even are ones');
+          } else {
+            assert.equal(cpu.f(), 0b1010, 'Non even are zeros');
+          }
+          assert.equal(cpu.m() - m, 2, `${func} machine cycles`);
+        }
+      });
     });
 
     it('should test bits at memory location hl', () => {
