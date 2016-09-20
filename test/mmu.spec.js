@@ -220,6 +220,51 @@ describe('MMU', () => {
     });
 
   });
+  
+  describe('Joypad', () => {
+    it('should return all high by default', () => {
+      assert.equal(mmu.p1(), 0xff, 'Default');
+    });
+
+    it('should select arrows by setting P14 low', () =>{
+      mmu.writeByteAt(mmu.ADDR_P1, 0x20);
+      assert.equal(mmu.p1(), 0b11101111, 'Arrow keys high, none pressed');
+
+      mmu.pressRight();
+      assert.equal(mmu.p1(), 0b11101110, 'Right pressed');
+
+      mmu.pressLeft();
+      assert.equal(mmu.p1(), 0b11101100, 'Left pressed');
+
+      mmu.pressUp();
+      assert.equal(mmu.p1(), 0b11101000, 'Up pressed');
+
+      mmu.pressDown();
+      assert.equal(mmu.p1(), 0b11100000, 'Down pressed');
+    });
+
+    it('should select buttons by setting P15 low', () =>{
+      mmu.writeByteAt(mmu.ADDR_P1, 0x10);
+      assert.equal(mmu.p1(), 0b11011111, 'Buttons high, none pressed');
+
+      mmu.pressA();
+      assert.equal(mmu.p1(), 0b11011110, 'A pressed');
+
+      mmu.pressB();
+      assert.equal(mmu.p1(), 0b11011100, 'B pressed');
+
+      mmu.pressSELECT();
+      assert.equal(mmu.p1(), 0b11011000, 'SELECT pressed');
+
+      mmu.pressSTART();
+      assert.equal(mmu.p1(), 0b11010000, 'START pressed');
+    });
+
+    it('should reset', () => {
+      mmu.writeByteAt(mmu.ADDR_P1, 0x30);
+      assert.equal(mmu.p1(), 0xff, 'Default');
+    });
+  });
 
   describe('Interruptions', () => {
 
