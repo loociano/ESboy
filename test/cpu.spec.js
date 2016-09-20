@@ -1885,6 +1885,33 @@ describe('CPU Unit tests', function() {
           assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
         });
       });
+
+      it('should rotate value at memory location hl to the left', () => {
+        cpu.ld_hl_nn(0xc000);
+        cpu.ld_0xhl_n(0b01100000);
+        const m = cpu.m();
+
+        cpu.sla_0xhl();
+
+        assert.equal(cpu.$hl(), 0b11000000, 'Shifted left');
+        assert.equal(cpu.f(), 0b0000, 'No carry');
+        assert.equal(cpu.m() - m, 4, 'Machine cycles');
+
+        cpu.sla_0xhl();
+
+        assert.equal(cpu.$hl(), 0b10000000, 'Shifted left');
+        assert.equal(cpu.f(), 0b0001, 'Carry');
+
+        cpu.sla_0xhl();
+
+        assert.equal(cpu.$hl(), 0b00000000, 'Shifted left');
+        assert.equal(cpu.f(), 0b1001, 'Zero result with carry');
+
+        cpu.sla_0xhl();
+
+        assert.equal(cpu.$hl(), 0b00000000, 'Shifted left');
+        assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+      });
     });
 
     it('should swap nybbles from value at memory location hl', () => {
