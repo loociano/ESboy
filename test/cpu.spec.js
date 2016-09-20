@@ -1836,6 +1836,30 @@ describe('CPU Unit tests', function() {
       });
     });
 
+    describe('Rotates', () => {
+      it('should rotate register a to the left', () => {
+        cpu.ld_a_n(0x80);
+        const m = cpu.m();
+
+        cpu.sla_a();
+
+        assert.equal(cpu.a(), 0x00, 'Shifted left');
+        assert.equal(cpu.f(), 0b1001, 'Flags');
+        assert.equal(cpu.m() - m, 2, 'Machine cycles');
+      });
+
+      it('should rotate register a to the left with positive result', () => {
+        cpu.ld_a_n(0b11000000);
+        const m = cpu.m();
+
+        cpu.sla_a();
+
+        assert.equal(cpu.a(), 0b10000000, 'Shifted left');
+        assert.equal(cpu.f(), 0b0001, 'Flags');
+        assert.equal(cpu.m() - m, 2, 'Machine cycles');
+      });
+    });
+
     it('should swap nybbles from value at memory location hl', () => {
       cpu.ld_hl_nn(0xc000);
       cpu.ld_0xhl_n(0xab);
