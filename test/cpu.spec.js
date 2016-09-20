@@ -1858,6 +1858,17 @@ describe('CPU Unit tests', function() {
         assert.equal(cpu.f(), 0b0001, 'Flags');
         assert.equal(cpu.m() - m, 2, 'Machine cycles');
       });
+
+      it('should rotate register a to the left without carry', () => {
+        cpu.ld_a_n(0b01000000);
+        const m = cpu.m();
+
+        cpu.sla_a();
+
+        assert.equal(cpu.a(), 0b10000000, 'Shifted left');
+        assert.equal(cpu.f(), 0b0000, 'Flags');
+        assert.equal(cpu.m() - m, 2, 'Machine cycles');
+      });
     });
 
     it('should swap nybbles from value at memory location hl', () => {
