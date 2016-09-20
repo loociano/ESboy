@@ -240,6 +240,12 @@ export default class CPU {
       0xcb15: {fn: this.rl_l, paramBytes: 0},
       0xcb16: {fn: this.rl_0xhl, paramBytes: 0},
       0xcb17: {fn: this.rl_a, paramBytes: 0},
+      0xcb20: {fn: this.sla_b, paramBytes: 0},
+      0xcb21: {fn: this.sla_c, paramBytes: 0},
+      0xcb22: {fn: this.sla_d, paramBytes: 0},
+      0xcb23: {fn: this.sla_e, paramBytes: 0},
+      0xcb24: {fn: this.sla_h, paramBytes: 0},
+      0xcb25: {fn: this.sla_l, paramBytes: 0},
       0xcb27: {fn: this.sla_a, paramBytes: 0},
       0xcb30: {fn: this.swap_b, paramBytes: 0},
       0xcb31: {fn: this.swap_c, paramBytes: 0},
@@ -3197,7 +3203,58 @@ export default class CPU {
    * Shifts register a left
    */
   sla_a(){
-    this._rl_r('a', 0);
+    this._sla_r('a');
+  }
+
+  /**
+   * Shifts register b left
+   */
+  sla_b(){
+    this._sla_r('b');
+  }
+
+  /**
+   * Shifts register c left
+   */
+  sla_c(){
+    this._sla_r('c');
+  }
+
+  /**
+   * Shifts register d left
+   */
+  sla_d(){
+    this._sla_r('d');
+  }
+
+  /**
+   * Shifts register e left
+   */
+  sla_e(){
+    this._sla_r('e');
+  }
+
+  /**
+   * Shifts register h left
+   */
+  sla_h(){
+    this._sla_r('h');
+  }
+
+  /**
+   * Shifts register l left
+   */
+  sla_l(){
+    this._sla_r('l');
+  }
+
+  /**
+   * Shifts register r left
+   * @param r
+   * @private
+   */
+  _sla_r(r){
+    this._rl_r(r, 0);
     this._m++;
   }
 }
