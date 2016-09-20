@@ -1494,15 +1494,14 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.m(), m + 2, 'LDI a,(hl) machine cycles');
     });
 
-    it('should put a into memory address 0xff00 + 0', () => {
-      const value = cpu.mmu.readByteAt(0xff00);
+    it('should put a into memory address 0xff00 + 3', () => {
       cpu.ld_a_n(0xab);
       const m = cpu.m();
 
-      cpu.ldh_n_a(0);
+      cpu.ldh_n_a(3);
 
-      assert.equal(cpu.mmu.readByteAt(0xff00), 0xab, 'memory 0xff00 has value 0xab');
-      assert.equal(cpu.m(), m + 3, 'LD (ff00+n),a machine cycles');
+      assert.equal(cpu.mmu.readByteAt(0xff03), 0xab, 'memory 0xff00 has value 0xab');
+      assert.equal(cpu.m() - m, 3, 'LD (ff00+n),a machine cycles');
     });
 
     it('should put a into memory address 0xff00 + 0xfe', () => {
