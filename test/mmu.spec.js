@@ -49,7 +49,7 @@ describe('MMU', () => {
 
   it('should start the memory map', () => {
 
-    assert.equal(mmu.memory.length, 0x10000, 'Memory size is 0x10000');
+    assert.equal(mmu._memory.length, 0x10000, 'Memory size is 0x10000');
 
     // Starting values at addresses
     assert.equal(mmu.readByteAt(0xff05), 0x00);

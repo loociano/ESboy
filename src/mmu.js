@@ -117,7 +117,7 @@ export default class MMU {
     this.JAPANESE = 0x0;
     this.NON_JAPANESE = 0x1;
 
-    this.memory = new Buffer(this.ADDR_MAX + 1);
+    this._memory = new Buffer(this.ADDR_MAX + 1);
     this.bios = this.getBIOS();
     this.inBIOS = true;
 
@@ -137,7 +137,7 @@ export default class MMU {
     try {
 
       fs.readFileSync(filename)
-        .copy(this.memory, memory_start, rom_start, rom_32kb);
+        .copy(this._memory, memory_start, rom_start, rom_32kb);
 
     } catch (e){
       throw new Error(`ROM ${filename} was not found.`);
@@ -148,28 +148,28 @@ export default class MMU {
    * @private
    */
   _initMemory() {
-    this.memory.fill(0); // Buffers are created with random data
+    this._memory.fill(0); // Buffers are created with random data
 
-    this.memory[this.ADDR_P1] = 0xff;
-    this.memory[0xff05] = 0x00;
-    this.memory[0xff06] = 0x00;
-    this.memory[0xff07] = 0x00;
-    this.memory[0xff10] = 0x80;
-    this.memory[0xff14] = 0xbf;
-    this.memory[0xff16] = 0x3f;
-    this.memory[0xff17] = 0x00;
-    this.memory[0xff19] = 0xbf;
-    this.memory[0xff1a] = 0x7f;
-    this.memory[0xff1b] = 0xff;
-    this.memory[0xff1c] = 0x9f;
-    this.memory[0xff1e] = 0xbf;
-    this.memory[0xff20] = 0xff;
-    this.memory[0xff21] = 0x00;
-    this.memory[0xff22] = 0x00;
-    this.memory[0xff23] = 0xbf;
+    this._memory[this.ADDR_P1] = 0xff;
+    this._memory[0xff05] = 0x00;
+    this._memory[0xff06] = 0x00;
+    this._memory[0xff07] = 0x00;
+    this._memory[0xff10] = 0x80;
+    this._memory[0xff14] = 0xbf;
+    this._memory[0xff16] = 0x3f;
+    this._memory[0xff17] = 0x00;
+    this._memory[0xff19] = 0xbf;
+    this._memory[0xff1a] = 0x7f;
+    this._memory[0xff1b] = 0xff;
+    this._memory[0xff1c] = 0x9f;
+    this._memory[0xff1e] = 0xbf;
+    this._memory[0xff20] = 0xff;
+    this._memory[0xff21] = 0x00;
+    this._memory[0xff22] = 0x00;
+    this._memory[0xff23] = 0xbf;
 
-    this.memory[this.ADDR_IF] = 0x00;
-    this.memory[this.ADDR_IE] = 0x01;
+    this._memory[this.ADDR_IF] = 0x00;
+    this._memory[this.ADDR_IE] = 0x01;
   }
 
   /**
@@ -212,7 +212,7 @@ export default class MMU {
       return this.romByteAt(addr);
     }
 
-    return this.memory[addr];
+    return this._memory[addr];
   }
 
   /**
@@ -221,7 +221,7 @@ export default class MMU {
    * @param {number} addr_end, 16 bits (exclusive)
    */
   readBuffer(addr_start, addr_end){
-    return this.memory.slice(addr_start, addr_end);
+    return this._memory.slice(addr_start, addr_end);
   }
 
   /**
@@ -230,7 +230,7 @@ export default class MMU {
    */
   writeBuffer(buffer, addr_start){
     if (!addr_start) throw new Error('Must indicate start address');
-    buffer.copy(this.memory, addr_start);
+    buffer.copy(this._memory, addr_start);
   }
 
   readBIOSBuffer(){
@@ -252,7 +252,7 @@ export default class MMU {
     }
 
     const start_addr = this._getBgCharDataStartAddr() + (tile_number << 4);
-    return this.memory.slice(start_addr, start_addr + this.CHAR_SIZE);
+    return this._memory.slice(start_addr, start_addr + this.CHAR_SIZE);
   }
 
   /**
@@ -335,7 +335,7 @@ export default class MMU {
         this._handle_lcdc(n);
         break;
     }
-    this.memory[addr] = n;
+    this._memory[addr] = n;
   }
 
   /**
@@ -386,8 +386,8 @@ export default class MMU {
    */
   setLCDMode(mode){
     if (mode > 3 || mode < 0) return;
-    this.memory[this.ADDR_STAT] &= 0xfc;
-    this.memory[this.ADDR_STAT] += mode;
+    this._memory[this.ADDR_STAT] &= 0xfc;
+    this._memory[this.ADDR_STAT] += mode;
   };
 
   /**
@@ -428,7 +428,7 @@ export default class MMU {
    * @param value
    */
   setIe(value){
-    this.memory[this.ADDR_IE] = value;
+    this._memory[this.ADDR_IE] = value;
   }
 
   /**
@@ -444,7 +444,7 @@ export default class MMU {
    * @param value
    */
   setIf(value){
-    this.memory[this.ADDR_IF] = value;
+    this._memory[this.ADDR_IF] = value;
   }
 
   /**
@@ -463,7 +463,7 @@ export default class MMU {
     if (address > this.ADDR_ROM_MAX || address < 0){
       throw new Error(`Cannot read ROM address ${Utils.hexStr(address)}`);
     }
-    return this.memory[address];
+    return this._memory[address];
   }
 
   _biosByteAt(addr){
@@ -483,12 +483,12 @@ export default class MMU {
       addr_end < addr_start || addr_end > this.ADDR_ROM_MAX){
       throw new Error(`Cannot read ROM Buffer ${Utils.hexStr(addr_start)} to ${Utils.hexStr(addr_end)}`);
     }
-    return this.memory.slice(addr_start, addr_end);
+    return this._memory.slice(addr_start, addr_end);
   }
 
   /** @return {string} game title */
   getGameTitle(){
-    var title = this.memory.slice(this.ADDR_TITLE_START, this.ADDR_TITLE_END);
+    var title = this._memory.slice(this.ADDR_TITLE_START, this.ADDR_TITLE_END);
     var length = 0;
     while(title[length] != 0){
       length++;
@@ -603,7 +603,7 @@ export default class MMU {
   dumpMemoryToFile(pc){
     const filename = `${Utils.toFsStamp()}_memory_dump_at_${Utils.hex4(pc)}.bin`;
     try {
-      fs.writeFileSync(filename, this.memory);
+      fs.writeFileSync(filename, this._memory);
     } catch(e){
       console.error('Problem writing memory dump');
     }
@@ -668,34 +668,34 @@ export default class MMU {
   }
 
   pressRight(){
-    this.memory[this.ADDR_P1] &= this.MASK_P1_RIGHT;
+    this._memory[this.ADDR_P1] &= this.MASK_P1_RIGHT;
   }
 
   pressLeft(){
-    this.memory[this.ADDR_P1] &= this.MASK_P1_LEFT;
+    this._memory[this.ADDR_P1] &= this.MASK_P1_LEFT;
   }
 
   pressUp(){
-    this.memory[this.ADDR_P1] &= this.MASK_P1_UP;
+    this._memory[this.ADDR_P1] &= this.MASK_P1_UP;
   }
 
   pressDown(){
-    this.memory[this.ADDR_P1] &= this.MASK_P1_DOWN;
+    this._memory[this.ADDR_P1] &= this.MASK_P1_DOWN;
   }
 
   pressA(){
-    this.memory[this.ADDR_P1] &= this.MASK_P1_A;
+    this._memory[this.ADDR_P1] &= this.MASK_P1_A;
   }
 
   pressB(){
-    this.memory[this.ADDR_P1] &= this.MASK_P1_B;
+    this._memory[this.ADDR_P1] &= this.MASK_P1_B;
   }
 
   pressSELECT(){
-    this.memory[this.ADDR_P1] &= this.MASK_P1_SELECT;
+    this._memory[this.ADDR_P1] &= this.MASK_P1_SELECT;
   }
 
   pressSTART(){
-    this.memory[this.ADDR_P1] &= this.MASK_P1_START;
+    this._memory[this.ADDR_P1] &= this.MASK_P1_START;
   }
 }
