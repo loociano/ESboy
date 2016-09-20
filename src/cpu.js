@@ -2629,20 +2629,15 @@ export default class CPU {
   /**
    * Rotates left the value at memory hl. Sets carry flag.
    */
-  rl_0xhl(){
+  rl_0xhl(carried=this.C()){
 
     const value = this._0xhl();
 
-    if ((value & 0x80) > 0){
-      this.setC(1);
-    } else {
-      this.setC(0);
-    }
+    const rotated = (value << 1) + carried;
+    this.setC((rotated & 0x100) >> 8);
+    this.mmu.writeByteAt(this.hl(), rotated & 0xff);
 
-    const rotated = (value << 1) & 0xff;
-    this.mmu.writeByteAt(this.hl(), rotated);
-
-    if (rotated === 0){
+    if ((rotated & 0xff) === 0){
       this.setZ(1);
     } else {
       this.setZ(0);
