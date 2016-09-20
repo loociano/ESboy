@@ -1795,6 +1795,13 @@ describe('CPU Unit tests', function() {
 
       assert.equal(cpu.$hl(), 0b10001001, 'value at memory hl rotated left');
       assert.equal(cpu.f(), 0b0000, 'No carry');
+
+      cpu.ld_0xhl_n(0x00);
+
+      cpu.rl_0xhl();
+
+      assert.equal(cpu.$hl(), 0x00, 'Identical');
+      assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
     });
 
     it('should rotate a to the left', () => {
