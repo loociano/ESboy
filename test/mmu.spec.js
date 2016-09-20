@@ -180,9 +180,7 @@ describe('MMU', () => {
     });
 
     it('should ignore OBJ as they are unsupported', () => {
-      assert.throws( () => {
-        mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_OBJ_ON);
-      }, Error, 'OBJ unsupported');
+      assert.doesNotThrow( () => mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_OBJ_ON) );
     });
 
     it('should turn on/off background', () => {

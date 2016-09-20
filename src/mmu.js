@@ -399,7 +399,7 @@ export default class MMU {
       case 0:
         break;
       default:
-        throw new Error('OBJ unsupported');
+        Logger.error('OBJ unsupported');
     }
   }
 
