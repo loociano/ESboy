@@ -1182,32 +1182,41 @@ describe('CPU Unit tests', function() {
       });
 
       it('should add registers plus carry to register a', () => {
-        cpu.setC(1);
-        cpu.ld_a_n(0x00);
-        cpu.ld_b_n(0x0f);
-        const m = cpu.m();
 
-        cpu.adc_b();
+        [ {ld: cpu.ld_b_n, adc: cpu.adc_b},
+          {ld: cpu.ld_c_n, adc: cpu.adc_c},
+          {ld: cpu.ld_d_n, adc: cpu.adc_d},
+          {ld: cpu.ld_e_n, adc: cpu.adc_e},
+          {ld: cpu.ld_h_n, adc: cpu.adc_h},
+          {ld: cpu.ld_l_n, adc: cpu.adc_l}].map(({ld, adc}) => {
 
-        assert.equal(cpu.a(), 0x10, 'a + b + carry');
-        assert.equal(cpu.f(), 0b0010, 'Half carry');
-        assert.equal(cpu.m() - m, 1, 'Machine cycles');
+          cpu.setC(1);
+          cpu.ld_a_n(0x00);
+          ld.call(cpu, 0x0f);
+          const m = cpu.m();
 
-        cpu.ld_b_n(0xef);
-        cpu.setC(1);
+          adc.call(cpu);
 
-        cpu.adc_b();
+          assert.equal(cpu.a(), 0x10, 'a + b + carry');
+          assert.equal(cpu.f(), 0b0010, 'Half carry');
+          assert.equal(cpu.m() - m, 1, 'Machine cycles');
 
-        assert.equal(cpu.a(), 0x00, 'a + b + carry');
-        assert.equal(cpu.f(), 0b1011, 'Zero with half- and carry');
+          ld.call(cpu, 0xef);
+          cpu.setC(1);
 
-        cpu.ld_b_n(0x00);
-        cpu.setC(1);
+          adc.call(cpu);
 
-        cpu.adc_b();
+          assert.equal(cpu.a(), 0x00, 'a + b + carry');
+          assert.equal(cpu.f(), 0b1011, 'Zero with half- and carry');
 
-        assert.equal(cpu.a(), 0x01, 'a + b + carry');
-        assert.equal(cpu.f(), 0b0000, 'Zero');
+          ld.call(cpu, 0x00);
+          cpu.setC(1);
+
+          adc.call(cpu);
+
+          assert.equal(cpu.a(), 0x01, 'a + b + carry');
+          assert.equal(cpu.f(), 0b0000, 'Zero');
+        });
       });
     });
   });
