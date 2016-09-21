@@ -1218,6 +1218,34 @@ describe('CPU Unit tests', function() {
           assert.equal(cpu.f(), 0b0000, 'Zero');
         });
       });
+
+      it('should add a to a (double a) plus carry', () => {
+        cpu.setC(1);
+        cpu.ld_a_n(0x00);
+        const m = cpu.m();
+
+        cpu.adc_a();
+
+        assert.equal(cpu.a(), 0x01, 'a + b + carry');
+        assert.equal(cpu.f(), 0b0000, 'No carry');
+        assert.equal(cpu.m() - m, 1, 'Machine cycles');
+
+        cpu.ld_a_n(0x0f);
+        cpu.setC(1);
+
+        cpu.adc_a();
+
+        assert.equal(cpu.a(), 0x1f, 'a + b + carry');
+        assert.equal(cpu.f(), 0b0010, 'Half carry');
+
+        cpu.ld_a_n(0x00);
+        cpu.setC(0);
+
+        cpu.adc_a();
+
+        assert.equal(cpu.a(), 0x00, 'a + b + carry');
+        assert.equal(cpu.f(), 0b1000, 'Zero');
+      });
     });
   });
 
