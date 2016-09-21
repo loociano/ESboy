@@ -1232,6 +1232,56 @@ describe('CPU Unit tests', function() {
         assert.equal(cpu.f(), 0b0000, 'Positive without carries');
         assert.equal(cpu.m() - m, 2, 'ADD n machine cycles');
       });
+
+      it('should add value at memory location hl plus carry to a', () => {
+        cpu.setC(1);
+        cpu.ld_hl_nn(0xc000);
+        cpu.ld_a_n(0x12);
+        cpu.ld_0xhl_n(0x02);
+        const m = cpu.m();
+
+        cpu.adc_0xhl(); // Result is positive
+
+        assert.equal(cpu.a(), 0x15, 'a 0x12 plus 0x02 plus C=1');
+        assert.equal(cpu.f(), 0b0000, 'Positive without carries');
+        assert.equal(cpu.m() - m, 2, 'ADD (HL) machine cycles');
+
+        cpu.setC(1);
+        cpu.ld_a_n(0x0e);
+        cpu.ld_0xhl_n(0x01);
+
+        cpu.adc_0xhl(); // Test carry from bit 3
+
+        assert.equal(cpu.a(), 0x10, 'a + (hl) + C');
+        assert.equal(cpu.f(), 0b0010, 'Half carry');
+
+        cpu.setC(1);
+        cpu.ld_a_n(0xf0);
+        cpu.ld_0xhl_n(0x0f);
+
+        cpu.adc_0xhl(); // Test a result zero
+
+        assert.equal(cpu.a(), 0x00, 'a + (hl) + C');
+        assert.equal(cpu.f(), 0b1011, 'Zero with carries');
+
+        cpu.setC(1);
+        cpu.ld_a_n(0xf0);
+        cpu.ld_0xhl_n(0x11);
+
+        cpu.adc_0xhl(); // Result overflows from positive number in a
+
+        assert.equal(cpu.a(), 0x02, 'a 0xf0 + 0x11 + 1 overflows to 0x02');
+        assert.equal(cpu.f(), 0b0011, 'Positive with carries');
+
+        cpu.setC(1);
+        cpu.ld_a_n(0x02);
+        cpu.ld_0xhl_n(0xff);
+
+        cpu.adc_0xhl(); // Test max addition
+
+        assert.equal(cpu.a(), 0x02, 'a + (HL) + C overflows to 0x02');
+        assert.equal(cpu.f(), 0b0011, 'Positive with carries');
+      });
     });
   });
 
