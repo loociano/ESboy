@@ -1094,63 +1094,40 @@ describe('CPU Unit tests', function() {
         cpu.add_0xhl(); // Result is positive
 
         assert.equal(cpu.a(), 0x14, 'a 0x12 plus 0x02');
-        assert.equal(cpu.Z(), 0, 'Result not zero');
-        assert.equal(cpu.N(), 0, 'N always reset');
-        assert.equal(cpu.H(), 0, 'No carry from bit 3');
-        assert.equal(cpu.C(), 0, 'No carry');
-        assert.equal(cpu.m(), m + 2, 'ADD (HL) machine cycles');
+        assert.equal(cpu.f(), 0b0000, 'Positive without carries');
+        assert.equal(cpu.m() - m, 2, 'ADD (HL) machine cycles');
 
         cpu.ld_a_n(0x0f);
         cpu.ld_0xhl_n(0x01);
 
-        m = cpu.m();
         cpu.add_0xhl(); // Test carry from bit 3
 
         assert.equal(cpu.a(), 0x10, 'a 0x0f plus two with half carry');
-        assert.equal(cpu.Z(), 0, 'Result not zero');
-        assert.equal(cpu.N(), 0, 'N always reset');
-        assert.equal(cpu.H(), 1, 'Carry from bit 3');
-        assert.equal(cpu.C(), 0, 'No carry');
-        assert.equal(cpu.m(), m + 2, 'ADD (HL) machine cycles');
+        assert.equal(cpu.f(), 0b0010, 'Half carry');
 
         cpu.ld_a_n(0xf0);
         cpu.ld_0xhl_n(0x10);
 
-        m = cpu.m();
         cpu.add_0xhl(); // Test a result zero
 
         assert.equal(cpu.a(), 0x00, 'a 0xf0 plus 0x10 is zero');
-        assert.equal(cpu.Z(), 1, 'Result is zero');
-        assert.equal(cpu.N(), 0, 'N always reset');
-        assert.equal(cpu.H(), 1, 'Carry from bit 3');
-        assert.equal(cpu.C(), 1, 'Carry');
-        assert.equal(cpu.m(), m + 2, 'ADD (HL) machine cycles');
+        assert.equal(cpu.f(), 0b1011, 'Zero with carries');
 
         cpu.ld_a_n(0xf0);
         cpu.ld_0xhl_n(0x12);
 
-        m = cpu.m();
         cpu.add_0xhl(); // Result overflows from positive number in a
 
         assert.equal(cpu.a(), 0x02, 'a 0xf0 overflows to 0x02');
-        assert.equal(cpu.Z(), 0, 'Result not zero');
-        assert.equal(cpu.N(), 0, 'N always reset');
-        assert.equal(cpu.H(), 1, 'Carry from bit 3');
-        assert.equal(cpu.C(), 1, 'Carry');
-        assert.equal(cpu.m(), m + 2, 'ADD (HL) machine cycles');
+        assert.equal(cpu.f(), 0b0011, 'Positive with carries');
 
         cpu.ld_a_n(0x02);
         cpu.ld_0xhl_n(0xff);
 
-        m = cpu.m();
         cpu.add_0xhl(); // Test max addition
 
         assert.equal(cpu.a(), 0x01, 'a 0x02 plus 0xff overflows to 0x01');
-        assert.equal(cpu.Z(), 0, 'Result not zero');
-        assert.equal(cpu.N(), 0, 'N always reset');
-        assert.equal(cpu.H(), 1, 'Carry from bit 3');
-        assert.equal(cpu.C(), 1, 'Carry');
-        assert.equal(cpu.m(), m + 2, 'ADD (HL) machine cycles');
+        assert.equal(cpu.f(), 0b0011, 'Positive with carries');
       });
 
       it('should add a to a (double a)', () => {
