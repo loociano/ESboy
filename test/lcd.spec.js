@@ -117,7 +117,7 @@ describe('LCD', () => {
 
     const mmuMock = {
       readTile: function(tile_number){
-        if (tile_number === 0x01) {
+        if (tile_number === 0x01 || tile_number === 0x02) {
           return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
         } else {
           return new Buffer('00000000000000000000000000000000', 'hex');
@@ -126,9 +126,11 @@ describe('LCD', () => {
       areOBJOn: function() {
         return true;
       },
-      getOBJ: function(obj_number){
+      getOBJ: function(obj_number) {
         if (obj_number === 0) {
-          return {y: 1, x: 2, chrCode: 0x01, attr: 0x00};
+          return {y: 16, x: 8, chrCode: 0x01, attr: 0x00};
+        } else if (obj_number === 1){
+          return {y: 8, x: 0, chrCode: 0x01, attr: 0x00}; // hidden as x < 8 and y < 16
         } else {
           return {y: 0, x: 0, chrCode: 0x00, attr: 0x00}; // Empty OBJ, should not paint
         }
@@ -145,7 +147,7 @@ describe('LCD', () => {
 
     for(let x = 0; x < lcd.H_TILES; x++){
       for(let y = 0; y < lcd.V_TILES; y++){
-        if (x === 2 && y === 1){
+        if (x === 0 && y === 0){
           assertBlackTile.call(lcd, x, y);
         } else {
           assertWhiteTile.call(lcd, x, y);
