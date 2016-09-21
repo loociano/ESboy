@@ -1009,7 +1009,7 @@ describe('CPU Unit tests', function() {
 
     describe('ADD', () => {
 
-      it('should add n to register a', () => {
+      it('should add registers to register a', () => {
 
         [ {ld: cpu.ld_b_n, add: cpu.add_b},
           {ld: cpu.ld_c_n, add: cpu.add_c},
@@ -1179,6 +1179,35 @@ describe('CPU Unit tests', function() {
         assert.equal(cpu.H(), 0, 'No carry from bit 3');
         assert.equal(cpu.C(), 0, 'No carry');
         assert.equal(cpu.m(), m + 2, 'ADD n machine cycles');
+      });
+
+      it('should add registers plus carry to register a', () => {
+        cpu.setC(1);
+        cpu.ld_a_n(0x00);
+        cpu.ld_b_n(0x0f);
+        const m = cpu.m();
+
+        cpu.adc_b();
+
+        assert.equal(cpu.a(), 0x10, 'a + b + carry');
+        assert.equal(cpu.f(), 0b0010, 'Half carry');
+        assert.equal(cpu.m() - m, 1, 'Machine cycles');
+
+        cpu.ld_b_n(0xef);
+        cpu.setC(1);
+
+        cpu.adc_b();
+
+        assert.equal(cpu.a(), 0x00, 'a + b + carry');
+        assert.equal(cpu.f(), 0b1011, 'Zero with half- and carry');
+
+        cpu.ld_b_n(0x00);
+        cpu.setC(1);
+
+        cpu.adc_b();
+
+        assert.equal(cpu.a(), 0x01, 'a + b + carry');
+        assert.equal(cpu.f(), 0b0000, 'Zero');
       });
     });
   });
