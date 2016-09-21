@@ -189,6 +189,7 @@ export default class CPU {
       0x8b: {fn: this.adc_e, paramBytes: 0},
       0x8c: {fn: this.adc_h, paramBytes: 0},
       0x8d: {fn: this.adc_l, paramBytes: 0},
+      0x8e: {fn: this.adc_0xhl, paramBytes: 0},
       0x8f: {fn: this.adc_a, paramBytes: 0},
       0x90: {fn: this.sub_b, paramBytes: 0},
       0x91: {fn: this.sub_c, paramBytes: 0},
@@ -3548,6 +3549,13 @@ export default class CPU {
    */
   adc_l(){
     this._adc_r(this._r.l);
+  }
+
+  /**
+   * Adds value at memory hl plus carry to a
+   */
+  adc_0xhl(){
+    this._adc_r(this._0xhl());
   }
 
   /**
