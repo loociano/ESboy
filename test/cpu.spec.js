@@ -1174,11 +1174,8 @@ describe('CPU Unit tests', function() {
         cpu.add_n(0x04);
 
         assert.equal(cpu.a(), 0x0d, 'a 0x09 plus n 0x04');
-        assert.equal(cpu.Z(), 0, 'Result not zero');
-        assert.equal(cpu.N(), 0, 'N always reset');
-        assert.equal(cpu.H(), 0, 'No carry from bit 3');
-        assert.equal(cpu.C(), 0, 'No carry');
-        assert.equal(cpu.m(), m + 2, 'ADD n machine cycles');
+        assert.equal(cpu.f(), 0b0000, 'Positive without carries');
+        assert.equal(cpu.m() - m, 2, 'ADD n machine cycles');
       });
 
       it('should add registers plus carry to register a', () => {
