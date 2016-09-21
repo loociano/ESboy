@@ -401,6 +401,7 @@ export default class CPU {
       0xcbbe: {fn: this.res_7_0xhl, paramBytes: 0},
       0xcbbf: {fn: this.res_7_a, paramBytes: 0},
       0xcd: {fn: this.call, paramBytes: 2},
+      0xce: {fn: this.adc_n, paramBytes: 1},
       0xcf: {fn: this.rst_08, paramBytes: 0},
       0xd0: {fn: this.ret_nc, paramBytes: 0},
       0xd1: {fn: this.pop_de, paramBytes: 0},
@@ -3547,6 +3548,15 @@ export default class CPU {
    */
   adc_l(){
     this._adc_r(this._r.l);
+  }
+
+  /**
+   * Adds byte n and carry to register a
+   * @param {number} n
+   */
+  adc_n(n){
+    this._adc_r(n);
+    this._m++;
   }
 
   /**
