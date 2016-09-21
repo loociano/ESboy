@@ -2352,6 +2352,19 @@ describe('CPU Unit tests', function() {
 
   });
 
+  describe('DMA', () => {
+
+    it('should indicate to the MMU that DMA is done', () => {
+
+      cpu.mmu.writeByteAt(cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
+      cpu.mmu.setDMA(true);
+
+      cpu.execute = () => cpu.nop();
+      cpu.frame();
+
+      assert(!cpu.mmu.isDMA());
+    });
+  });
 });
 
 /**
