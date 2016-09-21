@@ -220,6 +220,28 @@ describe('MMU', () => {
     });
 
   });
+
+  describe('OBJ (Sprites)', () => {
+    it('should read OBJs', () => {
+
+      mmu.writeByteAt(mmu.ADDR_OAM_START, 0x01);
+      mmu.writeByteAt(mmu.ADDR_OAM_START + 1, 0x02);
+      mmu.writeByteAt(mmu.ADDR_OAM_START + 2, 0xab);
+      mmu.writeByteAt(mmu.ADDR_OAM_START + 3, 0b00000000);
+
+      const {y, x, chrCode, attr} = mmu.getOBJ(0);
+
+      assert.equal(y, 0x01);
+      assert.equal(x, 0x02);
+      assert.equal(chrCode, 0xab);
+      assert.equal(attr, 0x00);
+    });
+
+    it('should not allow reading object 40', () => {
+      assert.throws( () => this.mmu.getOBJ(-1), Error, '-1 out of range');
+      assert.throws( () => this.mmu.getOBJ(40), Error, '40 out of range');
+    });
+  });
   
   describe('Joypad', () => {
     it('should return all high by default', () => {
