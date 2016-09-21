@@ -32,6 +32,9 @@ export default class MMU {
     this.BG_DISPLAY_DATA_2 = 0x9c00;
     this.ADDR_VRAM_END = 0x9fff;
 
+    // Working RAM
+    this.ADDR_WORKING_RAM = 0xc000;
+
     // OAM
     this.ADDR_OAM_START = 0xfe00;
     this.ADDR_OAM_END = 0xfe9f;
@@ -90,6 +93,9 @@ export default class MMU {
 
     // OBJ
     this.MAX_OBJ = 40;
+
+    // DMA
+    this.DMA_LENGTH = 0xa0;
 
     // Values
     this.IS_GB_COLOR = 0x80;
@@ -346,8 +352,25 @@ export default class MMU {
       case this.ADDR_LCDC:
         this._handle_lcdc(n);
         break;
+      case this.ADDR_DMA:
+        this._handleDMA(n);
+        break;
     }
     this._memory[addr] = n;
+  }
+
+  /**
+   * @param n
+   * @private
+   */
+  _handleDMA(n){
+    if (n <= (this.ADDR_ROM_MAX >> 8)){
+      throw new Error('No DMA allowed from ROM area in DMG');
+    }
+    const sourceStart = n << 8;
+    const sourceEnd = sourceStart + this.DMA_LENGTH;
+
+    this._memory.copy(this._memory, this.ADDR_OAM_START, sourceStart, sourceEnd);
   }
 
   /**

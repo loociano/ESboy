@@ -33,6 +33,7 @@ export default class CPU {
     this.M_CYCLES_STOP_MODE_0 = 4;
     this.M_CYCLES_STOP_MODE_2 = 20;
     this.M_CYCLES_STOP_MODE_3 = 40; // Naive
+    this.M_CYCLES_DMA = 40;
 
     // Masks
     this.IF_VBLANK_ON = 0b00001;
