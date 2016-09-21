@@ -19,8 +19,6 @@ export default class LCD {
     this.H_TILES = width / this.TILE_WIDTH;
     this.V_TILES = height / this.TILE_HEIGHT;
 
-    this.VBLANK = 10;
-
     this._clear();
   }
 
@@ -38,6 +36,17 @@ export default class LCD {
    * Draw all tiles on screen
    */
   drawTiles(){
+    this._drawBG();
+    if (this.mmu.areOBJOn()) {
+      this._drawOBJ();
+    }
+  }
+
+  /**
+   * Draws the background tiles
+   * @private
+   */
+  _drawBG(){
     for(let x = 0; x < this.H_TILES; x++){
       for(let y = 0; y < this.V_TILES; y++){
         this.drawTile({tile_number: this.mmu.getCharCode(x, y), grid_x: x, grid_y: y});
@@ -46,11 +55,33 @@ export default class LCD {
   }
 
   /**
+   * Draws the objects (OBJ, sprites) tiles
+   * @private
+   */
+  _drawOBJ(){
+    for(let n = 0; n < this.mmu.MAX_OBJ; n++){
+      const OBJ = this.mmu.getOBJ(n);
+      if (this._isValidOBJ(OBJ)) {
+        this.drawTile({tile_number: OBJ.chrCode, grid_x: OBJ.x, grid_y: OBJ.y});
+      }
+    }
+  }
+
+  /**
+   * @param OBJ
+   * @returns {boolean}
+   * @private
+   */
+  _isValidOBJ(OBJ){
+    return OBJ.x !== 0 || OBJ.y !== 0 || OBJ.chrCode !== 0 || OBJ.attr !== 0;
+  }
+
+  /**
    * Draws all pixels from a tile in the image data
    *
    * @param {number} tile_number
-   * @param {number} tile_x from 0x00 to 0x1f
-   * @param {number} tile_y from 0x00 to 0x1f
+   * @param {number} tile_x from 0x00 to 0x1f [0-31]
+   * @param {number} tile_y from 0x00 to 0x1f [0-31]
    */
   drawTile({tile_number, grid_x, grid_y}){
 

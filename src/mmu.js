@@ -86,6 +86,9 @@ export default class MMU {
     this.NUM_LINES = 153;
     this.CHARS_PER_LINE = 32;
 
+    // OBJ
+    this.MAX_OBJ = 40;
+
     // Values
     this.IS_GB_COLOR = 0x80;
 
