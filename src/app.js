@@ -17,7 +17,7 @@ function createWindow() {
 
   win.loadURL(`file://${__dirname}/../src/index.html`);
 
-  win.webContents.openDevTools();
+  //win.webContents.openDevTools();
 
   const menu = Menu.buildFromTemplate([]);
   Menu.setApplicationMenu(menu);
