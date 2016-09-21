@@ -324,6 +324,12 @@ describe('MMU', () => {
 
       mmu.writeByteAt(mmu.ADDR_DMA, mmu.ADDR_WORKING_RAM >> 8); // 0xc0
 
+      assert.throws( () => {
+        mmu.readByteAt(mmu.ADDR_OAM_START);
+      }, Error, 'Cannot access OAM until DMA completes');
+
+      mmu.setDMA(false); // Mock DMA end
+
       for(let i = 0; i < mmu.DMA_LENGTH; i++){
         assert.equal(mmu.readByteAt(mmu.ADDR_OAM_START + i), 0xaa);
       }
