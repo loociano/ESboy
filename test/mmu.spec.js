@@ -179,8 +179,15 @@ describe('MMU', () => {
       assert.equal(mmu.getCharCode(31, 31), 0xcd, 'Block 1023');
     });
 
-    it('should ignore OBJ as they are unsupported', () => {
-      assert.doesNotThrow( () => mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_OBJ_ON) );
+    it('should detect OBJ 8x16 as unsupported', () => {
+      assert.throws( () => mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_OBJ_8x16), Error, '8x16 OBJ unsupported');
+    });
+
+    it('should enable OBJ based on LCDC bit 1', () => {
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_OBJ_ON);
+      assert(mmu.areOBJOn());
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_OBJ_OFF);
+      assert(!mmu.areOBJOn());
     });
 
     it('should turn on/off background', () => {
