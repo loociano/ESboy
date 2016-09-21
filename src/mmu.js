@@ -130,7 +130,9 @@ export default class MMU {
 
     this._memory = new Buffer(this.ADDR_MAX + 1);
     this._bios = this.getBIOS();
+
     this.inBIOS = true;
+    this._isDMA = false;
 
     this._initMemory();
     this._loadROM(filename);
@@ -371,6 +373,15 @@ export default class MMU {
     const sourceEnd = sourceStart + this.DMA_LENGTH;
 
     this._memory.copy(this._memory, this.ADDR_OAM_START, sourceStart, sourceEnd);
+    this._isDMA = true;
+  }
+
+  setDMA(isDMA){
+    this._isDMA = isDMA;
+  }
+
+  isDMA(){
+    return this._isDMA;
   }
 
   /**
@@ -397,7 +408,7 @@ export default class MMU {
    */
   _canAccessOAM(){
     const mode = this.getLCDMode();
-    return  mode !== 2 && mode !== 3;
+    return !this._isDMA && mode !== 2 && mode !== 3;
   }
 
   /**

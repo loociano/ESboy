@@ -25,6 +25,7 @@ export default class CPU {
     this._lastInstrWasEI = false;
 
     this._m = 0; // machine cycles for lcd
+    this._m_dma = 0; // machine cycles for DMA
 
     // Constants
     this.EXTENDED_PREFIX = 0xcb;
@@ -713,6 +714,7 @@ export default class CPU {
 
       this.execute();
       this._handle_lcd();
+      this._handleDMA();
 
       if (this._r.pc === this.mmu.ADDR_GAME_START){
         this._afterBIOS();
@@ -721,6 +723,22 @@ export default class CPU {
     } while (!this._isVBlankTriggered());
 
     this._handleVBlankInterrupt();
+  }
+
+  /**
+   * Handles DMA
+   * @private
+   */
+  _handleDMA(){
+    if (this.mmu.isDMA()){
+      if (this._m_dma === this.M_CYCLES_DMA) {
+        this.mmu.setDMA(false);
+      } else {
+        this._m_dma++;
+      }
+    } else {
+      this._m_dma = 0;
+    }
   }
 
   /**
