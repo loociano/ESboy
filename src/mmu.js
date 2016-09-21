@@ -698,4 +698,20 @@ export default class MMU {
   pressSTART(){
     this._memory[this.ADDR_P1] &= this.MASK_P1_START;
   }
+
+  /**
+   * @param number
+   * @returns {{y: number, x: number, chrCode: number, attr: number}}
+   */
+  getOBJ(number){
+    if (number < 0 || number > 39) throw new Error('OBJ number out of range');
+
+    const addr = this.ADDR_OAM_START + (4 * number);
+    return {
+      y: this.readByteAt(addr),
+      x: this.readByteAt(addr + 1),
+      chrCode: this.readByteAt(addr + 2),
+      attr: this.readByteAt(addr + 3)
+    }
+  }
 }
