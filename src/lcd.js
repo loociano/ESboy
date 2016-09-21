@@ -117,16 +117,13 @@ export default class LCD {
     this.imageData.data[index + 3] = alpha;
   }
 
+  /**
+   * @param x
+   * @param y
+   * @returns {Array} pixel imageData
+   */
   getPixelData(x, y){
     const index = (x + y * this.width) * 4;
     return this.imageData.data.slice(index, index + 4);
-  }
-
-  isControlOp(){
-    return ((this.mmu.lcdc() & 0x80) >> 7) === 1;
-  }
-
-  getTileDataSelect(){
-    return (this.mmu.lcdc() & 0x10) >> 4;
   }
 }
