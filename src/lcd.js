@@ -62,7 +62,11 @@ export default class LCD {
     for(let n = 0; n < this.mmu.MAX_OBJ; n++){
       const OBJ = this.mmu.getOBJ(n);
       if (this._isValidOBJ(OBJ)) {
-        this.drawTile({tile_number: OBJ.chrCode, grid_x: OBJ.x, grid_y: OBJ.y});
+        this.drawTile({
+          tile_number: OBJ.chrCode,
+          grid_x: (OBJ.x/this.TILE_WIDTH) - 1,
+          grid_y: (OBJ.y/this.TILE_HEIGHT) - 2
+        });
       }
     }
   }
