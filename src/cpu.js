@@ -3040,18 +3040,19 @@ export default class CPU {
    * @param {number} value, 8 bits
    * @private
    */
-  _add_r(value){
+  _add_r(value, carry=0){
 
     this.setN(0);
+    const add = value + carry;
 
     // Half carry
-    if (value > (0x0f - (this._r.a & 0x0f))){
+    if (add > (0x0f - (this._r.a & 0x0f))){
       this.setH(1);
     } else {
       this.setH(0);
     }
 
-    this._r.a = this._r.a + value;
+    this._r.a = this._r.a + add;
 
     // Carry
     if ((this._r.a & 0x100) > 0){
@@ -3490,5 +3491,21 @@ export default class CPU {
     this.setN(0);
     this.setH(0);
     this._m++;
+  }
+
+  /**
+   * Adds register b and carry to register a
+   */
+  adc_b(){
+    this._add_r(this._r.b, this.C());
+  }
+
+  /**
+   * Adds register r and carry to register a
+   * @param r
+   * @private
+   */
+  _adc_r(r){
+    this._add_r(r, this.C());
   }
 }
