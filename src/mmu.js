@@ -69,6 +69,8 @@ export default class MMU {
     this.MASK_BG_CHAR_DATA = 0x10;
     this.MASK_WINDOW_ON = 0x20;
     this.MASK_OBJ_ON = 0x02;
+    this.MASK_OBJ_OFF = 0xfd;
+    this.MASK_OBJ_8x16 = 0x04;
     this.MASK_BG_ON = 0x01;
     this.MASK_BG_OFF = 0xfe;
 
@@ -305,6 +307,13 @@ export default class MMU {
   }
 
   /**
+   * @returns {boolean} true if OBJ are enabled
+   */
+  areOBJOn(){
+    return (this.lcdc() & this.MASK_OBJ_ON) === this.MASK_OBJ_ON;
+  }
+
+  /**
    * Writes a byte n into address
    * @param {number} 16 bit address
    * @param {number} byte
@@ -410,11 +419,11 @@ export default class MMU {
       default:
         throw new Error('Windowing unsupported');
     }
-    switch(n & this.LCDC_OBJ){
+    switch(n & this.MASK_OBJ_8x16){
       case 0:
         break;
       default:
-        Logger.error('OBJ unsupported');
+        throw new Error('OBJ 8x16 unsupported');
     }
   }
 
