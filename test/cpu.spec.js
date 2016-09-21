@@ -1243,6 +1243,18 @@ describe('CPU Unit tests', function() {
         assert.equal(cpu.a(), 0x00, 'a + b + carry');
         assert.equal(cpu.f(), 0b1000, 'Zero');
       });
+
+      it('should add n plus carry to a', () => {
+        cpu.setC(1);
+        cpu.ld_a_n(0x09);
+        const m = cpu.m();
+
+        cpu.adc_n(0x04);
+
+        assert.equal(cpu.a(), 0x0e, 'a 0x09 plus n 0x04 plus C=1');
+        assert.equal(cpu.f(), 0b0000, 'Positive without carries');
+        assert.equal(cpu.m() - m, 2, 'ADD n machine cycles');
+      });
     });
   });
 
