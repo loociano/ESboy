@@ -189,6 +189,7 @@ export default class CPU {
       0x8b: {fn: this.adc_e, paramBytes: 0},
       0x8c: {fn: this.adc_h, paramBytes: 0},
       0x8d: {fn: this.adc_l, paramBytes: 0},
+      0x8f: {fn: this.adc_a, paramBytes: 0},
       0x90: {fn: this.sub_b, paramBytes: 0},
       0x91: {fn: this.sub_c, paramBytes: 0},
       0x92: {fn: this.sub_d, paramBytes: 0},
@@ -3497,6 +3498,13 @@ export default class CPU {
     this.setN(0);
     this.setH(0);
     this._m++;
+  }
+
+  /**
+   * Adds register a and carry to register a
+   */
+  adc_a(){
+    this._adc_r(this._r.a);
   }
 
   /**
