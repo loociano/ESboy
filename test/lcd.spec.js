@@ -113,13 +113,68 @@ describe('LCD', () => {
     lcd.assertBlackTile(19, 17);
   });
 
+  it('should write OBJ on top of BG', () => {
+
+    const mmuMock = {
+      readTile: function(tile_number){
+        if (tile_number === 0x01) {
+          return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
+        } else {
+          return new Buffer('00000000000000000000000000000000', 'hex');
+        }
+      },
+      areOBJOn: function() {
+        return true;
+      },
+      getOBJ: function(obj_number){
+        if (obj_number === 0) {
+          return {y: 1, x: 2, chrCode: 0x01, attr: 0x00};
+        } else {
+          return {y: 0, x: 0, chrCode: 0x00, attr: 0x00}; // Empty OBJ, should not paint
+        }
+      },
+      getCharCode: function(x, y){
+        return 0x00;
+      },
+      MAX_OBJ: 40
+    };
+
+    lcd = new LCD(mmuMock, new ContextMock(), WIDTH, HEIGHT);
+
+    lcd.drawTiles();
+
+    for(let x = 0; x < lcd.H_TILES; x++){
+      for(let y = 0; y < lcd.V_TILES; y++){
+        if (x === 2 && y === 1){
+          assertBlackTile.call(lcd, x, y);
+        } else {
+          assertWhiteTile.call(lcd, x, y);
+        }
+      }
+    }
+  });
+
 });
 
-function assertBlackTile(grid_x, grid_y){
+/**
+ * Asserts that each pixel of a tile at x,y equals to rbga
+ * @param grid_x
+ * @param grid_y
+ * @param {array} rgba
+ */
+function assertTile(grid_x, grid_y, rgba){
 
   for(let x = grid_x*8; x < (grid_x+1)*8; x++){
     for(let y = grid_y*8; y < (grid_y+1)*8; y++){
-       assert.deepEqual(this.getPixelData(x, y), [0, 0, 0, 255], 'pixel is black');
+       assert.deepEqual(this.getPixelData(x, y), rgba, `Tile: ${grid_x},${grid_y} x=${x}, y=${y} pixel data ${rgba}`);
     } 
   }
+}
+
+function assertBlackTile(grid_x, grid_y){
+  assertTile.call(this, grid_x, grid_y, [0, 0, 0, 255]);
+}
+
+function assertWhiteTile(grid_x, grid_y){
+  assertTile.call(this, grid_x, grid_y, [255, 255, 255, 0]);
 }
