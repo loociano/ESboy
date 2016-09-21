@@ -183,6 +183,12 @@ export default class CPU {
       0x85: {fn: this.add_l, paramBytes: 0},
       0x86: {fn: this.add_0xhl, paramBytes: 0},
       0x87: {fn: this.add_a, paramBytes: 0},
+      0x88: {fn: this.adc_b, paramBytes: 0},
+      0x89: {fn: this.adc_c, paramBytes: 0},
+      0x8a: {fn: this.adc_d, paramBytes: 0},
+      0x8b: {fn: this.adc_e, paramBytes: 0},
+      0x8c: {fn: this.adc_h, paramBytes: 0},
+      0x8d: {fn: this.adc_l, paramBytes: 0},
       0x90: {fn: this.sub_b, paramBytes: 0},
       0x91: {fn: this.sub_c, paramBytes: 0},
       0x92: {fn: this.sub_d, paramBytes: 0},
@@ -3497,7 +3503,42 @@ export default class CPU {
    * Adds register b and carry to register a
    */
   adc_b(){
-    this._add_r(this._r.b, this.C());
+    this._adc_r(this._r.b);
+  }
+
+  /**
+   * Adds register c and carry to register a
+   */
+  adc_c(){
+    this._adc_r(this._r.c);
+  }
+
+  /**
+   * Adds register d and carry to register a
+   */
+  adc_d(){
+    this._adc_r(this._r.d);
+  }
+
+  /**
+   * Adds register e and carry to register a
+   */
+  adc_e(){
+    this._adc_r(this._r.e);
+  }
+
+  /**
+   * Adds register h and carry to register a
+   */
+  adc_h(){
+    this._adc_r(this._r.h);
+  }
+
+  /**
+   * Adds register l and carry to register a
+   */
+  adc_l(){
+    this._adc_r(this._r.l);
   }
 
   /**
