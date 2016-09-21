@@ -309,9 +309,26 @@ describe('MMU', () => {
   });
 
   describe('DMA', () => {
-    it('should detect DMA', () => {
-      assert.throws( () => mmu.readByteAt(mmu.ADDR_DMA), Error, 'DMA unsupported');
+
+    it('should not allow DMA from ROM area', () => {
+      assert.throws( () => {
+        mmu.writeByteAt(mmu.ADDR_DMA, mmu.ADDR_ROM_MAX >> 8);
+      }, Error, 'No DMA allowed from ROM area');
     });
+
+    it('should run DMA', () => {
+
+      for(let i = 0; i < mmu.DMA_LENGTH; i++){
+        mmu.writeByteAt(mmu.ADDR_WORKING_RAM + i, 0xaa);
+      }
+
+      mmu.writeByteAt(mmu.ADDR_DMA, mmu.ADDR_WORKING_RAM >> 8); // 0xc0
+
+      for(let i = 0; i < mmu.DMA_LENGTH; i++){
+        assert.equal(mmu.readByteAt(mmu.ADDR_OAM_START + i), 0xaa);
+      }
+    });
+
   });
 
   describe('Serial Cable Communication', () => {

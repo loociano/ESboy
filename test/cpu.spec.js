@@ -2352,29 +2352,6 @@ describe('CPU Unit tests', function() {
 
   });
 
-  describe('DMA', () => {
-
-    it('should not allow DMA from ROM area', () => {
-      assert.throws( () => {
-        cpu.mmu.writeByteAt(cpu.mmu.ADDR_DMA, cpu.mmu.ADDR_ROM_MAX >> 8);
-      }, Error, 'No DMA allowed from ROM area');
-    });
-
-    it('should run DMA', () => {
-
-      for(let i = 0; i < cpu.mmu.DMA_LENGTH; i++){
-        cpu.mmu.writeByteAt(cpu.mmu.ADDR_WORKING_RAM + i, 0xaa);
-      }
-
-      cpu.mmu.writeByteAt(cpu.mmu.ADDR_DMA, cpu.mmu.ADDR_WORKING_RAM >> 8); // 0xc0
-
-      for(let i = 0; i < cpu.mmu.DMA_LENGTH; i++){
-        assert.equal(cpu.mmu.readByteAt(cpu.mmu.ADDR_OAM_START + i), 0xaa);
-      }
-    });
-
-  });
-
 });
 
 /**
