@@ -8,13 +8,17 @@
     body {
       margin: 0;
     }
-    #screen{
+    canvas {
+      position: absolute;
+    }
+    #bg{
       background-color: #e2ffe3;
     }
   </style>
 
   <body>
-    <canvas id="screen" width="160" height="144"></canvas>
+    <canvas id="bg" width="160" height="144"></canvas>
+    <canvas id="obj" width="160" height="144"></canvas>
   </body>
 
   <script>

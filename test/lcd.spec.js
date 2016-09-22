@@ -12,7 +12,7 @@ describe('LCD', () => {
   const HEIGHT = 144;
 
   beforeEach(function() {
-    lcd = new LCD(new MMUMock(), new ContextMock(), WIDTH, HEIGHT);
+    lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock(), WIDTH, HEIGHT);
   });
 
   it('should _clear the LCD', () => {
@@ -20,7 +20,7 @@ describe('LCD', () => {
     lcd._clear();
 
     for(let i = 0; i < WIDTH * HEIGHT * 4; i++) {
-      assert.equal(lcd.imageData.data[i], 0);
+      assert.equal(lcd.imageDataBG.data[i], 0);
     }
 
   });
@@ -76,7 +76,7 @@ describe('LCD', () => {
   it('should write pixel data', () => {
 
     const lastIndex = WIDTH*HEIGHT*4 - 1;
-    const data = lcd.imageData.data;
+    const data = lcd.imageDataBG.data;
 
     lcd.drawPixel(0, 0, 0);
     lcd.drawPixel(1, 0, 1);
@@ -100,17 +100,15 @@ describe('LCD', () => {
         }
     };
 
-    lcd = new LCD(mmuMock, new ContextMock(), WIDTH, HEIGHT);
+    lcd = new LCD(mmuMock, new ContextMock(), new ContextMock(), WIDTH, HEIGHT);
 
     lcd.drawTile({tile_number: 1, grid_x: 0, grid_y: 0});
     lcd.drawTile({tile_number: 1, grid_x: 10, grid_y: 9});
     lcd.drawTile({tile_number: 1, grid_x: 19, grid_y: 17});
 
-    lcd.assertBlackTile = assertBlackTile;
-
-    lcd.assertBlackTile(0, 0);
-    lcd.assertBlackTile(10, 9);
-    lcd.assertBlackTile(19, 17);
+    assertBlackTile.call(lcd, 0, 0, lcd.imageDataBG);
+    assertBlackTile.call(lcd, 10, 9, lcd.imageDataBG);
+    assertBlackTile.call(lcd, 19, 17, lcd.imageDataBG);
   });
 
   it('should write OBJ on top of BG', () => {
@@ -138,19 +136,20 @@ describe('LCD', () => {
       getCharCode: function(x, y){
         return 0x00;
       },
-      MAX_OBJ: 40
+      MAX_OBJ: 40,
+      _refreshBG: true
     };
 
-    lcd = new LCD(mmuMock, new ContextMock(), WIDTH, HEIGHT);
+    lcd = new LCD(mmuMock, new ContextMock(), new ContextMock(), WIDTH, HEIGHT);
 
     lcd.drawTiles();
 
     for(let x = 0; x < lcd.H_TILES; x++){
       for(let y = 0; y < lcd.V_TILES; y++){
         if (x === 0 && y === 0){
-          assertBlackTile.call(lcd, x, y);
+          assertBlackTile.call(lcd, x, y, lcd.imageDataOBJ);
         } else {
-          assertWhiteTile.call(lcd, x, y);
+          assertWhiteTile.call(lcd, x, y, lcd.imageDataBG);
         }
       }
     }
@@ -164,19 +163,19 @@ describe('LCD', () => {
  * @param grid_y
  * @param {array} rgba
  */
-function assertTile(grid_x, grid_y, rgba){
+function assertTile(grid_x, grid_y, rgba, imageData){
 
   for(let x = grid_x*8; x < (grid_x+1)*8; x++){
     for(let y = grid_y*8; y < (grid_y+1)*8; y++){
-       assert.deepEqual(this.getPixelData(x, y), rgba, `Tile: ${grid_x},${grid_y} x=${x}, y=${y} pixel data ${rgba}`);
+       assert.deepEqual(this.getPixelData(x, y, imageData), rgba, `Tile: ${grid_x},${grid_y} x=${x}, y=${y} pixel data ${rgba}`);
     } 
   }
 }
 
-function assertBlackTile(grid_x, grid_y){
-  assertTile.call(this, grid_x, grid_y, [0, 0, 0, 255]);
+function assertBlackTile(grid_x, grid_y, imageData){
+  assertTile.call(this, grid_x, grid_y, [0, 0, 0, 255], imageData);
 }
 
-function assertWhiteTile(grid_x, grid_y){
-  assertTile.call(this, grid_x, grid_y, [255, 255, 255, 0]);
+function assertWhiteTile(grid_x, grid_y, imageData){
+  assertTile.call(this, grid_x, grid_y, [255, 255, 255, 0], imageData);
 }

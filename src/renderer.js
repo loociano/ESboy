@@ -188,15 +188,16 @@ ipcRenderer.on('start-lcd', (event, filename) => {
   const mmu = remote.getGlobal('mmu');
   const input = new InputHandler(mmu, document.querySelector('body'));
 
-  const ctx = document.getElementById('screen').getContext('2d');
+  const ctxBG = document.getElementById('bg').getContext('2d');
+  const ctxOBJ = document.getElementById('obj').getContext('2d');
 
-  lcd = new LCD(mmu, ctx, 160, 144);
+  lcd = new LCD(mmu, ctxBG, ctxOBJ, 160, 144);
 
   event.sender.send('lcd-ready');
 });
 
 ipcRenderer.on('paint-frame', (event) => {
-  if (_refresh > 100){
+  if (_refresh > 60){
     lcd.drawTiles();
     _refresh = 0;
   } else {

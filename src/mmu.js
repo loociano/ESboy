@@ -141,6 +141,8 @@ export default class MMU {
     this._isDMA = false;
     this._buttons = 0x0f; // Buttons unpressed, on HIGH
 
+    this._refreshBG = false;
+
     this._initMemory();
     this._loadROM(filename);
   }
@@ -349,8 +351,9 @@ export default class MMU {
     if (this._isOAMAddr(addr) && !this._canAccessOAM()){
       throw new Error('Cannot write OAM');
     }
-    if (this._isVRAMAddr(addr) && !this._canAccessVRAM()){
-      throw new Error('Cannot write on VRAM');
+    if (this._isVRAMAddr(addr)){
+      if (!this._canAccessVRAM()) throw new Error('Cannot write on VRAM');
+      this._refreshBG = true;
     }
 
     switch(addr){

@@ -3,14 +3,16 @@ import Logger from './logger';
 
 export default class LCD {
 
-  constructor(mmu, ctx, width, height){
+  constructor(mmu, ctxBG, ctxOBJ, width, height){
     
     this.mmu = mmu;
-    this.ctx = ctx;
+    this.ctxBG = ctxBG;
+    this.ctxOBJ = ctxOBJ;
     this.width = width;
     this.height = height;
 
-    this.imageData = this.ctx.createImageData(this.width, this.height);
+    this.imageDataBG = this.ctxBG.createImageData(this.width, this.height);
+    this.imageDataOBJ = this.ctxOBJ.createImageData(this.width, this.height);
 
     // Constants
     this.TILE_WIDTH = 8;
@@ -20,15 +22,16 @@ export default class LCD {
     this.V_TILES = height / this.TILE_HEIGHT;
 
     this._clear();
+    this._clear(this.imageDataOBJ);
   }
 
   /** 
    * Clears the LCD by writing transparent pixels
    * @private
    */
-  _clear(){
+  _clear(imageData=this.imageDataBG){
     for(let p = 0; p < this.width * this.height * 4; p++){
-      this.imageData.data[p] = 0;
+      imageData.data[p] = 0;
     }
   }
 
@@ -36,8 +39,12 @@ export default class LCD {
    * Draw all tiles on screen
    */
   drawTiles(){
-    this._drawBG();
+    if (this.mmu._refreshBG) {
+      this._drawBG();
+      this.mmu._refreshBG = false;
+    }
     if (this.mmu.areOBJOn()) {
+      this._clear(this.imageDataOBJ);
       this._drawOBJ();
     }
   }
@@ -66,7 +73,7 @@ export default class LCD {
           tile_number: OBJ.chrCode,
           grid_x: (OBJ.x/this.TILE_WIDTH) - 1,
           grid_y: (OBJ.y/this.TILE_HEIGHT) - 2
-        });
+        }, this.imageDataOBJ, this.ctxOBJ);
       }
     }
   }
@@ -87,7 +94,7 @@ export default class LCD {
    * @param {number} tile_x from 0x00 to 0x1f [0-31]
    * @param {number} tile_y from 0x00 to 0x1f [0-31]
    */
-  drawTile({tile_number, grid_x, grid_y}){
+  drawTile({tile_number, grid_x, grid_y}, imageData=this.imageDataBG, ctx=this.ctxBG){
 
     const x_start = grid_x * this.TILE_WIDTH;
     const y_start = grid_y * this.TILE_HEIGHT;
@@ -103,10 +110,10 @@ export default class LCD {
         x = x_start;
         y++;
       }
-      this.drawPixel(x++, y, array[i]);
+      this.drawPixel(x++, y, array[i], imageData);
     }
 
-    this.ctx.putImageData(this.imageData, 0, 0);
+    ctx.putImageData(imageData, 0, 0);
   }
 
   /**
@@ -135,7 +142,7 @@ export default class LCD {
    * @param {number} y
    * @param {number} level of gray [0-3]
    */
-  drawPixel(x, y, level) {
+  drawPixel(x, y, level, imageData=this.imageDataBG) {
     
     if (level < 0 || level > 3){
       Logger.error(`Unrecognized level gray level ${level}`); 
@@ -146,10 +153,10 @@ export default class LCD {
     const index = (x + y * this.width) * 4;
     const alpha = level === 0 ? 0 : 255;
 
-    this.imageData.data[index + 0] = 255 - intensity;
-    this.imageData.data[index + 1] = 255 - intensity;
-    this.imageData.data[index + 2] = 255 - intensity;
-    this.imageData.data[index + 3] = alpha;
+    imageData.data[index + 0] = 255 - intensity;
+    imageData.data[index + 1] = 255 - intensity;
+    imageData.data[index + 2] = 255 - intensity;
+    imageData.data[index + 3] = alpha;
   }
 
   /**
@@ -157,8 +164,8 @@ export default class LCD {
    * @param y
    * @returns {Array} pixel imageData
    */
-  getPixelData(x, y){
+  getPixelData(x, y, imageData){
     const index = (x + y * this.width) * 4;
-    return this.imageData.data.slice(index, index + 4);
+    return imageData.data.slice(index, index + 4);
   }
 }
