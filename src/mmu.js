@@ -141,7 +141,7 @@ export default class MMU {
     this._isDMA = false;
     this._buttons = 0x0f; // Buttons unpressed, on HIGH
 
-    this._refreshBG = false;
+    this._VRAMRefreshed = true;
 
     this._initMemory();
     this._loadROM(filename);
@@ -348,12 +348,12 @@ export default class MMU {
     if (n < 0 || n > 0xff){
       throw new Error(`Cannot write ${n} in memory, it has more than 8 bits`);
     }
-    if (this._isOAMAddr(addr) && !this._canAccessOAM()){
-      throw new Error('Cannot write OAM');
+    if (this._isOAMAddr(addr)){
+      if (!this._canAccessOAM()) throw new Error('Cannot write OAM');
     }
     if (this._isVRAMAddr(addr)){
       if (!this._canAccessVRAM()) throw new Error('Cannot write on VRAM');
-      this._refreshBG = true;
+      this._VRAMRefreshed = true;
     }
 
     switch(addr){

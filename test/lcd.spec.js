@@ -137,7 +137,7 @@ describe('LCD', () => {
         return 0x00;
       },
       MAX_OBJ: 40,
-      _refreshBG: true
+      _VRAMRefreshed: true
     };
 
     lcd = new LCD(mmuMock, new ContextMock(), new ContextMock(), WIDTH, HEIGHT);

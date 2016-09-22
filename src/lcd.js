@@ -22,31 +22,34 @@ export default class LCD {
     this.V_TILES = height / this.TILE_HEIGHT;
 
     this._clear();
-    this._clear(this.imageDataOBJ);
+    this._clear(this.imageDataOBJ, this.ctxOBJ);
+
+    this._cache = {};
   }
 
   /** 
    * Clears the LCD by writing transparent pixels
    * @private
    */
-  _clear(imageData=this.imageDataBG){
+  _clear(imageData=this.imageDataBG, ctx=this.ctxBG){
     for(let p = 0; p < this.width * this.height * 4; p++){
       imageData.data[p] = 0;
     }
+    ctx.putImageData(imageData, 0, 0);
   }
 
   /** 
    * Draw all tiles on screen
    */
   drawTiles(){
-    if (this.mmu._refreshBG) {
+    if (this.mmu._VRAMRefreshed) {
       this._drawBG();
-      this.mmu._refreshBG = false;
     }
     if (this.mmu.areOBJOn()) {
-      this._clear(this.imageDataOBJ);
+      this._clear(this.imageDataOBJ, this.ctxOBJ);
       this._drawOBJ();
     }
+    this.mmu._VRAMRefreshed = false;
   }
 
   /**
@@ -102,8 +105,7 @@ export default class LCD {
     let x = x_start;
     let y = y_start;
 
-    const tileBuffer = this.mmu.readTile(tile_number);
-    const array = LCD.tileToMatrix(tileBuffer);
+    const array = this._getMatrix(tile_number);
 
     for(let i = 0; i < array.length; i++){
       if (i > 0 && i % this.TILE_WIDTH === 0){
@@ -114,6 +116,36 @@ export default class LCD {
     }
 
     ctx.putImageData(imageData, 0, 0);
+  }
+
+  /**
+   * @param tile_number
+   * @returns {Array} palette matrix from cache, recalculated whenever VRAM is updated.
+   * @private
+   */
+  _getMatrix(tile_number){
+    if (this.mmu._VRAMRefreshed) {
+      const matrix = this._calculateMatrix(tile_number);
+      this._cache[tile_number] = matrix;
+      return matrix;
+    }
+
+    if (!this._cache[tile_number]){
+      const matrix = this._calculateMatrix(tile_number);
+      this._cache[tile_number] = matrix;
+    }
+    return this._cache[tile_number];
+  }
+
+  /**
+   * Calculates palette matrix given a tile number.
+   * Expensive operation.
+   * @param tile_number
+   * @returns {Array}
+   * @private
+   */
+  _calculateMatrix(tile_number){
+    return LCD.tileToMatrix(this.mmu.readTile(tile_number));
   }
 
   /**
