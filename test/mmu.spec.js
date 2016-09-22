@@ -296,17 +296,33 @@ describe('MMU', () => {
       mmu.writeByteAt(mmu.ADDR_P1, 0x10);
       assert.equal(mmu.p1(), 0b11011110, 'A pressed');
 
+      mmu.liftA();
+      mmu.writeByteAt(mmu.ADDR_P1, 0x10);
+      assert.equal(mmu.p1(), 0b11011111, 'A lifted');
+
       mmu.pressB();
       mmu.writeByteAt(mmu.ADDR_P1, 0x10);
-      assert.equal(mmu.p1(), 0b11011100, 'B pressed');
+      assert.equal(mmu.p1(), 0b11011101, 'B pressed');
+
+      mmu.liftB();
+      mmu.writeByteAt(mmu.ADDR_P1, 0x10);
+      assert.equal(mmu.p1(), 0b11011111, 'B lifted');
 
       mmu.pressSELECT();
       mmu.writeByteAt(mmu.ADDR_P1, 0x10);
-      assert.equal(mmu.p1(), 0b11011000, 'SELECT pressed');
+      assert.equal(mmu.p1(), 0b11011011, 'SELECT pressed');
+
+      mmu.liftSELECT();
+      mmu.writeByteAt(mmu.ADDR_P1, 0x10);
+      assert.equal(mmu.p1(), 0b11011111, 'SELECT pressed');
 
       mmu.pressSTART();
       mmu.writeByteAt(mmu.ADDR_P1, 0x10);
-      assert.equal(mmu.p1(), 0b11010000, 'START pressed');
+      assert.equal(mmu.p1(), 0b11010111, 'START pressed');
+
+      mmu.liftSTART();
+      mmu.writeByteAt(mmu.ADDR_P1, 0x10);
+      assert.equal(mmu.p1(), 0b11011111, 'START lifted');
     });
 
     it('should reset', () => {
