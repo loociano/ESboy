@@ -32,6 +32,10 @@ class InputHandler {
     this._down = false;
     this._left = false;
     this._right = false;
+    this._a = false;
+    this._b = false;
+    this._select = false;
+    this._start = false;
 
     $body.addEventListener('keydown', (evt) => this.onKeyDown(evt));
     $body.addEventListener('keyup', (evt) => this.onKeyUp(evt));
@@ -71,6 +75,35 @@ class InputHandler {
           this._right = true;
         }
         break;
+
+      case this.KEY_X:
+        if (!this._a) {
+          this._mmu.pressA();
+          this._a = true;
+        }
+        break;
+
+      case this.KEY_Z:
+        if (!this._b) {
+          this._mmu.pressB();
+          this._b = true;
+        }
+        break;
+
+      case this.KEY_ENTER:
+      case this.KEY_SPACE:
+        if (!this._start) {
+          this._mmu.pressSTART();
+          this._start = true;
+        }
+        break;
+
+      case this.KEY_CTRL:
+        if (!this._select) {
+          this._mmu.pressSELECT();
+          this._select = true;
+        }
+        break;
     }
   }
 
@@ -99,6 +132,27 @@ class InputHandler {
       case this.KEY_RIGHT:
         this._mmu.liftRight();
         this._right = false;
+        break;
+
+      case this.KEY_X:
+        this._mmu.liftA();
+        this._a = false;
+        break;
+
+      case this.KEY_Z:
+        this._mmu.liftB();
+        this._b = false;
+        break;
+
+      case this.KEY_ENTER:
+      case this.KEY_SPACE:
+        this._mmu.liftSTART();
+        this._start = false;
+        break;
+
+      case this.KEY_CTRL:
+        this._mmu.liftSELECT();
+        this._select = false;
         break;
     }
   }
