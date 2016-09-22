@@ -256,44 +256,56 @@ describe('MMU', () => {
     });
 
     it('should select arrows by setting P14 low', () =>{
-      mmu.writeByteAt(mmu.ADDR_P1, 0x20);
-      assert.equal(mmu.p1(), 0b11101111, 'Arrow keys high, none pressed');
 
       mmu.pressRight();
+      mmu.writeByteAt(mmu.ADDR_P1, 0x20);
       assert.equal(mmu.p1(), 0b11101110, 'Right pressed');
+
       mmu.liftRight();
+      mmu.writeByteAt(mmu.ADDR_P1, 0x20);
       assert.equal(mmu.p1(), 0b11101111, 'Right lifted');
 
       mmu.pressLeft();
+      mmu.writeByteAt(mmu.ADDR_P1, 0x20);
       assert.equal(mmu.p1(), 0b11101101, 'Left pressed');
+
       mmu.liftLeft();
+      mmu.writeByteAt(mmu.ADDR_P1, 0x20);
       assert.equal(mmu.p1(), 0b11101111, 'Left lifted');
 
       mmu.pressUp();
+      mmu.writeByteAt(mmu.ADDR_P1, 0x20);
       assert.equal(mmu.p1(), 0b11101011, 'Up pressed');
+
       mmu.liftUp();
+      mmu.writeByteAt(mmu.ADDR_P1, 0x20);
       assert.equal(mmu.p1(), 0b11101111, 'Up lifted');
 
       mmu.pressDown();
+      mmu.writeByteAt(mmu.ADDR_P1, 0x20);
       assert.equal(mmu.p1(), 0b11100111, 'Down pressed');
+
       mmu.liftDown();
+      mmu.writeByteAt(mmu.ADDR_P1, 0x20);
       assert.equal(mmu.p1(), 0b11101111, 'Down lifted');
     });
 
     it('should select buttons by setting P15 low', () =>{
-      mmu.writeByteAt(mmu.ADDR_P1, 0x10);
-      assert.equal(mmu.p1(), 0b11011111, 'Buttons high, none pressed');
 
       mmu.pressA();
+      mmu.writeByteAt(mmu.ADDR_P1, 0x10);
       assert.equal(mmu.p1(), 0b11011110, 'A pressed');
 
       mmu.pressB();
+      mmu.writeByteAt(mmu.ADDR_P1, 0x10);
       assert.equal(mmu.p1(), 0b11011100, 'B pressed');
 
       mmu.pressSELECT();
+      mmu.writeByteAt(mmu.ADDR_P1, 0x10);
       assert.equal(mmu.p1(), 0b11011000, 'SELECT pressed');
 
       mmu.pressSTART();
+      mmu.writeByteAt(mmu.ADDR_P1, 0x10);
       assert.equal(mmu.p1(), 0b11010000, 'START pressed');
     });
 
