@@ -218,7 +218,6 @@ export default class MMU {
         throw new Error('Unsupported');
 
       case this.ADDR_P1:
-        Logger.info(Utils.toBin8(this._memory[addr]));
         if ((this._memory[addr] & this.MASK_P14) === 0){
           return (this._memory[addr] & this.MASK_P10_P13 | this._buttons);
         }
