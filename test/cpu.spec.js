@@ -1859,6 +1859,22 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu._0xhl(), 0x00, 'RES b,(hl) with 0..b..7 resets all bits');
     });
 
+    it('should set bits at memory location hl', () => {
+
+      cpu.ld_hl_nn(0xc000);
+      cpu.mmu.writeByteAt(cpu.hl(), 0x00);
+
+      for(let b = 0; b < 8; b++) {
+        const m = cpu.m();
+
+        cpu[`set_${b}_0xhl`]();
+
+        assert.equal(cpu.m() - m, 4, 'Machine cycles');
+      }
+
+      assert.equal(cpu._0xhl(), 0xff, 'SET b,(hl) with 0..b..7 sets all bits');
+    });
+
   });
 
   describe('Calls', () => {
