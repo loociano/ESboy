@@ -403,6 +403,14 @@ export default class CPU {
       0xcbbd: {fn: this.res_7_l, paramBytes: 0},
       0xcbbe: {fn: this.res_7_0xhl, paramBytes: 0},
       0xcbbf: {fn: this.res_7_a, paramBytes: 0},
+      0xcbc6: {fn: this.set_0_0xhl, paramBytes: 0},
+      0xcbce: {fn: this.set_1_0xhl, paramBytes: 0},
+      0xcbd6: {fn: this.set_2_0xhl, paramBytes: 0},
+      0xcbde: {fn: this.set_3_0xhl, paramBytes: 0},
+      0xcbe6: {fn: this.set_4_0xhl, paramBytes: 0},
+      0xcbee: {fn: this.set_5_0xhl, paramBytes: 0},
+      0xcbf6: {fn: this.set_6_0xhl, paramBytes: 0},
+      0xcbfe: {fn: this.set_7_0xhl, paramBytes: 0},
       0xcd: {fn: this.call, paramBytes: 2},
       0xce: {fn: this.adc_n, paramBytes: 1},
       0xcf: {fn: this.rst_08, paramBytes: 0},
@@ -2015,6 +2023,7 @@ export default class CPU {
         if (r === '0xhl'){
           this[`bit_${b}_0xhl`] = function() { this._bit_b_0xhl(b); };
           this[`res_${b}_0xhl`] = function() { this.res_b_0xhl(b); };
+          this[`set_${b}_0xhl`] = function() { this._set_b_0xhl(b); };
         } else {
           this[`bit_${b}_${r}`] = function() { this._bit_b_r(b, this._r[r]); };
           this[`res_${b}_${r}`] = function() { this._res_b_r(b, r); };
@@ -2040,6 +2049,17 @@ export default class CPU {
    */
   res_b_0xhl(bit){
     const value = this._0xhl() & (0xff & (0 << bit));
+    this.mmu.writeByteAt(this.hl(), value);
+    this._m += 3;
+  }
+
+  /**
+   * Sets bit b of value at memory location hl.
+   * @param bit
+   * @private
+   */
+  _set_b_0xhl(bit){
+    const value = this._0xhl() | (1 << bit);
     this.mmu.writeByteAt(this.hl(), value);
     this._m += 3;
   }
