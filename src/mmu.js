@@ -347,7 +347,7 @@ export default class MMU {
 
     switch(addr){
       case this.ADDR_P1:
-        n |= this.MASK_P1_RW;
+        n = (this._memory[addr] & this.MASK_P1_RW) | n;
         break;
       case this.ADDR_VBK:
         Logger.info(`Cannot write on ${Utils.hex4(addr)}`);
