@@ -1401,6 +1401,21 @@ describe('CPU Unit tests', function() {
     });
   });
 
+  describe('General purpose arithmetic', () => {
+    it('should adjust to BCD after addition', () => {
+      cpu.ld_a_n(0x45);
+      cpu.ld_b_n(0x38);
+      cpu.add_b();
+      const m = cpu.m();
+
+      cpu.daa();
+
+      assert.equal(cpu.a(), 0x83, 'BCD adjusted');
+      assert.equal(cpu.f(), 0b0000, 'Flags');
+      assert.equal(cpu.m() - m, 1, 'Machine cycles');
+    });
+  });
+
   describe('16 bits loads', () => {
 
     describe('LD rr,nn', () => {
