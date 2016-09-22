@@ -107,7 +107,7 @@ export default class CPU {
       0x34: {fn: this.inc_0xhl, paramBytes: 0},
       0x35: {fn: this.dec_0xhl, paramBytes: 0},
       0x36: {fn: this.ld_0xhl_n, paramBytes: 1},
-      0x38: {fn: this.jr_c_n, paramBytes: 0},
+      0x38: {fn: this.jr_c_n, paramBytes: 1},
       0x39: {fn: this.add_hl_sp, paramBytes: 0},
       0x3a: {fn: this.ldd_a_0xhl, paramBytes: 0},
       0x3b: {fn: this.dec_sp, paramBytes: 0},
