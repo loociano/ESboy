@@ -130,11 +130,14 @@ export default class LCD {
       return matrix;
     }
 
-    if (!this._cache[tile_number]){
+    const cached = this._cache[tile_number];
+    if (cached){
+      return cached;
+    } else {
       const matrix = this._calculateMatrix(tile_number);
       this._cache[tile_number] = matrix;
+      return this._cache[tile_number];
     }
-    return this._cache[tile_number];
   }
 
   /**
