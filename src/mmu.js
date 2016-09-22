@@ -63,6 +63,8 @@ export default class MMU {
 
     // P1 masks
     this.MASK_P1_RW = 0xcf;
+    this.MASK_P14 = 0x20;
+    this.MASK_P10_P13 = 0xf0;
     this.MASK_P1_RIGHT_ON = this.MASK_P1_A_ON = 0xfe;
     this.MASK_P1_LEFT_ON = this.MASK_P1_B_ON = 0xfd;
     this.MASK_P1_UP_ON = this.MASK_P1_SELECT_ON = 0xfb;
@@ -137,6 +139,7 @@ export default class MMU {
 
     this.inBIOS = true;
     this._isDMA = false;
+    this._buttons = 0x0f; // Buttons unpressed, on HIGH
 
     this._initMemory();
     this._loadROM(filename);
@@ -213,6 +216,12 @@ export default class MMU {
       case this.ADDR_SVBK:
       case this.ADDR_KEY1:
         throw new Error('Unsupported');
+
+      case this.ADDR_P1:
+        Logger.info(Utils.toBin8(this._memory[addr]));
+        if ((this._memory[addr] & this.MASK_P14) === 0){
+          return (this._memory[addr] & this.MASK_P10_P13 | this._buttons);
+        }
     }
 
     if (this._isOAMAddr(addr) && !this._canAccessOAM()){
@@ -750,35 +759,35 @@ export default class MMU {
   }
 
   pressA(){
-    this._memory[this.ADDR_P1] &= this.MASK_P1_A_ON;
+    this._buttons &= this.MASK_P1_A_ON;
   }
 
   liftA(){
-    this._memory[this.ADDR_P1] |= this.MASK_P1_A_OFF;
+    this._buttons |= this.MASK_P1_A_OFF;
   }
 
   pressB(){
-    this._memory[this.ADDR_P1] &= this.MASK_P1_B_ON;
+    this._buttons &= this.MASK_P1_B_ON;
   }
 
   liftB(){
-    this._memory[this.ADDR_P1] |= this.MASK_P1_B_OFF;
+    this._buttons |= this.MASK_P1_B_OFF;
   }
 
   pressSELECT(){
-    this._memory[this.ADDR_P1] &= this.MASK_P1_SELECT_ON;
+    this._buttons &= this.MASK_P1_SELECT_ON;
   }
 
   liftSELECT(){
-    this._memory[this.ADDR_P1] |= this.MASK_P1_SELECT_OFF;
+    this._buttons |= this.MASK_P1_SELECT_OFF;
   }
 
   pressSTART(){
-    this._memory[this.ADDR_P1] &= this.MASK_P1_START_ON;
+    this._buttons &= this.MASK_P1_START_ON;
   }
 
   liftSTART(){
-    this._memory[this.ADDR_P1] |= this.MASK_P1_START_OFF;
+    this._buttons |= this.MASK_P1_START_OFF;
   }
 
   /**
