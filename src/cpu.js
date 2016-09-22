@@ -100,6 +100,7 @@ export default class CPU {
       0x2e: {fn: this.ld_l_n, paramBytes: 1},
       0x2f: {fn: this.cpl, paramBytes: 0},
       0x26: {fn: this.ld_h_n, paramBytes: 1},
+      0x27: {fn: this.daa, paramBytes: 0},
       0x30: {fn: this.jr_nc_n, paramBytes: 1},
       0x31: {fn: this.ld_sp_nn, paramBytes: 2},
       0x32: {fn: this.ldd_0xhl_a, paramBytes: 0},
@@ -3681,5 +3682,27 @@ export default class CPU {
    */
   _adc_r(r){
     this._add_r(r, this.C());
+  }
+
+  /**
+   * Decimal Adjust to register a
+   */
+  daa(){
+    if ( (this._r.a & 0x0f) > 9 || this.H()){
+      this._r.a += 0x06;
+    }
+    if ((this._r.a >> 4) > 9 || this.C()){
+      this._r.a += 0x60;
+      this.setC(1);
+    } else {
+      this.setC(0);
+    }
+    if (this._r.a === 0){
+      this.setZ(1);
+    } else {
+      this.setZ(0);
+    }
+    this.setH(0);
+    this._m++;
   }
 }
