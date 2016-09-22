@@ -325,6 +325,19 @@ describe('MMU', () => {
       assert.equal(mmu.p1(), 0b11011111, 'START lifted');
     });
 
+    it('should detect buttons and arrows at the same bit position', () => {
+      mmu.pressRight();
+
+      mmu.writeByteAt(mmu.ADDR_P1, 0x20);
+      assert.equal(mmu.p1(), 0b11101110, 'Right pressed');
+
+      mmu.writeByteAt(mmu.ADDR_P1, 0x10);
+      assert.equal(mmu.p1(), 0b11011111, 'A is not pressed');
+
+      mmu.writeByteAt(mmu.ADDR_P1, 0x20);
+      assert.equal(mmu.p1(), 0b11101110, 'Right keeps pressed');
+    });
+
     it('should reset', () => {
       mmu.writeByteAt(mmu.ADDR_P1, 0x30);
       assert.equal(mmu.p1(), 0xff, 'Default');
