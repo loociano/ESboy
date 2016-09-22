@@ -63,10 +63,14 @@ export default class MMU {
 
     // P1 masks
     this.MASK_P1_RW = 0xcf;
-    this.MASK_P1_RIGHT = this.MASK_P1_A = 0xfe;
-    this.MASK_P1_LEFT = this.MASK_P1_B = 0xfd;
-    this.MASK_P1_UP = this.MASK_P1_SELECT = 0xfb;
-    this.MASK_P1_DOWN = this.MASK_P1_START = 0xf7;
+    this.MASK_P1_RIGHT_ON = this.MASK_P1_A = 0xfe;
+    this.MASK_P1_LEFT_ON = this.MASK_P1_B = 0xfd;
+    this.MASK_P1_UP_ON = this.MASK_P1_SELECT = 0xfb;
+    this.MASK_P1_DOWN_ON = this.MASK_P1_START = 0xf7;
+    this.MASK_P1_RIGHT_OFF = 0x01;
+    this.MASK_P1_LEFT_OFF = 0x02;
+    this.MASK_P1_UP_OFF = 0x04;
+    this.MASK_P1_DOWN_OFF = 0x08;
 
     // LCDC masks
     this.MASK_BG_CHAR_DATA = 0x10;
@@ -714,19 +718,35 @@ export default class MMU {
   }
 
   pressRight(){
-    this._memory[this.ADDR_P1] &= this.MASK_P1_RIGHT;
+    this._memory[this.ADDR_P1] &= this.MASK_P1_RIGHT_ON;
+  }
+
+  liftRight(){
+    this._memory[this.ADDR_P1] |= this.MASK_P1_RIGHT_OFF;
   }
 
   pressLeft(){
-    this._memory[this.ADDR_P1] &= this.MASK_P1_LEFT;
+    this._memory[this.ADDR_P1] &= this.MASK_P1_LEFT_ON;
+  }
+
+  liftLeft(){
+    this._memory[this.ADDR_P1] |= this.MASK_P1_LEFT_OFF;
   }
 
   pressUp(){
-    this._memory[this.ADDR_P1] &= this.MASK_P1_UP;
+    this._memory[this.ADDR_P1] &= this.MASK_P1_UP_ON;
+  }
+
+  liftUp(){
+    this._memory[this.ADDR_P1] |= this.MASK_P1_UP_OFF;
   }
 
   pressDown(){
-    this._memory[this.ADDR_P1] &= this.MASK_P1_DOWN;
+    this._memory[this.ADDR_P1] &= this.MASK_P1_DOWN_ON;
+  }
+
+  liftDown(){
+    this._memory[this.ADDR_P1] |= this.MASK_P1_DOWN_OFF;
   }
 
   pressA(){
