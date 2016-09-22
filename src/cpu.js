@@ -2078,7 +2078,7 @@ export default class CPU {
       for (let b = 0; b < 8; b++) {
         if (r === '0xhl'){
           this[`bit_${b}_0xhl`] = function() { this._bit_b_0xhl(b); };
-          this[`res_${b}_0xhl`] = function() { this.res_b_0xhl(b); };
+          this[`res_${b}_0xhl`] = function() { this._res_b_0xhl(b); };
           this[`set_${b}_0xhl`] = function() { this._set_b_0xhl(b); };
         } else {
           this[`bit_${b}_${r}`] = function() { this._bit_b_r(b, this._r[r]); };
@@ -2103,8 +2103,9 @@ export default class CPU {
   /**
    * Resets bit b of value at memory location hl.
    * @param bit
+   * @private
    */
-  res_b_0xhl(bit){
+  _res_b_0xhl(bit){
     const value = this._0xhl() & (0xff & (0 << bit));
     this.mmu.writeByteAt(this.hl(), value);
     this._m += 3;

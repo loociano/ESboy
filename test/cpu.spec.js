@@ -1820,13 +1820,11 @@ describe('CPU Unit tests', function() {
         cpu[`ld_${r}_n`].call(cpu, 0xff);
 
         for(let b = 0; b < 8; b++) {
-          const func = `res_${b}_${r}`;
-          assert.ok(cpu[func], `${func} exists`);
           const m = cpu.m();
 
-          cpu[func].call(cpu); // reset bit b
+          cpu[`res_${b}_${r}`](); // reset bit b
 
-          assert.equal(cpu.m(), m + 2, `${func} machine cycles`);
+          assert.equal(cpu.m() - m, 2, 'Machine cycles');
         }
 
         assert.equal(cpu[r].call(cpu), 0x00, `RES b,${r} 0..b..7 resets all bits`);
@@ -1851,7 +1849,7 @@ describe('CPU Unit tests', function() {
       for(let b = 0; b < 8; b++) {
         const m = cpu.m();
 
-        cpu.res_b_0xhl(b);
+        cpu[`res_${b}_0xhl`]();
 
         assert.equal(cpu.m(), m + 4, `RES ${b},(hl) machine cycles`);
       }
