@@ -261,15 +261,23 @@ describe('MMU', () => {
 
       mmu.pressRight();
       assert.equal(mmu.p1(), 0b11101110, 'Right pressed');
+      mmu.liftRight();
+      assert.equal(mmu.p1(), 0b11101111, 'Right lifted');
 
       mmu.pressLeft();
-      assert.equal(mmu.p1(), 0b11101100, 'Left pressed');
+      assert.equal(mmu.p1(), 0b11101101, 'Left pressed');
+      mmu.liftLeft();
+      assert.equal(mmu.p1(), 0b11101111, 'Left lifted');
 
       mmu.pressUp();
-      assert.equal(mmu.p1(), 0b11101000, 'Up pressed');
+      assert.equal(mmu.p1(), 0b11101011, 'Up pressed');
+      mmu.liftUp();
+      assert.equal(mmu.p1(), 0b11101111, 'Up lifted');
 
       mmu.pressDown();
-      assert.equal(mmu.p1(), 0b11100000, 'Down pressed');
+      assert.equal(mmu.p1(), 0b11100111, 'Down pressed');
+      mmu.liftDown();
+      assert.equal(mmu.p1(), 0b11101111, 'Down lifted');
     });
 
     it('should select buttons by setting P15 low', () =>{
