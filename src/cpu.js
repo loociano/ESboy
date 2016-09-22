@@ -403,14 +403,70 @@ export default class CPU {
       0xcbbd: {fn: this.res_7_l, paramBytes: 0},
       0xcbbe: {fn: this.res_7_0xhl, paramBytes: 0},
       0xcbbf: {fn: this.res_7_a, paramBytes: 0},
+      0xcbc0: {fn: this.set_0_b, paramBytes: 0},
+      0xcbc1: {fn: this.set_0_c, paramBytes: 0},
+      0xcbc2: {fn: this.set_0_d, paramBytes: 0},
+      0xcbc3: {fn: this.set_0_e, paramBytes: 0},
+      0xcbc4: {fn: this.set_0_h, paramBytes: 0},
+      0xcbc5: {fn: this.set_0_l, paramBytes: 0},
       0xcbc6: {fn: this.set_0_0xhl, paramBytes: 0},
+      0xcbc7: {fn: this.set_0_a, paramBytes: 0},
+      0xcbc8: {fn: this.set_1_b, paramBytes: 0},
+      0xcbc9: {fn: this.set_1_c, paramBytes: 0},
+      0xcbca: {fn: this.set_1_d, paramBytes: 0},
+      0xcbcb: {fn: this.set_1_e, paramBytes: 0},
+      0xcbcc: {fn: this.set_1_h, paramBytes: 0},
+      0xcbcd: {fn: this.set_1_l, paramBytes: 0},
       0xcbce: {fn: this.set_1_0xhl, paramBytes: 0},
+      0xcbcf: {fn: this.set_1_a, paramBytes: 0},
+      0xcbd0: {fn: this.set_2_b, paramBytes: 0},
+      0xcbd1: {fn: this.set_2_c, paramBytes: 0},
+      0xcbd2: {fn: this.set_2_d, paramBytes: 0},
+      0xcbd3: {fn: this.set_2_e, paramBytes: 0},
+      0xcbd4: {fn: this.set_2_h, paramBytes: 0},
+      0xcbd5: {fn: this.set_2_l, paramBytes: 0},
       0xcbd6: {fn: this.set_2_0xhl, paramBytes: 0},
+      0xcbd7: {fn: this.set_2_a, paramBytes: 0},
+      0xcbd8: {fn: this.set_3_b, paramBytes: 0},
+      0xcbd9: {fn: this.set_3_c, paramBytes: 0},
+      0xcbda: {fn: this.set_3_d, paramBytes: 0},
+      0xcbdb: {fn: this.set_3_e, paramBytes: 0},
+      0xcbdc: {fn: this.set_3_h, paramBytes: 0},
+      0xcbdd: {fn: this.set_3_l, paramBytes: 0},
       0xcbde: {fn: this.set_3_0xhl, paramBytes: 0},
+      0xcbdf: {fn: this.set_3_a, paramBytes: 0},
+      0xcbe0: {fn: this.set_4_b, paramBytes: 0},
+      0xcbe1: {fn: this.set_4_c, paramBytes: 0},
+      0xcbe2: {fn: this.set_4_d, paramBytes: 0},
+      0xcbe3: {fn: this.set_4_e, paramBytes: 0},
+      0xcbe4: {fn: this.set_4_h, paramBytes: 0},
+      0xcbe5: {fn: this.set_4_l, paramBytes: 0},
       0xcbe6: {fn: this.set_4_0xhl, paramBytes: 0},
+      0xcbe7: {fn: this.set_4_a, paramBytes: 0},
+      0xcbe8: {fn: this.set_5_b, paramBytes: 0},
+      0xcbe9: {fn: this.set_5_c, paramBytes: 0},
+      0xcbea: {fn: this.set_5_d, paramBytes: 0},
+      0xcbeb: {fn: this.set_5_e, paramBytes: 0},
+      0xcbec: {fn: this.set_5_h, paramBytes: 0},
+      0xcbed: {fn: this.set_5_l, paramBytes: 0},
       0xcbee: {fn: this.set_5_0xhl, paramBytes: 0},
+      0xcbef: {fn: this.set_5_a, paramBytes: 0},
+      0xcbf0: {fn: this.set_6_b, paramBytes: 0},
+      0xcbf1: {fn: this.set_6_c, paramBytes: 0},
+      0xcbf2: {fn: this.set_6_d, paramBytes: 0},
+      0xcbf3: {fn: this.set_6_e, paramBytes: 0},
+      0xcbf4: {fn: this.set_6_h, paramBytes: 0},
+      0xcbf5: {fn: this.set_6_l, paramBytes: 0},
       0xcbf6: {fn: this.set_6_0xhl, paramBytes: 0},
+      0xcbf7: {fn: this.set_6_a, paramBytes: 0},
+      0xcbf8: {fn: this.set_7_b, paramBytes: 0},
+      0xcbf9: {fn: this.set_7_c, paramBytes: 0},
+      0xcbfa: {fn: this.set_7_d, paramBytes: 0},
+      0xcbfb: {fn: this.set_7_e, paramBytes: 0},
+      0xcbfc: {fn: this.set_7_h, paramBytes: 0},
+      0xcbfd: {fn: this.set_7_l, paramBytes: 0},
       0xcbfe: {fn: this.set_7_0xhl, paramBytes: 0},
+      0xcbff: {fn: this.set_7_a, paramBytes: 0},
       0xcd: {fn: this.call, paramBytes: 2},
       0xce: {fn: this.adc_n, paramBytes: 1},
       0xcf: {fn: this.rst_08, paramBytes: 0},
@@ -2027,6 +2083,7 @@ export default class CPU {
         } else {
           this[`bit_${b}_${r}`] = function() { this._bit_b_r(b, this._r[r]); };
           this[`res_${b}_${r}`] = function() { this._res_b_r(b, r); };
+          this[`set_${b}_${r}`] = function() { this._set_b_r(b, r); };
         }
       }
     });
@@ -2051,6 +2108,16 @@ export default class CPU {
     const value = this._0xhl() & (0xff & (0 << bit));
     this.mmu.writeByteAt(this.hl(), value);
     this._m += 3;
+  }
+
+  /**
+   * Sets bit b of register r.
+   * @param bit
+   * @private
+   */
+  _set_b_r(bit, r){
+    this._r[r] |= (1 << bit);
+    this._m += 2;
   }
 
   /**
