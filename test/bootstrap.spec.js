@@ -1,15 +1,17 @@
 import CPU from '../src/cpu';
 import MMU from '../src/mmu';
+import Loader from '../src/loader';
 import assert from 'assert';
-import {describe, beforeEach, it} from 'mocha';
+import {describe, before, it} from 'mocha';
 import ipcMock from './mock/ipcMock';
 
 let cpu;
 
 describe('Start BIOS', () => {
 
-  before(() => {
-    cpu = new CPU(new MMU('./roms/blargg_cpu_instrs.gb'), new ipcMock());
+  before( () => {
+    const loader = new Loader('./roms/blargg_cpu_instrs.gb');
+    cpu = new CPU(new MMU(loader.asUint8Array()), new ipcMock());
   });
 
   it('should start with pc, sp and registers at right values', () => {

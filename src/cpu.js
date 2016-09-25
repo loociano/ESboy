@@ -5,7 +5,7 @@ import config from './config';
 export default class CPU {
 
   /**
-   * @param {string} filename
+   * @param {Object} mmu
    * @param {Object} ctx
    */
   constructor(mmu, ipc) {

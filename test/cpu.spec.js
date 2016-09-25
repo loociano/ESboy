@@ -1,5 +1,6 @@
 import CPU from '../src/cpu';
 import MMU from '../src/mmu';
+import Loader from '../src/loader';
 import assert from 'assert';
 import config from '../src/config';
 import {describe, beforeEach, it} from 'mocha';
@@ -12,8 +13,9 @@ describe('CPU Unit tests', function() {
   config.TEST = true;
   let cpu;
 
-  beforeEach(function() {
-    cpu = new CPU(new MMU('./roms/blargg_cpu_instrs.gb'), new ipcMock());
+  beforeEach( () => {
+    const loader = new Loader('./roms/blargg_cpu_instrs.gb');
+    cpu = new CPU(new MMU(loader.asUint8Array()), new ipcMock());
 
     cpu.setPC = function(pc){
       this.mmu.inBIOS = false;
@@ -22,7 +24,7 @@ describe('CPU Unit tests', function() {
   });
 
   describe('ROM file loading', () => {
-    it('should handle missing ROM filename', () => {
+    it('should handle missing MMU', () => {
       assert.throws(() => new CPU(), Error);
     });
 

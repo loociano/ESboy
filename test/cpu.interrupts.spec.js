@@ -1,9 +1,11 @@
 import CPU from '../src/cpu';
 import MMU from '../src/mmu';
+import Loader from '../src/loader';
 import assert from 'assert';
 import config from '../src/config';
 import Utils from '../src/utils';
 import ipcMock from './mock/ipcMock';
+import {describe, beforeEach, it} from 'mocha';
 
 describe('Interruptions', () => {
 
@@ -11,7 +13,9 @@ describe('Interruptions', () => {
   config.TEST = true;
 
   beforeEach(function() {
-    this.cpu = new CPU(new MMU('./roms/blargg_cpu_instrs.gb'), new ipcMock());
+    const loader = new Loader('./roms/blargg_cpu_instrs.gb');
+    this.cpu = new CPU(new MMU(loader.asUint8Array()), new ipcMock());
+
     this.cpu.setPC = function(pc){
       this.mmu.inBIOS = false;
       this._r.pc = pc; // for testing!
