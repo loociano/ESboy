@@ -1,4 +1,5 @@
 import MMU from '../src/mmu';
+import Loader from '../src/loader';
 import assert from 'assert';
 import config from '../src/config';
 import {describe, beforeEach, it} from 'mocha';
@@ -11,8 +12,9 @@ describe('MMU', () => {
 
   let mmu;
 
-  beforeEach(function() {
-    mmu = new MMU('./roms/blargg_cpu_instrs.gb');
+  beforeEach( () => {
+    const loader = new Loader('./roms/blargg_cpu_instrs.gb');
+    mmu = new MMU(loader.asUint8Array());
   });
 
   it('should write bytes in memory', () => {
@@ -28,7 +30,6 @@ describe('MMU', () => {
   it('should not write bytes in ROM', () => {
     
     let addr = 0x0000;
-    let value = mmu.readByteAt(addr);
 
     assert.doesNotThrow( () => {
       mmu.writeByteAt(addr, 0xab);
@@ -72,7 +73,7 @@ describe('MMU', () => {
   });
 
   it('should load the BIOS in memory', () => {
-    assert(mmu.readBIOSBuffer().equals(mmu.getBIOS()), 'BIOS is in memory');
+    assert.deepEqual(mmu.readBIOSBuffer(), mmu.getBIOS(), 'BIOS is in memory');
   });
 
   it('should read BIOS', () => {
@@ -95,9 +96,8 @@ describe('MMU', () => {
     });
 
     it('should read the nintendo graphic buffer', () => {
-      const buf = new Buffer('CEED6666CC0D000B03730083000C000D0008' +
-        '111F8889000EDCCC6EE6DDDDD999BBBB67636E0EECCCDDDC999FBBB9333E', 'hex');
-      assert(mmu.getNintendoGraphicBuffer().equals(buf), 'Nintendo Graphic Buffer must match.');
+      const u8array = new Uint8Array([0xCE,0xED,0x66,0x66,0xCC,0x0D,0x00,0x0B,0x03,0x73,0x00,0x83,0x00,0x0C,0x00,0x0D,0x00,0x08,0x11,0x1F,0x88,0x89,0x00,0x0E,0xDC,0xCC,0x6E,0xE6,0xDD,0xDD,0xD9,0x99,0xBB,0xBB,0x67,0x63,0x6E,0x0E,0xEC,0xCC,0xDD,0xDC,0x99,0x9F,0xBB,0xB9,0x33,0x3E]);
+      assert.deepEqual(mmu.getNintendoGraphicBuffer(), u8array, 'Nintendo Graphic Buffer must match.');
     });
 
     it('should compute the checksum', () => {
@@ -144,21 +144,21 @@ describe('MMU', () => {
     });
 
     it('should read character data 0x8000-0x8fff based on LCDC bit 4', () => {
-      const chrData = new Buffer('ab0000000000000000000000000000cd', 'hex');
+      const chrData = new Uint8Array([0xab,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xcd]);
       mmu.writeBuffer(chrData, 0x8000);
 
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_CHAR_DATA_8000 | mmu.MASK_BG_ON);
       
-      assert(mmu.readTile(0).equals(chrData), 'Character data matches');
+      assert.deepEqual(mmu.readTile(0), chrData, 'Character data matches');
     });
 
     it('should read character data 0x8800-0x97ff based on LCDC bit 4', () => {
-      const chrData = new Buffer('ab0000000000000000000000000000cd', 'hex');
+      const chrData = new Uint8Array([0xab,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xcd]);
       mmu.writeBuffer(chrData, 0x8800);
 
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_CHAR_DATA_8800 | mmu.MASK_BG_ON);
 
-      assert(mmu.readTile(0).equals(chrData), 'Character data matches');
+      assert.deepEqual(mmu.readTile(0), chrData, 'Character data matches');
     });
 
     it('should read character code from 0x9800 based on LCDC bit 3', () => {
@@ -191,15 +191,15 @@ describe('MMU', () => {
     });
 
     it('should turn on/off background', () => {
-      const chrData = new Buffer('ab0000000000000000000000000000cd', 'hex');
+      const chrData = new Uint8Array([0xab,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xcd]);
       mmu.writeBuffer(chrData, 0x8000);
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_ON | mmu.MASK_BG_CHAR_DATA_8000);
 
-      assert(mmu.readTile(0).equals(chrData), 'Character data matches');
+      assert.deepEqual(mmu.readTile(0), chrData, 'Character data matches');
 
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_OFF);
 
-      assert(mmu.readTile(0).equals(new Buffer('00000000000000000000000000000000', 'hex')), 'Transparent');
+      assert.deepEqual(mmu.readTile(0), new Uint8Array([0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]), 'Transparent');
     });
 
   });
