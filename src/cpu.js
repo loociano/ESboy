@@ -21,7 +21,6 @@ export default class CPU {
     this.mmu = mmu;
     this.lcd = lcd;
 
-    this.isPainting = false;
     this._lastInstrWasEI = false;
 
     this._m = 0; // machine cycles for lcd
@@ -912,17 +911,7 @@ export default class CPU {
       this._rst_40();
     }
 
-    this.paintFrame();
-  }
-
-  /**
-   * Request a frame paint
-   */
-  paintFrame(){
-    if (!this.isPainting) {
-      this.isPainting = true;
-      this.lcd.drawTiles();
-    }
+    this.lcd.drawTiles();
   }
 
   /**
