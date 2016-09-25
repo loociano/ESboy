@@ -7074,13 +7074,24 @@ var LCD = function () {
     key: 'drawTiles',
     value: function drawTiles() {
       if (this.mmu._VRAMRefreshed) {
+        this._clearMatrixCache();
         this._drawBG();
+        this.mmu._VRAMRefreshed = false;
       }
       if (this.mmu.areOBJOn()) {
         this._clear(this.imageDataOBJ, this.ctxOBJ);
         this._drawOBJ();
       }
-      this.mmu._VRAMRefreshed = false;
+    }
+
+    /**
+     * @private
+     */
+
+  }, {
+    key: '_clearMatrixCache',
+    value: function _clearMatrixCache() {
+      this._cache = {};
     }
 
     /**
@@ -7176,18 +7187,12 @@ var LCD = function () {
   }, {
     key: '_getMatrix',
     value: function _getMatrix(tile_number) {
-      if (this.mmu._VRAMRefreshed) {
-        var matrix = this._calculateMatrix(tile_number);
-        this._cache[tile_number] = matrix;
-        return matrix;
-      }
-
       var cached = this._cache[tile_number];
       if (cached) {
         return cached;
       } else {
-        var _matrix = this._calculateMatrix(tile_number);
-        this._cache[tile_number] = _matrix;
+        var matrix = this._calculateMatrix(tile_number);
+        this._cache[tile_number] = matrix;
         return this._cache[tile_number];
       }
     }

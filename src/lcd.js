@@ -43,13 +43,21 @@ export default class LCD {
    */
   drawTiles(){
     if (this.mmu._VRAMRefreshed) {
+      this._clearMatrixCache();
       this._drawBG();
+      this.mmu._VRAMRefreshed = false;
     }
     if (this.mmu.areOBJOn()) {
       this._clear(this.imageDataOBJ, this.ctxOBJ);
       this._drawOBJ();
     }
-    this.mmu._VRAMRefreshed = false;
+  }
+
+  /**
+   * @private
+   */
+  _clearMatrixCache(){
+    this._cache = {};
   }
 
   /**
@@ -124,12 +132,6 @@ export default class LCD {
    * @private
    */
   _getMatrix(tile_number){
-    if (this.mmu._VRAMRefreshed) {
-      const matrix = this._calculateMatrix(tile_number);
-      this._cache[tile_number] = matrix;
-      return matrix;
-    }
-
     const cached = this._cache[tile_number];
     if (cached){
       return cached;
