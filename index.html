@@ -8,21 +8,22 @@
     body {
       margin: 0;
     }
-    canvas {
+
+    #lcd {
+      position: relative;
+    }
+
+    #bg {
       position: absolute;
-    }
-    #bg{
       background-color: #e2ffe3;
-    }
-    input[type=file]{
-      position:absolute;
-      right: 0;
     }
   </style>
 
   <body>
-    <canvas id="bg" width="160" height="144"></canvas>
-    <canvas id="obj" width="160" height="144"></canvas>
+    <div id="lcd">
+      <canvas id="bg" width="160" height="144"></canvas>
+      <canvas id="obj" width="160" height="144"></canvas>
+    </div>
 
     <input type="file" id="files" name="file" />
   </body>
