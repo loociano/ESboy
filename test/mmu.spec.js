@@ -17,6 +17,10 @@ describe('MMU', () => {
     mmu = new MMU(loader.asUint8Array());
   });
 
+  it('should handle missing ROM', () => {
+    assert.throws(() => new MMU(), Error, 'Missing ROM');
+  });
+
   it('should write bytes in memory', () => {
     mmu.writeByteAt(0xc000, 0xab);
     assert.equal(mmu.readByteAt(0xc000), 0xab, 'write 0xab in memory address 0xc000');

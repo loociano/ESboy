@@ -26,10 +26,6 @@ describe('CPU Unit tests', function() {
       assert.throws(() => new CPU(), Error);
     });
 
-    it('should handle missing ROM file', () => {
-      assert.throws(() => new CPU(new MMU('./roms/nope.gb')), Error);
-    });
-
     it('should handle missing ipc', () => {
       assert.throws( () => new CPU(new MMU(), null), Error, 'Missing ipc');
     });
