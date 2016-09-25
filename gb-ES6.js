@@ -2896,9 +2896,6 @@ var CPU = function () {
       try {
         this.frame(pc_stop);
       } catch (e) {
-        if (!_config2.default.TEST) {
-          this.mmu.dumpMemoryToFile();
-        }
         _logger2.default.error(e.stack);
         throw e;
       }
