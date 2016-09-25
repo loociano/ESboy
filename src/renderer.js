@@ -19,6 +19,8 @@ function handleFileSelect(evt) {
   reader.readAsArrayBuffer(file);
 }
 
+let cpu;
+
 function start(rom){
   const mmu = new MMU(rom);
 
@@ -28,8 +30,14 @@ function start(rom){
 
   const lcd = new LCD(mmu, ctxBG, ctxOBJ, 160, 144);
 
-  const cpu = new CPU(mmu, lcd);
+  cpu = new CPU(mmu, lcd);
+
+  window.requestAnimationFrame(frame);
+}
+
+function frame(){
   cpu.start();
+  window.requestAnimationFrame(frame);
 }
 
 document.getElementById('files').addEventListener('change', handleFileSelect, false);
