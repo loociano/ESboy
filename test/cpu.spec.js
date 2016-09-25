@@ -5,7 +5,7 @@ import assert from 'assert';
 import config from '../src/config';
 import {describe, beforeEach, it} from 'mocha';
 import Utils from '../src/utils';
-import ipcMock from './mock/ipcMock';
+import lcdMock from './mock/lcdMock';
 
 describe('CPU Unit tests', function() {
 
@@ -15,7 +15,7 @@ describe('CPU Unit tests', function() {
 
   beforeEach( () => {
     const loader = new Loader('./roms/blargg_cpu_instrs.gb');
-    cpu = new CPU(new MMU(loader.asUint8Array()), new ipcMock());
+    cpu = new CPU(new MMU(loader.asUint8Array()), new lcdMock());
 
     cpu.setPC = function(pc){
       this.mmu.inBIOS = false;

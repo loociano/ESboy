@@ -8,18 +8,18 @@ export default class CPU {
    * @param {Object} mmu
    * @param {Object} ctx
    */
-  constructor(mmu, ipc) {
+  constructor(mmu, lcd) {
 
     if (mmu == null) {
       throw new Error('Missing mmu');
     }
 
-    if (ipc == null){
-      throw new Error('Missing ipc');
+    if (lcd == null){
+      throw new Error('Missing lcd');
     }
 
     this.mmu = mmu;
-    this.ipc = ipc;
+    this.lcd = lcd;
 
     this.isPainting = false;
     this._lastInstrWasEI = false;
@@ -773,7 +773,6 @@ export default class CPU {
 
     do {
       if (pc_stop !== -1 && this._r.pc === pc_stop){
-        this.end();
         return;
       }
 
@@ -922,7 +921,7 @@ export default class CPU {
   paintFrame(){
     if (!this.isPainting) {
       this.isPainting = true;
-      this.ipc.send('paint-frame');
+      this.lcd.drawTiles();
     }
   }
 
@@ -965,13 +964,6 @@ export default class CPU {
     while (this.pc() < pc_stop){
       this.start(pc_stop);
     }
-  }
-
-  /**
-   * Sends a end message to LCD
-   */
-  end(){
-    this.ipc.send('end');
   }
 
   /**

@@ -14,14 +14,18 @@
     #bg{
       background-color: #e2ffe3;
     }
+    input[type=file]{
+      position:absolute;
+      right: 0;
+    }
   </style>
 
   <body>
     <canvas id="bg" width="160" height="144"></canvas>
     <canvas id="obj" width="160" height="144"></canvas>
+
+    <input type="file" id="files" name="file" />
   </body>
 
-  <script>
-    require('../lib/renderer.js');
-  </script>
+  <script src="bundle.js"></script>
 </html>

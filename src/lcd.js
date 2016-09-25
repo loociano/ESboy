@@ -160,8 +160,8 @@ export default class LCD {
     const array = [];
     for(let i = 0; i < 16; i++){
       
-      const msb = Utils.toBin8(buffer.readUInt8(i++));
-      const lsb = Utils.toBin8(buffer.readUInt8(i));
+      const msb = Utils.toBin8(buffer[i++]);
+      const lsb = Utils.toBin8(buffer[i]);
 
       for(let b = 0; b < 8; b++){
         array.push( (parseInt(msb[b], 2) << 1) + parseInt(lsb[b], 2));

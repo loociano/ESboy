@@ -1,5 +1,6 @@
 import CPU from './cpu';
 import MMU from './mmu';
+import Loader from './loader';
 import IPCMock from '../lib/mock/ipcMock';
 import config from './config';
 import Logger from './logger';
@@ -23,7 +24,8 @@ function init(filename, stop_at=-1){
 
   const date = new Date();
 
-  const mmu = new MMU(filename);
+  const loader = new Loader(filename);
+  const mmu = new MMU(loader.asUint8Array());
   const ipc = new IPCMock();
   const cpu = new CPU(mmu, ipc);
   ipc.setCpu(cpu);

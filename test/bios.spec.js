@@ -3,7 +3,7 @@ import MMU from '../src/mmu';
 import Loader from '../src/loader';
 import assert from 'assert';
 import {describe, beforeEach, it} from 'mocha';
-import IPCMock from './mock/ipcMock';
+import lcdMock from './mock/lcdMock';
 import config from '../src/config';
 
 describe('BIOS execution', function() {
@@ -12,10 +12,8 @@ describe('BIOS execution', function() {
 
   const stopAt = 0x0100;
 
-  const ipcMock = new IPCMock(stopAt);
   const loader = new Loader('./roms/blargg_cpu_instrs.gb');
-  const cpu = new CPU(new MMU(loader.asUint8Array()), ipcMock);
-  ipcMock.setCpu(cpu);
+  const cpu = new CPU(new MMU(loader.asUint8Array()), new lcdMock());
 
   cpu.runUntil(stopAt);
 
