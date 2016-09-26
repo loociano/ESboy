@@ -775,6 +775,7 @@ export default class CPU {
       this.execute();
       this._handle_lcd();
       this._handleDMA();
+      this._handleDIV();
 
       if (this._r.pc === this.mmu.ADDR_GAME_START){
         this._afterBIOS();
@@ -783,6 +784,13 @@ export default class CPU {
     } while (!this._isVBlankTriggered());
 
     this._handleVBlankInterrupt();
+  }
+
+  /**
+   * @private
+   */
+  _handleDIV(){
+    this.mmu.setDIV(this._m * 2);
   }
 
   /**
