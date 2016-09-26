@@ -1437,6 +1437,30 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.a(), 0x00, 'BCD adjusted with zero');
       assert.equal(cpu.f(), 0b1001, 'Flags');
     });
+
+    it('should adjust with half-carry', () => {
+      cpu.ld_a_n(0x26);
+      cpu.setH(1);
+      cpu.setC(0);
+
+      cpu.daa();
+
+      assert.equal(cpu.a(), 0x2c, 'BCD adjusted');
+      assert.equal(cpu.f(), 0b0000, 'Flags');
+    });
+
+    it('should do nothing on zero', () => {
+      cpu.ld_a_n(0x00);
+      cpu.setZ(1);
+      cpu.setH(0);
+      cpu.setC(0);
+
+      cpu.daa();
+
+      assert.equal(cpu.a(), 0x00);
+      assert.equal(cpu.f(), 0b1000, 'Flags');
+    });
+
   });
 
   describe('16 bits loads', () => {
