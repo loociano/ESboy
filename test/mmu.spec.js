@@ -417,7 +417,18 @@ describe('MMU', () => {
 
   describe('Dividers', () => {
     it('should detect dividers', () => {
-      assert.throws( () => mmu.readByteAt(mmu.ADDR_DIV), Error, 'DIV register unsupported');
+      assert.equal(mmu.readByteAt(mmu.ADDR_DIV), 0x00);
+    });
+
+    it('should set DIV with the msb', () => {
+      mmu.setDIV(0x0000);
+      assert.equal(mmu.readByteAt(mmu.ADDR_DIV), 0x00);
+
+      mmu.setDIV(0xff00);
+      assert.equal(mmu.readByteAt(mmu.ADDR_DIV), 0xff);
+
+      mmu.setDIV(0x10000);
+      assert.equal(mmu.readByteAt(mmu.ADDR_DIV), 0x00);
     });
   });
 
