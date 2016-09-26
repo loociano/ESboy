@@ -2914,10 +2914,12 @@ var CPU = function () {
           return;
         }
 
+        var m = this._m;
         this.execute();
+        var m_instr = this._m - m;
         this._handle_lcd();
         this._handleDMA();
-        this._handleDIV();
+        this._handleDIV(m_instr);
 
         if (this._r.pc === this.mmu.ADDR_GAME_START) {
           this._afterBIOS();
@@ -2933,8 +2935,8 @@ var CPU = function () {
 
   }, {
     key: '_handleDIV',
-    value: function _handleDIV() {
-      this.mmu.set_HW_DIV(this._m * 2);
+    value: function _handleDIV(m_instr) {
+      this.mmu.set_HW_DIV(m_instr * 2);
     }
 
     /**
@@ -7832,7 +7834,7 @@ var MMU = function () {
   }, {
     key: 'set_HW_DIV',
     value: function set_HW_DIV(n) {
-      this._div = n % 0xffff;
+      this._div = (this._div + n) % 0xffff;
       this._memory[this.ADDR_DIV] = _utils2.default.msb(this._div);
     }
 

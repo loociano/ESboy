@@ -772,10 +772,12 @@ export default class CPU {
         return;
       }
 
+      const m = this._m;
       this.execute();
+      const m_instr = this._m - m;
       this._handle_lcd();
       this._handleDMA();
-      this._handleDIV();
+      this._handleDIV(m_instr);
 
       if (this._r.pc === this.mmu.ADDR_GAME_START){
         this._afterBIOS();
@@ -789,8 +791,8 @@ export default class CPU {
   /**
    * @private
    */
-  _handleDIV(){
-    this.mmu.set_HW_DIV(this._m * 2);
+  _handleDIV(m_instr){
+    this.mmu.set_HW_DIV(m_instr * 2);
   }
 
   /**

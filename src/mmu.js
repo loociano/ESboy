@@ -394,7 +394,7 @@ export default class MMU {
    * @param n
    */
   set_HW_DIV(n){
-    this._div = n % 0xffff;
+    this._div = (this._div + n) % 0xffff;
     this._memory[this.ADDR_DIV] = Utils.msb(this._div);
   }
 
