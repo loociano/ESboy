@@ -3,6 +3,12 @@ import MMU from './mmu';
 import LCD from './lcd';
 import InputHandler from './inputHandler';
 
+const $cartridge = document.getElementById('cartridge');
+const $body = document.querySelector('body');
+const ctxBG = document.getElementById('bg').getContext('2d');
+const ctxOBJ = document.getElementById('obj').getContext('2d');
+let cpu;
+
 function handleFileSelect(evt) {
 
   const file = evt.target.files[0]; // FileList object
@@ -11,23 +17,20 @@ function handleFileSelect(evt) {
 
   reader.onload = function(event){
 
+    $cartridge.blur();
+
     const readOnlyBuffer = event.target.result;
     const rom = new Uint8Array(readOnlyBuffer);
     start(rom);
   };
 
-  reader.readAsArrayBuffer(file);
+  if (file) reader.readAsArrayBuffer(file);
 }
-
-let cpu;
 
 function start(rom){
   const mmu = new MMU(rom);
 
-  const input = new InputHandler(mmu, document.querySelector('body'));
-  const ctxBG = document.getElementById('bg').getContext('2d');
-  const ctxOBJ = document.getElementById('obj').getContext('2d');
-
+  new InputHandler(mmu, $body);
   const lcd = new LCD(mmu, ctxBG, ctxOBJ, 160, 144);
 
   cpu = new CPU(mmu, lcd);
@@ -40,4 +43,4 @@ function frame(){
   window.requestAnimationFrame(frame);
 }
 
-document.getElementById('files').addEventListener('change', handleFileSelect, false);
+$cartridge.addEventListener('change', handleFileSelect, false);

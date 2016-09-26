@@ -8393,6 +8393,12 @@ var _inputHandler2 = _interopRequireDefault(_inputHandler);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+var $cartridge = document.getElementById('cartridge');
+var $body = document.querySelector('body');
+var ctxBG = document.getElementById('bg').getContext('2d');
+var ctxOBJ = document.getElementById('obj').getContext('2d');
+var cpu = void 0;
+
 function handleFileSelect(evt) {
 
   var file = evt.target.files[0]; // FileList object
@@ -8401,23 +8407,20 @@ function handleFileSelect(evt) {
 
   reader.onload = function (event) {
 
+    $cartridge.blur();
+
     var readOnlyBuffer = event.target.result;
     var rom = new Uint8Array(readOnlyBuffer);
     start(rom);
   };
 
-  reader.readAsArrayBuffer(file);
+  if (file) reader.readAsArrayBuffer(file);
 }
-
-var cpu = void 0;
 
 function start(rom) {
   var mmu = new _mmu2.default(rom);
 
-  var input = new _inputHandler2.default(mmu, document.querySelector('body'));
-  var ctxBG = document.getElementById('bg').getContext('2d');
-  var ctxOBJ = document.getElementById('obj').getContext('2d');
-
+  new _inputHandler2.default(mmu, $body);
   var lcd = new _lcd2.default(mmu, ctxBG, ctxOBJ, 160, 144);
 
   cpu = new _cpu2.default(mmu, lcd);
@@ -8430,7 +8433,7 @@ function frame() {
   window.requestAnimationFrame(frame);
 }
 
-document.getElementById('files').addEventListener('change', handleFileSelect, false);
+$cartridge.addEventListener('change', handleFileSelect, false);
 
 },{"./cpu":7,"./inputHandler":8,"./lcd":9,"./mmu":11}],13:[function(require,module,exports){
 'use strict';
