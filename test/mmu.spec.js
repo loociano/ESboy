@@ -430,6 +430,11 @@ describe('MMU', () => {
       mmu.setDIV(0x10000);
       assert.equal(mmu.readByteAt(mmu.ADDR_DIV), 0x00);
     });
+
+    it('should reset DIV regardless of the value written', () => {
+      mmu.writeByteAt(mmu.ADDR_DIV, 0xab);
+      assert.equal(mmu.readByteAt(mmu.ADDR_DIV), 0x00);
+    });
   });
 
   describe('Memory dumps', () => {
