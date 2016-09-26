@@ -382,6 +382,9 @@ export default class MMU {
       case this.ADDR_DMA:
         this._handleDMA(n);
         break;
+      case this.ADDR_DIV:
+        this.setDIV(0);
+        return;
     }
     this._memory[addr] = n;
   }
