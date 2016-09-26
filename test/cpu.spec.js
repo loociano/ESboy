@@ -1411,6 +1411,31 @@ describe('CPU Unit tests', function() {
       assert.equal(cpu.a(), 0x83, 'BCD adjusted');
       assert.equal(cpu.f(), 0b0000, 'Flags');
       assert.equal(cpu.m() - m, 1, 'Machine cycles');
+
+      cpu.ld_a_n(0x98);
+      cpu.setC(1);
+
+      cpu.daa();
+
+      assert.equal(cpu.a(), 0xf8, 'BCD adjusted');
+      assert.equal(cpu.f(), 0b0001, 'Flags');
+
+      cpu.ld_a_n(0x9f);
+      cpu.setC(1);
+
+      cpu.daa();
+
+      assert.equal(cpu.a(), 0x05, 'BCD adjusted');
+      assert.equal(cpu.f(), 0b0001, 'Flags');
+
+      cpu.ld_a_n(0x90);
+      cpu.ld_b_n(0x0a);
+      cpu.add_b();
+
+      cpu.daa();
+
+      assert.equal(cpu.a(), 0x00, 'BCD adjusted with zero');
+      assert.equal(cpu.f(), 0b1001, 'Flags');
     });
   });
 
