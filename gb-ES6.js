@@ -6799,6 +6799,8 @@ var CPU = function () {
       } else {
         this.setC(0);
       }
+      this._r.a &= 0xff;
+
       if (this._r.a === 0) {
         this.setZ(1);
       } else {
