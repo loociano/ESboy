@@ -147,6 +147,8 @@ export default class MMU {
 
     this._VRAMRefreshed = true;
 
+    this._div = 0x0000; // Internal divider, register DIV is msb
+
     this._initMemory();
     this._loadROM(rom);
   }
@@ -217,7 +219,6 @@ export default class MMU {
       case this.ADDR_DMA:
       case this.ADDR_SB:
       case this.ADDR_SC:
-      case this.ADDR_DIV:
       case this.ADDR_TIMA:
       case this.ADDR_TMA:
       case this.ADDR_TAC:
@@ -383,6 +384,15 @@ export default class MMU {
         break;
     }
     this._memory[addr] = n;
+  }
+
+  /**
+   * Hardware mock interface for CPU
+   * @param n
+   */
+  setDIV(n){
+    this._div = n % 0xffff;
+    this._memory[this.ADDR_DIV] = Utils.msb(this._div);
   }
 
   /**
