@@ -415,6 +415,12 @@ describe('MMU', () => {
     });
   });
 
+  describe('Dividers', () => {
+    it('should detect dividers', () => {
+      assert.throws( () => mmu.readByteAt(mmu.ADDR_DIV), Error, 'DIV register unsupported');
+    });
+  });
+
   describe('Memory dumps', () => {
 
     it('should dump a memory snapshot', () => {
