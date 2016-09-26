@@ -7425,6 +7425,7 @@ var MMU = function () {
     this.ADDR_P1 = 0xff00;
     this.ADDR_SB = 0xff01;
     this.ADDR_SC = 0xff02;
+    this.ADDR_DIV = 0xff04;
     this.ADDR_TIMA = 0xff05;
     this.ADDR_TMA = 0xff06;
     this.ADDR_TAC = 0xff07;
@@ -7610,6 +7611,7 @@ var MMU = function () {
         case this.ADDR_DMA:
         case this.ADDR_SB:
         case this.ADDR_SC:
+        case this.ADDR_DIV:
         case this.ADDR_TIMA:
         case this.ADDR_TMA:
         case this.ADDR_TAC:
