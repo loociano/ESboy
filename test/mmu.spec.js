@@ -57,9 +57,6 @@ describe('MMU', () => {
     assert.equal(mmu._memory.length, 0x10000, 'Memory size is 0x10000');
 
     // Starting values at addresses
-    assert.equal(mmu.readByteAt(0xff05), 0x00);
-    assert.equal(mmu.readByteAt(0xff06), 0x00);
-    assert.equal(mmu.readByteAt(0xff07), 0x00);
     assert.equal(mmu.readByteAt(0xff10), 0x80);
     assert.equal(mmu.readByteAt(0xff14), 0xbf);
     assert.equal(mmu.readByteAt(0xff16), 0x3f);
@@ -407,6 +404,14 @@ describe('MMU', () => {
       assert.equal(mmu.vbk(), 0, 'VBK always zero in DMG');
       mmu.writeByteAt(mmu.ADDR_VBK, 0xab);
       assert.equal(mmu.vbk(), 0, 'VBK always zero in DMG');
+    });
+  });
+
+  describe('Timers', () => {
+    it('should detect timers', () => {
+      assert.throws( () => mmu.readByteAt(mmu.ADDR_TIMA), Error, 'TIMA register unsupported');
+      assert.throws( () => mmu.readByteAt(mmu.ADDR_TMA), Error, 'TMA register unsupported');
+      assert.throws( () => mmu.readByteAt(mmu.ADDR_TAC), Error, 'TAC register unsupported');
     });
   });
 
