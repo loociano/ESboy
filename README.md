@@ -1,6 +1,6 @@
 # Game Boy emulator in ES6 [![Build Status](https://travis-ci.org/loociano/gb-ES6.svg?branch=master)](https://travis-ci.org/loociano/gb-ES6)
 
-GAMEBOY&tm; running in your browser.
+GAME BOY&trade; running in your browser.
 
 GNU GPLv3 License. Ongoing test-driven project on ECMAScript 6.
 
@@ -9,7 +9,7 @@ GNU GPLv3 License. Ongoing test-driven project on ECMAScript 6.
 ## Run 
 
 * Play online: Try it on http://loociano.github.io/gb-ES6
-* Play offline: clone/download this repository and open index.html in your browser.
+* Play offline: clone/download this repository and open `index.html` in your browser.
 
 ## Develop
 
@@ -23,7 +23,7 @@ GNU GPLv3 License. Ongoing test-driven project on ECMAScript 6.
 
 ### Run 
 
-Open index.html.
+Open `index.html`.
 
 ### Run in console without a browser:
 
