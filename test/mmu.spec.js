@@ -427,7 +427,7 @@ describe('MMU', () => {
       mmu.set_HW_DIV(0xff00);
       assert.equal(mmu.readByteAt(mmu.ADDR_DIV), 0xff);
 
-      mmu.set_HW_DIV(0x10000);
+      mmu.set_HW_DIV(0x0100);
       assert.equal(mmu.readByteAt(mmu.ADDR_DIV), 0x00);
     });
 
