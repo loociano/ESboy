@@ -28,8 +28,8 @@ describe('CPU Unit tests', function() {
       assert.throws(() => new CPU(), Error);
     });
 
-    it('should handle missing ipc', () => {
-      assert.throws( () => new CPU(new MMU(), null), Error, 'Missing ipc');
+    it('should handle missing lcd', () => {
+      assert.throws( () => new CPU(new MMU(), null), Error, 'Missing lcd');
     });
   });
 
