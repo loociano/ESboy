@@ -2917,6 +2917,7 @@ var CPU = function () {
         this.execute();
         this._handle_lcd();
         this._handleDMA();
+        this._handleDIV();
 
         if (this._r.pc === this.mmu.ADDR_GAME_START) {
           this._afterBIOS();
@@ -2924,6 +2925,16 @@ var CPU = function () {
       } while (!this._isVBlankTriggered());
 
       this._handleVBlankInterrupt();
+    }
+
+    /**
+     * @private
+     */
+
+  }, {
+    key: '_handleDIV',
+    value: function _handleDIV() {
+      this.mmu.set_HW_DIV(this._m * 2);
     }
 
     /**
@@ -7529,6 +7540,8 @@ var MMU = function () {
 
     this._VRAMRefreshed = true;
 
+    this._div = 0x0000; // Internal divider, register DIV is msb
+
     this._initMemory();
     this._loadROM(rom);
   }
@@ -7611,7 +7624,6 @@ var MMU = function () {
         case this.ADDR_DMA:
         case this.ADDR_SB:
         case this.ADDR_SC:
-        case this.ADDR_DIV:
         case this.ADDR_TIMA:
         case this.ADDR_TMA:
         case this.ADDR_TAC:
@@ -7805,8 +7817,23 @@ var MMU = function () {
         case this.ADDR_DMA:
           this._handleDMA(n);
           break;
+        case this.ADDR_DIV:
+          this.set_HW_DIV(0);
+          return;
       }
       this._memory[addr] = n;
+    }
+
+    /**
+     * Hardware mock interface for CPU
+     * @param n
+     */
+
+  }, {
+    key: 'set_HW_DIV',
+    value: function set_HW_DIV(n) {
+      this._div = n % 0xffff;
+      this._memory[this.ADDR_DIV] = _utils2.default.msb(this._div);
     }
 
     /**
