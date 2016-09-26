@@ -9,23 +9,51 @@
       margin: 0;
     }
 
-    #lcd, #obj {
+    #app {
       position: relative;
     }
 
-    #bg {
-      position: absolute;
+    #dmg {
+      background: url('./img/dmg.jpg') 0 0 no-repeat;
+      height: 510px;
+      width: 311px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    #lcd {
       background-color: #e2ffe3;
+      height: 144px;
+      position: absolute;
+      width: 160px;
+      left: 76px;
+      top: 69px;
+    }
+
+    #bg, #obj {
+      position: absolute;
+    }
+
+    #files {
+      margin: 0 auto;
+      display: block;
     }
   </style>
 
   <body>
-    <div id="lcd">
-      <canvas id="bg" width="160" height="144"></canvas>
-      <canvas id="obj" width="160" height="144"></canvas>
+    <div id="app">
+
+      <div id="dmg">
+        <div id="lcd">
+          <canvas id="bg" width="160" height="144"></canvas>
+          <canvas id="obj" width="160" height="144"></canvas>
+        </div>
+      </div>
+
+      <input type="file" id="files" name="file" tabindex="-1" />
+
     </div>
 
-    <input type="file" id="files" name="file" />
   </body>
 
   <script src="gb-ES6.js"></script>
