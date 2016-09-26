@@ -421,13 +421,13 @@ describe('MMU', () => {
     });
 
     it('should set DIV with the msb', () => {
-      mmu.setDIV(0x0000);
+      mmu.set_HW_DIV(0x0000);
       assert.equal(mmu.readByteAt(mmu.ADDR_DIV), 0x00);
 
-      mmu.setDIV(0xff00);
+      mmu.set_HW_DIV(0xff00);
       assert.equal(mmu.readByteAt(mmu.ADDR_DIV), 0xff);
 
-      mmu.setDIV(0x10000);
+      mmu.set_HW_DIV(0x10000);
       assert.equal(mmu.readByteAt(mmu.ADDR_DIV), 0x00);
     });
 

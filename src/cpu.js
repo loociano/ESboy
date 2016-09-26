@@ -790,7 +790,7 @@ export default class CPU {
    * @private
    */
   _handleDIV(){
-    this.mmu.setDIV(this._m * 2);
+    this.mmu.set_HW_DIV(this._m * 2);
   }
 
   /**
