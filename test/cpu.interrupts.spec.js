@@ -31,6 +31,24 @@ describe('Interruptions', () => {
 
   });
 
+  describe('HALT', () => {
+
+    it('should stop executing instructions on HALT mode', function() {
+
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
+
+      this.cpu.execute = () => {
+        this.cpu.nop();
+        assert(false);
+      };
+
+      this.cpu.halt();
+
+      this.cpu.frame();
+    });
+
+  });
+
   describe('VBL Interrupt', () => {
 
     it('should not scan lines with lcd off', function() {

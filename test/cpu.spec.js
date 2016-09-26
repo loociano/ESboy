@@ -2458,6 +2458,19 @@ describe('CPU Unit tests', function() {
       assert(!cpu.mmu.isDMA());
     });
   });
+
+  describe('CPU Control instructions', () => {
+    it('should HALT', () => {
+      const m = cpu.m();
+
+      cpu.halt();
+
+      cpu.frame();
+
+      assert.equal(cpu.m() - m, 1, 'Machine cycles');
+      assert(cpu.isHalt());
+    });
+  });
 });
 
 /**
