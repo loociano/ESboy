@@ -26,6 +26,13 @@ describe('Dividers', () => {
     cpu.frame();
 
     assert.equal(cpu.mmu.readByteAt(cpu.mmu.ADDR_DIV), 0x01);
+
+    for(let f = 0; f < 100; f++) {
+      cpu._m = 0;
+      cpu.frame();
+    }
+
+    assert.equal(cpu.mmu.readByteAt(cpu.mmu.ADDR_DIV), 101);
   });
 
   it('should increase last bit of divider', () => {
