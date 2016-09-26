@@ -8436,6 +8436,9 @@ function frame() {
 }
 
 $cartridge.addEventListener('change', handleFileSelect, false);
+$cartridge.addEventListener('click', function (evt) {
+  this.value = null;
+}, false);
 
 },{"./cpu":7,"./inputHandler":8,"./lcd":9,"./mmu":11}],13:[function(require,module,exports){
 'use strict';

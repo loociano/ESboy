@@ -44,3 +44,6 @@ function frame(){
 }
 
 $cartridge.addEventListener('change', handleFileSelect, false);
+$cartridge.addEventListener('click', function(evt){
+  this.value = null;
+}, false);
