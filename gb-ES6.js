@@ -2093,6 +2093,8 @@ var CPU = function () {
       ime: 1
     };
 
+    this._halt = false;
+
     this._attach_bit_functions();
 
     this.commands = {
@@ -2208,6 +2210,7 @@ var CPU = function () {
       0x73: { fn: this.ld_0xhl_e, paramBytes: 0 },
       0x74: { fn: this.ld_0xhl_h, paramBytes: 0 },
       0x75: { fn: this.ld_0xhl_l, paramBytes: 0 },
+      0x76: { fn: this.halt, paramBytes: 0 },
       0x77: { fn: this.ld_0xhl_a, paramBytes: 0 },
       0x78: { fn: this.ld_a_b, paramBytes: 0 },
       0x79: { fn: this.ld_a_c, paramBytes: 0 },
@@ -2915,8 +2918,15 @@ var CPU = function () {
         }
 
         var m = this._m;
-        this.execute();
+
+        if (!this.isHalt()) {
+          this.execute();
+        } else {
+          this._m++;
+        }
+
         var m_instr = this._m - m;
+
         this._handle_lcd();
         this._handleDMA();
         this._handleDIV(m_instr);
@@ -6821,6 +6831,27 @@ var CPU = function () {
       }
       this.setH(0);
       this._m++;
+    }
+
+    /**
+     * Halt
+     */
+
+  }, {
+    key: 'halt',
+    value: function halt() {
+      this._halt = true;
+      this._m++;
+    }
+
+    /**
+     * @returns {boolean}
+     */
+
+  }, {
+    key: 'isHalt',
+    value: function isHalt() {
+      return this._halt;
     }
   }]);
 
