@@ -2465,8 +2465,6 @@ describe('CPU Unit tests', function() {
 
       cpu.halt();
 
-      cpu.frame();
-
       assert.equal(cpu.m() - m, 1, 'Machine cycles');
       assert(cpu.isHalt());
     });
