@@ -1,0 +1,39 @@
+import CPU from '../src/cpu';
+import MMU from '../src/mmu';
+import Loader from '../src/loader';
+import assert from 'assert';
+import config from '../src/config';
+import lcdMock from './mock/lcdMock';
+import {describe, beforeEach, it} from 'mocha';
+
+describe('Dividers', () => {
+
+  config.DEBUG = false;
+  config.TEST = true;
+  let cpu;
+
+  beforeEach( () => {
+    const loader = new Loader('./roms/blargg_cpu_instrs.gb');
+    cpu = new CPU(new MMU(loader.asUint8Array()), new lcdMock());
+    cpu._handle_lcd = () => {};
+    cpu.execute = () => cpu.nop();
+  });
+
+  it('should increase first bit of divider', () => {
+
+    cpu._isVBlankTriggered = () => cpu._m >= (1 << 7); // stop execution at 2^7 machine cycles
+
+    cpu.frame();
+
+    assert.equal(cpu.mmu.readByteAt(cpu.mmu.ADDR_DIV), 0x01);
+  });
+
+  it('should increase last bit of divider', () => {
+
+    cpu._isVBlankTriggered = () => cpu._m >= (1 << 14); // stop execution at 2^7 machine cycles
+
+    cpu.frame();
+
+    assert.equal(cpu.mmu.readByteAt(cpu.mmu.ADDR_DIV), 0x80);
+  });
+});
