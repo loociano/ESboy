@@ -72,7 +72,11 @@ export default class LCD {
   _drawBG(){
     for(let x = 0; x < this.H_TILES; x++){
       for(let y = 0; y < this.V_TILES; y++){
-        this.drawTile({tile_number: this.mmu.getCharCode(x, y), grid_x: x, grid_y: y});
+        this.drawTile({
+          tile_number: this.mmu.getCharCode(x, y),
+          grid_x: x,
+          grid_y: y
+        });
       }
     }
   }
@@ -88,7 +92,8 @@ export default class LCD {
         this.drawTile({
           tile_number: OBJ.chrCode,
           grid_x: (OBJ.x/this.TILE_WIDTH) - 1,
-          grid_y: (OBJ.y/this.TILE_HEIGHT) - 2
+          grid_y: (OBJ.y/this.TILE_HEIGHT) - 2,
+          isOBJ: true
         }, this.imageDataOBJ, this.ctxOBJ);
       }
     }
@@ -109,8 +114,10 @@ export default class LCD {
    * @param {number} tile_number
    * @param {number} tile_x from 0x00 to 0x1f [0-31]
    * @param {number} tile_y from 0x00 to 0x1f [0-31]
+   * @param {Object} imageData
+   * @param {Object} context
    */
-  drawTile({tile_number, grid_x, grid_y}, imageData=this.imageDataBG, ctx=this.ctxBG){
+  drawTile({tile_number, grid_x, grid_y, isOBJ=false}, imageData=this.imageDataBG, ctx=this.ctxBG){
 
     const x_start = grid_x * this.TILE_WIDTH;
     const y_start = grid_y * this.TILE_HEIGHT;
@@ -118,7 +125,7 @@ export default class LCD {
     let x = x_start;
     let y = y_start;
 
-    const array = this._getMatrix(tile_number);
+    const array = this._getMatrix(tile_number, isOBJ);
 
     for(let i = 0; i < array.length; i++){
       if (i > 0 && i % this.TILE_WIDTH === 0){
@@ -136,32 +143,46 @@ export default class LCD {
    * @returns {Array} palette matrix from cache, recalculated whenever VRAM is updated.
    * @private
    */
-  _getMatrix(tile_number){
-    const cached = this._cache[tile_number];
+  _getMatrix(tile_number, isOBJ){
+    let key = `BG${tile_number}`;
+
+    if (isOBJ){
+      key = `OBJ${tile_number}`;
+    }
+
+    const cached = this._cache[key];
     if (cached){
       return cached;
     } else {
-      const matrix = this._calculateMatrix(tile_number);
-      this._cache[tile_number] = matrix;
-      return this._cache[tile_number];
+      const matrix = this._calculateMatrix(tile_number, isOBJ);
+      this._cache[key] = matrix;
+      return this._cache[key];
     }
   }
 
   /**
    * Calculates palette matrix given a tile number.
    * Expensive operation.
-   * @param tile_number
+   * @param {number} tile_number
+   * @param {boolean} isOBJ
    * @returns {Array}
    * @private
    */
-  _calculateMatrix(tile_number){
-    return LCD.tileToMatrix(this.mmu.readTile(tile_number));
+  _calculateMatrix(tile_number, isOBJ){
+    let tile;
+    if (isOBJ) {
+      tile = this.mmu.readOBJData(tile_number);
+    } else {
+      tile = this.mmu.readTile(tile_number);
+    }
+    return LCD.tileToMatrix(tile);
   }
 
   /**
    * Converts a 16 bits tile buffer into array of level of grays [0-3]
    * Example: [1, 0, 2, 3, 0, 1 ...]  
    * @param {Buffer} buffer
+   * @returns {Array}
    */
   static tileToMatrix(buffer){
     const array = [];
