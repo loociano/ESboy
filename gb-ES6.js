@@ -2097,7 +2097,7 @@ var CPU = function () {
 
     this._attach_bit_functions();
 
-    this.commands = {
+    this._instructions = {
       0x00: { fn: this.nop, paramBytes: 0 },
       0x01: { fn: this.ld_bc_nn, paramBytes: 2 },
       0x02: { fn: this.ld_0xbc_a, paramBytes: 0 },
@@ -2920,7 +2920,7 @@ var CPU = function () {
         var m = this._m;
 
         if (!this.isHalt()) {
-          this.execute();
+          this._execute();
         } else {
           this._m++;
         }
@@ -3152,12 +3152,13 @@ var CPU = function () {
     }
 
     /**
-     * Executes the next command and increases the pc.
+     * Executes the next instruction and increases the pc.
+     * @private
      */
 
   }, {
-    key: 'execute',
-    value: function execute() {
+    key: '_execute',
+    value: function _execute() {
 
       var opcode = this._nextOpcode();
 
@@ -3165,15 +3166,19 @@ var CPU = function () {
         opcode = (opcode << 8) + this._nextOpcode();
       }
 
-      var command = this._getCommand(opcode);
-      var param = this._getInstrParams(command.paramBytes);
+      var _getInstruction2 = this._getInstruction(opcode);
 
-      _logger2.default.state(this, command.fn, command.paramBytes, param);
+      var fn = _getInstruction2.fn;
+      var paramBytes = _getInstruction2.paramBytes;
+
+      var param = this._getInstrParams(paramBytes);
+
+      _logger2.default.state(this, fn, paramBytes, param);
 
       try {
-        command.fn.call(this, param);
+        fn.call(this, param);
       } catch (e) {
-        _logger2.default.beforeCrash(this, command.fn, command.paramBytes, param);
+        _logger2.default.beforeCrash(this, fn, paramBytes, param);
         throw e;
       }
     }
@@ -3198,16 +3203,16 @@ var CPU = function () {
     }
 
     /**
-     * @param opcode
-     * @returns {string} command given the opcode
+     * @param {number} opcode
+     * @returns {Object} instruction given the opcode
      * @private
      */
 
   }, {
-    key: '_getCommand',
-    value: function _getCommand(opcode) {
-      if (this.commands[opcode] != null) {
-        return this.commands[opcode];
+    key: '_getInstruction',
+    value: function _getInstruction(opcode) {
+      if (this._instructions[opcode] != null) {
+        return this._instructions[opcode];
       } else {
         throw new Error('[' + _utils2.default.hex4(this._r.pc - 1) + '] ' + _utils2.default.hex2(opcode) + ' opcode not implemented.');
       }

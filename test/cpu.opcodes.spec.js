@@ -38,7 +38,7 @@ describe('CPU Unit tests', function() {
     cpu.mmu.writeByteAt(start, 0xcb);
     cpu.mmu.writeByteAt(start+1, 0x7c);
     cpu.jp(start);
-    cpu.execute();
+    cpu._execute();
     assert.equal(cpu.pc(), start+2);
   });
 
@@ -2452,7 +2452,7 @@ describe('CPU Unit tests', function() {
       cpu.mmu.writeByteAt(cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
       cpu.mmu.setDMA(true);
 
-      cpu.execute = () => cpu.nop();
+      cpu._execute = () => cpu.nop();
       cpu.frame();
 
       assert(!cpu.mmu.isDMA());

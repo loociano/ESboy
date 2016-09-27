@@ -37,7 +37,7 @@ describe('Interruptions', () => {
 
       this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
 
-      this.cpu.execute = () => {
+      this.cpu._execute = () => {
         this.cpu.nop();
         assert(false);
       };
@@ -70,7 +70,7 @@ describe('Interruptions', () => {
 
       this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
 
-      this.cpu.execute = () => this.cpu.nop();
+      this.cpu._execute = () => this.cpu.nop();
       this.cpu.frame();
 
       assert.equal(this.cpu.ly(), 144, `LY increased to 144`);

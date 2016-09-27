@@ -57,7 +57,7 @@ export default class CPU {
 
     this._attach_bit_functions();
 
-    this.commands = {
+    this._instructions = {
       0x00: {fn: this.nop, paramBytes: 0},
       0x01: {fn: this.ld_bc_nn, paramBytes: 2},
       0x02: {fn: this.ld_0xbc_a, paramBytes: 0},
@@ -778,7 +778,7 @@ export default class CPU {
       const m = this._m;
 
       if (!this.isHalt()) {
-        this.execute();
+        this._execute();
       } else {
         this._m++;
       }
@@ -973,9 +973,10 @@ export default class CPU {
   }
 
   /**
-   * Executes the next command and increases the pc.
+   * Executes the next instruction and increases the pc.
+   * @private
    */
-  execute() {
+  _execute() {
 
     let opcode = this._nextOpcode();
 
@@ -983,15 +984,15 @@ export default class CPU {
       opcode = (opcode << 8) + this._nextOpcode();
     }
 
-    const command = this._getCommand(opcode);
-    const param = this._getInstrParams(command.paramBytes);
+    const {fn, paramBytes} = this._getInstruction(opcode);
+    const param = this._getInstrParams(paramBytes);
 
-    Logger.state(this, command.fn, command.paramBytes, param);
+    Logger.state(this, fn, paramBytes, param);
 
     try {
-      command.fn.call(this, param);
+      fn.call(this, param);
     } catch (e){
-      Logger.beforeCrash(this, command.fn, command.paramBytes, param);
+      Logger.beforeCrash(this, fn, paramBytes, param);
       throw e;
     }
   }
@@ -1013,13 +1014,13 @@ export default class CPU {
   }
 
   /**
-   * @param opcode
-   * @returns {string} command given the opcode
+   * @param {number} opcode
+   * @returns {Object} instruction given the opcode
    * @private
    */
-  _getCommand(opcode) {
-    if (this.commands[opcode] != null) {
-      return this.commands[opcode];
+  _getInstruction(opcode) {
+    if (this._instructions[opcode] != null) {
+      return this._instructions[opcode];
     } else {
       throw new Error(`[${Utils.hex4(this._r.pc - 1)}] ${Utils.hex2(opcode)} opcode not implemented.`);
     }
