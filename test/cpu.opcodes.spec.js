@@ -959,6 +959,130 @@ describe('CPU Instruction Set', function() {
       });
     });
 
+    describe('SBC', () => {
+      it('should subtract registers minus carry to register a', () => {
+
+        [ {ld: cpu.ld_b_n, sbc: cpu.sbc_b},
+          {ld: cpu.ld_c_n, sbc: cpu.sbc_c},
+          {ld: cpu.ld_d_n, sbc: cpu.sbc_d},
+          {ld: cpu.ld_e_n, sbc: cpu.sbc_e},
+          {ld: cpu.ld_h_n, sbc: cpu.sbc_h},
+          {ld: cpu.ld_l_n, sbc: cpu.sbc_l}].map(({ld, sbc}) => {
+
+          cpu.setC(1);
+          cpu.ld_a_n(0x10);
+          ld.call(cpu, 0x01);
+          const m = cpu.m();
+
+          sbc.call(cpu);
+
+          assert.equal(cpu.a(), 0x0e, 'a - b - carry');
+          assert.equal(cpu.f(), 0b0110, 'Half carry');
+          assert.equal(cpu.m() - m, 1, 'Machine cycles');
+
+          ld.call(cpu, 0x0d);
+          cpu.setC(1);
+
+          sbc.call(cpu);
+
+          assert.equal(cpu.a(), 0x00, 'a - b - carry');
+          assert.equal(cpu.f(), 0b1100, 'Zero');
+
+          cpu.ld_a_n(0x3b);
+          ld.call(cpu, 0x4f);
+          cpu.setC(1);
+
+          sbc.call(cpu);
+
+          assert.equal(cpu.a(), 0xeb, 'a - b - carry');
+          assert.equal(cpu.f(), 0b0111, 'Zero with half- and carry');
+        });
+      });
+
+      it('should subtract a to a minus carry', () => {
+        cpu.setC(1);
+        cpu.ld_a_n(0xaa);
+        const m = cpu.m();
+
+        cpu.sbc_a();
+
+        assert.equal(cpu.a(), 0xff, 'a - a - carry');
+        assert.equal(cpu.f(), 0b0101, 'Carry');
+        assert.equal(cpu.m() - m, 1, 'Machine cycles');
+
+        cpu.ld_a_n(0xaa);
+        cpu.setC(0);
+
+        cpu.sbc_a();
+
+        assert.equal(cpu.a(), 0x00, 'a - a - carry');
+        assert.equal(cpu.f(), 0b1110, 'Zero with half-carry');
+      });
+
+      it('should subtract n minus carry to a', () => {
+        cpu.setC(1);
+        cpu.ld_a_n(0x09);
+        const m = cpu.m();
+
+        cpu.sbc_n(0x04);
+
+        assert.equal(cpu.a(), 0x04, 'a 0x09 minus n 0x04 minus C=1');
+        assert.equal(cpu.f(), 0b0100, 'Positive result without carries');
+        assert.equal(cpu.m() - m, 2, 'ADD n machine cycles');
+      });
+
+      it('should subtract value at memory location hl minus carry to a', () => {
+        cpu.ld_hl_nn(0xc000);
+
+        cpu.ld_a_n(0x12);
+        cpu.ld_0xhl_n(0x01);
+        cpu.setC(1);
+        const m = cpu.m();
+
+        cpu.sbc_0xhl(); // Result is positive
+
+        assert.equal(cpu.a(), 0x10, '0x12 - 0x01 - 1');
+        assert.equal(cpu.f(), 0b0100, 'Positive result with half-carry');
+        assert.equal(cpu.m() - m, 2, 'ADD (HL) machine cycles');
+
+        cpu.ld_a_n(0x11);
+        cpu.ld_0xhl_n(0x01);
+        cpu.setC(1);
+
+        cpu.sbc_0xhl(); // Test carry from bit 3
+
+        assert.equal(cpu.a(), 0x0f, 'a - (hl) - C');
+        assert.equal(cpu.f(), 0b0110, 'Half carry');
+
+        cpu.ld_a_n(0x10);
+        cpu.ld_0xhl_n(0x0f);
+        cpu.setC(1);
+
+        cpu.sbc_0xhl(); // Test a result zero
+
+        assert.equal(cpu.a(), 0x00, 'a - (hl) - C');
+        assert.equal(cpu.f(), 0b1110, 'Zero with carries');
+
+        cpu.ld_a_n(0x00);
+        cpu.ld_0xhl_n(0x10);
+        cpu.setC(1);
+
+        cpu.sbc_0xhl(); // Result underflows from positive number in a
+
+        assert.equal(cpu.a(), 0xef, 'a 0x00 - 0x10 - 1 underflows to 0xef');
+        assert.equal(cpu.f(), 0b0111, 'Positive with both carries');
+
+        cpu.ld_a_n(0x02);
+        cpu.ld_0xhl_n(0xff);
+        cpu.setC(1);
+
+        cpu.sbc_0xhl(); // Test max addition
+
+        assert.equal(cpu.a(), 0x02, 'a - (HL) - C overflows to 0x02');
+        assert.equal(cpu.f(), 0b0111, 'Positive with both carries');
+      });
+    });
+
     describe('ADD', () => {
 
       it('should add registers to register a', () => {
