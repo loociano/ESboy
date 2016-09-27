@@ -39,12 +39,14 @@ describe('Interruptions', () => {
 
       this.cpu._execute = () => {
         this.cpu.nop();
-        assert(false);
+        fail();
       };
 
       this.cpu.halt();
 
       this.cpu.frame();
+
+      assert(!this.cpu.isHalted(), 'VBL interrupt stops HALT mode');
     });
 
   });
@@ -118,3 +120,7 @@ describe('Interruptions', () => {
     });
   });
 });
+
+function fail(){
+  assert(false);
+}

@@ -2548,7 +2548,7 @@ describe('CPU Instruction Set', function() {
       cpu.halt();
 
       assert.equal(cpu.m() - m, 1, 'Machine cycles');
-      assert(cpu.isHalt());
+      assert(cpu.isHalted());
     });
   });
 });
