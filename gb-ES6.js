@@ -2244,6 +2244,14 @@ var CPU = function () {
       0x95: { fn: this.sub_l, paramBytes: 0 },
       0x96: { fn: this.sub_0xhl, paramBytes: 0 },
       0x97: { fn: this.sub_a, paramBytes: 0 },
+      0x98: { fn: this.sbc_b, paramBytes: 0 },
+      0x99: { fn: this.sbc_c, paramBytes: 0 },
+      0x9a: { fn: this.sbc_d, paramBytes: 0 },
+      0x9b: { fn: this.sbc_e, paramBytes: 0 },
+      0x9c: { fn: this.sbc_h, paramBytes: 0 },
+      0x9d: { fn: this.sbc_l, paramBytes: 0 },
+      0x9e: { fn: this.sbc_0xhl, paramBytes: 0 },
+      0x9f: { fn: this.sbc_a, paramBytes: 0 },
       0xa0: { fn: this.and_b, paramBytes: 0 },
       0xa1: { fn: this.and_c, paramBytes: 0 },
       0xa2: { fn: this.and_d, paramBytes: 0 },
@@ -2522,6 +2530,7 @@ var CPU = function () {
       0xd8: { fn: this.ret_c, paramBytes: 0 },
       0xd9: { fn: this.reti, paramBytes: 0 },
       0xda: { fn: this.jp_c_nn, paramBytes: 2 },
+      0xde: { fn: this.sbc_n, paramBytes: 1 },
       0xdf: { fn: this.rst_18, paramBytes: 0 },
       0xe0: { fn: this.ldh_n_a, paramBytes: 1 },
       0xe1: { fn: this.pop_hl, paramBytes: 0 },
@@ -5849,7 +5858,7 @@ var CPU = function () {
   }, {
     key: 'sub_a',
     value: function sub_a() {
-      this._sub_r(this._r.a);
+      this._sub_n(this._r.a);
     }
 
     /**
@@ -5859,7 +5868,7 @@ var CPU = function () {
   }, {
     key: 'sub_b',
     value: function sub_b() {
-      this._sub_r(this._r.b);
+      this._sub_n(this._r.b);
     }
 
     /**
@@ -5869,7 +5878,7 @@ var CPU = function () {
   }, {
     key: 'sub_c',
     value: function sub_c() {
-      this._sub_r(this._r.c);
+      this._sub_n(this._r.c);
     }
 
     /**
@@ -5879,7 +5888,7 @@ var CPU = function () {
   }, {
     key: 'sub_d',
     value: function sub_d() {
-      this._sub_r(this._r.d);
+      this._sub_n(this._r.d);
     }
 
     /**
@@ -5889,7 +5898,7 @@ var CPU = function () {
   }, {
     key: 'sub_e',
     value: function sub_e() {
-      this._sub_r(this._r.e);
+      this._sub_n(this._r.e);
     }
 
     /**
@@ -5899,7 +5908,7 @@ var CPU = function () {
   }, {
     key: 'sub_h',
     value: function sub_h() {
-      this._sub_r(this._r.h);
+      this._sub_n(this._r.h);
     }
 
     /**
@@ -5909,7 +5918,7 @@ var CPU = function () {
   }, {
     key: 'sub_l',
     value: function sub_l() {
-      this._sub_r(this._r.l);
+      this._sub_n(this._r.l);
     }
 
     /**
@@ -5919,7 +5928,7 @@ var CPU = function () {
   }, {
     key: 'sub_0xhl',
     value: function sub_0xhl() {
-      this._sub_r(this._0xhl());
+      this._sub_n(this._0xhl());
     }
 
     /**
@@ -5930,7 +5939,7 @@ var CPU = function () {
   }, {
     key: 'sub_n',
     value: function sub_n(n) {
-      this._sub_r(n);
+      this._sub_n(n);
       this._m++;
     }
 
@@ -5966,37 +5975,144 @@ var CPU = function () {
      */
 
   }, {
-    key: '_sub_r',
-    value: function _sub_r(value) {
+    key: '_sub_n',
+    value: function _sub_n(value) {
+      var carry = arguments.length <= 1 || arguments[1] === undefined ? 0 : arguments[1];
+
 
       this.setN(1);
 
-      var diff = this._r.a - value;
+      var subtract = value + carry;
+      var diff = this._r.a - subtract;
       var nybble_a = this._r.a & 0xf0;
 
-      if (diff >= 0) {
-        this._r.a -= value;
-
-        if (this._r.a === 0) {
-          this.setZ(1);
-        } else {
-          this.setZ(0);
-        }
-
-        if ((this._r.a & 0xf0) < nybble_a) {
-          this.setH(1);
-        } else {
-          this.setH(0);
-        }
-
-        this.setC(0);
-      } else {
-        this._r.a = diff + 0x100;
-        this.setZ(0);
-        this.setH(0);
+      if (diff < 0) {
+        this._r.a += 0x100;
+        nybble_a = 0xf0;
         this.setC(1);
+      } else {
+        this.setC(0);
       }
+
+      this._r.a -= subtract;
+
+      if (this._r.a === 0) {
+        this.setZ(1);
+      } else {
+        this.setZ(0);
+      }
+
+      if ((this._r.a & 0xf0) < nybble_a) {
+        this.setH(1);
+      } else {
+        this.setH(0);
+      }
+
       this._m++;
+    }
+
+    /**
+     * Subtract a and carry flag to a
+     */
+
+  }, {
+    key: 'sbc_a',
+    value: function sbc_a() {
+      this._sbc_n(this._r.a);
+    }
+
+    /**
+     * Subtract b and carry flag to a
+     */
+
+  }, {
+    key: 'sbc_b',
+    value: function sbc_b() {
+      this._sbc_n(this._r.b);
+    }
+
+    /**
+     * Subtract c and carry flag to a
+     */
+
+  }, {
+    key: 'sbc_c',
+    value: function sbc_c() {
+      this._sbc_n(this._r.c);
+    }
+
+    /**
+     * Subtract d and carry flag to a
+     */
+
+  }, {
+    key: 'sbc_d',
+    value: function sbc_d() {
+      this._sbc_n(this._r.d);
+    }
+
+    /**
+     * Subtract e and carry flag to a
+     */
+
+  }, {
+    key: 'sbc_e',
+    value: function sbc_e() {
+      this._sbc_n(this._r.e);
+    }
+
+    /**
+     * Subtract h and carry flag to a
+     */
+
+  }, {
+    key: 'sbc_h',
+    value: function sbc_h() {
+      this._sbc_n(this._r.h);
+    }
+
+    /**
+     * Subtract l and carry flag to a
+     */
+
+  }, {
+    key: 'sbc_l',
+    value: function sbc_l() {
+      this._sbc_n(this._r.l);
+    }
+
+    /**
+     * Subtract n and carry flag to a
+     * @param {number} byte
+     */
+
+  }, {
+    key: 'sbc_n',
+    value: function sbc_n(n) {
+      this._sbc_n(n);
+      this._m++;
+    }
+
+    /**
+     * Subtract value at memory hl minus carry to a
+     */
+
+  }, {
+    key: 'sbc_0xhl',
+    value: function sbc_0xhl() {
+      this._sbc_n(this._0xhl());
+    }
+
+    /**
+     * Subtract value and carry flag to a
+     * @param n
+     * @private
+     */
+
+  }, {
+    key: '_sbc_n',
+    value: function _sbc_n(n) {
+      this._sub_n(n, this.C());
     }
 
     /**

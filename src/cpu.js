@@ -204,6 +204,14 @@ export default class CPU {
       0x95: {fn: this.sub_l, paramBytes: 0},
       0x96: {fn: this.sub_0xhl, paramBytes: 0},
       0x97: {fn: this.sub_a, paramBytes: 0},
+      0x98: {fn: this.sbc_b, paramBytes: 0},
+      0x99: {fn: this.sbc_c, paramBytes: 0},
+      0x9a: {fn: this.sbc_d, paramBytes: 0},
+      0x9b: {fn: this.sbc_e, paramBytes: 0},
+      0x9c: {fn: this.sbc_h, paramBytes: 0},
+      0x9d: {fn: this.sbc_l, paramBytes: 0},
+      0x9e: {fn: this.sbc_0xhl, paramBytes: 0},
+      0x9f: {fn: this.sbc_a, paramBytes: 0},
       0xa0: {fn: this.and_b, paramBytes: 0},
       0xa1: {fn: this.and_c, paramBytes: 0},
       0xa2: {fn: this.and_d, paramBytes: 0},
@@ -482,6 +490,7 @@ export default class CPU {
       0xd8: {fn: this.ret_c, paramBytes: 0},
       0xd9: {fn: this.reti, paramBytes: 0},
       0xda: {fn: this.jp_c_nn, paramBytes: 2},
+      0xde: {fn: this.sbc_n, paramBytes: 1},
       0xdf: {fn: this.rst_18, paramBytes: 0},
       0xe0: {fn: this.ldh_n_a, paramBytes: 1},
       0xe1: {fn: this.pop_hl, paramBytes: 0},
@@ -2968,56 +2977,56 @@ export default class CPU {
    * Subtract a from a
    */
   sub_a(){
-    this._sub_r(this._r.a);
+    this._sub_n(this._r.a);
   }
 
   /**
    * Subtract b from a
    */
   sub_b(){
-    this._sub_r(this._r.b);
+    this._sub_n(this._r.b);
   }
 
   /**
    * Subtract c from a
    */
   sub_c(){
-    this._sub_r(this._r.c);
+    this._sub_n(this._r.c);
   }
 
   /**
    * Subtract d from a
    */
   sub_d(){
-    this._sub_r(this._r.d);
+    this._sub_n(this._r.d);
   }
 
   /**
    * Subtract e from a
    */
   sub_e(){
-    this._sub_r(this._r.e);
+    this._sub_n(this._r.e);
   }
 
   /**
    * Subtract h from a
    */
   sub_h(){
-    this._sub_r(this._r.h);
+    this._sub_n(this._r.h);
   }
 
   /**
    * Subtract l from a
    */
   sub_l(){
-    this._sub_r(this._r.l);
+    this._sub_n(this._r.l);
   }
 
   /**
    * Subtract value at memory address hl from a
    */
   sub_0xhl(){
-    this._sub_r(this._0xhl());
+    this._sub_n(this._0xhl());
   }
 
   /**
@@ -3025,7 +3034,7 @@ export default class CPU {
    * @param n
    */
   sub_n(n){
-    this._sub_r(n);
+    this._sub_n(n);
     this._m++;
   }
 
@@ -3053,7 +3062,7 @@ export default class CPU {
    * @param value
    * @private
    */
-  _sub_r(value, carry=0){
+  _sub_n(value, carry=0){
 
     this.setN(1);
 
@@ -3084,6 +3093,80 @@ export default class CPU {
     }
 
     this._m++;
+  }
+
+  /**
+   * Subtract a and carry flag to a
+   */
+  sbc_a(){
+    this._sbc_n(this._r.a);
+  }
+
+  /**
+   * Subtract b and carry flag to a
+   */
+  sbc_b(){
+    this._sbc_n(this._r.b);
+  }
+
+  /**
+   * Subtract c and carry flag to a
+   */
+  sbc_c(){
+    this._sbc_n(this._r.c);
+  }
+
+  /**
+   * Subtract d and carry flag to a
+   */
+  sbc_d(){
+    this._sbc_n(this._r.d);
+  }
+
+  /**
+   * Subtract e and carry flag to a
+   */
+  sbc_e(){
+    this._sbc_n(this._r.e);
+  }
+
+  /**
+   * Subtract h and carry flag to a
+   */
+  sbc_h(){
+    this._sbc_n(this._r.h);
+  }
+
+  /**
+   * Subtract l and carry flag to a
+   */
+  sbc_l(){
+    this._sbc_n(this._r.l);
+  }
+
+  /**
+   * Subtract n and carry flag to a
+   * @param {number} byte
+   */
+  sbc_n(n){
+    this._sbc_n(n);
+    this._m++;
+  }
+
+  /**
+   * Subtract value at memory hl minus carry to a
+   */
+  sbc_0xhl(){
+    this._sbc_n(this._0xhl());
+  }
+
+  /**
+   * Subtract value and carry flag to a
+   * @param n
+   * @private
+   */
+  _sbc_n(n){
+    this._sub_n(n, this.C());
   }
 
   /**
