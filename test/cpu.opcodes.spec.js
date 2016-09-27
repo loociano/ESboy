@@ -1988,15 +1988,17 @@ describe('CPU Instruction Set', function() {
       cpu.ld_hl_nn(0xc000);
       cpu.mmu.writeByteAt(cpu.hl(), 0xff);
 
-      for(let b = 0; b < 8; b++) {
-        const m = cpu.m();
+      cpu.res_0_0xhl();
 
-        cpu[`res_${b}_0xhl`]();
+      assert.equal(cpu._0xhl(), 0b11111110, 'Reset bit 0');
 
-        assert.equal(cpu.m(), m + 4, `RES ${b},(hl) machine cycles`);
-      }
+      cpu.res_4_0xhl();
 
-      assert.equal(cpu._0xhl(), 0x00, 'RES b,(hl) with 0..b..7 resets all bits');
+      assert.equal(cpu._0xhl(), 0b11101110, 'Reset bit 4');
+
+      cpu.res_7_0xhl();
+
+      assert.equal(cpu._0xhl(), 0b01101110, 'Reset bit 7');
     });
 
     it('should set bits in registers', () => {
