@@ -173,7 +173,7 @@ export default class LCD {
     if (isOBJ) {
       tile = this.mmu.readOBJData(tile_number);
     } else {
-      tile = this.mmu.readTile(tile_number);
+      tile = this.mmu.readBGData(tile_number);
     }
     return LCD.tileToMatrix(tile);
   }

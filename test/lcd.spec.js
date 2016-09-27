@@ -95,7 +95,7 @@ describe('LCD', () => {
   it('should write black tiles on screen', () => {
 
     const mmuMock = {
-        readTile: function(tile_number){
+        readBGData: function(tile_number){
             return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
         }
     };
@@ -114,7 +114,7 @@ describe('LCD', () => {
   it('should write OBJ on top of BG', () => {
 
     const mmuMock = {
-      readTile: function(tile_number){
+      readBGData: function(tile_number){
         return new Buffer('00000000000000000000000000000000', 'hex');
       },
       readOBJData: function() {

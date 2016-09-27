@@ -283,7 +283,7 @@ export default class MMU {
    * @param tile_number
    * @returns {Uint8Array}
    */
-  readTile(tile_number){
+  readBGData(tile_number){
     if (tile_number < 0 || tile_number > 0xff){
       throw new Error(`Cannot read tile ${tile_number}`);
     }

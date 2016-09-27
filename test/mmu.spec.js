@@ -152,8 +152,8 @@ describe('MMU', () => {
 
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_CHAR_DATA_8000 | mmu.MASK_BG_ON);
       
-      assert.deepEqual(mmu.readTile(0x00), BGData_00, 'BG tile 0x00 data matches');
-      assert.deepEqual(mmu.readTile(0xff), BGData_ff, 'BG tile 0xff data matches');
+      assert.deepEqual(mmu.readBGData(0x00), BGData_00, 'BG tile 0x00 data matches');
+      assert.deepEqual(mmu.readBGData(0xff), BGData_ff, 'BG tile 0xff data matches');
     });
 
     it('should return tile address for BG data', () => {
@@ -182,10 +182,10 @@ describe('MMU', () => {
 
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_CHAR_DATA_8800 | mmu.MASK_BG_ON);
 
-      assert.deepEqual(mmu.readTile(0x00), BGData_00, 'BG data 0x00 data matches');
-      assert.deepEqual(mmu.readTile(0x7f), BGData_7f, 'BG data 0x7f data matches');
-      assert.deepEqual(mmu.readTile(0x80), BGData_80, 'BG data 0x80 data matches');
-      assert.deepEqual(mmu.readTile(0xff), BGData_ff, 'BG data 0xff data matches');
+      assert.deepEqual(mmu.readBGData(0x00), BGData_00, 'BG data 0x00 data matches');
+      assert.deepEqual(mmu.readBGData(0x7f), BGData_7f, 'BG data 0x7f data matches');
+      assert.deepEqual(mmu.readBGData(0x80), BGData_80, 'BG data 0x80 data matches');
+      assert.deepEqual(mmu.readBGData(0xff), BGData_ff, 'BG data 0xff data matches');
     });
 
     it('should read character code from 0x9800 based on LCDC bit 3', () => {
@@ -222,11 +222,11 @@ describe('MMU', () => {
       mmu.writeBuffer(chrData, 0x8000);
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_ON | mmu.MASK_BG_CHAR_DATA_8000);
 
-      assert.deepEqual(mmu.readTile(0), chrData, 'Character data matches');
+      assert.deepEqual(mmu.readBGData(0), chrData, 'Character data matches');
 
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_OFF);
 
-      assert.deepEqual(mmu.readTile(0), new Uint8Array([0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]), 'Transparent');
+      assert.deepEqual(mmu.readBGData(0), new Uint8Array([0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]), 'Transparent');
     });
 
   });
