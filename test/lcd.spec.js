@@ -115,11 +115,10 @@ describe('LCD', () => {
 
     const mmuMock = {
       readTile: function(tile_number){
-        if (tile_number === 0x01 || tile_number === 0x02) {
-          return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
-        } else {
-          return new Buffer('00000000000000000000000000000000', 'hex');
-        }
+        return new Buffer('00000000000000000000000000000000', 'hex');
+      },
+      readOBJData: function() {
+        return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
       },
       areOBJOn: function() {
         return true;
