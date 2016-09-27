@@ -2660,6 +2660,37 @@ export default class CPU {
   }
 
   /**
+   * Calls a routine at a given address if z flag is not set
+   * @param addr
+   */
+  call_nz(addr){
+    this._call_flag(addr, this.Z(), 0);
+  }
+
+  /**
+   * Calls a routine at a given address if z flag is set
+   * @param addr
+   */
+  call_z(addr){
+    this._call_flag(addr, this.Z(), 1);
+  }
+
+  /**
+   * Calls a routine if a given flag has a given value
+   * @param addr
+   * @param flag
+   * @param trigger
+   * @private
+   */
+  _call_flag(addr, flag, trigger){
+    if (flag === trigger){
+      this.call(addr);
+    } else {
+      this._m += 3;
+    }
+  }
+
+  /**
    * Pushes the pc into stack.
    * @private
    */
