@@ -486,6 +486,7 @@ export default class CPU {
       0xd0: {fn: this.ret_nc, paramBytes: 0},
       0xd1: {fn: this.pop_de, paramBytes: 0},
       0xd2: {fn: this.jp_nc_nn, paramBytes: 2},
+      0xd3: {fn: this._noSuchOpcode, paramBytes: 0},
       0xd4: {fn: this.call_nc, paramBytes: 2},
       0xd5: {fn: this.push_de, paramBytes: 0},
       0xd6: {fn: this.sub_n, paramBytes: 1},
@@ -493,27 +494,37 @@ export default class CPU {
       0xd8: {fn: this.ret_c, paramBytes: 0},
       0xd9: {fn: this.reti, paramBytes: 0},
       0xda: {fn: this.jp_c_nn, paramBytes: 2},
+      0xdb: {fn: this._noSuchOpcode, paramBytes: 0},
       0xdc: {fn: this.call_c, paramBytes: 2},
+      0xdd: {fn: this._noSuchOpcode, paramBytes: 0},
       0xde: {fn: this.sbc_n, paramBytes: 1},
       0xdf: {fn: this.rst_18, paramBytes: 0},
       0xe0: {fn: this.ldh_n_a, paramBytes: 1},
       0xe1: {fn: this.pop_hl, paramBytes: 0},
       0xe2: {fn: this.ld_0xc_a, paramBytes: 0},
+      0xe3: {fn: this._noSuchOpcode, paramBytes: 0},
+      0xe4: {fn: this._noSuchOpcode, paramBytes: 0},
       0xe5: {fn: this.push_hl, paramBytes: 0},
       0xe6: {fn: this.and_n, paramBytes: 1},
       0xe7: {fn: this.rst_20, paramBytes: 0},
       0xe9: {fn: this.jp_hl, paramBytes: 0},
       0xea: {fn: this.ld_0xnn_a, paramBytes: 2},
+      0xeb: {fn: this._noSuchOpcode, paramBytes: 0},
+      0xec: {fn: this._noSuchOpcode, paramBytes: 0},
+      0xed: {fn: this._noSuchOpcode, paramBytes: 0},
       0xee: {fn: this.xor_n, paramBytes: 1},
       0xef: {fn: this.rst_28, paramBytes: 0},
       0xf0: {fn: this.ldh_a_n, paramBytes: 1},
       0xf1: {fn: this.pop_af, paramBytes: 0},
       0xf3: {fn: this.di, paramBytes: 0},
+      0xf4: {fn: this._noSuchOpcode, paramBytes: 0},
       0xf5: {fn: this.push_af, paramBytes: 0},
       0xf6: {fn: this.or_n, paramBytes: 1},
       0xf7: {fn: this.rst_30, paramBytes: 0},
       0xfa: {fn: this.ld_a_nn, paramBytes: 2},
       0xfb: {fn: this.ei, paramBytes: 0},
+      0xfc: {fn: this._noSuchOpcode, paramBytes: 0},
+      0xfd: {fn: this._noSuchOpcode, paramBytes: 0},
       0xfe: {fn: this.cp_n, paramBytes: 1},
       0xff: {fn: this.rst_38, paramBytes: 0},
     };
@@ -1004,11 +1015,20 @@ export default class CPU {
     Logger.state(this, fn, paramBytes, param);
 
     try {
-      fn.call(this, param);
+      fn.call(this, param, opcode);
     } catch (e){
       Logger.beforeCrash(this, fn, paramBytes, param);
       throw e;
     }
+  }
+
+  /**
+   * @param param
+   * @param opcode
+   * @private
+   */
+  _noSuchOpcode(param, opcode){
+    Logger.info(`Opcode ${Utils.hex2(opcode)} not supported in original DMG. Ignoring.`);
   }
 
   /**
