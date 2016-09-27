@@ -2037,20 +2037,76 @@ describe('CPU Instruction Set', function() {
   });
 
   describe('Calls', () => {
-    it('should call a routine', () => {
-      const pc = cpu.pc();
-      const sp = cpu.sp();
-      const addr = 0x1234;
-      const m = cpu.m();
 
-      cpu.call(addr);
+    describe('CALL', () => {
+      it('should call a routine', () => {
+        const pc = cpu.pc();
+        const sp = cpu.sp();
+        const addr = 0x1234;
+        const m = cpu.m();
 
-      assert.equal(cpu.mmu.readByteAt(sp - 1), Utils.msb(pc), 'store the lsb into stack');
-      assert.equal(cpu.mmu.readByteAt(sp - 2), Utils.lsb(pc), 'store the msb into stack');
-      assert.equal(cpu.sp(), sp - 2, 'sp moved down 2 bytes');
-      assert.equal(cpu.pc(), addr, 'jump to address');
-      assert.equal(cpu.m(), m + 6, 'CALL machine cycles');
+        cpu.call(addr);
+
+        assert.equal(cpu.mmu.readByteAt(sp - 1), Utils.msb(pc), 'store the lsb into stack');
+        assert.equal(cpu.mmu.readByteAt(sp - 2), Utils.lsb(pc), 'store the msb into stack');
+        assert.equal(cpu.sp(), sp - 2, 'sp moved down 2 bytes');
+        assert.equal(cpu.pc(), addr, 'jump to address');
+        assert.equal(cpu.m(), m + 6, 'CALL machine cycles');
+      });
     });
+
+    describe('CALL NZ,Z,NC,C', () => {
+
+      it('should call a routine if last result was not zero', () => {
+        const pc = cpu.pc();
+        const sp = cpu.sp();
+        const addr = 0x1234;
+        cpu.setZ(1);
+        let m = cpu.m();
+
+        cpu.call_nz(addr);
+
+        assert.equal(cpu.m() - m, 3, 'Machine cycles when not calling');
+        assert.equal(cpu.pc(), pc, 'Does not call');
+
+        cpu.setZ(0);
+        m = cpu.m();
+
+        cpu.call_nz(addr);
+
+        assert.equal(cpu.m() - m, 6, 'Machine cycles when calling');
+        assert.equal(cpu.mmu.readByteAt(sp - 1), Utils.msb(pc), 'store the lsb into stack');
+        assert.equal(cpu.mmu.readByteAt(sp - 2), Utils.lsb(pc), 'store the msb into stack');
+        assert.equal(cpu.sp(), sp - 2, 'sp moved down 2 bytes');
+        assert.equal(cpu.pc(), addr, 'jump to address');
+      });
+
+      it('should call a routine if last result was zero', () => {
+        const pc = cpu.pc();
+        const sp = cpu.sp();
+        const addr = 0x1234;
+        cpu.setZ(0);
+        let m = cpu.m();
+
+        cpu.call_z(addr);
+
+        assert.equal(cpu.m() - m, 3, 'Machine cycles when not calling');
+        assert.equal(cpu.pc(), pc, 'Does not call');
+
+        cpu.setZ(1);
+        m = cpu.m();
+
+        cpu.call_z(addr);
+
+        assert.equal(cpu.m() - m, 6, 'Machine cycles when calling');
+        assert.equal(cpu.mmu.readByteAt(sp - 1), Utils.msb(pc), 'store the lsb into stack');
+        assert.equal(cpu.mmu.readByteAt(sp - 2), Utils.lsb(pc), 'store the msb into stack');
+        assert.equal(cpu.sp(), sp - 2, 'sp moved down 2 bytes');
+        assert.equal(cpu.pc(), addr, 'jump to address');
+      });
+
+    });
+
   });
 
   describe('Rotates and Shifts', () => {
