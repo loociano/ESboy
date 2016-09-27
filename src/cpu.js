@@ -2115,8 +2115,7 @@ export default class CPU {
    * @private
    */
   _res_b_0xhl(bit){
-    const value = this._0xhl() & (0xff & (0 << bit));
-    this.mmu.writeByteAt(this.hl(), value);
+    this.mmu.writeByteAt(this.hl(), this._0xhl() & Utils.bitMask(bit));
     this._m += 3;
   }
 
