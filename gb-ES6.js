@@ -2288,6 +2288,7 @@ var CPU = function () {
       0xc1: { fn: this.pop_bc, paramBytes: 0 },
       0xc2: { fn: this.jp_nz_nn, paramBytes: 2 },
       0xc3: { fn: this.jp, paramBytes: 2 },
+      0xc4: { fn: this.call_nz, paramBytes: 2 },
       0xc5: { fn: this.push_bc, paramBytes: 0 },
       0xc6: { fn: this.add_n, paramBytes: 1 },
       0xc7: { fn: this.rst_00, paramBytes: 0 },
@@ -2518,38 +2519,52 @@ var CPU = function () {
       0xcbfd: { fn: this.set_7_l, paramBytes: 0 },
       0xcbfe: { fn: this.set_7_0xhl, paramBytes: 0 },
       0xcbff: { fn: this.set_7_a, paramBytes: 0 },
+      0xcc: { fn: this.call_z, paramBytes: 2 },
       0xcd: { fn: this.call, paramBytes: 2 },
       0xce: { fn: this.adc_n, paramBytes: 1 },
       0xcf: { fn: this.rst_08, paramBytes: 0 },
       0xd0: { fn: this.ret_nc, paramBytes: 0 },
       0xd1: { fn: this.pop_de, paramBytes: 0 },
       0xd2: { fn: this.jp_nc_nn, paramBytes: 2 },
+      0xd3: { fn: this._noSuchOpcode, paramBytes: 0 },
+      0xd4: { fn: this.call_nc, paramBytes: 2 },
       0xd5: { fn: this.push_de, paramBytes: 0 },
       0xd6: { fn: this.sub_n, paramBytes: 1 },
       0xd7: { fn: this.rst_10, paramBytes: 0 },
       0xd8: { fn: this.ret_c, paramBytes: 0 },
       0xd9: { fn: this.reti, paramBytes: 0 },
       0xda: { fn: this.jp_c_nn, paramBytes: 2 },
+      0xdb: { fn: this._noSuchOpcode, paramBytes: 0 },
+      0xdc: { fn: this.call_c, paramBytes: 2 },
+      0xdd: { fn: this._noSuchOpcode, paramBytes: 0 },
       0xde: { fn: this.sbc_n, paramBytes: 1 },
       0xdf: { fn: this.rst_18, paramBytes: 0 },
       0xe0: { fn: this.ldh_n_a, paramBytes: 1 },
       0xe1: { fn: this.pop_hl, paramBytes: 0 },
       0xe2: { fn: this.ld_0xc_a, paramBytes: 0 },
+      0xe3: { fn: this._noSuchOpcode, paramBytes: 0 },
+      0xe4: { fn: this._noSuchOpcode, paramBytes: 0 },
       0xe5: { fn: this.push_hl, paramBytes: 0 },
       0xe6: { fn: this.and_n, paramBytes: 1 },
       0xe7: { fn: this.rst_20, paramBytes: 0 },
       0xe9: { fn: this.jp_hl, paramBytes: 0 },
       0xea: { fn: this.ld_0xnn_a, paramBytes: 2 },
+      0xeb: { fn: this._noSuchOpcode, paramBytes: 0 },
+      0xec: { fn: this._noSuchOpcode, paramBytes: 0 },
+      0xed: { fn: this._noSuchOpcode, paramBytes: 0 },
       0xee: { fn: this.xor_n, paramBytes: 1 },
       0xef: { fn: this.rst_28, paramBytes: 0 },
       0xf0: { fn: this.ldh_a_n, paramBytes: 1 },
       0xf1: { fn: this.pop_af, paramBytes: 0 },
       0xf3: { fn: this.di, paramBytes: 0 },
+      0xf4: { fn: this._noSuchOpcode, paramBytes: 0 },
       0xf5: { fn: this.push_af, paramBytes: 0 },
       0xf6: { fn: this.or_n, paramBytes: 1 },
       0xf7: { fn: this.rst_30, paramBytes: 0 },
       0xfa: { fn: this.ld_a_nn, paramBytes: 2 },
       0xfb: { fn: this.ei, paramBytes: 0 },
+      0xfc: { fn: this._noSuchOpcode, paramBytes: 0 },
+      0xfd: { fn: this._noSuchOpcode, paramBytes: 0 },
       0xfe: { fn: this.cp_n, paramBytes: 1 },
       0xff: { fn: this.rst_38, paramBytes: 0 }
     };
@@ -3186,11 +3201,23 @@ var CPU = function () {
       _logger2.default.state(this, fn, paramBytes, param);
 
       try {
-        fn.call(this, param);
+        fn.call(this, param, opcode);
       } catch (e) {
         _logger2.default.beforeCrash(this, fn, paramBytes, param);
         throw e;
       }
+    }
+
+    /**
+     * @param param
+     * @param opcode
+     * @private
+     */
+
+  }, {
+    key: '_noSuchOpcode',
+    value: function _noSuchOpcode(param, opcode) {
+      _logger2.default.info('Opcode ' + _utils2.default.hex2(opcode) + ' not supported in original DMG. Ignoring.');
     }
 
     /**
@@ -5437,6 +5464,68 @@ var CPU = function () {
       this._push_pc();
       this._r.pc = addr;
       this._m += 6;
+    }
+
+    /**
+     * Calls a routine at a given address if z flag is not set
+     * @param addr
+     */
+
+  }, {
+    key: 'call_nz',
+    value: function call_nz(addr) {
+      this._call_flag(addr, this.Z(), 0);
+    }
+
+    /**
+     * Calls a routine at a given address if z flag is set
+     * @param addr
+     */
+
+  }, {
+    key: 'call_z',
+    value: function call_z(addr) {
+      this._call_flag(addr, this.Z(), 1);
+    }
+
+    /**
+     * Calls a routine at a given address if c flag is not set
+     * @param addr
+     */
+
+  }, {
+    key: 'call_nc',
+    value: function call_nc(addr) {
+      this._call_flag(addr, this.C(), 0);
+    }
+
+    /**
+     * Calls a routine at a given address if c flag is set
+     * @param addr
+     */
+
+  }, {
+    key: 'call_c',
+    value: function call_c(addr) {
+      this._call_flag(addr, this.C(), 1);
+    }
+
+    /**
+     * Calls a routine if a given flag has a given value
+     * @param addr
+     * @param flag
+     * @param trigger
+     * @private
+     */
+
+  }, {
+    key: '_call_flag',
+    value: function _call_flag(addr, flag, trigger) {
+      if (flag === trigger) {
+        this.call(addr);
+      } else {
+        this._m += 3;
+      }
     }
 
     /**
