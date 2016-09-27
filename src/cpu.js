@@ -3053,36 +3053,36 @@ export default class CPU {
    * @param value
    * @private
    */
-  _sub_r(value){
+  _sub_r(value, carry=0){
 
     this.setN(1);
 
-    const diff = this._r.a - value;
-    const nybble_a = this._r.a & 0xf0;
+    let subtract = value + carry;
+    const diff = this._r.a - subtract;
+    let nybble_a = this._r.a & 0xf0;
 
-    if (diff >= 0){
-      this._r.a -= value;
-      
-      if (this._r.a === 0){
-        this.setZ(1);
-      } else {
-        this.setZ(0);
-      }
-
-      if ((this._r.a & 0xf0) < nybble_a){
-        this.setH(1);
-      } else {
-        this.setH(0);
-      }
-
-      this.setC(0);
-    
-    } else {
-      this._r.a = diff + 0x100;
-      this.setZ(0);
-      this.setH(0);
+    if (diff < 0) {
+      this._r.a += 0x100;
+      nybble_a = 0xf0;
       this.setC(1);
+    } else {
+      this.setC(0);
     }
+
+    this._r.a -= subtract;
+      
+    if (this._r.a === 0){
+      this.setZ(1);
+    } else {
+      this.setZ(0);
+    }
+
+    if ((this._r.a & 0xf0) < nybble_a){
+      this.setH(1);
+    } else {
+      this.setH(0);
+    }
+
     this._m++;
   }
 
