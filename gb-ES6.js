@@ -7208,7 +7208,12 @@ var LCD = function () {
         this._clearMatrixCache();
         this._drawBG();
         this.mmu._VRAMRefreshed = false;
+      } else if (this.mmu._LCDCUpdated) {
+        this._clear();
+        this._drawBG();
+        this.mmu._LCDCUpdated = false;
       }
+
       if (this.mmu.areOBJOn()) {
         this._clear(this.imageDataOBJ, this.ctxOBJ);
         this._drawOBJ();
@@ -7660,6 +7665,7 @@ var MMU = function () {
     this._buttons = 0x0f; // Buttons unpressed, on HIGH
 
     this._VRAMRefreshed = true;
+    this._LCDCUpdated = false;
 
     this._div = 0x0000; // Internal divider, register DIV is msb
 
@@ -8083,6 +8089,7 @@ var MMU = function () {
         default:
           throw new Error('OBJ 8x16 unsupported');
       }
+      this._LCDCUpdated = true;
     }
 
     /**

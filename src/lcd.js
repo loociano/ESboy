@@ -46,7 +46,12 @@ export default class LCD {
       this._clearMatrixCache();
       this._drawBG();
       this.mmu._VRAMRefreshed = false;
+
+    } else if (this.mmu._LCDCUpdated){
+      this._drawBG();
+      this.mmu._LCDCUpdated = false;
     }
+
     if (this.mmu.areOBJOn()) {
       this._clear(this.imageDataOBJ, this.ctxOBJ);
       this._drawOBJ();

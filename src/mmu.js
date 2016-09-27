@@ -146,6 +146,7 @@ export default class MMU {
     this._buttons = 0x0f; // Buttons unpressed, on HIGH
 
     this._VRAMRefreshed = true;
+    this._LCDCUpdated = false;
 
     this._div = 0x0000; // Internal divider, register DIV is msb
 
@@ -498,6 +499,7 @@ export default class MMU {
       default:
         throw new Error('OBJ 8x16 unsupported');
     }
+    this._LCDCUpdated = true;
   }
 
   /**
