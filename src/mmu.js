@@ -26,6 +26,7 @@ export default class MMU {
 
     // VRAM
     this.ADDR_VRAM_START = 0x8000;
+    this.ADDR_OBJ_DATA_START = 0x8000;
     this.BG_CHAR_DATA_8000 = 0x8000;
     this.BG_CHAR_DATA_8800 = 0x8800;
     this.BG_DISPLAY_DATA_1 = 0x9800;
@@ -279,6 +280,7 @@ export default class MMU {
    * Returns the buffer given a tile number
    * Tiles are numbered from 0x00 to 0xff
    * @param tile_number
+   * @returns {Uint8Array}
    */
   readTile(tile_number){
     if (tile_number < 0 || tile_number > 0xff){
@@ -294,7 +296,24 @@ export default class MMU {
   }
 
   /**
-   * @returns {Buffer} generates an char-size, empty buffer
+   * @param tile_number
+   * @returns {Uint8Array}
+   */
+  readOBJData(tile_number){
+    if (tile_number < 0 || tile_number > 0xff){
+      throw new Error(`OBJ ${tile_number} out of range`);
+    }
+
+    if ((this.lcdc() & this.MASK_OBJ_ON) === 0){
+      return this._genEmptyCharBuffer();
+    }
+
+    const start_addr = this.getOBJCharDataStartAddr(tile_number);
+    return this._memory.slice(start_addr, start_addr + this.CHAR_SIZE);
+  }
+
+  /**
+   * @returns {Uint8Array} generates an char-size, empty buffer
    * @private
    */
   _genEmptyCharBuffer(){
@@ -311,6 +330,15 @@ export default class MMU {
     } else {
       return this.BG_CHAR_DATA_8000;
     }
+  }
+
+  /**
+   * @param tile_number
+   * @returns {number} address
+   */
+  getOBJCharDataStartAddr(tile_number){
+    if (tile_number < 0 || tile_number >> 0xff) throw new Error(`OBJ ${tile_number} out of range`);
+    return this.ADDR_OBJ_DATA_START + (tile_number << 4);
   }
 
   /**
