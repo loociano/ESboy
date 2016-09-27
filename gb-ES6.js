@@ -4694,8 +4694,7 @@ var CPU = function () {
   }, {
     key: '_res_b_0xhl',
     value: function _res_b_0xhl(bit) {
-      var value = this._0xhl() & (0xff & 0 << bit);
-      this.mmu.writeByteAt(this.hl(), value);
+      this.mmu.writeByteAt(this.hl(), this._0xhl() & _utils2.default.bitMask(bit));
       this._m += 3;
     }
 
@@ -7048,60 +7047,36 @@ var InputHandler = function () {
       switch (evt.keyCode) {
 
         case this.KEY_UP:
-          if (!this._up) {
-            this._mmu.pressUp();
-            this._up = true;
-          }
+          this._mmu.pressUp();
           break;
 
         case this.KEY_DOWN:
-          if (!this._down) {
-            this._mmu.pressDown();
-            this._down = true;
-          }
+          this._mmu.pressDown();
           break;
 
         case this.KEY_LEFT:
-          if (!this._left) {
-            this._mmu.pressLeft();
-            this._left = true;
-          }
+          this._mmu.pressLeft();
           break;
 
         case this.KEY_RIGHT:
-          if (!this._right) {
-            this._mmu.pressRight();
-            this._right = true;
-          }
+          this._mmu.pressRight();
           break;
 
         case this.KEY_X:
-          if (!this._a) {
-            this._mmu.pressA();
-            this._a = true;
-          }
+          this._mmu.pressA();
           break;
 
         case this.KEY_Z:
-          if (!this._b) {
-            this._mmu.pressB();
-            this._b = true;
-          }
+          this._mmu.pressB();
           break;
 
         case this.KEY_ENTER:
         case this.KEY_SPACE:
-          if (!this._start) {
-            this._mmu.pressSTART();
-            this._start = true;
-          }
+          this._mmu.pressSTART();
           break;
 
         case this.KEY_CTRL:
-          if (!this._select) {
-            this._mmu.pressSELECT();
-            this._select = true;
-          }
+          this._mmu.pressSELECT();
           break;
       }
     }
@@ -7118,43 +7093,35 @@ var InputHandler = function () {
 
         case this.KEY_UP:
           this._mmu.liftUp();
-          this._up = false;
           break;
 
         case this.KEY_DOWN:
           this._mmu.liftDown();
-          this._down = false;
           break;
 
         case this.KEY_LEFT:
           this._mmu.liftLeft();
-          this._left = false;
           break;
 
         case this.KEY_RIGHT:
           this._mmu.liftRight();
-          this._right = false;
           break;
 
         case this.KEY_X:
           this._mmu.liftA();
-          this._a = false;
           break;
 
         case this.KEY_Z:
           this._mmu.liftB();
-          this._b = false;
           break;
 
         case this.KEY_ENTER:
         case this.KEY_SPACE:
           this._mmu.liftSTART();
-          this._start = false;
           break;
 
         case this.KEY_CTRL:
           this._mmu.liftSELECT();
-          this._select = false;
           break;
       }
     }
@@ -8774,13 +8741,24 @@ var Utils = function () {
     value: function bitMask(bit) {
       if (bit > 7) throw new Error('Bit must be [0,7]');
 
-      var result = 0;
-      for (var b = 0; b < 8; b++) {
-        if (b != bit) {
-          result |= 1 << b;
-        }
+      switch (bit) {
+        case 0:
+          return 254;
+        case 1:
+          return 253;
+        case 2:
+          return 251;
+        case 3:
+          return 247;
+        case 4:
+          return 239;
+        case 5:
+          return 223;
+        case 6:
+          return 191;
+        case 7:
+          return 127;
       }
-      return result;
     }
 
     /**
