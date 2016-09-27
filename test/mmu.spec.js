@@ -230,7 +230,26 @@ describe('MMU', () => {
   });
 
   describe('OBJ (Sprites)', () => {
-    it('should read OBJs', () => {
+
+    it('should return address for OBJ data', () => {
+      assert.equal(mmu.getOBJCharDataStartAddr(0), 0x8000);
+      // ...
+      assert.equal(mmu.getOBJCharDataStartAddr(0xff), 0x8ff0);
+
+    });
+
+    it('should read OBJ data from 0x8000-0x8fff', () => {
+      const OBJData_00 = new Uint8Array([0xab,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xcd]);
+      const OBJData_ff = new Uint8Array([0x11,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xff]);
+      mmu.writeBuffer(OBJData_00, 0x8000);
+      mmu.writeBuffer(OBJData_ff, 0x8ff0);
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_OBJ_ON);
+
+      assert.deepEqual(mmu.readOBJData(0x00), OBJData_00, 'OBJ 0x00 data matches');
+      assert.deepEqual(mmu.readOBJData(0xff), OBJData_ff, 'OBJ 0xff data matches');
+    });
+
+    it('should read OBJs from OAM', () => {
 
       mmu.writeByteAt(mmu.ADDR_OAM_START, 0x01);
       mmu.writeByteAt(mmu.ADDR_OAM_START + 1, 0x02);
