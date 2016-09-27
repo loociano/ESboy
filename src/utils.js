@@ -99,13 +99,16 @@ export default class Utils {
   static bitMask(bit){
     if (bit > 7) throw new Error('Bit must be [0,7]');
 
-    let result = 0;
-    for(let b = 0; b < 8; b++){
-      if (b != bit){
-        result |= (1 << b);
-      }
+    switch(bit){
+      case 0: return 0b11111110;
+      case 1: return 0b11111101;
+      case 2: return 0b11111011;
+      case 3: return 0b11110111;
+      case 4: return 0b11101111;
+      case 5: return 0b11011111;
+      case 6: return 0b10111111;
+      case 7: return 0b01111111;
     }
-    return result;
   }
 
   /**
