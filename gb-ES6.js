@@ -2928,7 +2928,7 @@ var CPU = function () {
 
         var m = this._m;
 
-        if (!this.isHalt()) {
+        if (!this.isHalted()) {
           this._execute();
         } else {
           this._m++;
@@ -3097,6 +3097,7 @@ var CPU = function () {
     value: function _handleVBlankInterrupt() {
 
       this._resetVBlank();
+      this._halt = false;
 
       // BIOS does not have an vblank routine to execute
       if (!this.mmu.inBIOS) {
@@ -6969,8 +6970,8 @@ var CPU = function () {
      */
 
   }, {
-    key: 'isHalt',
-    value: function isHalt() {
+    key: 'isHalted',
+    value: function isHalted() {
       return this._halt;
     }
   }]);
@@ -7209,7 +7210,6 @@ var LCD = function () {
         this._drawBG();
         this.mmu._VRAMRefreshed = false;
       } else if (this.mmu._LCDCUpdated) {
-        this._clear();
         this._drawBG();
         this.mmu._LCDCUpdated = false;
       }

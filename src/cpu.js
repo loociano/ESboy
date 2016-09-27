@@ -786,7 +786,7 @@ export default class CPU {
 
       const m = this._m;
 
-      if (!this.isHalt()) {
+      if (!this.isHalted()) {
         this._execute();
       } else {
         this._m++;
@@ -930,6 +930,7 @@ export default class CPU {
   _handleVBlankInterrupt(){
 
     this._resetVBlank();
+    this._halt = false;
 
     // BIOS does not have an vblank routine to execute
     if (!this.mmu.inBIOS) {
@@ -3800,7 +3801,7 @@ export default class CPU {
   /**
    * @returns {boolean}
    */
-  isHalt(){
+  isHalted(){
     return this._halt;
   }
 }
