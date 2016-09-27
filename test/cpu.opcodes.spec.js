@@ -7,7 +7,7 @@ import {describe, beforeEach, it} from 'mocha';
 import Utils from '../src/utils';
 import lcdMock from './mock/lcdMock';
 
-describe('CPU Unit tests', function() {
+describe('CPU Instruction Set', function() {
 
   config.DEBUG = false;
   config.TEST = true;
@@ -1152,7 +1152,9 @@ describe('CPU Unit tests', function() {
         assert.equal(cpu.f(), 0b0000, 'Positive without carries');
         assert.equal(cpu.m() - m, 2, 'ADD n machine cycles');
       });
+    });
 
+    describe('ADC', () => {
       it('should add registers plus carry to register a', () => {
 
         [ {ld: cpu.ld_b_n, adc: cpu.adc_b},
