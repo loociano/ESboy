@@ -13,9 +13,10 @@ GNU GPLv3 License. Ongoing test-driven project on ECMAScript 6.
 
 ## Develop
 
-### Install
+### Build
 
 ``npm install``
+``npm run build``
 
 ### Run all tests
 
