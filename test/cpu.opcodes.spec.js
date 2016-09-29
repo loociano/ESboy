@@ -2283,7 +2283,8 @@ describe('CPU Instruction Set', function() {
 
       it('should rotate registers right', () => {
 
-        [ {r: cpu.a, ld: cpu.ld_a_n, rr: cpu.rr_a},
+        [ {r: cpu.a, ld: cpu.ld_a_n, rr: cpu.rra},
+          {r: cpu.a, ld: cpu.ld_a_n, rr: cpu.rr_a},
           {r: cpu.b, ld: cpu.ld_b_n, rr: cpu.rr_b},
           {r: cpu.c, ld: cpu.ld_c_n, rr: cpu.rr_c},
           {r: cpu.d, ld: cpu.ld_d_n, rr: cpu.rr_d},
@@ -2291,6 +2292,8 @@ describe('CPU Instruction Set', function() {
           {r: cpu.h, ld: cpu.ld_h_n, rr: cpu.rr_h},
           {r: cpu.l, ld: cpu.ld_l_n, rr: cpu.rr_l}].map(({r, ld, rr}) => {
 
+          let cycles = 2;
+          if (rr === cpu.rra) cycles = 1;
           cpu.setC(0);
           ld.call(cpu, 0x01);
           const m = cpu.m();
@@ -2299,7 +2302,7 @@ describe('CPU Instruction Set', function() {
 
           assert.equal(r.call(cpu), 0x00, `${r.name} rotated right`);
           assert.equal(cpu.f(), 0b1001, 'Zero result with carry');
-          assert.equal(cpu.m() - m, 2, `RR ${r.name} machine cycles`);
+          assert.equal(cpu.m() - m, cycles, `Machine cycles`);
 
           rr.call(cpu);
 
