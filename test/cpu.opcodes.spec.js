@@ -2006,32 +2006,61 @@ describe('CPU Instruction Set', function() {
 
         cpu[`ld_${r}_n`].call(cpu, 0x00);
 
-        for(let b = 0; b < 8; b++) {
-          const m = cpu.m();
+        cpu[`set_0_${r}`].call(cpu);
+        assert.equal(cpu[r].call(cpu), 0b00000001);
 
-          cpu[`set_${b}_${r}`].call(cpu); // reset bit b
+        cpu[`set_1_${r}`].call(cpu);
+        assert.equal(cpu[r].call(cpu), 0b00000011);
 
-          assert.equal(cpu.m() - m, 2, 'Machine cycles');
-        }
+        cpu[`set_2_${r}`].call(cpu);
+        assert.equal(cpu[r].call(cpu), 0b00000111);
 
-        assert.equal(cpu[r].call(cpu), 0xff, `SET b,${r} 0..b..7 sets all bits`);
+        cpu[`set_3_${r}`].call(cpu);
+        assert.equal(cpu[r].call(cpu), 0b00001111);
+
+        cpu[`set_4_${r}`].call(cpu);
+        assert.equal(cpu[r].call(cpu), 0b00011111);
+
+        cpu[`set_5_${r}`].call(cpu);
+        assert.equal(cpu[r].call(cpu), 0b00111111);
+
+        cpu[`set_6_${r}`].call(cpu);
+        assert.equal(cpu[r].call(cpu), 0b01111111);
+
+        cpu[`set_7_${r}`].call(cpu);
+        assert.equal(cpu[r].call(cpu), 0b11111111);
+
       });
     });
 
     it('should set bits at memory location hl', () => {
-
       cpu.ld_hl_nn(0xc000);
       cpu.mmu.writeByteAt(cpu.hl(), 0x00);
 
-      for(let b = 0; b < 8; b++) {
-        const m = cpu.m();
+      cpu.set_0_0xhl();
+      assert.equal(cpu._0xhl(), 0b00000001);
 
-        cpu[`set_${b}_0xhl`]();
+      cpu.set_1_0xhl();
+      assert.equal(cpu._0xhl(), 0b00000011);
 
-        assert.equal(cpu.m() - m, 4, 'Machine cycles');
-      }
+      cpu.set_2_0xhl();
+      assert.equal(cpu._0xhl(), 0b00000111);
 
-      assert.equal(cpu._0xhl(), 0xff, 'SET b,(hl) with 0..b..7 sets all bits');
+      cpu.set_3_0xhl();
+      assert.equal(cpu._0xhl(), 0b00001111);
+
+      cpu.set_4_0xhl();
+      assert.equal(cpu._0xhl(), 0b00011111);
+
+      cpu.set_5_0xhl();
+      assert.equal(cpu._0xhl(), 0b00111111);
+
+      cpu.set_6_0xhl();
+      assert.equal(cpu._0xhl(), 0b01111111);
+
+      cpu.set_7_0xhl();
+      assert.equal(cpu._0xhl(), 0b11111111);
+
     });
 
   });
