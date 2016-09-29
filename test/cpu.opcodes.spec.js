@@ -2208,6 +2208,11 @@ describe('CPU Instruction Set', function() {
           assert.equal(r.call(cpu), 0x00, `${r.name} rotated left`);
           assert.equal(cpu.f(), 0b1001, 'Zero result with carry');
           assert.equal(cpu.m() - m, 2, `RL ${r.name} machine cycles`);
+
+          rl.call(cpu);
+
+          assert.equal(r.call(cpu), 0x01, `${r.name} rotated left taking from carry`);
+          assert.equal(cpu.f(), 0b0000, 'Positive result without carry');
         });
       });
       it('should rotate value at memory location hl left', () => {
