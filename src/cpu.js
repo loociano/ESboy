@@ -255,6 +255,13 @@ export default class CPU {
       0xc8: {fn: this.ret_z, paramBytes: 0},
       0xc9: {fn: this.ret, paramBytes: 0},
       0xca: {fn: this.jp_z_nn, paramBytes: 2},
+      0xcb00: {fn: this.rlc_b, paramBytes: 0},
+      0xcb01: {fn: this.rlc_c, paramBytes: 0},
+      0xcb02: {fn: this.rlc_d, paramBytes: 0},
+      0xcb03: {fn: this.rlc_e, paramBytes: 0},
+      0xcb04: {fn: this.rlc_h, paramBytes: 0},
+      0xcb05: {fn: this.rlc_l, paramBytes: 0},
+      0xcb07: {fn: this.rlc_a, paramBytes: 0},
       0xcb10: {fn: this.rl_b, paramBytes: 0},
       0xcb11: {fn: this.rl_c, paramBytes: 0},
       0xcb12: {fn: this.rl_d, paramBytes: 0},
@@ -3810,6 +3817,62 @@ export default class CPU {
    */
   rlca(){
     this._rlc_r('a');
+  }
+
+  /**
+   * Rotates left a with copy to carry
+   */
+  rlc_a(){
+    this.rlca();
+    this._m++;
+  }
+
+  /**
+   * Rotates left b with copy to carry
+   */
+  rlc_b(){
+    this._rlc_r('b');
+    this._m++;
+  }
+
+  /**
+   * Rotates left c with copy to carry
+   */
+  rlc_c(){
+    this._rlc_r('c');
+    this._m++;
+  }
+
+  /**
+   * Rotates left d with copy to carry
+   */
+  rlc_d(){
+    this._rlc_r('d');
+    this._m++;
+  }
+
+  /**
+   * Rotates left e with copy to carry
+   */
+  rlc_e(){
+    this._rlc_r('e');
+    this._m++;
+  }
+
+  /**
+   * Rotates left h with copy to carry
+   */
+  rlc_h(){
+    this._rlc_r('h');
+    this._m++;
+  }
+
+  /**
+   * Rotates left l with copy to carry
+   */
+  rlc_l(){
+    this._rlc_r('l');
+    this._m++;
   }
 
   /**
