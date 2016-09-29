@@ -263,6 +263,14 @@ export default class CPU {
       0xcb15: {fn: this.rl_l, paramBytes: 0},
       0xcb16: {fn: this.rl_0xhl, paramBytes: 0},
       0xcb17: {fn: this.rl_a, paramBytes: 0},
+      0xcb18: {fn: this.rr_b, paramBytes: 0},
+      0xcb19: {fn: this.rr_c, paramBytes: 0},
+      0xcb1a: {fn: this.rr_d, paramBytes: 0},
+      0xcb1b: {fn: this.rr_e, paramBytes: 0},
+      0xcb1c: {fn: this.rr_h, paramBytes: 0},
+      0xcb1d: {fn: this.rr_l, paramBytes: 0},
+      0xcb1e: {fn: this.rr_0xhl, paramBytes: 0},
+      0xcb1f: {fn: this.rr_a, paramBytes: 0},
       0xcb20: {fn: this.sla_b, paramBytes: 0},
       0xcb21: {fn: this.sla_c, paramBytes: 0},
       0xcb22: {fn: this.sla_d, paramBytes: 0},
@@ -2911,6 +2919,62 @@ export default class CPU {
 
     this.setN(0);
     this.setH(0);
+    this._m++;
+  }
+
+  /**
+   * Rotates right register a
+   */
+  rr_a(){
+    this._rr_r('a');
+    this._m++;
+  }
+
+  /**
+   * Rotates right register b
+   */
+  rr_b(){
+    this._rr_r('b');
+    this._m++;
+  }
+
+  /**
+   * Rotates right register c
+   */
+  rr_c(){
+    this._rr_r('c');
+    this._m++;
+  }
+
+  /**
+   * Rotates right register d
+   */
+  rr_d(){
+    this._rr_r('d');
+    this._m++;
+  }
+
+  /**
+   * Rotates right register e
+   */
+  rr_e(){
+    this._rr_r('e');
+    this._m++;
+  }
+
+  /**
+   * Rotates right register h
+   */
+  rr_h(){
+    this._rr_r('h');
+    this._m++;
+  }
+
+  /**
+   * Rotates right register l
+   */
+  rr_l(){
+    this._rr_r('l');
     this._m++;
   }
 
