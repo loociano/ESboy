@@ -2257,28 +2257,40 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.m() - m, 1, 'RLA machine cycles');
       });
 
-      it('should rotate a to the left and copy to carry', () => {
-        cpu.setC(0);
-        cpu.ld_a_n(0b10000101);
-        const m = cpu.m();
+      it('should rotate register to the left and copy to carry', () => {
+        [ {r: cpu.a, ld: cpu.ld_a_n, rlc: cpu.rlca},
+          {r: cpu.a, ld: cpu.ld_a_n, rlc: cpu.rlc_a},
+          {r: cpu.b, ld: cpu.ld_b_n, rlc: cpu.rlc_b},
+          {r: cpu.c, ld: cpu.ld_c_n, rlc: cpu.rlc_c},
+          {r: cpu.d, ld: cpu.ld_d_n, rlc: cpu.rlc_d},
+          {r: cpu.e, ld: cpu.ld_e_n, rlc: cpu.rlc_e},
+          {r: cpu.h, ld: cpu.ld_h_n, rlc: cpu.rlc_h},
+          {r: cpu.l, ld: cpu.ld_l_n, rlc: cpu.rlc_l}].map(({r, ld, rlc}) => {
 
-        cpu.rlca();
+            let cycles = 2;
+            if (rlc === cpu.rlca) cycles = 1;
+            cpu.setC(0);
+            ld.call(cpu, 0b10000101);
+            const m = cpu.m();
 
-        assert.equal(cpu.a(), 0b00001011, 'Rotate left');
-        assert.equal(cpu.f(), 0b0001, 'bit 7 copied to carry');
-        assert.equal(cpu.m() - m, 1, 'Machine cycles');
+            rlc.call(cpu);
 
-        cpu.rlca();
+            assert.equal(r.call(cpu), 0b00001011, 'Rotate left');
+            assert.equal(cpu.f(), 0b0001, 'bit 7 copied to carry');
+            assert.equal(cpu.m() - m, cycles, 'Machine cycles');
 
-        assert.equal(cpu.a(), 0b00010110, 'Rotate left');
-        assert.equal(cpu.f(), 0b0000, 'bit 7 copied to carry');
+            rlc.call(cpu);
 
-        cpu.ld_a_n(0x00);
+            assert.equal(r.call(cpu), 0b00010110, 'Rotate left');
+            assert.equal(cpu.f(), 0b0000, 'bit 7 copied to carry');
 
-        cpu.rlca();
+            ld.call(cpu, 0x00);
 
-        assert.equal(cpu.a(), 0x00, 'Identical');
-        assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+            rlc.call(cpu);
+
+            assert.equal(r.call(cpu), 0x00, 'Identical');
+            assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+          });
       });
 
       it('should rotate registers right', () => {
