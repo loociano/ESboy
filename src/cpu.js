@@ -2925,8 +2925,15 @@ export default class CPU {
   /**
    * Rotates right register a
    */
-  rr_a(){
+  rra(){
     this._rr_r('a');
+  }
+
+  /**
+   * Rotates right register a
+   */
+  rr_a(){
+    this.rra();
     this._m++;
   }
 
