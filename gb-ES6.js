@@ -2303,6 +2303,14 @@ var CPU = function () {
       0xcb15: { fn: this.rl_l, paramBytes: 0 },
       0xcb16: { fn: this.rl_0xhl, paramBytes: 0 },
       0xcb17: { fn: this.rl_a, paramBytes: 0 },
+      0xcb18: { fn: this.rr_b, paramBytes: 0 },
+      0xcb19: { fn: this.rr_c, paramBytes: 0 },
+      0xcb1a: { fn: this.rr_d, paramBytes: 0 },
+      0xcb1b: { fn: this.rr_e, paramBytes: 0 },
+      0xcb1c: { fn: this.rr_h, paramBytes: 0 },
+      0xcb1d: { fn: this.rr_l, paramBytes: 0 },
+      0xcb1e: { fn: this.rr_0xhl, paramBytes: 0 },
+      0xcb1f: { fn: this.rr_a, paramBytes: 0 },
       0xcb20: { fn: this.sla_b, paramBytes: 0 },
       0xcb21: { fn: this.sla_c, paramBytes: 0 },
       0xcb22: { fn: this.sla_d, paramBytes: 0 },
@@ -5778,6 +5786,83 @@ var CPU = function () {
     }
 
     /**
+     * Rotates right register a
+     */
+
+  }, {
+    key: 'rr_a',
+    value: function rr_a() {
+      this._rr_r('a');
+      this._m++;
+    }
+
+    /**
+     * Rotates right register b
+     */
+
+  }, {
+    key: 'rr_b',
+    value: function rr_b() {
+      this._rr_r('b');
+      this._m++;
+    }
+
+    /**
+     * Rotates right register c
+     */
+
+  }, {
+    key: 'rr_c',
+    value: function rr_c() {
+      this._rr_r('c');
+      this._m++;
+    }
+
+    /**
+     * Rotates right register d
+     */
+
+  }, {
+    key: 'rr_d',
+    value: function rr_d() {
+      this._rr_r('d');
+      this._m++;
+    }
+
+    /**
+     * Rotates right register e
+     */
+
+  }, {
+    key: 'rr_e',
+    value: function rr_e() {
+      this._rr_r('e');
+      this._m++;
+    }
+
+    /**
+     * Rotates right register h
+     */
+
+  }, {
+    key: 'rr_h',
+    value: function rr_h() {
+      this._rr_r('h');
+      this._m++;
+    }
+
+    /**
+     * Rotates right register l
+     */
+
+  }, {
+    key: 'rr_l',
+    value: function rr_l() {
+      this._rr_r('l');
+      this._m++;
+    }
+
+    /**
      * Rotates right register r
      * @param r
      * @param carried
@@ -7329,7 +7414,11 @@ var LCD = function () {
     value: function _drawBG() {
       for (var x = 0; x < this.H_TILES; x++) {
         for (var y = 0; y < this.V_TILES; y++) {
-          this.drawTile({ tile_number: this.mmu.getCharCode(x, y), grid_x: x, grid_y: y });
+          this.drawTile({
+            tile_number: this.mmu.getCharCode(x, y),
+            grid_x: x,
+            grid_y: y
+          });
         }
       }
     }
@@ -7348,7 +7437,8 @@ var LCD = function () {
           this.drawTile({
             tile_number: OBJ.chrCode,
             grid_x: OBJ.x / this.TILE_WIDTH - 1,
-            grid_y: OBJ.y / this.TILE_HEIGHT - 2
+            grid_y: OBJ.y / this.TILE_HEIGHT - 2,
+            isOBJ: true
           }, this.imageDataOBJ, this.ctxOBJ);
         }
       }
@@ -7372,6 +7462,8 @@ var LCD = function () {
      * @param {number} tile_number
      * @param {number} tile_x from 0x00 to 0x1f [0-31]
      * @param {number} tile_y from 0x00 to 0x1f [0-31]
+     * @param {Object} imageData
+     * @param {Object} context
      */
 
   }, {
@@ -7380,6 +7472,8 @@ var LCD = function () {
       var tile_number = _ref.tile_number;
       var grid_x = _ref.grid_x;
       var grid_y = _ref.grid_y;
+      var _ref$isOBJ = _ref.isOBJ;
+      var isOBJ = _ref$isOBJ === undefined ? false : _ref$isOBJ;
       var imageData = arguments.length <= 1 || arguments[1] === undefined ? this.imageDataBG : arguments[1];
       var ctx = arguments.length <= 2 || arguments[2] === undefined ? this.ctxBG : arguments[2];
 
@@ -7390,7 +7484,7 @@ var LCD = function () {
       var x = x_start;
       var y = y_start;
 
-      var array = this._getMatrix(tile_number);
+      var array = this._getMatrix(tile_number, isOBJ);
 
       for (var i = 0; i < array.length; i++) {
         if (i > 0 && i % this.TILE_WIDTH === 0) {
@@ -7411,35 +7505,49 @@ var LCD = function () {
 
   }, {
     key: '_getMatrix',
-    value: function _getMatrix(tile_number) {
-      var cached = this._cache[tile_number];
+    value: function _getMatrix(tile_number, isOBJ) {
+      var key = 'BG' + tile_number;
+
+      if (isOBJ) {
+        key = 'OBJ' + tile_number;
+      }
+
+      var cached = this._cache[key];
       if (cached) {
         return cached;
       } else {
-        var matrix = this._calculateMatrix(tile_number);
-        this._cache[tile_number] = matrix;
-        return this._cache[tile_number];
+        var matrix = this._calculateMatrix(tile_number, isOBJ);
+        this._cache[key] = matrix;
+        return this._cache[key];
       }
     }
 
     /**
      * Calculates palette matrix given a tile number.
      * Expensive operation.
-     * @param tile_number
+     * @param {number} tile_number
+     * @param {boolean} isOBJ
      * @returns {Array}
      * @private
      */
 
   }, {
     key: '_calculateMatrix',
-    value: function _calculateMatrix(tile_number) {
-      return LCD.tileToMatrix(this.mmu.readTile(tile_number));
+    value: function _calculateMatrix(tile_number, isOBJ) {
+      var tile = void 0;
+      if (isOBJ) {
+        tile = this.mmu.readOBJData(tile_number);
+      } else {
+        tile = this.mmu.readBGData(tile_number);
+      }
+      return LCD.tileToMatrix(tile);
     }
 
     /**
      * Converts a 16 bits tile buffer into array of level of grays [0-3]
      * Example: [1, 0, 2, 3, 0, 1 ...]  
      * @param {Buffer} buffer
+     * @returns {Array}
      */
 
   }, {
@@ -7634,8 +7742,10 @@ var MMU = function () {
 
     // VRAM
     this.ADDR_VRAM_START = 0x8000;
+    this.ADDR_OBJ_DATA_START = 0x8000;
     this.BG_CHAR_DATA_8000 = 0x8000;
     this.BG_CHAR_DATA_8800 = 0x8800;
+    this.BG_CHAR_DATA_9000 = 0x9000;
     this.BG_DISPLAY_DATA_1 = 0x9800;
     this.BG_DISPLAY_DATA_2 = 0x9c00;
     this.ADDR_VRAM_END = 0x9fff;
@@ -7908,11 +8018,12 @@ var MMU = function () {
      * Returns the buffer given a tile number
      * Tiles are numbered from 0x00 to 0xff
      * @param tile_number
+     * @returns {Uint8Array}
      */
 
   }, {
-    key: 'readTile',
-    value: function readTile(tile_number) {
+    key: 'readBGData',
+    value: function readBGData(tile_number) {
       if (tile_number < 0 || tile_number > 0xff) {
         throw new Error('Cannot read tile ' + tile_number);
       }
@@ -7921,12 +8032,32 @@ var MMU = function () {
         return this._genEmptyCharBuffer();
       }
 
-      var start_addr = this._getBgCharDataStartAddr() + (tile_number << 4);
+      var start_addr = this.getBgCharDataStartAddr(tile_number);
       return this._memory.slice(start_addr, start_addr + this.CHAR_SIZE);
     }
 
     /**
-     * @returns {Buffer} generates an char-size, empty buffer
+     * @param tile_number
+     * @returns {Uint8Array}
+     */
+
+  }, {
+    key: 'readOBJData',
+    value: function readOBJData(tile_number) {
+      if (tile_number < 0 || tile_number > 0xff) {
+        throw new Error('OBJ ' + tile_number + ' out of range');
+      }
+
+      if ((this.lcdc() & this.MASK_OBJ_ON) === 0) {
+        return this._genEmptyCharBuffer();
+      }
+
+      var start_addr = this.getOBJCharDataStartAddr(tile_number);
+      return this._memory.slice(start_addr, start_addr + this.CHAR_SIZE);
+    }
+
+    /**
+     * @returns {Uint8Array} generates an char-size, empty buffer
      * @private
      */
 
@@ -7937,18 +8068,36 @@ var MMU = function () {
     }
 
     /**
-     * @returns {number} start address of background character data based on LCDC
-     * @private
+     * @param tile_number
+     * @returns {number} address
      */
 
   }, {
-    key: '_getBgCharDataStartAddr',
-    value: function _getBgCharDataStartAddr() {
+    key: 'getBgCharDataStartAddr',
+    value: function getBgCharDataStartAddr(tile_number) {
+      if (tile_number < 0 || tile_number >> 0xff) throw new Error('BG ' + tile_number + ' out of range');
+
       if ((this.lcdc() & this.MASK_BG_CHAR_DATA) === 0) {
-        return this.BG_CHAR_DATA_8800;
+        var start = this.BG_CHAR_DATA_8000;
+        if (tile_number < 0x80) {
+          start = this.BG_CHAR_DATA_9000;
+        }
+        return start + (tile_number << 4);
       } else {
-        return this.BG_CHAR_DATA_8000;
+        return this.getOBJCharDataStartAddr(tile_number);
       }
+    }
+
+    /**
+     * @param tile_number
+     * @returns {number} address
+     */
+
+  }, {
+    key: 'getOBJCharDataStartAddr',
+    value: function getOBJCharDataStartAddr(tile_number) {
+      if (tile_number < 0 || tile_number >> 0xff) throw new Error('OBJ ' + tile_number + ' out of range');
+      return this.ADDR_OBJ_DATA_START + (tile_number << 4);
     }
 
     /**
