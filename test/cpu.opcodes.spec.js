@@ -2215,6 +2215,7 @@ describe('CPU Instruction Set', function() {
           assert.equal(cpu.f(), 0b0000, 'Positive result without carry');
         });
       });
+
       it('should rotate value at memory location hl left', () => {
         cpu.ld_hl_nn(0xc000);
         cpu.ld_0xhl_n(0b01010001);
@@ -2277,6 +2278,58 @@ describe('CPU Instruction Set', function() {
         cpu.rlca();
 
         assert.equal(cpu.a(), 0x00, 'Identical');
+        assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+      });
+
+      it('should rotate registers right', () => {
+
+        [ {r: cpu.a, ld: cpu.ld_a_n, rr: cpu.rr_a},
+          {r: cpu.b, ld: cpu.ld_b_n, rr: cpu.rr_b},
+          {r: cpu.c, ld: cpu.ld_c_n, rr: cpu.rr_c},
+          {r: cpu.d, ld: cpu.ld_d_n, rr: cpu.rr_d},
+          {r: cpu.e, ld: cpu.ld_e_n, rr: cpu.rr_e},
+          {r: cpu.h, ld: cpu.ld_h_n, rr: cpu.rr_h},
+          {r: cpu.l, ld: cpu.ld_l_n, rr: cpu.rr_l}].map(({r, ld, rr}) => {
+
+          cpu.setC(0);
+          ld.call(cpu, 0x01);
+          const m = cpu.m();
+
+          rr.call(cpu);
+
+          assert.equal(r.call(cpu), 0x00, `${r.name} rotated right`);
+          assert.equal(cpu.f(), 0b1001, 'Zero result with carry');
+          assert.equal(cpu.m() - m, 2, `RR ${r.name} machine cycles`);
+
+          rr.call(cpu);
+
+          assert.equal(r.call(cpu), 0x80, `${r.name} rotated right taking from carry`);
+          assert.equal(cpu.f(), 0b0000, 'Positive result without carry');
+        });
+      });
+
+      it('should rotate value at memory location hl right', () => {
+        cpu.ld_hl_nn(0xc000);
+        cpu.ld_0xhl_n(0b01010001);
+        cpu.setC(0);
+        const m = cpu.m();
+
+        cpu.rr_0xhl();
+
+        assert.equal(cpu.$hl(), 0b00101000, 'value at memory hl rotated right');
+        assert.equal(cpu.f(), 0b0001, 'Carry');
+        assert.equal(cpu.m() - m, 4, 'RL (hl) machine cycles');
+
+        cpu.rr_0xhl();
+
+        assert.equal(cpu.$hl(), 0b10010100 , 'value at memory hl rotated left');
+        assert.equal(cpu.f(), 0b0000, 'No carry');
+
+        cpu.ld_0xhl_n(0x00);
+
+        cpu.rr_0xhl();
+
+        assert.equal(cpu.$hl(), 0x00, 'Identical');
         assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
       });
     });
