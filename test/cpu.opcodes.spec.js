@@ -2253,6 +2253,7 @@ describe('CPU Instruction Set', function() {
 
       describe('RLC', () => {
         it('should rotate register to the left and copy to carry', () => {
+
           [ {r: cpu.a, ld: cpu.ld_a_n, rlc: cpu.rlca},
             {r: cpu.a, ld: cpu.ld_a_n, rlc: cpu.rlc_a},
             {r: cpu.b, ld: cpu.ld_b_n, rlc: cpu.rlc_b},
@@ -2260,23 +2261,26 @@ describe('CPU Instruction Set', function() {
             {r: cpu.d, ld: cpu.ld_d_n, rlc: cpu.rlc_d},
             {r: cpu.e, ld: cpu.ld_e_n, rlc: cpu.rlc_e},
             {r: cpu.h, ld: cpu.ld_h_n, rlc: cpu.rlc_h},
-            {r: cpu.l, ld: cpu.ld_l_n, rlc: cpu.rlc_l}].map(({r, ld, rlc}) => {
+            {r: cpu.l, ld: cpu.ld_l_n, rlc: cpu.rlc_l},
+            {r: cpu.$hl, ld: cpu.ld_0xhl_n, rlc: cpu.rlc_0xhl}].map(({r, ld, rlc}) => {
 
+            cpu.ld_hl_nn(cpu.mmu.ADDR_WORKING_RAM);
             let cycles = 2;
             if (rlc === cpu.rlca) cycles = 1;
+            if (rlc === cpu.rlc_0xhl) cycles = 4;
             cpu.setC(0);
             ld.call(cpu, 0b10000101);
             const m = cpu.m();
 
             rlc.call(cpu);
 
-            assert.equal(r.call(cpu), 0b00001011, 'Rotate left');
+            assert.equal(r.call(cpu), 0b00001011, `${rlc.name} rotates left`);
             assert.equal(cpu.f(), 0b0001, 'bit 7 copied to carry');
             assert.equal(cpu.m() - m, cycles, 'Machine cycles');
 
             rlc.call(cpu);
 
-            assert.equal(r.call(cpu), 0b00010110, 'Rotate left');
+            assert.equal(r.call(cpu), 0b00010110, `${rlc.name} rotates left`);
             assert.equal(cpu.f(), 0b0000, 'bit 7 copied to carry');
 
             ld.call(cpu, 0x00);
