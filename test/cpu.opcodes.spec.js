@@ -2200,12 +2200,15 @@ describe('CPU Instruction Set', function() {
             {r: cpu.d, ld: cpu.ld_d_n, rl: cpu.rl_d},
             {r: cpu.e, ld: cpu.ld_e_n, rl: cpu.rl_e},
             {r: cpu.h, ld: cpu.ld_h_n, rl: cpu.rl_h},
-            {r: cpu.l, ld: cpu.ld_l_n, rl: cpu.rl_l}].map(({r, ld, rl}) => {
+            {r: cpu.l, ld: cpu.ld_l_n, rl: cpu.rl_l},
+            {r: cpu.$hl, ld: cpu.ld_0xhl_n, rl: cpu.rl_0xhl}].map(({r, ld, rl}) => {
 
+              cpu.ld_hl_nn(cpu.mmu.ADDR_WRAM_START);
               let cycles = 2;
               if (rl === cpu.rla) cycles = 1;
+              if (rl === cpu.rl_0xhl) cycles = 4;
               cpu.setC(0);
-              ld.call(cpu, 0x80);
+              ld.call(cpu, 0b10000000);
               const m = cpu.m();
 
               rl.call(cpu);
@@ -2216,38 +2219,9 @@ describe('CPU Instruction Set', function() {
 
               rl.call(cpu);
 
-              assert.equal(r.call(cpu), 0x01, `${r.name} rotated left taking from carry`);
+              assert.equal(r.call(cpu), 0b00000001, `${r.name} rotated left taking from carry`);
               assert.equal(cpu.f(), 0b0000, 'Positive result without carry');
           });
-        });
-        it('should rotate value at memory location hl left', () => {
-          cpu.ld_hl_nn(0xc000);
-          cpu.ld_0xhl_n(0b01010001);
-          cpu.setC(0);
-          const m = cpu.m();
-
-          cpu.rl_0xhl();
-
-          assert.equal(cpu.$hl(), 0b10100010, 'value at memory hl rotated left');
-          assert.equal(cpu.f(), 0b0000, 'No carry');
-          assert.equal(cpu.m() - m, 4, 'RL (hl) machine cycles');
-
-          cpu.rl_0xhl();
-
-          assert.equal(cpu.$hl(), 0b01000100, 'value at memory hl rotated left');
-          assert.equal(cpu.f(), 0b0001, 'Carry');
-
-          cpu.rl_0xhl();
-
-          assert.equal(cpu.$hl(), 0b10001001, 'value at memory hl rotated left');
-          assert.equal(cpu.f(), 0b0000, 'No carry');
-
-          cpu.ld_0xhl_n(0x00);
-
-          cpu.rl_0xhl();
-
-          assert.equal(cpu.$hl(), 0x00, 'Identical');
-          assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
         });
       });
 
@@ -2264,7 +2238,7 @@ describe('CPU Instruction Set', function() {
             {r: cpu.l, ld: cpu.ld_l_n, rlc: cpu.rlc_l},
             {r: cpu.$hl, ld: cpu.ld_0xhl_n, rlc: cpu.rlc_0xhl}].map(({r, ld, rlc}) => {
 
-            cpu.ld_hl_nn(cpu.mmu.ADDR_WORKING_RAM);
+            cpu.ld_hl_nn(cpu.mmu.ADDR_WRAM_START);
             let cycles = 2;
             if (rlc === cpu.rlca) cycles = 1;
             if (rlc === cpu.rlc_0xhl) cycles = 4;
@@ -2303,10 +2277,13 @@ describe('CPU Instruction Set', function() {
             {r: cpu.d, ld: cpu.ld_d_n, rr: cpu.rr_d},
             {r: cpu.e, ld: cpu.ld_e_n, rr: cpu.rr_e},
             {r: cpu.h, ld: cpu.ld_h_n, rr: cpu.rr_h},
-            {r: cpu.l, ld: cpu.ld_l_n, rr: cpu.rr_l}].map(({r, ld, rr}) => {
+            {r: cpu.l, ld: cpu.ld_l_n, rr: cpu.rr_l},
+            {r: cpu.$hl, ld: cpu.ld_0xhl_n, rr: cpu.rr_0xhl}].map(({r, ld, rr}) => {
 
+            cpu.ld_hl_nn(cpu.mmu.ADDR_WRAM_START);
             let cycles = 2;
             if (rr === cpu.rra) cycles = 1;
+            if (rr === cpu.rr_0xhl) cycles = 4;
             cpu.setC(0);
             ld.call(cpu, 0x01);
             const m = cpu.m();
@@ -2322,30 +2299,6 @@ describe('CPU Instruction Set', function() {
             assert.equal(r.call(cpu), 0x80, `${r.name} rotated right taking from carry`);
             assert.equal(cpu.f(), 0b0000, 'Positive result without carry');
           });
-        });
-        it('should rotate value at memory location hl right', () => {
-          cpu.ld_hl_nn(0xc000);
-          cpu.ld_0xhl_n(0b01010001);
-          cpu.setC(0);
-          const m = cpu.m();
-
-          cpu.rr_0xhl();
-
-          assert.equal(cpu.$hl(), 0b00101000, 'value at memory hl rotated right');
-          assert.equal(cpu.f(), 0b0001, 'Carry');
-          assert.equal(cpu.m() - m, 4, 'RL (hl) machine cycles');
-
-          cpu.rr_0xhl();
-
-          assert.equal(cpu.$hl(), 0b10010100 , 'value at memory hl rotated left');
-          assert.equal(cpu.f(), 0b0000, 'No carry');
-
-          cpu.ld_0xhl_n(0x00);
-
-          cpu.rr_0xhl();
-
-          assert.equal(cpu.$hl(), 0x00, 'Identical');
-          assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
         });
       });
     });

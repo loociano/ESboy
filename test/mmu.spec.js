@@ -414,10 +414,10 @@ describe('MMU', () => {
     it('should run DMA', () => {
 
       for(let i = 0; i < mmu.DMA_LENGTH; i++){
-        mmu.writeByteAt(mmu.ADDR_WORKING_RAM + i, 0xaa);
+        mmu.writeByteAt(mmu.ADDR_WRAM_START + i, 0xaa);
       }
 
-      mmu.writeByteAt(mmu.ADDR_DMA, mmu.ADDR_WORKING_RAM >> 8); // 0xc0
+      mmu.writeByteAt(mmu.ADDR_DMA, mmu.ADDR_WRAM_START >> 8); // 0xc0
 
       assert.throws( () => {
         mmu.readByteAt(mmu.ADDR_OAM_START);

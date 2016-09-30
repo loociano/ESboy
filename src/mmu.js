@@ -35,7 +35,7 @@ export default class MMU {
     this.ADDR_VRAM_END = 0x9fff;
 
     // Working RAM
-    this.ADDR_WORKING_RAM = 0xc000;
+    this.ADDR_WRAM_START = 0xc000;
 
     // OAM
     this.ADDR_OAM_START = 0xfe00;
