@@ -95,6 +95,8 @@ export default class CPU {
       0x23: {fn: this.inc_hl, paramBytes: 0},
       0x24: {fn: this.inc_h, paramBytes: 0},
       0x25: {fn: this.dec_h, paramBytes: 0},
+      0x26: {fn: this.ld_h_n, paramBytes: 1},
+      0x27: {fn: this.daa, paramBytes: 0},
       0x28: {fn: this.jr_z_n, paramBytes: 1},
       0x29: {fn: this.add_hl_hl, paramBytes: 0},
       0x2a: {fn: this.ldi_a_0xhl, paramBytes: 0},
@@ -103,8 +105,6 @@ export default class CPU {
       0x2d: {fn: this.dec_l, paramBytes: 0},
       0x2e: {fn: this.ld_l_n, paramBytes: 1},
       0x2f: {fn: this.cpl, paramBytes: 0},
-      0x26: {fn: this.ld_h_n, paramBytes: 1},
-      0x27: {fn: this.daa, paramBytes: 0},
       0x30: {fn: this.jr_nc_n, paramBytes: 1},
       0x31: {fn: this.ld_sp_nn, paramBytes: 2},
       0x32: {fn: this.ldd_0xhl_a, paramBytes: 0},
@@ -112,6 +112,7 @@ export default class CPU {
       0x34: {fn: this.inc_0xhl, paramBytes: 0},
       0x35: {fn: this.dec_0xhl, paramBytes: 0},
       0x36: {fn: this.ld_0xhl_n, paramBytes: 1},
+      0x37: {fn: this.scf, paramBytes: 0},
       0x38: {fn: this.jr_c_n, paramBytes: 1},
       0x39: {fn: this.add_hl_sp, paramBytes: 0},
       0x3a: {fn: this.ldd_a_0xhl, paramBytes: 0},
@@ -1509,6 +1510,16 @@ export default class CPU {
     } else {
       Logger.error(`Cannot set flag C with ${value}`);
     }
+  }
+
+  /**
+   * Sets carry flag
+   */
+  scf(){
+    this.setC(1);
+    this.setN(0);
+    this.setH(0);
+    this._m++;
   }
 
   /**

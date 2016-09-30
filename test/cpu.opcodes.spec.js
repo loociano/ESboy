@@ -60,6 +60,17 @@ describe('CPU Instruction Set', function() {
       testSetGetFlag(cpu, cpu.setC, cpu.C);
     });
 
+    it('should set carry flag', () => {
+      cpu.setC(0);
+      cpu.setZ(0);
+      const m = cpu.m();
+
+      cpu.scf();
+
+      assert.equal(cpu.f(), 0b0001);
+      assert.equal(cpu.m() - m, 1, 'Machine cycles');
+    });
+
   });
 
   describe('NOP', () => {
