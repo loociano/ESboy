@@ -1580,6 +1580,19 @@ describe('CPU Instruction Set', function() {
       });
     });
 
+    describe('LD nn, SP', () => {
+      it('should load the stack pointer into a given address', () => {
+        cpu.ld_sp_nn(0xfff8);
+        const m = cpu.m();
+
+        cpu.ld_nn_sp(0xc100);
+
+        assert.equal(cpu.mmu.readByteAt(0xc100), 0xf8);
+        assert.equal(cpu.mmu.readByteAt(0xc101), 0xff);
+        assert.equal(cpu.m() - m, 5, 'Machine cycles');
+      });
+    });
+
     describe('PUSH', () => {
 
       it('should push registers into the stack', () => {
