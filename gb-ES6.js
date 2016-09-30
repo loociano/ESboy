@@ -2160,6 +2160,7 @@ var CPU = function () {
       0x3c: { fn: this.inc_a, paramBytes: 0 },
       0x3d: { fn: this.dec_a, paramBytes: 0 },
       0x3e: { fn: this.ld_a_n, paramBytes: 1 },
+      0x3f: { fn: this.ccf, paramBytes: 0 },
       0x40: { fn: this.ld_b_b, paramBytes: 0 },
       0x41: { fn: this.ld_b_c, paramBytes: 0 },
       0x42: { fn: this.ld_b_d, paramBytes: 0 },
@@ -3868,6 +3869,19 @@ var CPU = function () {
     key: 'scf',
     value: function scf() {
       this.setC(1);
+      this.setN(0);
+      this.setH(0);
+      this._m++;
+    }
+
+    /**
+     * Complements carry flag
+     */
+
+  }, {
+    key: 'ccf',
+    value: function ccf() {
+      if (this.C() === 0) this.setC(1);else this.setC(0);
       this.setN(0);
       this.setH(0);
       this._m++;
@@ -9122,12 +9136,17 @@ var _inputHandler2 = _interopRequireDefault(_inputHandler);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+// Cache DOM references
 var $cartridge = document.getElementById('cartridge');
 var $body = document.querySelector('body');
 var ctxBG = document.getElementById('bg').getContext('2d');
 var ctxOBJ = document.getElementById('obj').getContext('2d');
 var cpu = void 0;
 
+/**
+ * Handles file selection
+ * @param evt
+ */
 function handleFileSelect(evt) {
 
   var file = evt.target.files[0]; // FileList object
@@ -9140,13 +9159,16 @@ function handleFileSelect(evt) {
 
     var readOnlyBuffer = event.target.result;
     var rom = new Uint8Array(readOnlyBuffer);
-    start(rom);
+    init(rom);
   };
 
   if (file) reader.readAsArrayBuffer(file);
 }
 
-function start(rom) {
+/**
+ * @param {Uint8Array} rom
+ */
+function init(rom) {
   var mmu = new _mmu2.default(rom);
 
   new _inputHandler2.default(mmu, $body);
@@ -9157,6 +9179,9 @@ function start(rom) {
   window.requestAnimationFrame(frame);
 }
 
+/**
+ * Main loop
+ */
 function frame() {
   cpu.start();
   window.requestAnimationFrame(frame);
