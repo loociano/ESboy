@@ -3,12 +3,17 @@ import MMU from './mmu';
 import LCD from './lcd';
 import InputHandler from './inputHandler';
 
+// Cache DOM references
 const $cartridge = document.getElementById('cartridge');
 const $body = document.querySelector('body');
 const ctxBG = document.getElementById('bg').getContext('2d');
 const ctxOBJ = document.getElementById('obj').getContext('2d');
 let cpu;
 
+/**
+ * Handles file selection
+ * @param evt
+ */
 function handleFileSelect(evt) {
 
   const file = evt.target.files[0]; // FileList object
@@ -21,13 +26,16 @@ function handleFileSelect(evt) {
 
     const readOnlyBuffer = event.target.result;
     const rom = new Uint8Array(readOnlyBuffer);
-    start(rom);
+    init(rom);
   };
 
   if (file) reader.readAsArrayBuffer(file);
 }
 
-function start(rom){
+/**
+ * @param {Uint8Array} rom
+ */
+function init(rom){
   const mmu = new MMU(rom);
 
   new InputHandler(mmu, $body);
@@ -38,6 +46,9 @@ function start(rom){
   window.requestAnimationFrame(frame);
 }
 
+/**
+ * Main loop
+ */
 function frame(){
   cpu.start();
   window.requestAnimationFrame(frame);
