@@ -71,6 +71,20 @@ describe('CPU Instruction Set', function() {
       assert.equal(cpu.m() - m, 1, 'Machine cycles');
     });
 
+    it('should complement carry flag', () => {
+      cpu.setC(0);
+      cpu.setZ(0);
+      const m = cpu.m();
+
+      cpu.ccf();
+
+      assert.equal(cpu.f(), 0b0001);
+      assert.equal(cpu.m() - m, 1, 'Machine cycles');
+
+      cpu.ccf();
+      assert.equal(cpu.f(), 0b0000);
+    });
+
   });
 
   describe('NOP', () => {

@@ -120,6 +120,7 @@ export default class CPU {
       0x3c: {fn: this.inc_a, paramBytes: 0},
       0x3d: {fn: this.dec_a, paramBytes: 0},
       0x3e: {fn: this.ld_a_n, paramBytes: 1},
+      0x3f: {fn: this.ccf, paramBytes: 0},
       0x40: {fn: this.ld_b_b, paramBytes: 0},
       0x41: {fn: this.ld_b_c, paramBytes: 0},
       0x42: {fn: this.ld_b_d, paramBytes: 0},
@@ -1517,6 +1518,19 @@ export default class CPU {
    */
   scf(){
     this.setC(1);
+    this.setN(0);
+    this.setH(0);
+    this._m++;
+  }
+
+  /**
+   * Complements carry flag
+   */
+  ccf(){
+    if (this.C() === 0)
+      this.setC(1);
+    else
+      this.setC(0);
     this.setN(0);
     this.setH(0);
     this._m++;
