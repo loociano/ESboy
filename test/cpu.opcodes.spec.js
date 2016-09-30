@@ -2301,6 +2301,48 @@ describe('CPU Instruction Set', function() {
           });
         });
       });
+
+      describe('RRC, RRCA', () => {
+        it('should rotate register right and copy to carry', () => {
+
+          [ {r: cpu.a, ld: cpu.ld_a_n, rrc: cpu.rrca},
+            {r: cpu.a, ld: cpu.ld_a_n, rrc: cpu.rrc_a},
+            {r: cpu.b, ld: cpu.ld_b_n, rrc: cpu.rrc_b},
+            {r: cpu.c, ld: cpu.ld_c_n, rrc: cpu.rrc_c},
+            {r: cpu.d, ld: cpu.ld_d_n, rrc: cpu.rrc_d},
+            {r: cpu.e, ld: cpu.ld_e_n, rrc: cpu.rrc_e},
+            {r: cpu.h, ld: cpu.ld_h_n, rrc: cpu.rrc_h},
+            {r: cpu.l, ld: cpu.ld_l_n, rrc: cpu.rrc_l},
+            {r: cpu.$hl, ld: cpu.ld_0xhl_n, rrc: cpu.rrc_0xhl}].map(({r, ld, rrc}) => {
+
+            cpu.ld_hl_nn(cpu.mmu.ADDR_WRAM_START);
+            let cycles = 2;
+            if (rrc === cpu.rrca) cycles = 1;
+            if (rrc === cpu.rrc_0xhl) cycles = 4;
+            cpu.setC(0);
+            ld.call(cpu, 0b10000101);
+            const m = cpu.m();
+
+            rrc.call(cpu);
+
+            assert.equal(r.call(cpu), 0b11000010, `${rrc.name} rotates right`);
+            assert.equal(cpu.f(), 0b0001, 'bit 0 copied to carry');
+            assert.equal(cpu.m() - m, cycles, `${rrc.name} Machine cycles`);
+
+            rrc.call(cpu);
+
+            assert.equal(r.call(cpu), 0b01100001, `${rrc.name} rotates right`);
+            assert.equal(cpu.f(), 0b0000, 'bit 0 copied to carry');
+
+            ld.call(cpu, 0x00);
+
+            rrc.call(cpu);
+
+            assert.equal(r.call(cpu), 0x00, 'Identical');
+            assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+          });
+        });
+      });
     });
 
     describe('Shifts', () => {
