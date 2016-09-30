@@ -2517,6 +2517,63 @@ describe('CPU Instruction Set', function() {
         });
       });
 
+      describe('SRA', () => {
+        it('should shift registers to the right while keeping bit 7', () => {
+
+          [ {r: cpu.a, ld: cpu.ld_a_n, sra: cpu.sra_a},
+            {r: cpu.b, ld: cpu.ld_b_n, sra: cpu.sra_b},
+            {r: cpu.c, ld: cpu.ld_c_n, sra: cpu.sra_c},
+            {r: cpu.d, ld: cpu.ld_d_n, sra: cpu.sra_d},
+            {r: cpu.e, ld: cpu.ld_e_n, sra: cpu.sra_e},
+            {r: cpu.h, ld: cpu.ld_h_n, sra: cpu.sra_h},
+            {r: cpu.l, ld: cpu.ld_l_n, sra: cpu.sra_l},
+            {r: cpu.$hl, ld: cpu.ld_0xhl_n, sra: cpu.sra_0xhl}].map(({r, ld, sra}) => {
+
+            cpu.ld_hl_nn(cpu.mmu.ADDR_WRAM_START);
+            let cycles = 2;
+            if (sra === cpu.sra_0xhl) cycles = 4;
+            cpu.setC(0);
+            ld.call(cpu, 0b00000110);
+            const m = cpu.m();
+
+            sra.call(cpu);
+
+            assert.equal(r.call(cpu), 0b00000011, `${sra.name} shifts right`);
+            assert.equal(cpu.f(), 0b0000, 'No carry');
+            assert.equal(cpu.m() - m, cycles, 'Machine cycles');
+
+            sra.call(cpu);
+
+            assert.equal(r.call(cpu), 0b00000001, `${sra.name} shifts right`);
+            assert.equal(cpu.f(), 0b0001, 'Carry');
+
+            sra.call(cpu);
+
+            assert.equal(r.call(cpu), 0b00000000, `${sra.name} shifts right`);
+            assert.equal(cpu.f(), 0b1001, 'Zero result with carry');
+
+            sra.call(cpu);
+
+            assert.equal(r.call(cpu), 0b00000000, `${sra.name} shifts right`);
+            assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+
+            // Test when bit 7 is set
+            ld.call(cpu, 0b10000110);
+            cpu.setC(0);
+
+            sra.call(cpu);
+
+            assert.equal(r.call(cpu), 0b11000011, `${sra.name} shifts right`);
+            assert.equal(cpu.f(), 0b0000, 'No carry');
+
+            sra.call(cpu);
+
+            assert.equal(r.call(cpu), 0b11100001, `${sra.name} shifts right`);
+            assert.equal(cpu.f(), 0b0001, 'Carry');
+          });
+        });
+      });
+
     });
 
     describe('Swaps', () => {

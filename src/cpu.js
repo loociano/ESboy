@@ -266,6 +266,7 @@ export default class CPU {
       0xcb03: {fn: this.rlc_e, paramBytes: 0},
       0xcb04: {fn: this.rlc_h, paramBytes: 0},
       0xcb05: {fn: this.rlc_l, paramBytes: 0},
+      0xcb06: {fn: this.rlc_0xhl, paramBytes: 0},
       0xcb07: {fn: this.rlc_a, paramBytes: 0},
       0xcb08: {fn: this.rrc_b, paramBytes: 0},
       0xcb09: {fn: this.rrc_c, paramBytes: 0},
@@ -299,6 +300,14 @@ export default class CPU {
       0xcb25: {fn: this.sla_l, paramBytes: 0},
       0xcb26: {fn: this.sla_0xhl, paramBytes: 0},
       0xcb27: {fn: this.sla_a, paramBytes: 0},
+      0xcb28: {fn: this.sra_b, paramBytes: 0},
+      0xcb29: {fn: this.sra_c, paramBytes: 0},
+      0xcb2a: {fn: this.sra_d, paramBytes: 0},
+      0xcb2b: {fn: this.sra_e, paramBytes: 0},
+      0xcb2c: {fn: this.sra_h, paramBytes: 0},
+      0xcb2d: {fn: this.sra_l, paramBytes: 0},
+      0xcb2e: {fn: this.sra_0xhl, paramBytes: 0},
+      0xcb2f: {fn: this.sra_a, paramBytes: 0},
       0xcb30: {fn: this.swap_b, paramBytes: 0},
       0xcb31: {fn: this.swap_c, paramBytes: 0},
       0xcb32: {fn: this.swap_d, paramBytes: 0},
@@ -3822,6 +3831,79 @@ export default class CPU {
    */
   sla_0xhl(){
     this.rl_0xhl(0);
+  }
+
+  /**
+   * @param {function} setter
+   * @param {function} getter
+   * @private
+   */
+  _sra_r(setter, getter){
+    this._rr_r(setter, getter, getter.call(this) >> 7);
+  }
+
+  /**
+   * Shift right register a without modifying bit 7
+   */
+  sra_a(){
+    this._sra_r(this._set_a, this.a);
+    this._m++;
+  }
+
+  /**
+   * Shift right register b without modifying bit 7
+   */
+  sra_b(){
+    this._sra_r(this._set_b, this.b);
+    this._m++;
+  }
+
+  /**
+   * Shift right register c without modifying bit 7
+   */
+  sra_c(){
+    this._sra_r(this._set_c, this.c);
+    this._m++;
+  }
+
+  /**
+   * Shift right register d without modifying bit 7
+   */
+  sra_d(){
+    this._sra_r(this._set_d, this.d);
+    this._m++;
+  }
+
+  /**
+   * Shift right register e without modifying bit 7
+   */
+  sra_e(){
+    this._sra_r(this._set_e, this.e);
+    this._m++;
+  }
+
+  /**
+   * Shift right register h without modifying bit 7
+   */
+  sra_h(){
+    this._sra_r(this._set_h, this.h);
+    this._m++;
+  }
+
+  /**
+   * Shift right register l without modifying bit 7
+   */
+  sra_l(){
+    this._sra_r(this._set_l, this.l);
+    this._m++;
+  }
+
+  /**
+   * Shift right value at memory location hl without modifying bit 7
+   */
+  sra_0xhl(){
+    this._sra_r(this._ld_0xhl_n, this.$hl);
+    this._m++;
   }
 
   /**
