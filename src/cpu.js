@@ -3001,7 +3001,7 @@ export default class CPU {
    * Rotates right register a
    */
   rra(){
-    this._rr_r('a');
+    this._rr_r(this._set_a, this.a);
   }
 
   /**
@@ -3016,7 +3016,7 @@ export default class CPU {
    * Rotates right register b
    */
   rr_b(){
-    this._rr_r('b');
+    this._rr_r(this._set_b, this.b);
     this._m++;
   }
 
@@ -3024,7 +3024,7 @@ export default class CPU {
    * Rotates right register c
    */
   rr_c(){
-    this._rr_r('c');
+    this._rr_r(this._set_c, this.c);
     this._m++;
   }
 
@@ -3032,7 +3032,7 @@ export default class CPU {
    * Rotates right register d
    */
   rr_d(){
-    this._rr_r('d');
+    this._rr_r(this._set_d, this.d);
     this._m++;
   }
 
@@ -3040,7 +3040,7 @@ export default class CPU {
    * Rotates right register e
    */
   rr_e(){
-    this._rr_r('e');
+    this._rr_r(this._set_e, this.e);
     this._m++;
   }
 
@@ -3048,7 +3048,7 @@ export default class CPU {
    * Rotates right register h
    */
   rr_h(){
-    this._rr_r('h');
+    this._rr_r(this._set_h, this.h);
     this._m++;
   }
 
@@ -3056,23 +3056,25 @@ export default class CPU {
    * Rotates right register l
    */
   rr_l(){
-    this._rr_r('l');
+    this._rr_r(this._set_l, this.l);
     this._m++;
   }
 
   /**
    * Rotates right register r
-   * @param r
+   * @param {function} setter
+   * @param {function} getter
    * @param carried
    * @private
    */
-  _rr_r(r, carried=this.C()){
+  _rr_r(setter, getter, carried=this.C()){
 
-    this.setC(this._r[r] & 0x01);
-    const rotated = (this._r[r] >> 1) + (carried << 7);
-    this._r[r] = rotated & 0xff;
+    let value = getter.call(this);
+    this.setC(value & 0x01);
+    value = (value >> 1) + (carried << 7);
+    setter.call(this, value);
 
-    if (this._r[r] === 0){
+    if (value === 0){
       this.setZ(1);
     } else {
       this.setZ(0);
@@ -3094,22 +3096,7 @@ export default class CPU {
    * Rotates right the value at memory hl. Sets carry flag.
    */
   rr_0xhl(carried=this.C()){
-
-    const value = this._0xhl();
-
-    this.setC(value & 0x01);
-    const rotated = (value >> 1) + (carried << 7);
-    this.mmu.writeByteAt(this.hl(), rotated & 0xff);
-
-    if ((rotated & 0xff) === 0){
-      this.setZ(1);
-    } else {
-      this.setZ(0);
-    }
-
-    this.setN(0);
-    this.setH(0);
-    this._m += 3;
+    this._rr_r(this._ld_0xhl_n, this._0xhl, carried);
   }
 
   /** 
@@ -3809,11 +3796,12 @@ export default class CPU {
 
   /**
    * Shifts register r right
-   * @param r
+   * @param {function} setter
+   * @param {function} getter
    * @private
    */
-  _srl_r(r){
-    this._rr_r(r, 0);
+  _srl_r(setter, getter){
+    this._rr_r(setter, getter, 0);
     this._m++;
   }
 
@@ -3821,49 +3809,49 @@ export default class CPU {
    * Shifts register a right
    */
   srl_a(){
-    this._srl_r('a');
+    this._srl_r(this._set_a, this.a);
   }
 
   /**
    * Shifts register b right
    */
   srl_b(){
-    this._srl_r('b');
+    this._srl_r(this._set_b, this.b);
   }
 
   /**
    * Shifts register c right
    */
   srl_c(){
-    this._srl_r('c');
+    this._srl_r(this._set_c, this.c);
   }
 
   /**
    * Shifts register d right
    */
   srl_d(){
-    this._srl_r('d');
+    this._srl_r(this._set_d, this.d);
   }
 
   /**
    * Shifts register e right
    */
   srl_e(){
-    this._srl_r('e');
+    this._srl_r(this._set_e, this.e);
   }
 
   /**
    * Shifts register h right
    */
   srl_h(){
-    this._srl_r('h');
+    this._srl_r(this._set_h, this.h);
   }
 
   /**
    * Shifts register l right
    */
   srl_l(){
-    this._srl_r('l');
+    this._srl_r(this._set_l, this.l);
   }
 
   /**
