@@ -550,6 +550,7 @@ export default class CPU {
       0xf6: {fn: this.or_n, paramBytes: 1},
       0xf7: {fn: this.rst_30, paramBytes: 0},
       0xf8: {fn: this.ldhl_sp_n, paramBytes: 1},
+      0xf9: {fn: this.ld_sp_hl, paramBytes: 0},
       0xfa: {fn: this.ld_a_nn, paramBytes: 2},
       0xfb: {fn: this.ei, paramBytes: 0},
       0xfc: {fn: this._noSuchOpcode, paramBytes: 0},
@@ -1568,6 +1569,14 @@ export default class CPU {
   ld_sp_nn(nn) {
     this._r.sp = nn;
     this._m += 3;
+  }
+
+  /**
+   * Loads hl into stack pointer
+   */
+  ld_sp_hl(){
+    this._r.sp = this.hl();
+    this._m += 2;
   }
 
   /**

@@ -1618,6 +1618,18 @@ describe('CPU Instruction Set', function() {
       });
     });
 
+    describe('LD SP,HL', () => {
+      it('should load hl into the stack pointer', () => {
+        cpu.ld_hl_nn(0xffee);
+        const m = cpu.m();
+
+        cpu.ld_sp_hl();
+
+        assert.equal(cpu.sp(), 0xffee);
+        assert.equal(cpu.m() - m, 2, 'Machine cycles');
+      });
+    });
+
     describe('LDHL SP,e', () => {
 
       it('should load SP + signed int into HL', () => {
@@ -1643,7 +1655,7 @@ describe('CPU Instruction Set', function() {
         cpu.ldhl_sp_n(0x08);
 
         assert.equal(cpu.hl(), 0x0000);
-        assert.equal(cpu.f(), 0b0011, 'Half- and carry');
+        assert.equal(cpu.f(), 0b0011, 'Half- and carry'); // TODO: Z flag?
 
         cpu.ld_sp_nn(0xefff);
         cpu.ldhl_sp_n(0x01);
