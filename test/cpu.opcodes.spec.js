@@ -2853,6 +2853,24 @@ describe('CPU Instruction Set', function() {
       assert.equal(cpu.m() - m, 1, 'Machine cycles');
       assert(cpu.isHalted());
     });
+
+    it('should STOP', () => {
+      const m = cpu.m();
+
+      cpu.stop();
+
+      assert.equal(cpu.m() - m, 1, 'Machine cycles');
+      assert(cpu.isStopped());
+
+      [ cpu.pressA, cpu.pressB, cpu.pressSTART, cpu.pressSTART,
+        cpu.pressLeft, cpu.pressRight, cpu.pressUp, cpu.pressDown].map( (fn) => {
+
+          cpu.stop();
+          assert(cpu.isStopped());
+          fn.call(cpu);
+          assert(!cpu.isStopped());
+      });
+    });
   });
 });
 
