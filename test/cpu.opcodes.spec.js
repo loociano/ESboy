@@ -2346,133 +2346,92 @@ describe('CPU Instruction Set', function() {
     });
 
     describe('Shifts', () => {
-      it('should shift registers to the left', () => {
 
-        [ {r: cpu.a, ld: cpu.ld_a_n, sla: cpu.sla_a},
-          {r: cpu.b, ld: cpu.ld_b_n, sla: cpu.sla_b},
-          {r: cpu.c, ld: cpu.ld_c_n, sla: cpu.sla_c},
-          {r: cpu.d, ld: cpu.ld_d_n, sla: cpu.sla_d},
-          {r: cpu.e, ld: cpu.ld_e_n, sla: cpu.sla_e},
-          {r: cpu.h, ld: cpu.ld_h_n, sla: cpu.sla_h},
-          {r: cpu.l, ld: cpu.ld_l_n, sla: cpu.sla_l} ].map(({r, ld, sla}) => {
+      describe('SLA', () => {
+        it('should shift registers to the left', () => {
 
-          ld.call(cpu, 0b01100000);
-          const m = cpu.m();
+          [ {r: cpu.a, ld: cpu.ld_a_n, sla: cpu.sla_a},
+            {r: cpu.b, ld: cpu.ld_b_n, sla: cpu.sla_b},
+            {r: cpu.c, ld: cpu.ld_c_n, sla: cpu.sla_c},
+            {r: cpu.d, ld: cpu.ld_d_n, sla: cpu.sla_d},
+            {r: cpu.e, ld: cpu.ld_e_n, sla: cpu.sla_e},
+            {r: cpu.h, ld: cpu.ld_h_n, sla: cpu.sla_h},
+            {r: cpu.l, ld: cpu.ld_l_n, sla: cpu.sla_l},
+            {r: cpu.$hl, ld: cpu.ld_0xhl_n, sla: cpu.sla_0xhl}].map(({r, ld, sla}) => {
 
-          sla.call(cpu);
+            cpu.ld_hl_nn(cpu.mmu.ADDR_WRAM_START);
+            let cycles = 2;
+            if (sla === cpu.sla_0xhl) cycles = 4;
+            ld.call(cpu, 0b01100000);
+            const m = cpu.m();
 
-          assert.equal(r.call(cpu), 0b11000000, 'Shifted left');
-          assert.equal(cpu.f(), 0b0000, 'No carry');
-          assert.equal(cpu.m() - m, 2, 'Machine cycles');
+            sla.call(cpu);
 
-          sla.call(cpu);
+            assert.equal(r.call(cpu), 0b11000000, 'Shifted left');
+            assert.equal(cpu.f(), 0b0000, 'No carry');
+            assert.equal(cpu.m() - m, cycles, 'Machine cycles');
 
-          assert.equal(r.call(cpu), 0b10000000, 'Shifted left');
-          assert.equal(cpu.f(), 0b0001, 'Carry');
+            sla.call(cpu);
 
-          sla.call(cpu);
+            assert.equal(r.call(cpu), 0b10000000, 'Shifted left');
+            assert.equal(cpu.f(), 0b0001, 'Carry');
 
-          assert.equal(r.call(cpu), 0b00000000, 'Shifted left');
-          assert.equal(cpu.f(), 0b1001, 'Zero result with carry');
+            sla.call(cpu);
 
-          sla.call(cpu);
+            assert.equal(r.call(cpu), 0b00000000, 'Shifted left');
+            assert.equal(cpu.f(), 0b1001, 'Zero result with carry');
 
-          assert.equal(r.call(cpu), 0b00000000, 'Shifted left');
-          assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+            sla.call(cpu);
+
+            assert.equal(r.call(cpu), 0b00000000, 'Shifted left');
+            assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+          });
         });
       });
 
-      it('should shift value at memory location hl to the left', () => {
-        cpu.ld_hl_nn(0xc000);
-        cpu.ld_0xhl_n(0b01100000);
-        const m = cpu.m();
+      describe('SRL', () => {
+        it('should shift registers to the right', () => {
 
-        cpu.sla_0xhl();
+          [ {r: cpu.a, ld: cpu.ld_a_n, srl: cpu.srl_a},
+            {r: cpu.b, ld: cpu.ld_b_n, srl: cpu.srl_b},
+            {r: cpu.c, ld: cpu.ld_c_n, srl: cpu.srl_c},
+            {r: cpu.d, ld: cpu.ld_d_n, srl: cpu.srl_d},
+            {r: cpu.e, ld: cpu.ld_e_n, srl: cpu.srl_e},
+            {r: cpu.h, ld: cpu.ld_h_n, srl: cpu.srl_h},
+            {r: cpu.l, ld: cpu.ld_l_n, srl: cpu.srl_l},
+            {r: cpu.$hl, ld: cpu.ld_0xhl_n, srl: cpu.srl_0xhl}].map(({r, ld, srl}) => {
 
-        assert.equal(cpu.$hl(), 0b11000000, 'Shifted left');
-        assert.equal(cpu.f(), 0b0000, 'No carry');
-        assert.equal(cpu.m() - m, 4, 'Machine cycles');
+            cpu.ld_hl_nn(cpu.mmu.ADDR_WRAM_START);
+            let cycles = 2;
+            if (srl === cpu.srl_0xhl) cycles = 4;
+            cpu.setC(0);
+            ld.call(cpu, 0b00000110);
+            const m = cpu.m();
 
-        cpu.sla_0xhl();
+            srl.call(cpu);
 
-        assert.equal(cpu.$hl(), 0b10000000, 'Shifted left');
-        assert.equal(cpu.f(), 0b0001, 'Carry');
+            assert.equal(r.call(cpu), 0b00000011, `${srl.name} shifts right`);
+            assert.equal(cpu.f(), 0b0000, 'No carry');
+            assert.equal(cpu.m() - m, cycles, 'Machine cycles');
 
-        cpu.sla_0xhl();
+            srl.call(cpu);
 
-        assert.equal(cpu.$hl(), 0b00000000, 'Shifted left');
-        assert.equal(cpu.f(), 0b1001, 'Zero result with carry');
+            assert.equal(r.call(cpu), 0b00000001, `${srl.name} shifts right`);
+            assert.equal(cpu.f(), 0b0001, 'Carry');
 
-        cpu.sla_0xhl();
+            srl.call(cpu);
 
-        assert.equal(cpu.$hl(), 0b00000000, 'Shifted left');
-        assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
-      });
+            assert.equal(r.call(cpu), 0b00000000, `${srl.name} shifts right`);
+            assert.equal(cpu.f(), 0b1001, 'Zero result with carry');
 
-      it('should shift registers to the right', () => {
+            srl.call(cpu);
 
-        [ {r: cpu.a, ld: cpu.ld_a_n, srl: cpu.srl_a},
-          {r: cpu.b, ld: cpu.ld_b_n, srl: cpu.srl_b},
-          {r: cpu.c, ld: cpu.ld_c_n, srl: cpu.srl_c},
-          {r: cpu.d, ld: cpu.ld_d_n, srl: cpu.srl_d},
-          {r: cpu.e, ld: cpu.ld_e_n, srl: cpu.srl_e},
-          {r: cpu.h, ld: cpu.ld_h_n, srl: cpu.srl_h},
-          {r: cpu.l, ld: cpu.ld_l_n, srl: cpu.srl_l} ].map(({r, ld, srl}) => {
-
-          cpu.setC(0);
-          ld.call(cpu, 0b00000110);
-          const m = cpu.m();
-
-          srl.call(cpu);
-
-          assert.equal(r.call(cpu), 0b00000011, 'Shifted right');
-          assert.equal(cpu.f(), 0b0000, 'No carry');
-          assert.equal(cpu.m() - m, 2, 'Machine cycles');
-
-          srl.call(cpu);
-
-          assert.equal(r.call(cpu), 0b00000001, 'Shifted right');
-          assert.equal(cpu.f(), 0b0001, 'Carry');
-
-          srl.call(cpu);
-
-          assert.equal(r.call(cpu), 0b00000000, 'Shifted right');
-          assert.equal(cpu.f(), 0b1001, 'Zero result with carry');
-
-          srl.call(cpu);
-
-          assert.equal(r.call(cpu), 0b00000000, 'Shifted left');
-          assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+            assert.equal(r.call(cpu), 0b00000000, `${srl.name} shifts right`);
+            assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+          });
         });
       });
 
-      it('should shift value at memory location hl to the right', () => {
-        cpu.setC(0);
-        cpu.ld_hl_nn(0xc000);
-        cpu.ld_0xhl_n(0b00000110);
-        const m = cpu.m();
-
-        cpu.srl_0xhl();
-
-        assert.equal(cpu.$hl(), 0b00000011, 'Shifted right');
-        assert.equal(cpu.f(), 0b0000, 'No carry');
-        assert.equal(cpu.m() - m, 4, 'Machine cycles');
-
-        cpu.srl_0xhl();
-
-        assert.equal(cpu.$hl(), 0b00000001, 'Shifted right');
-        assert.equal(cpu.f(), 0b0001, 'Carry');
-
-        cpu.srl_0xhl();
-
-        assert.equal(cpu.$hl(), 0b00000000, 'Shifted right');
-        assert.equal(cpu.f(), 0b1001, 'Zero result with carry');
-
-        cpu.srl_0xhl();
-
-        assert.equal(cpu.$hl(), 0b00000000, 'Shifted right');
-        assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
-      });
     });
 
     describe('Swaps', () => {
