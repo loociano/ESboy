@@ -3876,6 +3876,28 @@ export default class CPU {
   }
 
   /**
+   * Rotates left the value at memory location hl with copy to carry
+   * @param r
+   * @private
+   */
+  rlc_0xhl(){
+    const rotated = (this._0xhl() << 1);
+    const carry = (rotated & 0x100) >> 8;
+    this.setC(carry);
+    const value = (rotated & 0xff) + carry;
+    this.ld_0xhl_n(value);
+
+    if (value === 0){
+      this.setZ(1);
+    } else {
+      this.setZ(0);
+    }
+
+    this.setN(0);
+    this.setH(0);
+  }
+
+  /**
    * Rotates left r with copy to carry
    * @param r
    * @private
