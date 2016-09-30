@@ -42,11 +42,10 @@ function handleFileSelect(evt) {
  */
 function init(rom){
   const mmu = new MMU(rom);
-
-  new InputHandler(mmu, $body);
   const lcd = new LCD(mmu, ctxBG, ctxOBJ, 160, 144);
 
   cpu = new CPU(mmu, lcd);
+  new InputHandler(cpu, $body);
 
   window.requestAnimationFrame(frame);
 }

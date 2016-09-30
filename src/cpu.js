@@ -53,7 +53,9 @@ export default class CPU {
       ime: 1
     };
 
+    // CPU modes
     this._halt = false;
+    this._stop = false;
 
     this._attach_bit_functions();
 
@@ -74,6 +76,7 @@ export default class CPU {
       0x0d: {fn: this.dec_c, paramBytes: 0},
       0x0e: {fn: this.ld_c_n, paramBytes: 1},
       0x0f: {fn: this.rrca, paramBytes: 0},
+      0x10: {fn: this.stop, paramBytes: 0},
       0x11: {fn: this.ld_de_nn, paramBytes: 2},
       0x12: {fn: this.ld_0xde_a, paramBytes: 0},
       0x13: {fn: this.inc_de, paramBytes: 0},
@@ -893,19 +896,20 @@ export default class CPU {
         return;
       }
 
-      const m = this._m;
+      if (!this.isStopped()) {
 
-      if (!this.isHalted()) {
-        this._execute();
-      } else {
-        this._m++;
+        const m = this._m;
+
+        if (!this.isHalted()) {
+          this._execute();
+        } else {
+          this._m++;
+        }
+
+        this._handle_lcd();
+        this._handleDMA();
+        this._handleDIV(this._m - m);
       }
-
-      const m_instr = this._m - m;
-
-      this._handle_lcd();
-      this._handleDMA();
-      this._handleDIV(m_instr);
 
       if (this._r.pc === this.mmu.ADDR_GAME_START){
         this._afterBIOS();
@@ -4279,6 +4283,21 @@ export default class CPU {
   }
 
   /**
+   * Stops CPU and LCD
+   */
+  stop(){
+    this._stop = true;
+    this._m++;
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  isStopped(){
+    return this._stop;
+  }
+
+  /**
    * Writes the LSB of stack pointer into address nn, MSB into nn+1
    * @param nn
    */
@@ -4308,5 +4327,53 @@ export default class CPU {
       this.setC(0);
     }
     this.ld_hl_nn(value & 0xffff);
+  }
+
+  pressA(){
+    this._handle_input();
+    this.mmu.pressA();
+  }
+
+  pressB(){
+    this._handle_input();
+    this.mmu.pressB();
+  }
+
+  pressSTART(){
+    this._handle_input();
+    this.mmu.pressSTART();
+  }
+
+  pressSELECT(){
+    this._handle_input();
+    this.mmu.pressSELECT();
+  }
+
+  pressUp(){
+    this._handle_input();
+    this.mmu.pressUp();
+  }
+
+  pressDown(){
+    this._handle_input();
+    this.mmu.pressDown();
+  }
+
+  pressLeft(){
+    this._handle_input();
+    this.mmu.pressLeft();
+  }
+
+  pressRight(){
+    this._handle_input();
+    this.mmu.pressRight();
+  }
+
+  /**
+   * Handles action upon input
+   * @private
+   */
+  _handle_input(){
+    this._stop = false;
   }
 }

@@ -4,12 +4,12 @@ export default class InputHandler {
    * @param mmu
    * @param $body
    */
-  constructor(mmu, $body){
+  constructor(cpu, $body){
 
-    if (!mmu) throw new Error('Missing MMU');
+    if (!cpu) throw new Error('Missing CPU');
     if (!$body) throw new Error('Missing DOM body');
 
-    this._mmu = mmu;
+    this._cpu = cpu;
 
     this.KEY_UP = 38;
     this.KEY_LEFT = 37;
@@ -20,16 +20,6 @@ export default class InputHandler {
     this.KEY_ENTER = 13;
     this.KEY_SPACE = 32;
     this.KEY_CTRL = 17;
-
-    // Hold state to reduce calls to MMU
-    this._up = false;
-    this._down = false;
-    this._left = false;
-    this._right = false;
-    this._a = false;
-    this._b = false;
-    this._select = false;
-    this._start = false;
 
     $body.addEventListener('keydown', (evt) => this.onKeyDown(evt));
     $body.addEventListener('keyup', (evt) => this.onKeyUp(evt));
@@ -43,36 +33,36 @@ export default class InputHandler {
     switch (evt.keyCode) {
 
       case this.KEY_UP:
-        this._mmu.pressUp();
+        this._cpu.pressUp();
         break;
 
       case this.KEY_DOWN:
-        this._mmu.pressDown();
+        this._cpu.pressDown();
         break;
 
       case this.KEY_LEFT:
-        this._mmu.pressLeft();
+        this._cpu.pressLeft();
         break;
 
       case this.KEY_RIGHT:
-        this._mmu.pressRight();
+        this._cpu.pressRight();
         break;
 
       case this.KEY_X:
-        this._mmu.pressA();
+        this._cpu.pressA();
         break;
 
       case this.KEY_Z:
-        this._mmu.pressB();
+        this._cpu.pressB();
         break;
 
       case this.KEY_ENTER:
       case this.KEY_SPACE:
-        this._mmu.pressSTART();
+        this._cpu.pressSTART();
         break;
 
       case this.KEY_CTRL:
-        this._mmu.pressSELECT();
+        this._cpu.pressSELECT();
         break;
     }
   }
@@ -85,36 +75,36 @@ export default class InputHandler {
     switch(evt.keyCode){
 
       case this.KEY_UP:
-        this._mmu.liftUp();
+        this._cpu.mmu.liftUp();
         break;
 
       case this.KEY_DOWN:
-        this._mmu.liftDown();
+        this._cpu.mmu.liftDown();
         break;
 
       case this.KEY_LEFT:
-        this._mmu.liftLeft();
+        this._cpu.mmu.liftLeft();
         break;
 
       case this.KEY_RIGHT:
-        this._mmu.liftRight();
+        this._cpu.mmu.liftRight();
         break;
 
       case this.KEY_X:
-        this._mmu.liftA();
+        this._cpu.mmu.liftA();
         break;
 
       case this.KEY_Z:
-        this._mmu.liftB();
+        this._cpu.mmu.liftB();
         break;
 
       case this.KEY_ENTER:
       case this.KEY_SPACE:
-        this._mmu.liftSTART();
+        this._cpu.mmu.liftSTART();
         break;
 
       case this.KEY_CTRL:
-        this._mmu.liftSELECT();
+        this._cpu.mmu.liftSELECT();
         break;
     }
   }
