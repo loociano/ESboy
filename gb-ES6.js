@@ -2106,12 +2106,14 @@ var CPU = function () {
       0x05: { fn: this.dec_b, paramBytes: 0 },
       0x06: { fn: this.ld_b_n, paramBytes: 1 },
       0x07: { fn: this.rlca, paramBytes: 0 },
+      0x08: { fn: this.ld_nn_sp, paramBytes: 2 },
       0x09: { fn: this.add_hl_bc, paramBytes: 0 },
       0x0a: { fn: this.ld_a_0xbc, paramBytes: 0 },
       0x0b: { fn: this.dec_bc, paramBytes: 0 },
       0x0c: { fn: this.inc_c, paramBytes: 0 },
       0x0d: { fn: this.dec_c, paramBytes: 0 },
       0x0e: { fn: this.ld_c_n, paramBytes: 1 },
+      0x0f: { fn: this.rrca, paramBytes: 0 },
       0x11: { fn: this.ld_de_nn, paramBytes: 2 },
       0x12: { fn: this.ld_0xde_a, paramBytes: 0 },
       0x13: { fn: this.inc_de, paramBytes: 0 },
@@ -2126,12 +2128,15 @@ var CPU = function () {
       0x1c: { fn: this.inc_e, paramBytes: 0 },
       0x1d: { fn: this.dec_e, paramBytes: 0 },
       0x1e: { fn: this.ld_e_n, paramBytes: 1 },
+      0x1f: { fn: this.rra, paramBytes: 0 },
       0x20: { fn: this.jr_nz_n, paramBytes: 1 },
       0x21: { fn: this.ld_hl_nn, paramBytes: 2 },
       0x22: { fn: this.ldi_0xhl_a, paramBytes: 0 },
       0x23: { fn: this.inc_hl, paramBytes: 0 },
       0x24: { fn: this.inc_h, paramBytes: 0 },
       0x25: { fn: this.dec_h, paramBytes: 0 },
+      0x26: { fn: this.ld_h_n, paramBytes: 1 },
+      0x27: { fn: this.daa, paramBytes: 0 },
       0x28: { fn: this.jr_z_n, paramBytes: 1 },
       0x29: { fn: this.add_hl_hl, paramBytes: 0 },
       0x2a: { fn: this.ldi_a_0xhl, paramBytes: 0 },
@@ -2140,8 +2145,6 @@ var CPU = function () {
       0x2d: { fn: this.dec_l, paramBytes: 0 },
       0x2e: { fn: this.ld_l_n, paramBytes: 1 },
       0x2f: { fn: this.cpl, paramBytes: 0 },
-      0x26: { fn: this.ld_h_n, paramBytes: 1 },
-      0x27: { fn: this.daa, paramBytes: 0 },
       0x30: { fn: this.jr_nc_n, paramBytes: 1 },
       0x31: { fn: this.ld_sp_nn, paramBytes: 2 },
       0x32: { fn: this.ldd_0xhl_a, paramBytes: 0 },
@@ -2149,12 +2152,13 @@ var CPU = function () {
       0x34: { fn: this.inc_0xhl, paramBytes: 0 },
       0x35: { fn: this.dec_0xhl, paramBytes: 0 },
       0x36: { fn: this.ld_0xhl_n, paramBytes: 1 },
+      0x37: { fn: this.scf, paramBytes: 0 },
       0x38: { fn: this.jr_c_n, paramBytes: 1 },
       0x39: { fn: this.add_hl_sp, paramBytes: 0 },
       0x3a: { fn: this.ldd_a_0xhl, paramBytes: 0 },
       0x3b: { fn: this.dec_sp, paramBytes: 0 },
-      0x3d: { fn: this.dec_a, paramBytes: 0 },
       0x3c: { fn: this.inc_a, paramBytes: 0 },
+      0x3d: { fn: this.dec_a, paramBytes: 0 },
       0x3e: { fn: this.ld_a_n, paramBytes: 1 },
       0x40: { fn: this.ld_b_b, paramBytes: 0 },
       0x41: { fn: this.ld_b_c, paramBytes: 0 },
@@ -2295,6 +2299,21 @@ var CPU = function () {
       0xc8: { fn: this.ret_z, paramBytes: 0 },
       0xc9: { fn: this.ret, paramBytes: 0 },
       0xca: { fn: this.jp_z_nn, paramBytes: 2 },
+      0xcb00: { fn: this.rlc_b, paramBytes: 0 },
+      0xcb01: { fn: this.rlc_c, paramBytes: 0 },
+      0xcb02: { fn: this.rlc_d, paramBytes: 0 },
+      0xcb03: { fn: this.rlc_e, paramBytes: 0 },
+      0xcb04: { fn: this.rlc_h, paramBytes: 0 },
+      0xcb05: { fn: this.rlc_l, paramBytes: 0 },
+      0xcb07: { fn: this.rlc_a, paramBytes: 0 },
+      0xcb08: { fn: this.rrc_b, paramBytes: 0 },
+      0xcb09: { fn: this.rrc_c, paramBytes: 0 },
+      0xcb0a: { fn: this.rrc_d, paramBytes: 0 },
+      0xcb0b: { fn: this.rrc_e, paramBytes: 0 },
+      0xcb0c: { fn: this.rrc_h, paramBytes: 0 },
+      0xcb0d: { fn: this.rrc_l, paramBytes: 0 },
+      0xcb0e: { fn: this.rrc_0xhl, paramBytes: 0 },
+      0xcb0f: { fn: this.rrc_a, paramBytes: 0 },
       0xcb10: { fn: this.rl_b, paramBytes: 0 },
       0xcb11: { fn: this.rl_c, paramBytes: 0 },
       0xcb12: { fn: this.rl_d, paramBytes: 0 },
@@ -2590,6 +2609,17 @@ var CPU = function () {
     }
 
     /**
+     * @param n
+     * @private
+     */
+
+  }, {
+    key: '_set_a',
+    value: function _set_a(n) {
+      this._r.a = n;
+    }
+
+    /**
      * @returns {number} register b
      */
 
@@ -2597,6 +2627,17 @@ var CPU = function () {
     key: 'b',
     value: function b() {
       return this._r.b;
+    }
+
+    /**
+     * @param n
+     * @private
+     */
+
+  }, {
+    key: '_set_b',
+    value: function _set_b(n) {
+      this._r.b = n;
     }
 
     /**
@@ -2610,6 +2651,17 @@ var CPU = function () {
     }
 
     /**
+     * @param n
+     * @private
+     */
+
+  }, {
+    key: '_set_c',
+    value: function _set_c(n) {
+      this._r.c = n;
+    }
+
+    /**
      * @returns {number} register d
      */
 
@@ -2617,6 +2669,17 @@ var CPU = function () {
     key: 'd',
     value: function d() {
       return this._r.d;
+    }
+
+    /**
+     * @param n
+     * @private
+     */
+
+  }, {
+    key: '_set_d',
+    value: function _set_d(n) {
+      this._r.d = n;
     }
 
     /**
@@ -2630,6 +2693,17 @@ var CPU = function () {
     }
 
     /**
+     * @param n
+     * @private
+     */
+
+  }, {
+    key: '_set_e',
+    value: function _set_e(n) {
+      this._r.e = n;
+    }
+
+    /**
      * @returns {number} register h
      */
 
@@ -2640,6 +2714,17 @@ var CPU = function () {
     }
 
     /**
+     * @param n
+     * @private
+     */
+
+  }, {
+    key: '_set_h',
+    value: function _set_h(n) {
+      this._r.h = n;
+    }
+
+    /**
      * @returns {number} register l
      */
 
@@ -2647,6 +2732,16 @@ var CPU = function () {
     key: 'l',
     value: function l() {
       return this._r.l;
+    }
+
+    /**
+     * @param n
+     */
+
+  }, {
+    key: '_set_l',
+    value: function _set_l(n) {
+      this._r.l = n;
     }
 
     /**
@@ -3763,6 +3858,19 @@ var CPU = function () {
       } else {
         _logger2.default.error('Cannot set flag C with ' + value);
       }
+    }
+
+    /**
+     * Sets carry flag
+     */
+
+  }, {
+    key: 'scf',
+    value: function scf() {
+      this.setC(1);
+      this.setN(0);
+      this.setH(0);
+      this._m++;
     }
 
     /**
@@ -5677,7 +5785,7 @@ var CPU = function () {
   }, {
     key: 'rl_a',
     value: function rl_a() {
-      this._rl_r('a');
+      this.rla();
       this._m++;
     }
 
@@ -5688,7 +5796,7 @@ var CPU = function () {
   }, {
     key: 'rla',
     value: function rla() {
-      this._rl_r('a');
+      this._rl_r(this._set_a, this.a);
     }
 
     /**
@@ -5698,7 +5806,7 @@ var CPU = function () {
   }, {
     key: 'rl_b',
     value: function rl_b() {
-      this._rl_r('b');
+      this._rl_r(this._set_b, this.b);
       this._m++;
     }
 
@@ -5709,7 +5817,7 @@ var CPU = function () {
   }, {
     key: 'rl_c',
     value: function rl_c() {
-      this._rl_r('c');
+      this._rl_r(this._set_c, this.c);
       this._m++;
     }
 
@@ -5720,7 +5828,7 @@ var CPU = function () {
   }, {
     key: 'rl_d',
     value: function rl_d() {
-      this._rl_r('d');
+      this._rl_r(this._set_d, this.d);
       this._m++;
     }
 
@@ -5731,7 +5839,7 @@ var CPU = function () {
   }, {
     key: 'rl_e',
     value: function rl_e() {
-      this._rl_r('e');
+      this._rl_r(this._set_e, this.e);
       this._m++;
     }
 
@@ -5742,7 +5850,7 @@ var CPU = function () {
   }, {
     key: 'rl_h',
     value: function rl_h() {
-      this._rl_r('h');
+      this._rl_r(this._set_h, this.h);
       this._m++;
     }
 
@@ -5753,28 +5861,32 @@ var CPU = function () {
   }, {
     key: 'rl_l',
     value: function rl_l() {
-      this._rl_r('l');
+      this._rl_r(this._set_l, this.l);
       this._m++;
     }
 
     /**
      * Rotates left register r with carry flag.
-     * @param r
+     * @param {function} setter
+     * @param {function} getter
      * @param carried
      * @private
      */
 
   }, {
     key: '_rl_r',
-    value: function _rl_r(r) {
-      var carried = arguments.length <= 1 || arguments[1] === undefined ? this.C() : arguments[1];
+    value: function _rl_r(setter, getter) {
+      var carried = arguments.length <= 2 || arguments[2] === undefined ? this.C() : arguments[2];
 
 
-      var rotated = (this._r[r] << 1) + carried;
-      this._r[r] = rotated & 0xff;
+      var value = getter.call(this);
+      var rotated = (value << 1) + carried;
+      value = rotated & 0xff;
+      setter.call(this, value);
+
       this.setC((rotated & 0x100) >> 8);
 
-      if (this._r[r] === 0) {
+      if (value === 0) {
         this.setZ(1);
       } else {
         this.setZ(0);
@@ -5790,9 +5902,19 @@ var CPU = function () {
      */
 
   }, {
+    key: 'rra',
+    value: function rra() {
+      this._rr_r(this._set_a, this.a);
+    }
+
+    /**
+     * Rotates right register a
+     */
+
+  }, {
     key: 'rr_a',
     value: function rr_a() {
-      this._rr_r('a');
+      this.rra();
       this._m++;
     }
 
@@ -5803,7 +5925,7 @@ var CPU = function () {
   }, {
     key: 'rr_b',
     value: function rr_b() {
-      this._rr_r('b');
+      this._rr_r(this._set_b, this.b);
       this._m++;
     }
 
@@ -5814,7 +5936,7 @@ var CPU = function () {
   }, {
     key: 'rr_c',
     value: function rr_c() {
-      this._rr_r('c');
+      this._rr_r(this._set_c, this.c);
       this._m++;
     }
 
@@ -5825,7 +5947,7 @@ var CPU = function () {
   }, {
     key: 'rr_d',
     value: function rr_d() {
-      this._rr_r('d');
+      this._rr_r(this._set_d, this.d);
       this._m++;
     }
 
@@ -5836,7 +5958,7 @@ var CPU = function () {
   }, {
     key: 'rr_e',
     value: function rr_e() {
-      this._rr_r('e');
+      this._rr_r(this._set_e, this.e);
       this._m++;
     }
 
@@ -5847,7 +5969,7 @@ var CPU = function () {
   }, {
     key: 'rr_h',
     value: function rr_h() {
-      this._rr_r('h');
+      this._rr_r(this._set_h, this.h);
       this._m++;
     }
 
@@ -5858,28 +5980,30 @@ var CPU = function () {
   }, {
     key: 'rr_l',
     value: function rr_l() {
-      this._rr_r('l');
+      this._rr_r(this._set_l, this.l);
       this._m++;
     }
 
     /**
      * Rotates right register r
-     * @param r
+     * @param {function} setter
+     * @param {function} getter
      * @param carried
      * @private
      */
 
   }, {
     key: '_rr_r',
-    value: function _rr_r(r) {
-      var carried = arguments.length <= 1 || arguments[1] === undefined ? this.C() : arguments[1];
+    value: function _rr_r(setter, getter) {
+      var carried = arguments.length <= 2 || arguments[2] === undefined ? this.C() : arguments[2];
 
 
-      this.setC(this._r[r] & 0x01);
-      var rotated = (this._r[r] >> 1) + (carried << 7);
-      this._r[r] = rotated & 0xff;
+      var value = getter.call(this);
+      this.setC(value & 0x01);
+      value = (value >> 1) + (carried << 7);
+      setter.call(this, value);
 
-      if (this._r[r] === 0) {
+      if (value === 0) {
         this.setZ(1);
       } else {
         this.setZ(0);
@@ -5899,22 +6023,7 @@ var CPU = function () {
     value: function rl_0xhl() {
       var carried = arguments.length <= 0 || arguments[0] === undefined ? this.C() : arguments[0];
 
-
-      var value = this._0xhl();
-
-      var rotated = (value << 1) + carried;
-      this.setC((rotated & 0x100) >> 8);
-      this.mmu.writeByteAt(this.hl(), rotated & 0xff);
-
-      if ((rotated & 0xff) === 0) {
-        this.setZ(1);
-      } else {
-        this.setZ(0);
-      }
-
-      this.setN(0);
-      this.setH(0);
-      this._m += 3;
+      this._rl_r(this._ld_0xhl_n, this._0xhl, carried);
     }
 
     /**
@@ -5926,22 +6035,7 @@ var CPU = function () {
     value: function rr_0xhl() {
       var carried = arguments.length <= 0 || arguments[0] === undefined ? this.C() : arguments[0];
 
-
-      var value = this._0xhl();
-
-      this.setC(value & 0x01);
-      var rotated = (value >> 1) + (carried << 7);
-      this.mmu.writeByteAt(this.hl(), rotated & 0xff);
-
-      if ((rotated & 0xff) === 0) {
-        this.setZ(1);
-      } else {
-        this.setZ(0);
-      }
-
-      this.setN(0);
-      this.setH(0);
-      this._m += 3;
+      this._rr_r(this._ld_0xhl_n, this._0xhl, carried);
     }
 
     /** 
@@ -6783,7 +6877,7 @@ var CPU = function () {
   }, {
     key: 'sla_a',
     value: function sla_a() {
-      this._sla_r('a');
+      this._sla_r(this._set_a, this.a);
     }
 
     /**
@@ -6793,7 +6887,7 @@ var CPU = function () {
   }, {
     key: 'sla_b',
     value: function sla_b() {
-      this._sla_r('b');
+      this._sla_r(this._set_b, this.b);
     }
 
     /**
@@ -6803,7 +6897,7 @@ var CPU = function () {
   }, {
     key: 'sla_c',
     value: function sla_c() {
-      this._sla_r('c');
+      this._sla_r(this._set_c, this.c);
     }
 
     /**
@@ -6813,7 +6907,7 @@ var CPU = function () {
   }, {
     key: 'sla_d',
     value: function sla_d() {
-      this._sla_r('d');
+      this._sla_r(this._set_d, this.d);
     }
 
     /**
@@ -6823,7 +6917,7 @@ var CPU = function () {
   }, {
     key: 'sla_e',
     value: function sla_e() {
-      this._sla_r('e');
+      this._sla_r(this._set_e, this.e);
     }
 
     /**
@@ -6833,7 +6927,7 @@ var CPU = function () {
   }, {
     key: 'sla_h',
     value: function sla_h() {
-      this._sla_r('h');
+      this._sla_r(this._set_h, this.h);
     }
 
     /**
@@ -6843,19 +6937,20 @@ var CPU = function () {
   }, {
     key: 'sla_l',
     value: function sla_l() {
-      this._sla_r('l');
+      this._sla_r(this._set_l, this.l);
     }
 
     /**
      * Shifts register r left
-     * @param r
+     * @param {function} setter
+     * @param {function} getter
      * @private
      */
 
   }, {
     key: '_sla_r',
-    value: function _sla_r(r) {
-      this._rl_r(r, 0);
+    value: function _sla_r(setter, getter) {
+      this._rl_r(setter, getter, 0);
       this._m++;
     }
 
@@ -6881,14 +6976,15 @@ var CPU = function () {
 
     /**
      * Shifts register r right
-     * @param r
+     * @param {function} setter
+     * @param {function} getter
      * @private
      */
 
   }, {
     key: '_srl_r',
-    value: function _srl_r(r) {
-      this._rr_r(r, 0);
+    value: function _srl_r(setter, getter) {
+      this._rr_r(setter, getter, 0);
       this._m++;
     }
 
@@ -6899,7 +6995,7 @@ var CPU = function () {
   }, {
     key: 'srl_a',
     value: function srl_a() {
-      this._srl_r('a');
+      this._srl_r(this._set_a, this.a);
     }
 
     /**
@@ -6909,7 +7005,7 @@ var CPU = function () {
   }, {
     key: 'srl_b',
     value: function srl_b() {
-      this._srl_r('b');
+      this._srl_r(this._set_b, this.b);
     }
 
     /**
@@ -6919,7 +7015,7 @@ var CPU = function () {
   }, {
     key: 'srl_c',
     value: function srl_c() {
-      this._srl_r('c');
+      this._srl_r(this._set_c, this.c);
     }
 
     /**
@@ -6929,7 +7025,7 @@ var CPU = function () {
   }, {
     key: 'srl_d',
     value: function srl_d() {
-      this._srl_r('d');
+      this._srl_r(this._set_d, this.d);
     }
 
     /**
@@ -6939,7 +7035,7 @@ var CPU = function () {
   }, {
     key: 'srl_e',
     value: function srl_e() {
-      this._srl_r('e');
+      this._srl_r(this._set_e, this.e);
     }
 
     /**
@@ -6949,7 +7045,7 @@ var CPU = function () {
   }, {
     key: 'srl_h',
     value: function srl_h() {
-      this._srl_r('h');
+      this._srl_r(this._set_h, this.h);
     }
 
     /**
@@ -6959,7 +7055,7 @@ var CPU = function () {
   }, {
     key: 'srl_l',
     value: function srl_l() {
-      this._srl_r('l');
+      this._srl_r(this._set_l, this.l);
     }
 
     /**
@@ -6969,24 +7065,115 @@ var CPU = function () {
   }, {
     key: 'rlca',
     value: function rlca() {
-      this._rlc_r('a');
+      this._rlc_r(this._set_a, this.a);
     }
 
     /**
-     * Rotates left r with copy to carry
-     * @param r
+     * Rotates left a with copy to carry
+     */
+
+  }, {
+    key: 'rlc_a',
+    value: function rlc_a() {
+      this.rlca();
+      this._m++;
+    }
+
+    /**
+     * Rotates left b with copy to carry
+     */
+
+  }, {
+    key: 'rlc_b',
+    value: function rlc_b() {
+      this._rlc_r(this._set_b, this.b);
+      this._m++;
+    }
+
+    /**
+     * Rotates left c with copy to carry
+     */
+
+  }, {
+    key: 'rlc_c',
+    value: function rlc_c() {
+      this._rlc_r(this._set_c, this.c);
+      this._m++;
+    }
+
+    /**
+     * Rotates left d with copy to carry
+     */
+
+  }, {
+    key: 'rlc_d',
+    value: function rlc_d() {
+      this._rlc_r(this._set_d, this.d);
+      this._m++;
+    }
+
+    /**
+     * Rotates left e with copy to carry
+     */
+
+  }, {
+    key: 'rlc_e',
+    value: function rlc_e() {
+      this._rlc_r(this._set_e, this.e);
+      this._m++;
+    }
+
+    /**
+     * Rotates left h with copy to carry
+     */
+
+  }, {
+    key: 'rlc_h',
+    value: function rlc_h() {
+      this._rlc_r(this._set_h, this.h);
+      this._m++;
+    }
+
+    /**
+     * Rotates left l with copy to carry
+     */
+
+  }, {
+    key: 'rlc_l',
+    value: function rlc_l() {
+      this._rlc_r(this._set_l, this.l);
+      this._m++;
+    }
+
+    /**
+     * Rotates left the value at memory location hl with copy to carry
+     */
+
+  }, {
+    key: 'rlc_0xhl',
+    value: function rlc_0xhl() {
+      this._rlc_r(this._ld_0xhl_n, this._0xhl);
+    }
+
+    /**
+     * Rotates left register with copy to carry
+     * @param {function} setter
+     * @param {function} getter
      * @private
      */
 
   }, {
     key: '_rlc_r',
-    value: function _rlc_r(r) {
-      var rotated = this._r[r] << 1;
+    value: function _rlc_r(setter, getter) {
+      var value = getter.call(this);
+      var rotated = value << 1;
       var carry = (rotated & 0x100) >> 8;
-      this.setC(carry);
-      this._r[r] = (rotated & 0xff) + carry;
+      value = (rotated & 0xff) + carry;
+      setter.call(this, value);
 
-      if (this._r[r] === 0) {
+      this.setC(carry);
+
+      if (value === 0) {
         this.setZ(1);
       } else {
         this.setZ(0);
@@ -6995,6 +7182,132 @@ var CPU = function () {
       this.setN(0);
       this.setH(0);
       this._m++;
+    }
+
+    /**
+     * Rotates right r with copy to carry
+     * @param {function} setter
+     * @param {function} getter
+     * @private
+     */
+
+  }, {
+    key: '_rrc_r',
+    value: function _rrc_r(setter, getter) {
+      var value = getter.call(this);
+
+      var carried = value & 0x01;
+      var rotated = (value >> 1) + (carried << 7);
+      setter.call(this, rotated);
+
+      this.setC(carried);
+
+      if (value === 0) {
+        this.setZ(1);
+      } else {
+        this.setZ(0);
+      }
+
+      this.setN(0);
+      this.setH(0);
+      this._m++;
+    }
+
+    /**
+     * Rotates right register a with copy to carry
+     */
+
+  }, {
+    key: 'rrca',
+    value: function rrca() {
+      this._rrc_r(this._set_a, this.a);
+    }
+
+    /**
+     * Rotates right register a with copy to carry
+     */
+
+  }, {
+    key: 'rrc_a',
+    value: function rrc_a() {
+      this.rrca();
+      this._m++;
+    }
+
+    /**
+     * Rotates right register b with copy to carry
+     */
+
+  }, {
+    key: 'rrc_b',
+    value: function rrc_b() {
+      this._rrc_r(this._set_b, this.b);
+      this._m++;
+    }
+
+    /**
+     * Rotates right register c with copy to carry
+     */
+
+  }, {
+    key: 'rrc_c',
+    value: function rrc_c() {
+      this._rrc_r(this._set_c, this.c);
+      this._m++;
+    }
+
+    /**
+     * Rotates right register d with copy to carry
+     */
+
+  }, {
+    key: 'rrc_d',
+    value: function rrc_d() {
+      this._rrc_r(this._set_d, this.d);
+      this._m++;
+    }
+
+    /**
+     * Rotates right register e with copy to carry
+     */
+
+  }, {
+    key: 'rrc_e',
+    value: function rrc_e() {
+      this._rrc_r(this._set_e, this.e);
+      this._m++;
+    }
+
+    /**
+     * Rotates right register h with copy to carry
+     */
+
+  }, {
+    key: 'rrc_h',
+    value: function rrc_h() {
+      this._rrc_r(this._set_h, this.h);
+      this._m++;
+    }
+
+    /**
+     * Rotates right register l with copy to carry
+     */
+
+  }, {
+    key: 'rrc_l',
+    value: function rrc_l() {
+      this._rrc_r(this._set_l, this.l);
+      this._m++;
+    }
+
+    /**
+     * Rotates right value at memory location hl with copy to carry
+     */
+
+  }, {
+    key: 'rrc_0xhl',
+    value: function rrc_0xhl() {
+      this._rrc_r(this._ld_0xhl_n, this._0xhl);
     }
 
     /**
@@ -7147,6 +7460,19 @@ var CPU = function () {
     key: 'isHalted',
     value: function isHalted() {
       return this._halt;
+    }
+
+    /**
+     * Writes the LSB of stack pointer into address nn, MSB into nn+1
+     * @param nn
+     */
+
+  }, {
+    key: 'ld_nn_sp',
+    value: function ld_nn_sp(nn) {
+      this.mmu.writeByteAt(nn++, _utils2.default.lsb(this.sp()));
+      this.mmu.writeByteAt(nn, _utils2.default.msb(this.sp()));
+      this._m += 5;
     }
   }]);
 
@@ -7751,7 +8077,7 @@ var MMU = function () {
     this.ADDR_VRAM_END = 0x9fff;
 
     // Working RAM
-    this.ADDR_WORKING_RAM = 0xc000;
+    this.ADDR_WRAM_START = 0xc000;
 
     // OAM
     this.ADDR_OAM_START = 0xfe00;
@@ -8156,7 +8482,7 @@ var MMU = function () {
         return;
       }
       if (n < 0 || n > 0xff) {
-        throw new Error('Cannot write ' + n + ' in memory, it has more than 8 bits');
+        throw new Error('Cannot write value ' + n + ' in memory');
       }
       if (this._isOAMAddr(addr)) {
         if (!this._canAccessOAM()) throw new Error('Cannot write OAM');
