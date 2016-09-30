@@ -549,6 +549,7 @@ export default class CPU {
       0xf5: {fn: this.push_af, paramBytes: 0},
       0xf6: {fn: this.or_n, paramBytes: 1},
       0xf7: {fn: this.rst_30, paramBytes: 0},
+      0xf8: {fn: this.ldhl_sp_n, paramBytes: 1},
       0xfa: {fn: this.ld_a_nn, paramBytes: 2},
       0xfb: {fn: this.ei, paramBytes: 0},
       0xfc: {fn: this._noSuchOpcode, paramBytes: 0},
@@ -4194,5 +4195,27 @@ export default class CPU {
     this.mmu.writeByteAt(nn++, Utils.lsb(this.sp()));
     this.mmu.writeByteAt(nn, Utils.msb(this.sp()));
     this._m += 5;
+  }
+
+  /**
+   * Loads the stack pointer plus a signed int into hl
+   * @param n [-128,127]
+   */
+  ldhl_sp_n(n){
+    let value = this.sp() + Utils.uint8ToInt8(n);
+
+    this.setZ(0);
+    this.setN(0);
+    if (Math.abs((this.sp() & 0xf000) - (value & 0xf000)) > 0x0fff){
+      this.setH(1);
+    } else {
+      this.setH(0);
+    }
+    if (value > 0xffff){
+      this.setC(1);
+    } else {
+      this.setC(0);
+    }
+    this.ld_hl_nn(value & 0xffff);
   }
 }

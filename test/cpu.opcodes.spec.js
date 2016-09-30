@@ -1618,6 +1618,41 @@ describe('CPU Instruction Set', function() {
       });
     });
 
+    describe('LDHL SP,e', () => {
+
+      it('should load SP + signed int into HL', () => {
+        cpu.ld_sp_nn(0xfff8);
+        const m = cpu.m();
+
+        cpu.ldhl_sp_n(0x02);
+
+        assert.equal(cpu.hl(), 0xfff8 + 2);
+        assert.equal(cpu.f(), 0b0000);
+        assert.equal(cpu.m() - m, 3, 'Machine cycles');
+
+        cpu.ldhl_sp_n(0x80); // -128
+
+        assert.equal(cpu.hl(), 0xfff8 - 128);
+        assert.equal(cpu.f(), 0b0000);
+
+        cpu.ldhl_sp_n(0x00);
+
+        assert.equal(cpu.hl(), 0xfff8);
+        assert.equal(cpu.f(), 0b0000);
+
+        cpu.ldhl_sp_n(0x08);
+
+        assert.equal(cpu.hl(), 0x0000);
+        assert.equal(cpu.f(), 0b0011, 'Half- and carry');
+
+        cpu.ld_sp_nn(0xefff);
+        cpu.ldhl_sp_n(0x01);
+
+        assert.equal(cpu.hl(), 0xf000);
+        assert.equal(cpu.f(), 0b0010, 'Half carry');
+      });
+    });
+
     describe('PUSH', () => {
 
       it('should push registers into the stack', () => {
