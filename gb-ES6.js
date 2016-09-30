@@ -2093,7 +2093,9 @@ var CPU = function () {
       ime: 1
     };
 
+    // CPU modes
     this._halt = false;
+    this._stop = false;
 
     this._attach_bit_functions();
 
@@ -2114,6 +2116,7 @@ var CPU = function () {
       0x0d: { fn: this.dec_c, paramBytes: 0 },
       0x0e: { fn: this.ld_c_n, paramBytes: 1 },
       0x0f: { fn: this.rrca, paramBytes: 0 },
+      0x10: { fn: this.stop, paramBytes: 0 },
       0x11: { fn: this.ld_de_nn, paramBytes: 2 },
       0x12: { fn: this.ld_0xde_a, paramBytes: 0 },
       0x13: { fn: this.inc_de, paramBytes: 0 },
@@ -2306,6 +2309,7 @@ var CPU = function () {
       0xcb03: { fn: this.rlc_e, paramBytes: 0 },
       0xcb04: { fn: this.rlc_h, paramBytes: 0 },
       0xcb05: { fn: this.rlc_l, paramBytes: 0 },
+      0xcb06: { fn: this.rlc_0xhl, paramBytes: 0 },
       0xcb07: { fn: this.rlc_a, paramBytes: 0 },
       0xcb08: { fn: this.rrc_b, paramBytes: 0 },
       0xcb09: { fn: this.rrc_c, paramBytes: 0 },
@@ -2339,6 +2343,14 @@ var CPU = function () {
       0xcb25: { fn: this.sla_l, paramBytes: 0 },
       0xcb26: { fn: this.sla_0xhl, paramBytes: 0 },
       0xcb27: { fn: this.sla_a, paramBytes: 0 },
+      0xcb28: { fn: this.sra_b, paramBytes: 0 },
+      0xcb29: { fn: this.sra_c, paramBytes: 0 },
+      0xcb2a: { fn: this.sra_d, paramBytes: 0 },
+      0xcb2b: { fn: this.sra_e, paramBytes: 0 },
+      0xcb2c: { fn: this.sra_h, paramBytes: 0 },
+      0xcb2d: { fn: this.sra_l, paramBytes: 0 },
+      0xcb2e: { fn: this.sra_0xhl, paramBytes: 0 },
+      0xcb2f: { fn: this.sra_a, paramBytes: 0 },
       0xcb30: { fn: this.swap_b, paramBytes: 0 },
       0xcb31: { fn: this.swap_c, paramBytes: 0 },
       0xcb32: { fn: this.swap_d, paramBytes: 0 },
@@ -2589,6 +2601,8 @@ var CPU = function () {
       0xf5: { fn: this.push_af, paramBytes: 0 },
       0xf6: { fn: this.or_n, paramBytes: 1 },
       0xf7: { fn: this.rst_30, paramBytes: 0 },
+      0xf8: { fn: this.ldhl_sp_n, paramBytes: 1 },
+      0xf9: { fn: this.ld_sp_hl, paramBytes: 0 },
       0xfa: { fn: this.ld_a_nn, paramBytes: 2 },
       0xfb: { fn: this.ei, paramBytes: 0 },
       0xfc: { fn: this._noSuchOpcode, paramBytes: 0 },
@@ -3045,19 +3059,20 @@ var CPU = function () {
           return;
         }
 
-        var m = this._m;
+        if (!this.isStopped()) {
 
-        if (!this.isHalted()) {
-          this._execute();
-        } else {
-          this._m++;
+          var m = this._m;
+
+          if (!this.isHalted()) {
+            this._execute();
+          } else {
+            this._m++;
+          }
+
+          this._handle_lcd();
+          this._handleDMA();
+          this._handleDIV(this._m - m);
         }
-
-        var m_instr = this._m - m;
-
-        this._handle_lcd();
-        this._handleDMA();
-        this._handleDIV(m_instr);
 
         if (this._r.pc === this.mmu.ADDR_GAME_START) {
           this._afterBIOS();
@@ -3930,6 +3945,17 @@ var CPU = function () {
     value: function ld_sp_nn(nn) {
       this._r.sp = nn;
       this._m += 3;
+    }
+
+    /**
+     * Loads hl into stack pointer
+     */
+
+  }, {
+    key: 'ld_sp_hl',
+    value: function ld_sp_hl() {
+      this._r.sp = this.hl();
+      this._m += 2;
     }
 
     /**
@@ -6979,6 +7005,106 @@ var CPU = function () {
     }
 
     /**
+     * @param {function} setter
+     * @param {function} getter
+     * @private
+     */
+
+  }, {
+    key: '_sra_r',
+    value: function _sra_r(setter, getter) {
+      this._rr_r(setter, getter, getter.call(this) >> 7);
+    }
+
+    /**
+     * Shift right register a without modifying bit 7
+     */
+
+  }, {
+    key: 'sra_a',
+    value: function sra_a() {
+      this._sra_r(this._set_a, this.a);
+      this._m++;
+    }
+
+    /**
+     * Shift right register b without modifying bit 7
+     */
+
+  }, {
+    key: 'sra_b',
+    value: function sra_b() {
+      this._sra_r(this._set_b, this.b);
+      this._m++;
+    }
+
+    /**
+     * Shift right register c without modifying bit 7
+     */
+
+  }, {
+    key: 'sra_c',
+    value: function sra_c() {
+      this._sra_r(this._set_c, this.c);
+      this._m++;
+    }
+
+    /**
+     * Shift right register d without modifying bit 7
+     */
+
+  }, {
+    key: 'sra_d',
+    value: function sra_d() {
+      this._sra_r(this._set_d, this.d);
+      this._m++;
+    }
+
+    /**
+     * Shift right register e without modifying bit 7
+     */
+
+  }, {
+    key: 'sra_e',
+    value: function sra_e() {
+      this._sra_r(this._set_e, this.e);
+      this._m++;
+    }
+
+    /**
+     * Shift right register h without modifying bit 7
+     */
+
+  }, {
+    key: 'sra_h',
+    value: function sra_h() {
+      this._sra_r(this._set_h, this.h);
+      this._m++;
+    }
+
+    /**
+     * Shift right register l without modifying bit 7
+     */
+
+  }, {
+    key: 'sra_l',
+    value: function sra_l() {
+      this._sra_r(this._set_l, this.l);
+      this._m++;
+    }
+
+    /**
+     * Shift right value at memory location hl without modifying bit 7
+     */
+
+  }, {
+    key: 'sra_0xhl',
+    value: function sra_0xhl() {
+      this._sra_r(this._ld_0xhl_n, this.$hl);
+      this._m++;
+    }
+
+    /**
      * Shifts right the value at memory location hl
      */
 
@@ -7477,6 +7603,27 @@ var CPU = function () {
     }
 
     /**
+     * Stops CPU and LCD
+     */
+
+  }, {
+    key: 'stop',
+    value: function stop() {
+      this._stop = true;
+      this._m++;
+    }
+
+    /**
+     * @returns {boolean}
+     */
+
+  }, {
+    key: 'isStopped',
+    value: function isStopped() {
+      return this._stop;
+    }
+
+    /**
      * Writes the LSB of stack pointer into address nn, MSB into nn+1
      * @param nn
      */
@@ -7487,6 +7634,90 @@ var CPU = function () {
       this.mmu.writeByteAt(nn++, _utils2.default.lsb(this.sp()));
       this.mmu.writeByteAt(nn, _utils2.default.msb(this.sp()));
       this._m += 5;
+    }
+
+    /**
+     * Loads the stack pointer plus a signed int into hl
+     * @param n [-128,127]
+     */
+
+  }, {
+    key: 'ldhl_sp_n',
+    value: function ldhl_sp_n(n) {
+      var value = this.sp() + _utils2.default.uint8ToInt8(n);
+
+      this.setZ(0);
+      this.setN(0);
+      if (Math.abs((this.sp() & 0xf000) - (value & 0xf000)) > 0x0fff) {
+        this.setH(1);
+      } else {
+        this.setH(0);
+      }
+      if (value > 0xffff) {
+        this.setC(1);
+      } else {
+        this.setC(0);
+      }
+      this.ld_hl_nn(value & 0xffff);
+    }
+  }, {
+    key: 'pressA',
+    value: function pressA() {
+      this._handle_input();
+      this.mmu.pressA();
+    }
+  }, {
+    key: 'pressB',
+    value: function pressB() {
+      this._handle_input();
+      this.mmu.pressB();
+    }
+  }, {
+    key: 'pressSTART',
+    value: function pressSTART() {
+      this._handle_input();
+      this.mmu.pressSTART();
+    }
+  }, {
+    key: 'pressSELECT',
+    value: function pressSELECT() {
+      this._handle_input();
+      this.mmu.pressSELECT();
+    }
+  }, {
+    key: 'pressUp',
+    value: function pressUp() {
+      this._handle_input();
+      this.mmu.pressUp();
+    }
+  }, {
+    key: 'pressDown',
+    value: function pressDown() {
+      this._handle_input();
+      this.mmu.pressDown();
+    }
+  }, {
+    key: 'pressLeft',
+    value: function pressLeft() {
+      this._handle_input();
+      this.mmu.pressLeft();
+    }
+  }, {
+    key: 'pressRight',
+    value: function pressRight() {
+      this._handle_input();
+      this.mmu.pressRight();
+    }
+
+    /**
+     * Handles action upon input
+     * @private
+     */
+
+  }, {
+    key: '_handle_input',
+    value: function _handle_input() {
+      this._stop = false;
     }
   }]);
 
@@ -7512,15 +7743,15 @@ var InputHandler = function () {
    * @param mmu
    * @param $body
    */
-  function InputHandler(mmu, $body) {
+  function InputHandler(cpu, $body) {
     var _this = this;
 
     _classCallCheck(this, InputHandler);
 
-    if (!mmu) throw new Error('Missing MMU');
+    if (!cpu) throw new Error('Missing CPU');
     if (!$body) throw new Error('Missing DOM body');
 
-    this._mmu = mmu;
+    this._cpu = cpu;
 
     this.KEY_UP = 38;
     this.KEY_LEFT = 37;
@@ -7531,16 +7762,6 @@ var InputHandler = function () {
     this.KEY_ENTER = 13;
     this.KEY_SPACE = 32;
     this.KEY_CTRL = 17;
-
-    // Hold state to reduce calls to MMU
-    this._up = false;
-    this._down = false;
-    this._left = false;
-    this._right = false;
-    this._a = false;
-    this._b = false;
-    this._select = false;
-    this._start = false;
 
     $body.addEventListener('keydown', function (evt) {
       return _this.onKeyDown(evt);
@@ -7562,36 +7783,36 @@ var InputHandler = function () {
       switch (evt.keyCode) {
 
         case this.KEY_UP:
-          this._mmu.pressUp();
+          this._cpu.pressUp();
           break;
 
         case this.KEY_DOWN:
-          this._mmu.pressDown();
+          this._cpu.pressDown();
           break;
 
         case this.KEY_LEFT:
-          this._mmu.pressLeft();
+          this._cpu.pressLeft();
           break;
 
         case this.KEY_RIGHT:
-          this._mmu.pressRight();
+          this._cpu.pressRight();
           break;
 
         case this.KEY_X:
-          this._mmu.pressA();
+          this._cpu.pressA();
           break;
 
         case this.KEY_Z:
-          this._mmu.pressB();
+          this._cpu.pressB();
           break;
 
         case this.KEY_ENTER:
         case this.KEY_SPACE:
-          this._mmu.pressSTART();
+          this._cpu.pressSTART();
           break;
 
         case this.KEY_CTRL:
-          this._mmu.pressSELECT();
+          this._cpu.pressSELECT();
           break;
       }
     }
@@ -7607,36 +7828,36 @@ var InputHandler = function () {
       switch (evt.keyCode) {
 
         case this.KEY_UP:
-          this._mmu.liftUp();
+          this._cpu.mmu.liftUp();
           break;
 
         case this.KEY_DOWN:
-          this._mmu.liftDown();
+          this._cpu.mmu.liftDown();
           break;
 
         case this.KEY_LEFT:
-          this._mmu.liftLeft();
+          this._cpu.mmu.liftLeft();
           break;
 
         case this.KEY_RIGHT:
-          this._mmu.liftRight();
+          this._cpu.mmu.liftRight();
           break;
 
         case this.KEY_X:
-          this._mmu.liftA();
+          this._cpu.mmu.liftA();
           break;
 
         case this.KEY_Z:
-          this._mmu.liftB();
+          this._cpu.mmu.liftB();
           break;
 
         case this.KEY_ENTER:
         case this.KEY_SPACE:
-          this._mmu.liftSTART();
+          this._cpu.mmu.liftSTART();
           break;
 
         case this.KEY_CTRL:
-          this._mmu.liftSELECT();
+          this._cpu.mmu.liftSELECT();
           break;
       }
     }
@@ -9175,11 +9396,10 @@ function handleFileSelect(evt) {
  */
 function init(rom) {
   var mmu = new _mmu2.default(rom);
-
-  new _inputHandler2.default(mmu, $body);
   var lcd = new _lcd2.default(mmu, ctxBG, ctxOBJ, 160, 144);
 
   cpu = new _cpu2.default(mmu, lcd);
+  new _inputHandler2.default(cpu, $body);
 
   window.requestAnimationFrame(frame);
 }
