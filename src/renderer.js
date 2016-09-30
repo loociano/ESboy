@@ -16,6 +16,8 @@ let cpu;
  */
 function handleFileSelect(evt) {
 
+  ga('send', 'event', 'UI', 'click', 'load game');
+
   const file = evt.target.files[0]; // FileList object
 
   const reader = new FileReader();
@@ -29,7 +31,10 @@ function handleFileSelect(evt) {
     init(rom);
   };
 
-  if (file) reader.readAsArrayBuffer(file);
+  if (file) {
+    reader.readAsArrayBuffer(file);
+    ga('send', 'event', 'Emulator', 'load', file.name);
+  }
 }
 
 /**

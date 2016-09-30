@@ -9149,6 +9149,8 @@ var cpu = void 0;
  */
 function handleFileSelect(evt) {
 
+  ga('send', 'event', 'UI', 'click', 'load game');
+
   var file = evt.target.files[0]; // FileList object
 
   var reader = new FileReader();
@@ -9162,7 +9164,10 @@ function handleFileSelect(evt) {
     init(rom);
   };
 
-  if (file) reader.readAsArrayBuffer(file);
+  if (file) {
+    reader.readAsArrayBuffer(file);
+    ga('send', 'event', 'Emulator', 'load', file.name);
+  }
 }
 
 /**
