@@ -393,7 +393,7 @@ export default class MMU {
       return;
     }
     if (n < 0 || n > 0xff){
-      throw new Error(`Cannot write ${n} in memory, it has more than 8 bits`);
+      throw new Error(`Cannot write value ${n} in memory`);
     }
     if (this._isOAMAddr(addr)){
       if (!this._canAccessOAM()) throw new Error('Cannot write OAM');

@@ -66,6 +66,7 @@ export default class CPU {
       0x05: {fn: this.dec_b, paramBytes: 0},
       0x06: {fn: this.ld_b_n, paramBytes: 1},
       0x07: {fn: this.rlca, paramBytes: 0},
+      0x08: {fn: this.ld_nn_sp, paramBytes: 2},
       0x09: {fn: this.add_hl_bc, paramBytes: 0},
       0x0a: {fn: this.ld_a_0xbc, paramBytes: 0},
       0x0b: {fn: this.dec_bc, paramBytes: 0},
@@ -87,6 +88,7 @@ export default class CPU {
       0x1c: {fn: this.inc_e, paramBytes: 0},
       0x1d: {fn: this.dec_e, paramBytes: 0},
       0x1e: {fn: this.ld_e_n, paramBytes: 1},
+      0x1f: {fn: this.rra, paramBytes: 0},
       0x20: {fn: this.jr_nz_n, paramBytes: 1},
       0x21: {fn: this.ld_hl_nn, paramBytes: 2},
       0x22: {fn: this.ldi_0xhl_a, paramBytes: 0},
@@ -4157,5 +4159,15 @@ export default class CPU {
    */
   isHalted(){
     return this._halt;
+  }
+
+  /**
+   * Writes the LSB of stack pointer into address nn, MSB into nn+1
+   * @param nn
+   */
+  ld_nn_sp(nn){
+    this.mmu.writeByteAt(nn++, Utils.lsb(this.sp()));
+    this.mmu.writeByteAt(nn, Utils.msb(this.sp()));
+    this._m += 5;
   }
 }
