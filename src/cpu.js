@@ -3880,7 +3880,7 @@ export default class CPU {
    * Rotates left a with copy to carry
    */
   rlca(){
-    this._rlc_r('a');
+    this._rlc_r(this._set_a, this.a);
   }
 
   /**
@@ -3895,7 +3895,7 @@ export default class CPU {
    * Rotates left b with copy to carry
    */
   rlc_b(){
-    this._rlc_r('b');
+    this._rlc_r(this._set_b, this.b);
     this._m++;
   }
 
@@ -3903,7 +3903,7 @@ export default class CPU {
    * Rotates left c with copy to carry
    */
   rlc_c(){
-    this._rlc_r('c');
+    this._rlc_r(this._set_c, this.c);
     this._m++;
   }
 
@@ -3911,7 +3911,7 @@ export default class CPU {
    * Rotates left d with copy to carry
    */
   rlc_d(){
-    this._rlc_r('d');
+    this._rlc_r(this._set_d, this.d);
     this._m++;
   }
 
@@ -3919,7 +3919,7 @@ export default class CPU {
    * Rotates left e with copy to carry
    */
   rlc_e(){
-    this._rlc_r('e');
+    this._rlc_r(this._set_e, this.e);
     this._m++;
   }
 
@@ -3927,7 +3927,7 @@ export default class CPU {
    * Rotates left h with copy to carry
    */
   rlc_h(){
-    this._rlc_r('h');
+    this._rlc_r(this._set_h, this.h);
     this._m++;
   }
 
@@ -3935,44 +3935,33 @@ export default class CPU {
    * Rotates left l with copy to carry
    */
   rlc_l(){
-    this._rlc_r('l');
+    this._rlc_r(this._set_l, this.l);
     this._m++;
   }
 
   /**
    * Rotates left the value at memory location hl with copy to carry
-   * @param r
-   * @private
    */
   rlc_0xhl(){
-    const rotated = (this._0xhl() << 1);
-    const carry = (rotated & 0x100) >> 8;
-    this.setC(carry);
-    const value = (rotated & 0xff) + carry;
-    this.ld_0xhl_n(value);
-
-    if (value === 0){
-      this.setZ(1);
-    } else {
-      this.setZ(0);
-    }
-
-    this.setN(0);
-    this.setH(0);
+    this._rlc_r(this._ld_0xhl_n, this._0xhl);
   }
 
   /**
-   * Rotates left r with copy to carry
-   * @param r
+   * Rotates left register with copy to carry
+   * @param {function} setter
+   * @param {function} getter
    * @private
    */
-  _rlc_r(r){
-    const rotated = (this._r[r] << 1);
+  _rlc_r(setter, getter){
+    let value = getter.call(this);
+    const rotated = (value << 1);
     const carry = (rotated & 0x100) >> 8;
-    this.setC(carry);
-    this._r[r] = (rotated & 0xff) + carry;
+    value = (rotated & 0xff) + carry;
+    setter.call(this, value);
 
-    if (this._r[r] === 0){
+    this.setC(carry);
+
+    if (value === 0){
       this.setZ(1);
     } else {
       this.setZ(0);
