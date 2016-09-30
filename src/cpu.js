@@ -72,6 +72,7 @@ export default class CPU {
       0x0c: {fn: this.inc_c, paramBytes: 0},
       0x0d: {fn: this.dec_c, paramBytes: 0},
       0x0e: {fn: this.ld_c_n, paramBytes: 1},
+      0x0f: {fn: this.rrca, paramBytes: 0},
       0x11: {fn: this.ld_de_nn, paramBytes: 2},
       0x12: {fn: this.ld_0xde_a, paramBytes: 0},
       0x13: {fn: this.inc_de, paramBytes: 0},
@@ -262,6 +263,14 @@ export default class CPU {
       0xcb04: {fn: this.rlc_h, paramBytes: 0},
       0xcb05: {fn: this.rlc_l, paramBytes: 0},
       0xcb07: {fn: this.rlc_a, paramBytes: 0},
+      0xcb08: {fn: this.rrc_b, paramBytes: 0},
+      0xcb09: {fn: this.rrc_c, paramBytes: 0},
+      0xcb0a: {fn: this.rrc_d, paramBytes: 0},
+      0xcb0b: {fn: this.rrc_e, paramBytes: 0},
+      0xcb0c: {fn: this.rrc_h, paramBytes: 0},
+      0xcb0d: {fn: this.rrc_l, paramBytes: 0},
+      0xcb0e: {fn: this.rrc_0xhl, paramBytes: 0},
+      0xcb0f: {fn: this.rrc_a, paramBytes: 0},
       0xcb10: {fn: this.rl_b, paramBytes: 0},
       0xcb11: {fn: this.rl_c, paramBytes: 0},
       0xcb12: {fn: this.rl_d, paramBytes: 0},
@@ -553,10 +562,26 @@ export default class CPU {
   }
 
   /**
+   * @param n
+   * @private
+   */
+  _set_a(n){
+    this._r.a = n;
+  }
+
+  /**
    * @returns {number} register b
    */
   b(){
     return this._r.b;
+  }
+
+  /**
+   * @param n
+   * @private
+   */
+  _set_b(n){
+    this._r.b = n;
   }
 
   /**
@@ -567,10 +592,26 @@ export default class CPU {
   }
 
   /**
+   * @param n
+   * @private
+   */
+  _set_c(n){
+    this._r.c = n;
+  }
+
+  /**
    * @returns {number} register d
    */
   d(){
     return this._r.d;
+  }
+
+  /**
+   * @param n
+   * @private
+   */
+  _set_d(n){
+    this._r.d = n;
   }
 
   /**
@@ -581,6 +622,14 @@ export default class CPU {
   }
 
   /**
+   * @param n
+   * @private
+   */
+  _set_e(n){
+    this._r.e = n;
+  }
+
+  /**
    * @returns {number} register h
    */
   h(){
@@ -588,10 +637,25 @@ export default class CPU {
   }
 
   /**
+   * @param n
+   * @private
+   */
+  _set_h(n){
+    this._r.h = n;
+  }
+
+  /**
    * @returns {number} register l
    */
   l(){
     return this._r.l;
+  }
+
+  /**
+   * @param n
+   */
+  _set_l(n){
+    this._r.l = n;
   }
 
   /**
@@ -3917,6 +3981,102 @@ export default class CPU {
     this.setN(0);
     this.setH(0);
     this._m++;
+  }
+
+  /**
+   * Rotates right r with copy to carry
+   * @param {function} setter
+   * @param {function} getter
+   * @private
+   */
+  _rrc_r(setter, getter){
+    let value = getter.call(this);
+
+    const carried = value & 0x01;
+    const rotated = (value >> 1) + (carried << 7);
+    setter.call(this, rotated);
+
+    this.setC(carried);
+
+    if (value === 0){
+      this.setZ(1);
+    } else {
+      this.setZ(0);
+    }
+
+    this.setN(0);
+    this.setH(0);
+    this._m++;
+  }
+
+  /**
+   * Rotates right register a with copy to carry
+   */
+  rrca(){
+    this._rrc_r(this._set_a, this.a);
+  }
+
+  /**
+   * Rotates right register a with copy to carry
+   */
+  rrc_a(){
+    this.rrca();
+    this._m++;
+  }
+
+  /**
+   * Rotates right register b with copy to carry
+   */
+  rrc_b(){
+    this._rrc_r(this._set_b, this.b);
+    this._m++;
+  }
+
+  /**
+   * Rotates right register c with copy to carry
+   */
+  rrc_c(){
+    this._rrc_r(this._set_c, this.c);
+    this._m++;
+  }
+
+  /**
+   * Rotates right register d with copy to carry
+   */
+  rrc_d(){
+    this._rrc_r(this._set_d, this.d);
+    this._m++;
+  }
+
+  /**
+   * Rotates right register e with copy to carry
+   */
+  rrc_e(){
+    this._rrc_r(this._set_e, this.e);
+    this._m++;
+  }
+
+  /**
+   * Rotates right register h with copy to carry
+   */
+  rrc_h(){
+    this._rrc_r(this._set_h, this.h);
+    this._m++;
+  }
+
+  /**
+   * Rotates right register l with copy to carry
+   */
+  rrc_l(){
+    this._rrc_r(this._set_l, this.l);
+    this._m++;
+  }
+
+  /**
+   * Rotates right value at memory location hl with copy to carry
+   */
+  rrc_0xhl(){
+    this._rrc_r(this._ld_0xhl_n, this._0xhl);
   }
 
   /**
