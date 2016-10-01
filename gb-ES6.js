@@ -3055,24 +3055,21 @@ var CPU = function () {
     value: function frame(pc_stop) {
 
       do {
-        if (pc_stop !== -1 && this._r.pc === pc_stop) {
+        if (this.isStopped() || pc_stop !== -1 && this._r.pc === pc_stop) {
           return;
         }
 
-        if (!this.isStopped()) {
+        var m = this._m;
 
-          var m = this._m;
-
-          if (!this.isHalted()) {
-            this._execute();
-          } else {
-            this._m++;
-          }
-
-          this._handle_lcd();
-          this._handleDMA();
-          this._handleDIV(this._m - m);
+        if (!this.isHalted()) {
+          this._execute();
+        } else {
+          this._m++;
         }
+
+        this._handle_lcd();
+        this._handleDMA();
+        this._handleDIV(this._m - m);
 
         if (this._r.pc === this.mmu.ADDR_GAME_START) {
           this._afterBIOS();
@@ -7562,10 +7559,18 @@ var CPU = function () {
     key: 'daa',
     value: function daa() {
       if ((this._r.a & 0x0f) > 9 || this.H()) {
-        this._r.a += 0x06;
+        if (this.N() === 1) {
+          this._r.a -= 0x06;
+        } else {
+          this._r.a += 0x06;
+        }
       }
       if (this._r.a >> 4 > 9 || this.C()) {
-        this._r.a += 0x60;
+        if (this.N() === 1) {
+          this._r.a -= 0x60;
+        } else {
+          this._r.a += 0x60;
+        }
         this.setC(1);
       } else {
         this.setC(0);
