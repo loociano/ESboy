@@ -8953,6 +8953,7 @@ var MMU = function () {
     key: '_handle_lcd_off',
     value: function _handle_lcd_off() {
       this.setLy(0x00);
+      this.setLCDMode(0);
     }
 
     /**

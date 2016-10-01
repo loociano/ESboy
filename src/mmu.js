@@ -546,6 +546,7 @@ export default class MMU {
    */
   _handle_lcd_off(){
     this.setLy(0x00);
+    this.setLCDMode(0);
   }
 
   /**
