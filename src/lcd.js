@@ -25,6 +25,22 @@ export default class LCD {
     this._clear(this.imageDataOBJ, this.ctxOBJ);
 
     this._cache = {};
+
+    this.SHADES = {
+      0: [155,188,15,255],
+      1: [139,172,15,255],
+      2: [48,98,48,255],
+      3: [15,56,15,255]
+    };
+
+    this.bgp = [0, 1, 2, 3];
+  }
+
+  /**
+   * @param {Array} bgpArray, example: [0,1,2,3]
+   */
+  setBgp(bgpArray){
+    this.bgp = bgpArray;
   }
 
   /** 
@@ -142,7 +158,7 @@ export default class LCD {
         x = x_start;
         y++;
       }
-      this.drawPixel(x++, y, intensityMatrix[i], imageData);
+      this.drawPixel({x: x++, y: y, level: intensityMatrix[i]}, imageData);
     }
   }
 
@@ -222,31 +238,26 @@ export default class LCD {
   /**
    * Draws pixel in image data, given its coords and grey level
    * 
-   * @param {number} x
-   * @param {number} y
-   * @param {number} level of gray [0-3]
+   * @param {Object} pixel
+   * @param {Object} imageData
    */
-  drawPixel(x, y, level, imageData=this.imageDataBG) {
+  drawPixel({x, y, level}, imageData=this.imageDataBG) {
     
     if (level < 0 || level > 3){
       Logger.error(`Unrecognized level gray level ${level}`); 
       return;
     }
 
-    let intensity = level * 85; // 255/3
-    const index = (x + y * this.width) * 4;
-    const alpha = level === 0 ? 0 : 255;
+    if (x < 0 || y < 0) return;
 
-    imageData.data[index + 0] = 255 - intensity;
-    imageData.data[index + 1] = 255 - intensity;
-    imageData.data[index + 2] = 255 - intensity;
-    imageData.data[index + 3] = alpha;
+    const start = (x + y * this.width) * 4;
+    imageData.data.set(this.SHADES[this.bgp[level]], start);
   }
 
   /**
    * @param x
    * @param y
-   * @returns {Array} pixel imageData
+   * @returns {Object} pixel imageData
    */
   getPixelData(x, y, imageData){
     const index = (x + y * this.width) * 4;

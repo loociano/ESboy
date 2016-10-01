@@ -78,18 +78,29 @@ describe('LCD', () => {
     const lastIndex = WIDTH*HEIGHT*4 - 1;
     const data = lcd.imageDataBG.data;
 
-    lcd.drawPixel(0, 0, 0);
-    lcd.drawPixel(1, 0, 1);
-    lcd.drawPixel(WIDTH-1, 0, 2);
-    lcd.drawPixel(WIDTH-1, HEIGHT-1, 3);
+    lcd.setBgp([0, 1, 2, 3]);
 
-    const black = 0, grey66 = 85, grey33 = 170, white = 255;
-    const transparent = 0, opaque = 255;
+    assert.deepEqual(lcd.bgp, [0, 1, 2, 3]);
 
-    assert.deepEqual([data[0], data[1], data[2], data[3]], [white, white, white, transparent]);
-    assert.deepEqual([data[4], data[5], data[6], data[7]], [grey33, grey33, grey33, opaque]);
-    assert.deepEqual([data[WIDTH*4-4], data[WIDTH*4-3], data[WIDTH*4-2], data[WIDTH*4-1]], [grey66, grey66, grey66, opaque]);
-    assert.deepEqual([data[lastIndex-3], data[lastIndex-2], data[lastIndex-1], data[lastIndex]], [black, black, black, opaque]);
+    let pixel = {x: 0, y:0, level:0};
+    lcd.drawPixel(pixel);
+
+    assert.deepEqual([data[0], data[1], data[2], data[3]], lcd.SHADES[lcd.bgp[pixel.level]]);
+
+    pixel = {x: 1, y:0, level: 1};
+    lcd.drawPixel(pixel);
+
+    assert.deepEqual([data[4], data[5], data[6], data[7]], lcd.SHADES[lcd.bgp[pixel.level]]);
+
+    pixel = {x: WIDTH-1, y:0, level:2};
+    lcd.drawPixel(pixel);
+
+    assert.deepEqual([data[WIDTH*4-4], data[WIDTH*4-3], data[WIDTH*4-2], data[WIDTH*4-1]], lcd.SHADES[lcd.bgp[pixel.level]]);
+
+    pixel = {x: WIDTH-1, y:HEIGHT-1, level:3};
+    lcd.drawPixel(pixel);
+
+    assert.deepEqual([data[lastIndex-3], data[lastIndex-2], data[lastIndex-1], data[lastIndex]], lcd.SHADES[lcd.bgp[pixel.level]]);
   });
 
   it('should not write tiles out of screen', () => {
@@ -120,9 +131,9 @@ describe('LCD', () => {
     lcd.drawTile({tile_number: 1, grid_x: 10, grid_y: 9});
     lcd.drawTile({tile_number: 1, grid_x: 19, grid_y: 17});
 
-    assertBlackTile.call(lcd, 0, 0, lcd.imageDataBG);
-    assertBlackTile.call(lcd, 10, 9, lcd.imageDataBG);
-    assertBlackTile.call(lcd, 19, 17, lcd.imageDataBG);
+    assertDarkestTile.call(lcd, 0, 0, lcd.imageDataBG);
+    assertDarkestTile.call(lcd, 10, 9, lcd.imageDataBG);
+    assertDarkestTile.call(lcd, 19, 17, lcd.imageDataBG);
   });
 
   describe('OBJ (Sprites)', () => {
@@ -153,9 +164,9 @@ describe('LCD', () => {
       for(let x = 0; x < lcd.H_TILES; x++){
         for(let y = 0; y < lcd.V_TILES; y++){
           if (x === 0 && y === 0){
-            assertBlackTile.call(lcd, x, y, lcd.imageDataOBJ);
+            assertDarkestTile.call(lcd, x, y, lcd.imageDataOBJ);
           } else {
-            assertWhiteTile.call(lcd, x, y, lcd.imageDataBG);
+            assertLightestTile.call(lcd, x, y, lcd.imageDataBG);
           }
         }
       }
@@ -175,7 +186,7 @@ describe('LCD', () => {
       };
 
       lcd.mmu.readOBJData = function(tile_number) {
-        // Left half is black, right half is white
+        // Left half is darkest, right half is lightest
         return new Buffer('f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0', 'hex');
       };
 
@@ -184,9 +195,9 @@ describe('LCD', () => {
       for(let x = 0; x < 8; x++){
         for(let y = 0; y < 8; y++){
           if (x < 4){
-            assert.deepEqual(lcd.getPixelData(x, y, lcd.imageDataOBJ), [255, 255, 255, 0], 'Left half is white');
+            assert.deepEqual(lcd.getPixelData(x, y, lcd.imageDataOBJ), lcd.SHADES[0], 'Left half is lightest');
           } else {
-            assert.deepEqual(lcd.getPixelData(x, y, lcd.imageDataOBJ), [0, 0, 0, 255], 'Left half is black');
+            assert.deepEqual(lcd.getPixelData(x, y, lcd.imageDataOBJ), lcd.SHADES[3], 'Left half is darkest');
           }
         }
       }
@@ -210,10 +221,10 @@ function assertTile(grid_x, grid_y, rgba, imageData){
   }
 }
 
-function assertBlackTile(grid_x, grid_y, imageData){
-  assertTile.call(this, grid_x, grid_y, [0, 0, 0, 255], imageData);
+function assertDarkestTile(grid_x, grid_y, imageData){
+  assertTile.call(this, grid_x, grid_y, this.SHADES[3], imageData);
 }
 
-function assertWhiteTile(grid_x, grid_y, imageData){
-  assertTile.call(this, grid_x, grid_y, [255, 255, 255, 0], imageData);
+function assertLightestTile(grid_x, grid_y, imageData){
+  assertTile.call(this, grid_x, grid_y, this.SHADES[0], imageData);
 }

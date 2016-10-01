@@ -1,7 +1,9 @@
 export default class ContextMock {
 
   createImageData(width, height){
-    return { data: new Array(width * height * 4) };
+    return {
+      data: new Uint8ClampedArray(width * height * 4)
+    };
   }
 
   putImageData(){

@@ -7924,15 +7924,34 @@ var LCD = function () {
     this._clear(this.imageDataOBJ, this.ctxOBJ);
 
     this._cache = {};
+
+    this.SHADES = {
+      0: [155, 188, 15, 255],
+      1: [139, 172, 15, 255],
+      2: [48, 98, 48, 255],
+      3: [15, 56, 15, 255]
+    };
+
+    this.bgp = [0, 1, 2, 3];
   }
 
-  /** 
-   * Clears the LCD by writing transparent pixels
-   * @private
+  /**
+   * @param {Array} bgpArray, example: [0,1,2,3]
    */
 
 
   _createClass(LCD, [{
+    key: 'setBgp',
+    value: function setBgp(bgpArray) {
+      this.bgp = bgpArray;
+    }
+
+    /** 
+     * Clears the LCD by writing transparent pixels
+     * @private
+     */
+
+  }, {
     key: '_clear',
     value: function _clear() {
       var imageData = arguments.length <= 0 || arguments[0] === undefined ? this.imageDataBG : arguments[0];
@@ -8072,7 +8091,7 @@ var LCD = function () {
           x = x_start;
           y++;
         }
-        this.drawPixel(x++, y, intensityMatrix[i], imageData);
+        this.drawPixel({ x: x++, y: y, level: intensityMatrix[i] }, imageData);
       }
     }
 
@@ -8152,12 +8171,14 @@ var LCD = function () {
     /**
      * Draws pixel in image data, given its coords and grey level
      * 
-     * @param {number} x
-     * @param {number} y
-     * @param {number} level of gray [0-3]
+     * @param {Object} pixel
+     * @param {Object} imageData
      */
-    value: function drawPixel(x, y, level) {
-      var imageData = arguments.length <= 3 || arguments[3] === undefined ? this.imageDataBG : arguments[3];
+    value: function drawPixel(_ref2) {
+      var x = _ref2.x;
+      var y = _ref2.y;
+      var level = _ref2.level;
+      var imageData = arguments.length <= 1 || arguments[1] === undefined ? this.imageDataBG : arguments[1];
 
 
       if (level < 0 || level > 3) {
@@ -8165,20 +8186,16 @@ var LCD = function () {
         return;
       }
 
-      var intensity = level * 85; // 255/3
-      var index = (x + y * this.width) * 4;
-      var alpha = level === 0 ? 0 : 255;
+      if (x < 0 || y < 0) return;
 
-      imageData.data[index + 0] = 255 - intensity;
-      imageData.data[index + 1] = 255 - intensity;
-      imageData.data[index + 2] = 255 - intensity;
-      imageData.data[index + 3] = alpha;
+      var start = (x + y * this.width) * 4;
+      imageData.data.set(this.SHADES[this.bgp[level]], start);
     }
 
     /**
      * @param x
      * @param y
-     * @returns {Array} pixel imageData
+     * @returns {Object} pixel imageData
      */
 
   }, {
