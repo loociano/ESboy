@@ -92,15 +92,29 @@ describe('LCD', () => {
     assert.deepEqual([data[lastIndex-3], data[lastIndex-2], data[lastIndex-1], data[lastIndex]], [black, black, black, opaque]);
   });
 
-  it('should write black tiles on screen', () => {
-
-    const mmuMock = {
-        readBGData: function(tile_number){
-            return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
-        }
+  it('should not write tiles out of screen', () => {
+    lcd.mmu.readBGData = function(any){
+      return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
     };
 
-    lcd = new LCD(mmuMock, new ContextMock(), new ContextMock(), WIDTH, HEIGHT);
+    const bg = lcd.imageDataBG;
+
+    // Max x is 19
+    lcd.drawTile({tile_number: 0, grid_x: 20, grid_y: 0});
+
+    assert.deepEqual(bg, lcd.imageDataBG, 'No change');
+
+    // Max y is 17
+    lcd.drawTile({tile_number: 0, grid_x: 0, grid_y: 18});
+
+    assert.deepEqual(bg, lcd.imageDataBG, 'No change');
+  });
+
+  it('should write black tiles on screen', () => {
+
+    lcd.mmu.readBGData = function(tile_number){
+        return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
+    };
 
     lcd.drawTile({tile_number: 1, grid_x: 0, grid_y: 0});
     lcd.drawTile({tile_number: 1, grid_x: 10, grid_y: 9});
