@@ -7933,6 +7933,8 @@ var LCD = function () {
     };
 
     this.bgp = [0, 1, 2, 3];
+    this.obp0 = [0, 1, 2, 3];
+    this.obp1 = [0, 1, 2, 3];
   }
 
   /**
@@ -8081,9 +8083,11 @@ var LCD = function () {
       var isOBJ = OBJAttr !== undefined;
 
       var intensityMatrix = this._getMatrix(tile_number, isOBJ);
+      var palette = this.bgp;
 
       if (isOBJ) {
         intensityMatrix = this._handleOBJAttributes(OBJAttr, intensityMatrix);
+        palette = this.obp0;
       }
 
       for (var i = 0; i < intensityMatrix.length; i++) {
@@ -8091,7 +8095,7 @@ var LCD = function () {
           x = x_start;
           y++;
         }
-        this.drawPixel({ x: x++, y: y, level: intensityMatrix[i] }, imageData);
+        this.drawPixel({ x: x++, y: y, level: intensityMatrix[i] }, palette, imageData);
       }
     }
 
@@ -8172,13 +8176,15 @@ var LCD = function () {
      * Draws pixel in image data, given its coords and grey level
      * 
      * @param {Object} pixel
+     * @param {Map} palette
      * @param {Object} imageData
      */
     value: function drawPixel(_ref2) {
       var x = _ref2.x;
       var y = _ref2.y;
       var level = _ref2.level;
-      var imageData = arguments.length <= 1 || arguments[1] === undefined ? this.imageDataBG : arguments[1];
+      var palette = arguments.length <= 1 || arguments[1] === undefined ? this.bgp : arguments[1];
+      var imageData = arguments.length <= 2 || arguments[2] === undefined ? this.imageDataBG : arguments[2];
 
 
       if (level < 0 || level > 3) {
@@ -8188,8 +8194,12 @@ var LCD = function () {
 
       if (x < 0 || y < 0) return;
 
+      if (palette === this.obp0 && level === 0) {
+        return;
+      }
+
       var start = (x + y * this.width) * 4;
-      imageData.data.set(this.SHADES[this.bgp[level]], start);
+      imageData.data.set(this.SHADES[palette[level]], start);
     }
 
     /**

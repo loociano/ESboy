@@ -172,6 +172,28 @@ describe('LCD', () => {
       }
     });
 
+    it('should detect transparency on OBJ', () => {
+
+      lcd.mmu.readBGData = function(any) {
+        return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
+      };
+      lcd.mmu.readOBJData = function(any) {
+        return new Buffer('00000000000000000000000000000000', 'hex');
+      };
+      lcd.mmu.getOBJ = function(any) {
+        return {y: 16, x: 8, chrCode: 0x00, attr: 0x00};
+      };
+      lcd.mmu.getCharCode = function(x, y){
+        return 0x00;
+      };
+      lcd.mmu._VRAMRefreshed = true;
+
+      lcd.drawTiles();
+
+      // Everything must be darkest, as the OBJ is all transparent
+      assertTransparentTile.call(lcd, 0, 0, lcd.imageDataOBJ);
+    });
+
     it('should flip matrix horizontally', () => {
       const matrix =  [3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0];
       const flipped = [0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3];
@@ -186,7 +208,7 @@ describe('LCD', () => {
       };
 
       lcd.mmu.readOBJData = function(tile_number) {
-        // Left half is darkest, right half is lightest
+        // Left half is darkest, right half is transparent
         return new Buffer('f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0', 'hex');
       };
 
@@ -195,9 +217,9 @@ describe('LCD', () => {
       for(let x = 0; x < 8; x++){
         for(let y = 0; y < 8; y++){
           if (x < 4){
-            assert.deepEqual(lcd.getPixelData(x, y, lcd.imageDataOBJ), lcd.SHADES[0], 'Left half is lightest');
+            assert.deepEqual(lcd.getPixelData(x, y, lcd.imageDataOBJ), [0, 0, 0, 0], 'Left half is transparent');
           } else {
-            assert.deepEqual(lcd.getPixelData(x, y, lcd.imageDataOBJ), lcd.SHADES[3], 'Left half is darkest');
+            assert.deepEqual(lcd.getPixelData(x, y, lcd.imageDataOBJ), lcd.SHADES[3], 'Right half is darkest');
           }
         }
       }
@@ -227,4 +249,8 @@ function assertDarkestTile(grid_x, grid_y, imageData){
 
 function assertLightestTile(grid_x, grid_y, imageData){
   assertTile.call(this, grid_x, grid_y, this.SHADES[0], imageData);
+}
+
+function assertTransparentTile(grid_x, grid_y, imageData){
+  assertTile.call(this, grid_x, grid_y, [0, 0, 0, 0], imageData);
 }

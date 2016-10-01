@@ -34,6 +34,8 @@ export default class LCD {
     };
 
     this.bgp = [0, 1, 2, 3];
+    this.obp0 = [0, 1, 2, 3];
+    this.obp1 = [0, 1, 2, 3];
   }
 
   /**
@@ -148,9 +150,11 @@ export default class LCD {
     const isOBJ = OBJAttr !== undefined;
 
     let intensityMatrix = this._getMatrix(tile_number, isOBJ);
+    let palette = this.bgp;
 
     if(isOBJ){
       intensityMatrix = this._handleOBJAttributes(OBJAttr, intensityMatrix);
+      palette = this.obp0;
     }
 
     for(let i = 0; i < intensityMatrix.length; i++){
@@ -158,7 +162,7 @@ export default class LCD {
         x = x_start;
         y++;
       }
-      this.drawPixel({x: x++, y: y, level: intensityMatrix[i]}, imageData);
+      this.drawPixel({x: x++, y: y, level: intensityMatrix[i]}, palette, imageData);
     }
   }
 
@@ -239,9 +243,10 @@ export default class LCD {
    * Draws pixel in image data, given its coords and grey level
    * 
    * @param {Object} pixel
+   * @param {Map} palette
    * @param {Object} imageData
    */
-  drawPixel({x, y, level}, imageData=this.imageDataBG) {
+  drawPixel({x, y, level}, palette=this.bgp, imageData=this.imageDataBG) {
     
     if (level < 0 || level > 3){
       Logger.error(`Unrecognized level gray level ${level}`); 
@@ -250,8 +255,12 @@ export default class LCD {
 
     if (x < 0 || y < 0) return;
 
+    if (palette === this.obp0 && level === 0) {
+      return;
+    }
+
     const start = (x + y * this.width) * 4;
-    imageData.data.set(this.SHADES[this.bgp[level]], start);
+    imageData.data.set(this.SHADES[palette[level]], start);
   }
 
   /**
