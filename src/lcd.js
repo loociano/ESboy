@@ -79,6 +79,7 @@ export default class LCD {
         });
       }
     }
+    this.ctxBG.putImageData(this.imageDataBG, 0, 0);
   }
 
   /**
@@ -97,6 +98,7 @@ export default class LCD {
         }, this.imageDataOBJ, this.ctxOBJ);
       }
     }
+    this.ctxOBJ.putImageData(this.imageDataOBJ, 0, 0);
   }
 
   /**
@@ -142,8 +144,6 @@ export default class LCD {
       }
       this.drawPixel(x++, y, intensityMatrix[i], imageData);
     }
-
-    ctx.putImageData(imageData, 0, 0);
   }
 
   /**

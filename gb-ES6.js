@@ -7993,6 +7993,7 @@ var LCD = function () {
           });
         }
       }
+      this.ctxBG.putImageData(this.imageDataBG, 0, 0);
     }
 
     /**
@@ -8014,6 +8015,7 @@ var LCD = function () {
           }, this.imageDataOBJ, this.ctxOBJ);
         }
       }
+      this.ctxOBJ.putImageData(this.imageDataOBJ, 0, 0);
     }
 
     /**
@@ -8072,8 +8074,6 @@ var LCD = function () {
         }
         this.drawPixel(x++, y, intensityMatrix[i], imageData);
       }
-
-      ctx.putImageData(imageData, 0, 0);
     }
 
     /**
