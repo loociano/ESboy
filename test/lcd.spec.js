@@ -111,19 +111,16 @@ describe('LCD', () => {
     assertBlackTile.call(lcd, 19, 17, lcd.imageDataBG);
   });
 
-  it('should write OBJ on top of BG', () => {
+  describe('OBJ (Sprites)', () => {
+    it('should write OBJ on top of BG', () => {
 
-    const mmuMock = {
-      readBGData: function(tile_number){
+      lcd.mmu.readBGData = function(tile_number) {
         return new Buffer('00000000000000000000000000000000', 'hex');
-      },
-      readOBJData: function() {
+      };
+      lcd.mmu.readOBJData = function() {
         return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
-      },
-      areOBJOn: function() {
-        return true;
-      },
-      getOBJ: function(obj_number) {
+      };
+      lcd.mmu.getOBJ = function(obj_number) {
         if (obj_number === 0) {
           return {y: 16, x: 8, chrCode: 0x01, attr: 0x00};
         } else if (obj_number === 1){
@@ -131,29 +128,57 @@ describe('LCD', () => {
         } else {
           return {y: 0, x: 0, chrCode: 0x00, attr: 0x00}; // Empty OBJ, should not paint
         }
-      },
-      getCharCode: function(x, y){
+      };
+      lcd.mmu.getCharCode = function(x, y){
         return 0x00;
-      },
-      MAX_OBJ: 40,
-      _VRAMRefreshed: true
-    };
+      };
+      lcd.mmu._VRAMRefreshed = true;
 
-    lcd = new LCD(mmuMock, new ContextMock(), new ContextMock(), WIDTH, HEIGHT);
+      lcd.drawTiles();
 
-    lcd.drawTiles();
-
-    for(let x = 0; x < lcd.H_TILES; x++){
-      for(let y = 0; y < lcd.V_TILES; y++){
-        if (x === 0 && y === 0){
-          assertBlackTile.call(lcd, x, y, lcd.imageDataOBJ);
-        } else {
-          assertWhiteTile.call(lcd, x, y, lcd.imageDataBG);
+      for(let x = 0; x < lcd.H_TILES; x++){
+        for(let y = 0; y < lcd.V_TILES; y++){
+          if (x === 0 && y === 0){
+            assertBlackTile.call(lcd, x, y, lcd.imageDataOBJ);
+          } else {
+            assertWhiteTile.call(lcd, x, y, lcd.imageDataBG);
+          }
         }
       }
-    }
-  });
+    });
 
+    it('should flip matrix horizontally', () => {
+      const matrix =  [3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0];
+      const flipped = [0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3];
+
+      assert.deepEqual(lcd.flipMatrixHorizontally(matrix), flipped);
+    });
+
+    it('should flip OBJ horizontally', () => {
+
+      lcd.mmu.getOBJ = function(obj_number) {
+        return {y: 16, x: 8, chrCode: 0x00, attr: 0b00100000};
+      };
+
+      lcd.mmu.readOBJData = function(tile_number) {
+        // Left half is black, right half is white
+        return new Buffer('f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0', 'hex');
+      };
+
+      lcd.drawTiles();
+
+      for(let x = 0; x < 8; x++){
+        for(let y = 0; y < 8; y++){
+          if (x < 4){
+            assert.deepEqual(lcd.getPixelData(x, y, lcd.imageDataOBJ), [255, 255, 255, 0], 'Left half is white');
+          } else {
+            assert.deepEqual(lcd.getPixelData(x, y, lcd.imageDataOBJ), [0, 0, 0, 255], 'Left half is black');
+          }
+        }
+      }
+
+    });
+  });
 });
 
 /**

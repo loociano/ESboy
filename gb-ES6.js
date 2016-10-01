@@ -7892,6 +7892,8 @@ var _logger2 = _interopRequireDefault(_logger);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var LCD = function () {
@@ -8004,7 +8006,7 @@ var LCD = function () {
             tile_number: OBJ.chrCode,
             grid_x: OBJ.x / this.TILE_WIDTH - 1,
             grid_y: OBJ.y / this.TILE_HEIGHT - 2,
-            isOBJ: true
+            OBJAttr: OBJ.attr
           }, this.imageDataOBJ, this.ctxOBJ);
         }
       }
@@ -8038,8 +8040,7 @@ var LCD = function () {
       var tile_number = _ref.tile_number;
       var grid_x = _ref.grid_x;
       var grid_y = _ref.grid_y;
-      var _ref$isOBJ = _ref.isOBJ;
-      var isOBJ = _ref$isOBJ === undefined ? false : _ref$isOBJ;
+      var OBJAttr = _ref.OBJAttr;
       var imageData = arguments.length <= 1 || arguments[1] === undefined ? this.imageDataBG : arguments[1];
       var ctx = arguments.length <= 2 || arguments[2] === undefined ? this.ctxBG : arguments[2];
 
@@ -8050,21 +8051,43 @@ var LCD = function () {
       var x = x_start;
       var y = y_start;
 
-      var array = this._getMatrix(tile_number, isOBJ);
+      var isOBJ = OBJAttr !== undefined;
 
-      for (var i = 0; i < array.length; i++) {
+      var intensityMatrix = this._getMatrix(tile_number, isOBJ);
+
+      if (isOBJ) {
+        intensityMatrix = this._handleOBJAttributes(OBJAttr, intensityMatrix);
+      }
+
+      for (var i = 0; i < intensityMatrix.length; i++) {
         if (i > 0 && i % this.TILE_WIDTH === 0) {
           x = x_start;
           y++;
         }
-        this.drawPixel(x++, y, array[i], imageData);
+        this.drawPixel(x++, y, intensityMatrix[i], imageData);
       }
 
       ctx.putImageData(imageData, 0, 0);
     }
 
     /**
-     * @param tile_number
+     * @param {number} OBJAttr
+     * @param {Array} intensityMatrix
+     * @private
+     */
+
+  }, {
+    key: '_handleOBJAttributes',
+    value: function _handleOBJAttributes(OBJAttr, intensityMatrix) {
+      if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_HFLIP) === this.mmu.MASK_OBJ_ATTR_HFLIP) {
+        intensityMatrix = this.flipMatrixHorizontally(intensityMatrix);
+      }
+      return intensityMatrix;
+    }
+
+    /**
+     * @param {number} tile_number
+     * @param {boolean} isOBJ
      * @returns {Array} palette matrix from cache, recalculated whenever VRAM is updated.
      * @private
      */
@@ -8157,6 +8180,24 @@ var LCD = function () {
     value: function getPixelData(x, y, imageData) {
       var index = (x + y * this.width) * 4;
       return imageData.data.slice(index, index + 4);
+    }
+
+    /**
+     * Flips a tile array horizontally
+     * @param {Array} matrix
+     * @returns {Array}
+     */
+
+  }, {
+    key: 'flipMatrixHorizontally',
+    value: function flipMatrixHorizontally(matrix) {
+      var flipped = [];
+
+      for (var line = 0; line < matrix.length; line += this.TILE_WIDTH) {
+        var flippedLine = matrix.slice(line, line + this.TILE_WIDTH).reverse();
+        flipped.push.apply(flipped, _toConsumableArray(flippedLine));
+      }
+      return flipped;
     }
   }], [{
     key: 'tileToMatrix',
@@ -8377,6 +8418,8 @@ var MMU = function () {
     this.MASK_BG_CODE_AREA_2 = 0x08;
 
     this.MASK_STAT_MODE = 0x03;
+
+    this.MASK_OBJ_ATTR_HFLIP = 0x20;
 
     // Character Data
     this.CHAR_SIZE = 0x10; // 0x00 to 0x0f

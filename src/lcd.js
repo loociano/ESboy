@@ -93,7 +93,7 @@ export default class LCD {
           tile_number: OBJ.chrCode,
           grid_x: (OBJ.x/this.TILE_WIDTH) - 1,
           grid_y: (OBJ.y/this.TILE_HEIGHT) - 2,
-          isOBJ: true
+          OBJAttr: OBJ.attr
         }, this.imageDataOBJ, this.ctxOBJ);
       }
     }
@@ -117,7 +117,7 @@ export default class LCD {
    * @param {Object} imageData
    * @param {Object} context
    */
-  drawTile({tile_number, grid_x, grid_y, isOBJ=false}, imageData=this.imageDataBG, ctx=this.ctxBG){
+  drawTile({tile_number, grid_x, grid_y, OBJAttr}, imageData=this.imageDataBG, ctx=this.ctxBG){
 
     const x_start = grid_x * this.TILE_WIDTH;
     const y_start = grid_y * this.TILE_HEIGHT;
@@ -125,21 +125,40 @@ export default class LCD {
     let x = x_start;
     let y = y_start;
 
-    const array = this._getMatrix(tile_number, isOBJ);
+    const isOBJ = OBJAttr !== undefined;
 
-    for(let i = 0; i < array.length; i++){
+    let intensityMatrix = this._getMatrix(tile_number, isOBJ);
+
+    if(isOBJ){
+      intensityMatrix = this._handleOBJAttributes(OBJAttr, intensityMatrix);
+    }
+
+    for(let i = 0; i < intensityMatrix.length; i++){
       if (i > 0 && i % this.TILE_WIDTH === 0){
         x = x_start;
         y++;
       }
-      this.drawPixel(x++, y, array[i], imageData);
+      this.drawPixel(x++, y, intensityMatrix[i], imageData);
     }
 
     ctx.putImageData(imageData, 0, 0);
   }
 
   /**
-   * @param tile_number
+   * @param {number} OBJAttr
+   * @param {Array} intensityMatrix
+   * @private
+   */
+  _handleOBJAttributes(OBJAttr, intensityMatrix){
+    if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_HFLIP) === this.mmu.MASK_OBJ_ATTR_HFLIP){
+      intensityMatrix = this.flipMatrixHorizontally(intensityMatrix);
+    }
+    return intensityMatrix;
+  }
+
+  /**
+   * @param {number} tile_number
+   * @param {boolean} isOBJ
    * @returns {Array} palette matrix from cache, recalculated whenever VRAM is updated.
    * @private
    */
@@ -230,5 +249,20 @@ export default class LCD {
   getPixelData(x, y, imageData){
     const index = (x + y * this.width) * 4;
     return imageData.data.slice(index, index + 4);
+  }
+
+  /**
+   * Flips a tile array horizontally
+   * @param {Array} matrix
+   * @returns {Array}
+   */
+  flipMatrixHorizontally(matrix){
+    const flipped = [];
+
+    for(let line = 0; line < matrix.length; line += this.TILE_WIDTH){
+      const flippedLine = matrix.slice(line, line + this.TILE_WIDTH).reverse();
+      flipped.push(...flippedLine);
+    }
+    return flipped;
   }
 }

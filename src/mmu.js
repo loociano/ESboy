@@ -96,6 +96,8 @@ export default class MMU {
 
     this.MASK_STAT_MODE = 0x03;
 
+    this.MASK_OBJ_ATTR_HFLIP = 0x20;
+
     // Character Data
     this.CHAR_SIZE = 0x10; // 0x00 to 0x0f
 
