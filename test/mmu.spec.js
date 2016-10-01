@@ -138,6 +138,14 @@ describe('MMU', () => {
       assert.equal(mmu.lcdc(), 0x80, 'LCD on');
     });
 
+    it('should set LCD mode 0 when LCD is off', () => {
+      mmu.writeByteAt(mmu.ADDR_LCDC, 0x80); // ON
+      mmu.setLCDMode(1);
+
+      mmu.writeByteAt(mmu.ADDR_LCDC, 0x00); // OFF
+      assert.equal(mmu.getLCDMode(), 0, 'Reset LCD mode');
+    });
+
     it('should ignore window as it is unsupported', () => {
       assert.throws( () => {
         mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_WINDOW_ON);
