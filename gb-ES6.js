@@ -7785,6 +7785,8 @@ var InputHandler = function () {
     key: 'onKeyDown',
     value: function onKeyDown(evt) {
 
+      evt.preventDefault();
+
       switch (evt.keyCode) {
 
         case this.KEY_UP:
@@ -7829,6 +7831,8 @@ var InputHandler = function () {
   }, {
     key: 'onKeyUp',
     value: function onKeyUp(evt) {
+
+      evt.preventDefault();
 
       switch (evt.keyCode) {
 
@@ -8045,10 +8049,7 @@ var LCD = function () {
       var ctx = arguments.length <= 2 || arguments[2] === undefined ? this.ctxBG : arguments[2];
 
 
-      if (grid_x > this.H_TILES - 1 || grid_y > this.V_TILES - 1) {
-        _logger2.default.info('Tile x=' + grid_x + ',y=' + grid_y + ' out of screen');
-        return;
-      }
+      if (grid_x > this.H_TILES - 1 || grid_y > this.V_TILES - 1) return;
 
       var x_start = grid_x * this.TILE_WIDTH;
       var y_start = grid_y * this.TILE_HEIGHT;

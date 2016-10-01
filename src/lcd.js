@@ -119,10 +119,7 @@ export default class LCD {
    */
   drawTile({tile_number, grid_x, grid_y, OBJAttr}, imageData=this.imageDataBG, ctx=this.ctxBG){
 
-    if (grid_x > this.H_TILES-1 || grid_y > this.V_TILES-1) {
-      Logger.info(`Tile x=${grid_x},y=${grid_y} out of screen`);
-      return;
-    }
+    if (grid_x > this.H_TILES-1 || grid_y > this.V_TILES-1) return;
 
     const x_start = grid_x * this.TILE_WIDTH;
     const y_start = grid_y * this.TILE_HEIGHT;

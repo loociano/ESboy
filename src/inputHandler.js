@@ -30,6 +30,8 @@ export default class InputHandler {
    */
   onKeyDown(evt) {
 
+    evt.preventDefault();
+
     switch (evt.keyCode) {
 
       case this.KEY_UP:
@@ -71,6 +73,8 @@ export default class InputHandler {
    * @param evt
    */
   onKeyUp(evt){
+
+    evt.preventDefault();
 
     switch(evt.keyCode){
 
