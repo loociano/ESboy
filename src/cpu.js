@@ -892,24 +892,21 @@ export default class CPU {
   frame(pc_stop){
 
     do {
-      if (pc_stop !== -1 && this._r.pc === pc_stop){
+      if (this.isStopped() || (pc_stop !== -1 && this._r.pc === pc_stop)){
         return;
       }
 
-      if (!this.isStopped()) {
+      const m = this._m;
 
-        const m = this._m;
-
-        if (!this.isHalted()) {
-          this._execute();
-        } else {
-          this._m++;
-        }
-
-        this._handle_lcd();
-        this._handleDMA();
-        this._handleDIV(this._m - m);
+      if (!this.isHalted()) {
+        this._execute();
+      } else {
+        this._m++;
       }
+
+      this._handle_lcd();
+      this._handleDMA();
+      this._handleDIV(this._m - m);
 
       if (this._r.pc === this.mmu.ADDR_GAME_START){
         this._afterBIOS();
