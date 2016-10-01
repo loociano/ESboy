@@ -30,7 +30,7 @@ export default class Logger {
   }
 
   static info(msg){
-    if (!config.TEST) {
+    if (config.DEBUG && !config.TEST) {
       console.info(`<info> ${msg}`);
     }
   }

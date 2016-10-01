@@ -112,12 +112,17 @@ export default class LCD {
    * Draws all pixels from a tile in the image data
    *
    * @param {number} tile_number
-   * @param {number} tile_x from 0x00 to 0x1f [0-31]
-   * @param {number} tile_y from 0x00 to 0x1f [0-31]
+   * @param {number} grid_x from 0x00 to 0x13 [0-19]
+   * @param {number} grid_y from 0x00 to 0x12 [0-17]
    * @param {Object} imageData
    * @param {Object} context
    */
   drawTile({tile_number, grid_x, grid_y, OBJAttr}, imageData=this.imageDataBG, ctx=this.ctxBG){
+
+    if (grid_x > this.H_TILES-1 || grid_y > this.V_TILES-1) {
+      Logger.info(`Tile x=${grid_x},y=${grid_y} out of screen`);
+      return;
+    }
 
     const x_start = grid_x * this.TILE_WIDTH;
     const y_start = grid_y * this.TILE_HEIGHT;

@@ -8028,8 +8028,8 @@ var LCD = function () {
      * Draws all pixels from a tile in the image data
      *
      * @param {number} tile_number
-     * @param {number} tile_x from 0x00 to 0x1f [0-31]
-     * @param {number} tile_y from 0x00 to 0x1f [0-31]
+     * @param {number} grid_x from 0x00 to 0x13 [0-19]
+     * @param {number} grid_y from 0x00 to 0x12 [0-17]
      * @param {Object} imageData
      * @param {Object} context
      */
@@ -8044,6 +8044,11 @@ var LCD = function () {
       var imageData = arguments.length <= 1 || arguments[1] === undefined ? this.imageDataBG : arguments[1];
       var ctx = arguments.length <= 2 || arguments[2] === undefined ? this.ctxBG : arguments[2];
 
+
+      if (grid_x > this.H_TILES - 1 || grid_y > this.V_TILES - 1) {
+        _logger2.default.info('Tile x=' + grid_x + ',y=' + grid_y + ' out of screen');
+        return;
+      }
 
       var x_start = grid_x * this.TILE_WIDTH;
       var y_start = grid_y * this.TILE_HEIGHT;
@@ -8280,7 +8285,7 @@ var Logger = function () {
   }, {
     key: 'info',
     value: function info(msg) {
-      if (!_config2.default.TEST) {
+      if (_config2.default.DEBUG && !_config2.default.TEST) {
         console.info('<info> ' + msg);
       }
     }
