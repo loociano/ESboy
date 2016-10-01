@@ -4245,10 +4245,18 @@ export default class CPU {
    */
   daa(){
     if ( (this._r.a & 0x0f) > 9 || this.H()){
-      this._r.a += 0x06;
+      if (this.N() === 1){
+        this._r.a -= 0x06;
+      } else {
+        this._r.a += 0x06;
+      }
     }
     if ((this._r.a >> 4) > 9 || this.C()){
-      this._r.a += 0x60;
+      if (this.N() === 1){
+        this._r.a -= 0x60;
+      } else {
+        this._r.a += 0x60;
+      }
       this.setC(1);
     } else {
       this.setC(0);

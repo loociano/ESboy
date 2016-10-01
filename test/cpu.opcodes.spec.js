@@ -1543,6 +1543,26 @@ describe('CPU Instruction Set', function() {
       assert.equal(cpu.f(), 0b1001, 'Flags');
     });
 
+    it('should adjust to BDC after subtraction', () => {
+      cpu.ld_a_n(0x20);
+      cpu.ld_b_n(0x01);
+      cpu.sub_b();
+
+      cpu.daa();
+
+      assert.equal(cpu.a(), 0x19, 'BCD adjusted');
+      assert.equal(cpu.f(), 0b0100, 'Flags');
+
+      cpu.ld_a_n(0x83);
+      cpu.ld_b_n(0x38);
+      cpu.sub_b();
+
+      cpu.daa();
+
+      assert.equal(cpu.a(), 0x45, 'BCD adjusted');
+      assert.equal(cpu.f(), 0b0100, 'Flags');
+    });
+
     it('should adjust with half-carry', () => {
       cpu.ld_a_n(0x26);
       cpu.setH(1);
