@@ -229,15 +229,16 @@ export default class MMU {
     switch(addr){
       case this.ADDR_DMA:
       case this.ADDR_SB:
-      case this.ADDR_SC:
-        Logger.info('Serial Control unsupported');
-        break;
       case this.ADDR_TIMA:
       case this.ADDR_TMA:
       case this.ADDR_TAC:
       case this.ADDR_SVBK:
       case this.ADDR_KEY1:
         throw new Error(`Unsupported register ${Utils.hex4(addr)}`);
+
+      case this.ADDR_SC:
+        Logger.info('Serial Control unsupported');
+        break;
 
       case this.ADDR_P1:
         if ((this._memory[addr] & this.MASK_P14) === 0){

@@ -252,13 +252,13 @@ describe('MMU', () => {
 
       mmu.setLCDMode(2);
       assert.throws( () => mmu.writeByteAt(mmu.ADDR_OAM_START, 0x00), Error, 'Cannot write OAM on mode 2');
-      assert.throws( () => mmu.readByteAt(mmu.ADDR_OAM_START), Error, 'Cannot read OAM on mode 2');
+      assert.equal(mmu.readByteAt(mmu.ADDR_OAM_START), 0xff, 'Cannot read OAM on mode 2');
 
       mmu.setLCDMode(3);
       assert.throws( () => mmu.writeByteAt(mmu.ADDR_OAM_START, 0x00), Error, 'Cannot write OAM on mode 3');
-      assert.throws( () => mmu.readByteAt(mmu.ADDR_OAM_START), Error, 'Cannot read OAM on mode 3');
+      assert.equal(mmu.readByteAt(mmu.ADDR_OAM_START), 0xff, 'Cannot read OAM on mode 3');
       assert.throws( () => mmu.writeByteAt(mmu.ADDR_VRAM_START, 0x00), Error, 'Cannot write VRAM on mode 3');
-      assert.throws( () => mmu.readByteAt(mmu.ADDR_VRAM_START), Error, 'Cannot read VRAM on mode 3');
+      assert.equal(mmu.readByteAt(mmu.ADDR_VRAM_START), 0xff, 'Cannot read VRAM on mode 3');
     });
 
   });
@@ -427,9 +427,7 @@ describe('MMU', () => {
 
       mmu.writeByteAt(mmu.ADDR_DMA, mmu.ADDR_WRAM_START >> 8); // 0xc0
 
-      assert.throws( () => {
-        mmu.readByteAt(mmu.ADDR_OAM_START);
-      }, Error, 'Cannot access OAM until DMA completes');
+      assert.equal(mmu.readByteAt(mmu.ADDR_OAM_START), 0xff, 'Cannot access OAM until DMA completes');
 
       mmu.setDMA(false); // Mock DMA end
 
@@ -443,7 +441,7 @@ describe('MMU', () => {
   describe('Serial Cable Communication', () => {
     it('should detect serial communication', () => {
       assert.throws( () => mmu.readByteAt(mmu.ADDR_SB), Error, 'SB register unsupported');
-      assert.throws( () => mmu.readByteAt(mmu.ADDR_SC), Error, 'SC register unsupported');
+      assert.equal(mmu.readByteAt(mmu.ADDR_SC), 0, 'SC register unsupported');
     });
   });
 
