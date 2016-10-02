@@ -250,22 +250,27 @@ export default class LCD {
 
   /**
    * Converts a 16 bits tile buffer into array of level of grays [0-3]
-   * Example: [1, 0, 2, 3, 0, 1 ...]  
+   * Example:
+   * 0x0000 -> [0,0,0,0,0,0,0,0]
+   * 0xff00 -> [1,1,1,1,1,1,1,1]
+   * 0x00ff -> [2,2,2,2,2,2,2,2]
+   * 0xffff -> [3,3,3,3,3,3,3,3]
+   *
    * @param {Buffer} buffer
    * @returns {Array}
    */
   static tileToMatrix(buffer){
     const array = [];
     for(let i = 0; i < 16; i++){
-      
+
       const msb = Utils.toBin8(buffer[i++]);
       const lsb = Utils.toBin8(buffer[i]);
 
       for(let b = 0; b < 8; b++){
-        array.push( (parseInt(msb[b], 2) << 1) + parseInt(lsb[b], 2));
+        array.push( (parseInt(lsb[b], 2) << 1) + parseInt(msb[b], 2));
       }
     }
-    return array; // TODO: cache array for speed
+    return array;
   }
 
   /**

@@ -27,18 +27,18 @@ describe('LCD', () => {
 
   it('should transform a Nintendo tile buffer into a matrix', () => {
     const array = LCD.tileToMatrix(new Buffer('3c004200b900a500b900a50042003c00', 'hex'));
-    assert.deepEqual(array, [0,0,2,2,2,2,0,0,
-                             0,2,0,0,0,0,2,0,
-                             2,0,2,2,2,0,0,2,
-                             2,0,2,0,0,2,0,2,
-                             2,0,2,2,2,0,0,2,
-                             2,0,2,0,0,2,0,2,
-                             0,2,0,0,0,0,2,0,
-                             0,0,2,2,2,2,0,0]);
+    assert.deepEqual(array, [0,0,1,1,1,1,0,0,
+                             0,1,0,0,0,0,1,0,
+                             1,0,1,1,1,0,0,1,
+                             1,0,1,0,0,1,0,1,
+                             1,0,1,1,1,0,0,1,
+                             1,0,1,0,0,1,0,1,
+                             0,1,0,0,0,0,1,0,
+                             0,0,1,1,1,1,0,0]);
   });
 
   it('should transform a tile buffer into levels of gray matrix', () => {
-    const array = LCD.tileToMatrix(new Buffer('3355ccaa3355ccaa3355ccaa3355ccaa', 'hex'));
+    const array = LCD.tileToMatrix(new Buffer('5533aacc5533aacc5533aacc5533aacc', 'hex'));
     assert.deepEqual(array, [0,1,2,3,0,1,2,3,
                              3,2,1,0,3,2,1,0,
                              0,1,2,3,0,1,2,3,
@@ -49,7 +49,7 @@ describe('LCD', () => {
                              3,2,1,0,3,2,1,0]);
   });
 
-  it('should transform a tile buffer into a transparent matrix', () => {
+  it('should transform a tile buffer into a the lightest matrix', () => {
     const array = LCD.tileToMatrix(new Buffer('00000000000000000000000000000000', 'hex'));
     assert.deepEqual(array, [0,0,0,0,0,0,0,0,
                              0,0,0,0,0,0,0,0,
@@ -61,7 +61,7 @@ describe('LCD', () => {
                              0,0,0,0,0,0,0,0]);
   });
 
-  it('should transform a tile buffer into a black matrix', () => {
+  it('should transform a tile buffer into a darkest matrix', () => {
     const array = LCD.tileToMatrix(new Buffer('ffffffffffffffffffffffffffffffff', 'hex'));
     assert.deepEqual(array, [3,3,3,3,3,3,3,3,
                              3,3,3,3,3,3,3,3,
@@ -100,10 +100,7 @@ describe('LCD', () => {
   });
 
   it('should not write tiles out of screen', () => {
-    lcd.mmu.readBGData = function(any){
-      return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
-    };
-
+    lcd.mmu.readBGData = () => { return new Buffer('ffffffffffffffffffffffffffffffff', 'hex'); };
     const bg = lcd.imageDataBG;
 
     // Max x is 19
@@ -117,11 +114,9 @@ describe('LCD', () => {
     assert.deepEqual(bg, lcd.imageDataBG, 'No change');
   });
 
-  it('should write black tiles on screen', () => {
+  it('should write darkest tiles on screen', () => {
 
-    lcd.mmu.readBGData = function(tile_number){
-        return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
-    };
+    lcd.mmu.readBGData = () => { return new Buffer('ffffffffffffffffffffffffffffffff', 'hex'); };
 
     lcd.drawTile({tile_number: 1, grid_x: 0, grid_y: 0});
     lcd.drawTile({tile_number: 1, grid_x: 10, grid_y: 9});
@@ -189,7 +184,7 @@ describe('LCD', () => {
 
     it('should detect palette on OBJ', () => {
 
-      lcd.mmu.readOBJData = () => { return new Buffer('00ff00ff00ff00ff00ff00ff00ff00ff', 'hex'); };
+      lcd.mmu.readOBJData = () => { return new Buffer('ff00ff00ff00ff00ff00ff00ff00ff00', 'hex'); };
       lcd.mmu.getCharCode = () => { return 0x00; };
       lcd.mmu.getOBJ = () => { return {y: 16, x: 8, chrCode: 0x00, attr: 0x00}; };
       lcd.mmu.obg0 = () => { return 0b00000000; };
@@ -229,11 +224,9 @@ describe('LCD', () => {
 
     it('should flip OBJ horizontally', () => {
 
-      lcd.mmu.getOBJ = function(obj_number) {
-        return {y: 16, x: 8, chrCode: 0x00, attr: 0b00100000};
-      };
+      lcd.mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b00100000}; };
 
-      lcd.mmu.readOBJData = function(tile_number) {
+      lcd.mmu.readOBJData = (any) => {
         // Left half is darkest, right half is transparent
         return new Buffer('f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0', 'hex');
       };
