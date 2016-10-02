@@ -8133,9 +8133,14 @@ var LCD = function () {
      * @private
      */
     value: function _handleOBJAttributes(OBJAttr, intensityMatrix) {
-      if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_HFLIP) === this.mmu.MASK_OBJ_ATTR_HFLIP) {
-        intensityMatrix = this.flipMatrixHorizontally(intensityMatrix);
+      if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_PRIORITY) === this.mmu.MASK_OBJ_ATTR_PRIORITY) {
+        return new Array(64).fill(0);
       }
+
+      if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_HFLIP) === this.mmu.MASK_OBJ_ATTR_HFLIP) {
+        return this.flipMatrixHorizontally(intensityMatrix);
+      }
+
       return intensityMatrix;
     }
 
@@ -8494,6 +8499,7 @@ var MMU = function () {
 
     this.MASK_STAT_MODE = 0x03;
 
+    this.MASK_OBJ_ATTR_PRIORITY = 0x80;
     this.MASK_OBJ_ATTR_HFLIP = 0x20;
     this.MASK_OBJ_ATTR_OBG = 0x10;
 

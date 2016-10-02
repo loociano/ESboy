@@ -249,6 +249,25 @@ describe('LCD', () => {
       }
 
     });
+
+    it('should detect OBJ priority flag', () => {
+
+      lcd.mmu.readOBJData = (any) => { return new Buffer('ff00ff00ff00ff00ff00ff00ff00ff00', 'hex'); };
+      lcd.mmu.getCharCode = (any) => { return 0x00; };
+      lcd.mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b00000000}; };
+      lcd.mmu.obg0 = () => { return 0b11100100; };
+
+      lcd.drawTiles();
+
+      assertTile.call(lcd, 0, 0, lcd.SHADES[1], lcd.imageDataOBJ);
+
+      // Priority flag: BG over OBJ
+      lcd.mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b10000000}; };
+
+      lcd.drawTiles();
+
+      assertTransparentTile.call(lcd, 0, 0, lcd.imageDataOBJ);
+    });
   });
 });
 

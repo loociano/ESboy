@@ -4,6 +4,7 @@ export default class MMUMock {
     this._ly = 0;
     this.MAX_OBJ = 40;
     this._VRAMRefreshed = false;
+    this.MASK_OBJ_ATTR_PRIORITY = 0x80;
     this.MASK_OBJ_ATTR_HFLIP = 0x20;
     this.MASK_OBJ_ATTR_OBG = 0x10;
   }

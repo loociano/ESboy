@@ -201,9 +201,14 @@ export default class LCD {
    * @private
    */
   _handleOBJAttributes(OBJAttr, intensityMatrix){
-    if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_HFLIP) === this.mmu.MASK_OBJ_ATTR_HFLIP){
-      intensityMatrix = this.flipMatrixHorizontally(intensityMatrix);
+    if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_PRIORITY) === this.mmu.MASK_OBJ_ATTR_PRIORITY){
+      return new Array(64).fill(0);
     }
+
+    if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_HFLIP) === this.mmu.MASK_OBJ_ATTR_HFLIP){
+      return this.flipMatrixHorizontally(intensityMatrix);
+    }
+
     return intensityMatrix;
   }
 

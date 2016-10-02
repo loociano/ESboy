@@ -99,6 +99,7 @@ export default class MMU {
 
     this.MASK_STAT_MODE = 0x03;
 
+    this.MASK_OBJ_ATTR_PRIORITY = 0x80;
     this.MASK_OBJ_ATTR_HFLIP = 0x20;
     this.MASK_OBJ_ATTR_OBG = 0x10;
 
