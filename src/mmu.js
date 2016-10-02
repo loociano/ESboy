@@ -230,12 +230,14 @@ export default class MMU {
       case this.ADDR_DMA:
       case this.ADDR_SB:
       case this.ADDR_SC:
+        Logger.info('Serial Control unsupported');
+        break;
       case this.ADDR_TIMA:
       case this.ADDR_TMA:
       case this.ADDR_TAC:
       case this.ADDR_SVBK:
       case this.ADDR_KEY1:
-        throw new Error('Unsupported');
+        throw new Error(`Unsupported register ${Utils.hex4(addr)}`);
 
       case this.ADDR_P1:
         if ((this._memory[addr] & this.MASK_P14) === 0){
@@ -244,10 +246,12 @@ export default class MMU {
     }
 
     if (this._isOAMAddr(addr) && !this._canAccessOAM()){
-      throw new Error('Cannot read OAM');
+      Logger.info('Cannot read OAM');
+      return 0xff;
     }
     if (this._isVRAMAddr(addr) && !this._canAccessVRAM()){
-      throw new Error('Cannot read VRAM');
+      Logger.info('Cannot read VRAM');
+      return 0xff;
     }
 
     if (addr <= this.ADDR_ROM_MAX){
