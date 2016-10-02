@@ -291,6 +291,7 @@ describe('LCD', () => {
 
     it('should detect OBJ priority flag', () => {
 
+      lcd.mmu.readBGData = (any) => { return new Buffer('ffffffffffffffffffffffffffffffff', 'hex'); };
       lcd.mmu.readOBJData = (any) => { return new Buffer('ff00ff00ff00ff00ff00ff00ff00ff00', 'hex'); };
       lcd.mmu.getCharCode = (any) => { return 0x00; };
       lcd.mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b00000000}; };
@@ -306,6 +307,19 @@ describe('LCD', () => {
       lcd.drawTiles();
 
       assertTransparentTile.call(lcd, 0, 0, lcd.imageDataOBJ);
+    });
+
+    it('should display an OBJ with a priority flag only if the BG behind is zero', () => {
+
+      lcd.mmu.readBGData = (any) => { return new Buffer('00000000000000000000000000000000', 'hex'); };
+      lcd.mmu.readOBJData = (any) => { return new Buffer('ff00ff00ff00ff00ff00ff00ff00ff00', 'hex'); };
+      lcd.mmu.getCharCode = (any) => { return 0x00; };
+      lcd.mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b10000000}; };
+      lcd.mmu.obg0 = () => { return 0b11100100; };
+
+      lcd.drawTiles();
+
+      assertTile.call(lcd, 0, 0, lcd.SHADES[1], lcd.imageDataOBJ);
     });
   });
 });

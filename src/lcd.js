@@ -156,7 +156,7 @@ export default class LCD {
     let palette = this._bgp;
 
     if(isOBJ){
-      intensityMatrix = this._handleOBJAttributes(OBJAttr, intensityMatrix);
+      intensityMatrix = this._handleOBJAttributes(OBJAttr, intensityMatrix, grid_x, grid_y);
       palette = this._getOBJPalette(OBJAttr);
     }
 
@@ -200,9 +200,16 @@ export default class LCD {
    * @param {Array} intensityMatrix
    * @private
    */
-  _handleOBJAttributes(OBJAttr, intensityMatrix){
+  _handleOBJAttributes(OBJAttr, intensityMatrix, grid_x, grid_y){
     if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_PRIORITY) === this.mmu.MASK_OBJ_ATTR_PRIORITY){
-      return new Array(64).fill(0);
+
+      const chrCode = this.mmu.getCharCode(grid_x, grid_y);
+      const matrix = this._getMatrix(chrCode);
+
+      // Exception: OBJ with priority flag are displayed only in the underneath BG is lightest
+      if (!this._isLightestMatrix(matrix)){
+        return new Array(64).fill(0);
+      }
     }
 
     if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_HFLIP) === this.mmu.MASK_OBJ_ATTR_HFLIP){
@@ -214,6 +221,18 @@ export default class LCD {
     }
 
     return intensityMatrix;
+  }
+
+  /**
+   * @param matrix
+   * @returns {boolean} true if the matrix is the lightest possible
+   * @private
+   */
+  _isLightestMatrix(matrix){
+    for(let intensity of matrix){
+      if (intensity > 0) return false;
+    }
+    return true;
   }
 
   /**

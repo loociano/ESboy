@@ -8089,7 +8089,7 @@ var LCD = function () {
       var palette = this._bgp;
 
       if (isOBJ) {
-        intensityMatrix = this._handleOBJAttributes(OBJAttr, intensityMatrix);
+        intensityMatrix = this._handleOBJAttributes(OBJAttr, intensityMatrix, grid_x, grid_y);
         palette = this._getOBJPalette(OBJAttr);
       }
 
@@ -8132,9 +8132,16 @@ var LCD = function () {
      * @param {Array} intensityMatrix
      * @private
      */
-    value: function _handleOBJAttributes(OBJAttr, intensityMatrix) {
+    value: function _handleOBJAttributes(OBJAttr, intensityMatrix, grid_x, grid_y) {
       if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_PRIORITY) === this.mmu.MASK_OBJ_ATTR_PRIORITY) {
-        return new Array(64).fill(0);
+
+        var chrCode = this.mmu.getCharCode(grid_x, grid_y);
+        var matrix = this._getMatrix(chrCode);
+
+        // Exception: OBJ with priority flag are displayed only in the underneath BG is lightest
+        if (!this._isLightestMatrix(matrix)) {
+          return new Array(64).fill(0);
+        }
       }
 
       if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_HFLIP) === this.mmu.MASK_OBJ_ATTR_HFLIP) {
@@ -8146,6 +8153,43 @@ var LCD = function () {
       }
 
       return intensityMatrix;
+    }
+
+    /**
+     * @param matrix
+     * @returns {boolean} true if the matrix is the lightest possible
+     * @private
+     */
+
+  }, {
+    key: '_isLightestMatrix',
+    value: function _isLightestMatrix(matrix) {
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = matrix[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var intensity = _step.value;
+
+          if (intensity > 0) return false;
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+
+      return true;
     }
 
     /**
