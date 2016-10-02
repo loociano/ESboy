@@ -556,6 +556,7 @@ export default class CPU {
       0xef: {fn: this.rst_28, paramBytes: 0},
       0xf0: {fn: this.ldh_a_n, paramBytes: 1},
       0xf1: {fn: this.pop_af, paramBytes: 0},
+      0xf2: {fn: this.ld_a_0xc, paramBytes: 0},
       0xf3: {fn: this.di, paramBytes: 0},
       0xf4: {fn: this._noSuchOpcode, paramBytes: 0},
       0xf5: {fn: this.push_af, paramBytes: 0},
@@ -2296,6 +2297,14 @@ export default class CPU {
    */
   ld_0xc_a(){
     this.mmu.writeByteAt(0xff00 + this._r.c, this._r.a);
+    this._m += 2;
+  }
+
+  /**
+   * Loads memory address 0xff00 + c into a
+   */
+  ld_a_0xc(){
+    this._r.a = this.mmu.readByteAt(0xff00 + this._r.c);
     this._m += 2;
   }
 

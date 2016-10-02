@@ -1945,6 +1945,17 @@ describe('CPU Instruction Set', function() {
       assert.equal(cpu.ie(), value, 'ie is written');
     });
 
+    it('should write memory address 0xff00 + c into register a', () => {
+      cpu.mmu.writeByteAt(0xff44, 0xab);
+      cpu.ld_c_n(0x44); // ly
+      const m = cpu.m();
+
+      cpu.ld_a_0xc();
+
+      assert.equal(cpu.a(), 0xab);
+      assert.equal(cpu.m() - m, 2, 'Machine cycles');
+    });
+
     it('should copy register a into memory locations', () => {
       cpu.ld_a_n(0xab);
       cpu.ld_bc_nn(0xc000);
