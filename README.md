@@ -6,17 +6,19 @@ GNU GPLv3 License. Ongoing test-driven project on ECMAScript 6.
 
 ![](https://raw.githubusercontent.com/loociano/gb-ES6/master/screenshots/2016-09-26%2014_37_51-gb-ES6.png)
 
-## Run 
+[Compatibility List](https://github.com/loociano/gb-ES6/wiki/Compatibility-List)
 
-* Play online: Try it on http://loociano.github.io/gb-ES6
-* Play offline: clone/download this repository and open `index.html` in your browser.
+## Play 
+
+* Online: Try it on http://loociano.github.io/gb-ES6
+* Offline: clone/download this repository and open `index.html` in your browser.
 
 ## Develop
 
 ### Build
 
-``npm install``
-``npm run build``
+* ``npm install``
+* ``npm run build``
 
 ### Run all tests
 
