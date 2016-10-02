@@ -206,7 +206,11 @@ export default class LCD {
     }
 
     if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_HFLIP) === this.mmu.MASK_OBJ_ATTR_HFLIP){
-      return this.flipMatrixHorizontally(intensityMatrix);
+      intensityMatrix = this.flipMatrixHorizontally(intensityMatrix);
+    }
+
+    if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_VFLIP) === this.mmu.MASK_OBJ_ATTR_VFLIP){
+      intensityMatrix = this.flipMatrixVertically(intensityMatrix);
     }
 
     return intensityMatrix;

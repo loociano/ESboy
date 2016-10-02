@@ -266,6 +266,29 @@ describe('LCD', () => {
 
     });
 
+    it('should flip OBJ vertically', () => {
+
+      lcd.mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b01000000}; };
+
+      lcd.mmu.readOBJData = (any) => {
+        // Top half is darkest, bottom half is transparent
+        return new Buffer('ffffffffffffffff0000000000000000', 'hex');
+      };
+
+      lcd.drawTiles();
+
+      for(let x = 0; x < 8; x++){
+        for(let y = 0; y < 8; y++){
+          if (y < 4){
+            assert.deepEqual(lcd.getPixelData(x, y, lcd.imageDataOBJ), [0, 0, 0, 0], 'Top half is transparent');
+          } else {
+            assert.deepEqual(lcd.getPixelData(x, y, lcd.imageDataOBJ), lcd.SHADES[3], 'Bottom half is darkest');
+          }
+        }
+      }
+
+    });
+
     it('should detect OBJ priority flag', () => {
 
       lcd.mmu.readOBJData = (any) => { return new Buffer('ff00ff00ff00ff00ff00ff00ff00ff00', 'hex'); };

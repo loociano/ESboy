@@ -8138,7 +8138,11 @@ var LCD = function () {
       }
 
       if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_HFLIP) === this.mmu.MASK_OBJ_ATTR_HFLIP) {
-        return this.flipMatrixHorizontally(intensityMatrix);
+        intensityMatrix = this.flipMatrixHorizontally(intensityMatrix);
+      }
+
+      if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_VFLIP) === this.mmu.MASK_OBJ_ATTR_VFLIP) {
+        intensityMatrix = this.flipMatrixVertically(intensityMatrix);
       }
 
       return intensityMatrix;
@@ -8266,6 +8270,22 @@ var LCD = function () {
         flipped.push.apply(flipped, _toConsumableArray(flippedLine));
       }
       return flipped;
+    }
+
+    /**
+     * @param {Array} matrix
+     * @returns {Array} flipped
+     */
+
+  }, {
+    key: 'flipMatrixVertically',
+    value: function flipMatrixVertically(matrix) {
+      var firstHalf = matrix.slice(0, matrix.length / 2);
+      var secondHalf = matrix.slice(matrix.length / 2);
+
+      secondHalf.push.apply(secondHalf, _toConsumableArray(firstHalf));
+
+      return secondHalf;
     }
   }], [{
     key: 'paletteToArray',
@@ -8500,6 +8520,7 @@ var MMU = function () {
     this.MASK_STAT_MODE = 0x03;
 
     this.MASK_OBJ_ATTR_PRIORITY = 0x80;
+    this.MASK_OBJ_ATTR_VFLIP = 0x40;
     this.MASK_OBJ_ATTR_HFLIP = 0x20;
     this.MASK_OBJ_ATTR_OBG = 0x10;
 
