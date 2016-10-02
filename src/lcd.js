@@ -289,14 +289,12 @@ export default class LCD {
 
     if (x < 0 || y < 0) return;
 
-    const shade = palette[level];
-
-    if ((palette === this._obg0 || palette === this._obg1) && shade === 0) {
+    if ((palette === this._obg0 || palette === this._obg1) && level === 0) {
       return; // Transparent
     }
 
     const start = (x + y * this.width) * 4;
-    imageData.data.set(this.SHADES[shade], start);
+    imageData.data.set(this.SHADES[palette[level]], start);
   }
 
   /**

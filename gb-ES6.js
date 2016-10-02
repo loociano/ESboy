@@ -8188,7 +8188,12 @@ var LCD = function () {
 
     /**
      * Converts a 16 bits tile buffer into array of level of grays [0-3]
-     * Example: [1, 0, 2, 3, 0, 1 ...]  
+     * Example:
+     * 0x0000 -> [0,0,0,0,0,0,0,0]
+     * 0xff00 -> [1,1,1,1,1,1,1,1]
+     * 0x00ff -> [2,2,2,2,2,2,2,2]
+     * 0xffff -> [3,3,3,3,3,3,3,3]
+     *
      * @param {Buffer} buffer
      * @returns {Array}
      */
@@ -8219,14 +8224,12 @@ var LCD = function () {
 
       if (x < 0 || y < 0) return;
 
-      var shade = palette[level];
-
-      if ((palette === this._obg0 || palette === this._obg1) && shade === 0) {
+      if ((palette === this._obg0 || palette === this._obg1) && level === 0) {
         return; // Transparent
       }
 
       var start = (x + y * this.width) * 4;
-      imageData.data.set(this.SHADES[shade], start);
+      imageData.data.set(this.SHADES[palette[level]], start);
     }
 
     /**
@@ -8278,10 +8281,10 @@ var LCD = function () {
         var lsb = _utils2.default.toBin8(buffer[i]);
 
         for (var b = 0; b < 8; b++) {
-          array.push((parseInt(msb[b], 2) << 1) + parseInt(lsb[b], 2));
+          array.push((parseInt(lsb[b], 2) << 1) + parseInt(msb[b], 2));
         }
       }
-      return array; // TODO: cache array for speed
+      return array;
     }
   }]);
 

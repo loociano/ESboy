@@ -130,12 +130,8 @@ describe('LCD', () => {
   describe('OBJ (Sprites)', () => {
     it('should write OBJ on top of BG', () => {
 
-      lcd.mmu.readBGData = function(tile_number) {
-        return new Buffer('00000000000000000000000000000000', 'hex');
-      };
-      lcd.mmu.readOBJData = function() {
-        return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
-      };
+      lcd.mmu.readBGData = (any) => { return new Buffer('00000000000000000000000000000000', 'hex'); };
+      lcd.mmu.readOBJData = (any) => { return new Buffer('ffffffffffffffffffffffffffffffff', 'hex'); };
       lcd.mmu.getOBJ = function(obj_number) {
         if (obj_number === 0) {
           return {y: 16, x: 8, chrCode: 0x01, attr: 0x00};
@@ -145,9 +141,7 @@ describe('LCD', () => {
           return {y: 0, x: 0, chrCode: 0x00, attr: 0x00}; // Empty OBJ, should not paint
         }
       };
-      lcd.mmu.getCharCode = function(x, y){
-        return 0x00;
-      };
+      lcd.mmu.getCharCode = (any) => { return 0x00; };
       lcd.mmu._VRAMRefreshed = true;
 
       lcd.drawTiles();
@@ -176,6 +170,18 @@ describe('LCD', () => {
       assertTransparentTile.call(lcd, 0, 0, lcd.imageDataOBJ);
     });
 
+    it('should not paint pixels 00 from OBJ regardless of their palette', () => {
+      lcd.mmu.readOBJData = () => { return new Buffer('00000000000000000000000000000000', 'hex'); };
+      lcd.mmu.getOBJ = () => { return {y: 16, x: 8, chrCode: 0x00, attr: 0x00}; };
+      lcd.mmu.getCharCode = () => { return 0x00; };
+      lcd.mmu.obg0 = () => { return 0b11111111; }; // force lightest level bit0,1 to darkest
+
+      lcd.drawTiles();
+
+      // Still, no OBJ is painted as the buffer is zero
+      assertTransparentTile.call(lcd, 0, 0, lcd.imageDataOBJ);
+    });
+
     it('should transform palettes to intensity array', () => {
       assert.deepEqual(LCD.paletteToArray(0b11100100), [0, 1, 2, 3]);
       assert.deepEqual(LCD.paletteToArray(0b00000000), [0, 0, 0, 0]);
@@ -191,8 +197,7 @@ describe('LCD', () => {
 
       lcd.drawTiles();
 
-      // OBJ is using OBG0, which is transparent
-      assertTile.call(lcd, 0, 0, [0, 0, 0, 0], lcd.imageDataOBJ);
+      assertTile.call(lcd, 0, 0, lcd.SHADES[0], lcd.imageDataOBJ);
 
       // Use OBG1
       lcd.mmu.getOBJ = () => { return {y: 16, x: 8, chrCode: 0x00, attr: 0x10}; };
