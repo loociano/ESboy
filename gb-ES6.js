@@ -7932,28 +7932,16 @@ var LCD = function () {
       3: [15, 56, 15, 255]
     };
 
-    this.bgp = [0, 1, 2, 3];
-    this.obp0 = [0, 1, 2, 3];
-    this.obp1 = [0, 1, 2, 3];
+    this._readPalettes();
   }
 
-  /**
-   * @param {Array} bgpArray, example: [0,1,2,3]
+  /** 
+   * Clears the LCD by writing transparent pixels
+   * @private
    */
 
 
   _createClass(LCD, [{
-    key: 'setBgp',
-    value: function setBgp(bgpArray) {
-      this.bgp = bgpArray;
-    }
-
-    /** 
-     * Clears the LCD by writing transparent pixels
-     * @private
-     */
-
-  }, {
     key: '_clear',
     value: function _clear() {
       var imageData = arguments.length <= 0 || arguments[0] === undefined ? this.imageDataBG : arguments[0];
@@ -7972,6 +7960,9 @@ var LCD = function () {
   }, {
     key: 'drawTiles',
     value: function drawTiles() {
+
+      this._readPalettes();
+
       if (this.mmu._VRAMRefreshed) {
         this._clearMatrixCache();
         this._drawBG();
@@ -7992,6 +7983,18 @@ var LCD = function () {
      */
 
   }, {
+    key: '_readPalettes',
+    value: function _readPalettes() {
+      this._bgp = LCD.paletteToArray(this.mmu.bgp());
+      this._obg0 = LCD.paletteToArray(this.mmu.obg0());
+      this._obg1 = LCD.paletteToArray(this.mmu.obg1());
+    }
+
+    /**
+     * @private
+     */
+
+  }, {
     key: '_clearMatrixCache',
     value: function _clearMatrixCache() {
       this._cache = {};
@@ -8005,12 +8008,12 @@ var LCD = function () {
   }, {
     key: '_drawBG',
     value: function _drawBG() {
-      for (var x = 0; x < this.H_TILES; x++) {
-        for (var y = 0; y < this.V_TILES; y++) {
+      for (var grid_x = 0; grid_x < this.H_TILES; grid_x++) {
+        for (var grid_y = 0; grid_y < this.V_TILES; grid_y++) {
           this.drawTile({
-            tile_number: this.mmu.getCharCode(x, y),
-            grid_x: x,
-            grid_y: y
+            tile_number: this.mmu.getCharCode(grid_x, grid_y),
+            grid_x: grid_x,
+            grid_y: grid_y
           });
         }
       }
@@ -8083,11 +8086,11 @@ var LCD = function () {
       var isOBJ = OBJAttr !== undefined;
 
       var intensityMatrix = this._getMatrix(tile_number, isOBJ);
-      var palette = this.bgp;
+      var palette = this._bgp;
 
       if (isOBJ) {
         intensityMatrix = this._handleOBJAttributes(OBJAttr, intensityMatrix);
-        palette = this.obp0;
+        palette = this._getOBJPalette(OBJAttr);
       }
 
       for (var i = 0; i < intensityMatrix.length; i++) {
@@ -8100,13 +8103,35 @@ var LCD = function () {
     }
 
     /**
-     * @param {number} OBJAttr
-     * @param {Array} intensityMatrix
+     * @param OBJAttr
+     * @returns {Array}
      * @private
      */
 
   }, {
+    key: '_getOBJPalette',
+    value: function _getOBJPalette(OBJAttr) {
+      if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_OBG) === 0) {
+        return this._obg0;
+      } else {
+        return this._obg1;
+      }
+    }
+
+    /**
+     * @param byte, example: 11100100
+     * @returns {Array} example: [0,1,2,3]
+     */
+
+  }, {
     key: '_handleOBJAttributes',
+
+
+    /**
+     * @param {number} OBJAttr
+     * @param {Array} intensityMatrix
+     * @private
+     */
     value: function _handleOBJAttributes(OBJAttr, intensityMatrix) {
       if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_HFLIP) === this.mmu.MASK_OBJ_ATTR_HFLIP) {
         intensityMatrix = this.flipMatrixHorizontally(intensityMatrix);
@@ -8183,7 +8208,7 @@ var LCD = function () {
       var x = _ref2.x;
       var y = _ref2.y;
       var level = _ref2.level;
-      var palette = arguments.length <= 1 || arguments[1] === undefined ? this.bgp : arguments[1];
+      var palette = arguments.length <= 1 || arguments[1] === undefined ? this._bgp : arguments[1];
       var imageData = arguments.length <= 2 || arguments[2] === undefined ? this.imageDataBG : arguments[2];
 
 
@@ -8194,12 +8219,14 @@ var LCD = function () {
 
       if (x < 0 || y < 0) return;
 
-      if (palette === this.obp0 && level === 0) {
-        return;
+      var shade = palette[level];
+
+      if ((palette === this._obg0 || palette === this._obg1) && shade === 0) {
+        return; // Transparent
       }
 
       var start = (x + y * this.width) * 4;
-      imageData.data.set(this.SHADES[palette[level]], start);
+      imageData.data.set(this.SHADES[shade], start);
     }
 
     /**
@@ -8233,6 +8260,15 @@ var LCD = function () {
       return flipped;
     }
   }], [{
+    key: 'paletteToArray',
+    value: function paletteToArray(byte) {
+      var array = [];
+      [0, 2, 4, 6].map(function (shift) {
+        array.push(byte >> shift & 0x03);
+      });
+      return array;
+    }
+  }, {
     key: 'tileToMatrix',
     value: function tileToMatrix(buffer) {
       var array = [];
@@ -8456,6 +8492,7 @@ var MMU = function () {
     this.MASK_STAT_MODE = 0x03;
 
     this.MASK_OBJ_ATTR_HFLIP = 0x20;
+    this.MASK_OBJ_ATTR_OBG = 0x10;
 
     // Character Data
     this.CHAR_SIZE = 0x10; // 0x00 to 0x0f
@@ -8754,11 +8791,11 @@ var MMU = function () {
 
   }, {
     key: 'getCharCode',
-    value: function getCharCode(x, y) {
-      if (x < 0 || x > 0x1f || y < 0 || y > 0x1f) {
-        throw new Error('Cannot read tile at coord ' + x + ', ' + y);
+    value: function getCharCode(grid_x, grid_y) {
+      if (grid_x < 0 || grid_x > 0x1f || grid_y < 0 || grid_y > 0x1f) {
+        throw new Error('Cannot read tile at coord ' + grid_x + ', ' + grid_y);
       }
-      var addr = this._getBgDisplayDataStartAddr() + x + y * this.CHARS_PER_LINE;
+      var addr = this._getBgDisplayDataStartAddr() + grid_x + grid_y * this.CHARS_PER_LINE;
       return this.readByteAt(addr);
     }
 

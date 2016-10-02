@@ -5,6 +5,7 @@ export default class MMUMock {
     this.MAX_OBJ = 40;
     this._VRAMRefreshed = false;
     this.MASK_OBJ_ATTR_HFLIP = 0x20;
+    this.MASK_OBJ_ATTR_OBG = 0x10;
   }
 
   ly(){
@@ -21,5 +22,17 @@ export default class MMUMock {
 
   areOBJOn() {
     return true;
+  }
+
+  bgp(){
+    return 0b11100100;
+  }
+
+  obg0(){
+    return 0b11100100;
+  }
+
+  obg1(){
+    return 0b11100100;
   }
 }

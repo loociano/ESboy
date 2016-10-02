@@ -100,6 +100,7 @@ export default class MMU {
     this.MASK_STAT_MODE = 0x03;
 
     this.MASK_OBJ_ATTR_HFLIP = 0x20;
+    this.MASK_OBJ_ATTR_OBG = 0x10;
 
     // Character Data
     this.CHAR_SIZE = 0x10; // 0x00 to 0x0f
@@ -360,11 +361,11 @@ export default class MMU {
    * @param {number} y between 0 and 31
    * @returns {number}
    */
-  getCharCode(x, y){
-    if (x < 0 || x > 0x1f || y < 0 || y > 0x1f){
-      throw new Error(`Cannot read tile at coord ${x}, ${y}`);
+  getCharCode(grid_x, grid_y){
+    if (grid_x < 0 || grid_x > 0x1f || grid_y < 0 || grid_y > 0x1f){
+      throw new Error(`Cannot read tile at coord ${grid_x}, ${grid_y}`);
     }
-    const addr = this._getBgDisplayDataStartAddr() + x + (y * this.CHARS_PER_LINE);
+    const addr = this._getBgDisplayDataStartAddr() + grid_x + (grid_y * this.CHARS_PER_LINE);
     return this.readByteAt(addr);
   }
 

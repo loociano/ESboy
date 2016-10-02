@@ -33,16 +33,7 @@ export default class LCD {
       3: [15,56,15,255]
     };
 
-    this.bgp = [0, 1, 2, 3];
-    this.obp0 = [0, 1, 2, 3];
-    this.obp1 = [0, 1, 2, 3];
-  }
-
-  /**
-   * @param {Array} bgpArray, example: [0,1,2,3]
-   */
-  setBgp(bgpArray){
-    this.bgp = bgpArray;
+    this._readPalettes();
   }
 
   /** 
@@ -60,6 +51,9 @@ export default class LCD {
    * Draw all tiles on screen
    */
   drawTiles(){
+
+    this._readPalettes();
+
     if (this.mmu._VRAMRefreshed) {
       this._clearMatrixCache();
       this._drawBG();
@@ -79,6 +73,15 @@ export default class LCD {
   /**
    * @private
    */
+  _readPalettes(){
+    this._bgp = LCD.paletteToArray(this.mmu.bgp());
+    this._obg0 = LCD.paletteToArray(this.mmu.obg0());
+    this._obg1 = LCD.paletteToArray(this.mmu.obg1());
+  }
+
+  /**
+   * @private
+   */
   _clearMatrixCache(){
     this._cache = {};
   }
@@ -88,12 +91,12 @@ export default class LCD {
    * @private
    */
   _drawBG(){
-    for(let x = 0; x < this.H_TILES; x++){
-      for(let y = 0; y < this.V_TILES; y++){
+    for(let grid_x = 0; grid_x < this.H_TILES; grid_x++){
+      for(let grid_y = 0; grid_y < this.V_TILES; grid_y++){
         this.drawTile({
-          tile_number: this.mmu.getCharCode(x, y),
-          grid_x: x,
-          grid_y: y
+          tile_number: this.mmu.getCharCode(grid_x, grid_y),
+          grid_x: grid_x,
+          grid_y: grid_y
         });
       }
     }
@@ -150,11 +153,11 @@ export default class LCD {
     const isOBJ = OBJAttr !== undefined;
 
     let intensityMatrix = this._getMatrix(tile_number, isOBJ);
-    let palette = this.bgp;
+    let palette = this._bgp;
 
     if(isOBJ){
       intensityMatrix = this._handleOBJAttributes(OBJAttr, intensityMatrix);
-      palette = this.obp0;
+      palette = this._getOBJPalette(OBJAttr);
     }
 
     for(let i = 0; i < intensityMatrix.length; i++){
@@ -165,6 +168,32 @@ export default class LCD {
       this.drawPixel({x: x++, y: y, level: intensityMatrix[i]}, palette, imageData);
     }
   }
+
+  /**
+   * @param OBJAttr
+   * @returns {Array}
+   * @private
+   */
+  _getOBJPalette(OBJAttr){
+    if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_OBG) === 0){
+      return this._obg0;
+    } else {
+      return this._obg1;
+    }
+  }
+
+  /**
+   * @param byte, example: 11100100
+   * @returns {Array} example: [0,1,2,3]
+   */
+  static paletteToArray(byte){
+    const array = [];
+    [0, 2, 4, 6].map( (shift) => {
+      array.push((byte >> shift) & 0x03);
+    });
+    return array;
+  }
+
 
   /**
    * @param {number} OBJAttr
@@ -246,7 +275,7 @@ export default class LCD {
    * @param {Map} palette
    * @param {Object} imageData
    */
-  drawPixel({x, y, level}, palette=this.bgp, imageData=this.imageDataBG) {
+  drawPixel({x, y, level}, palette=this._bgp, imageData=this.imageDataBG) {
     
     if (level < 0 || level > 3){
       Logger.error(`Unrecognized level gray level ${level}`); 
@@ -255,12 +284,14 @@ export default class LCD {
 
     if (x < 0 || y < 0) return;
 
-    if (palette === this.obp0 && level === 0) {
-      return;
+    const shade = palette[level];
+
+    if ((palette === this._obg0 || palette === this._obg1) && shade === 0) {
+      return; // Transparent
     }
 
     const start = (x + y * this.width) * 4;
-    imageData.data.set(this.SHADES[palette[level]], start);
+    imageData.data.set(this.SHADES[shade], start);
   }
 
   /**

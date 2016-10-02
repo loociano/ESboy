@@ -78,29 +78,25 @@ describe('LCD', () => {
     const lastIndex = WIDTH*HEIGHT*4 - 1;
     const data = lcd.imageDataBG.data;
 
-    lcd.setBgp([0, 1, 2, 3]);
-
-    assert.deepEqual(lcd.bgp, [0, 1, 2, 3]);
-
     let pixel = {x: 0, y:0, level:0};
     lcd.drawPixel(pixel);
 
-    assert.deepEqual([data[0], data[1], data[2], data[3]], lcd.SHADES[lcd.bgp[pixel.level]]);
+    assert.deepEqual([data[0], data[1], data[2], data[3]], lcd.SHADES[lcd._bgp[pixel.level]]);
 
     pixel = {x: 1, y:0, level: 1};
     lcd.drawPixel(pixel);
 
-    assert.deepEqual([data[4], data[5], data[6], data[7]], lcd.SHADES[lcd.bgp[pixel.level]]);
+    assert.deepEqual([data[4], data[5], data[6], data[7]], lcd.SHADES[lcd._bgp[pixel.level]]);
 
     pixel = {x: WIDTH-1, y:0, level:2};
     lcd.drawPixel(pixel);
 
-    assert.deepEqual([data[WIDTH*4-4], data[WIDTH*4-3], data[WIDTH*4-2], data[WIDTH*4-1]], lcd.SHADES[lcd.bgp[pixel.level]]);
+    assert.deepEqual([data[WIDTH*4-4], data[WIDTH*4-3], data[WIDTH*4-2], data[WIDTH*4-1]], lcd.SHADES[lcd._bgp[pixel.level]]);
 
     pixel = {x: WIDTH-1, y:HEIGHT-1, level:3};
     lcd.drawPixel(pixel);
 
-    assert.deepEqual([data[lastIndex-3], data[lastIndex-2], data[lastIndex-1], data[lastIndex]], lcd.SHADES[lcd.bgp[pixel.level]]);
+    assert.deepEqual([data[lastIndex-3], data[lastIndex-2], data[lastIndex-1], data[lastIndex]], lcd.SHADES[lcd._bgp[pixel.level]]);
   });
 
   it('should not write tiles out of screen', () => {
@@ -174,24 +170,54 @@ describe('LCD', () => {
 
     it('should detect transparency on OBJ', () => {
 
-      lcd.mmu.readBGData = function(any) {
-        return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
-      };
-      lcd.mmu.readOBJData = function(any) {
-        return new Buffer('00000000000000000000000000000000', 'hex');
-      };
-      lcd.mmu.getOBJ = function(any) {
-        return {y: 16, x: 8, chrCode: 0x00, attr: 0x00};
-      };
-      lcd.mmu.getCharCode = function(x, y){
-        return 0x00;
-      };
-      lcd.mmu._VRAMRefreshed = true;
+      lcd.mmu.readOBJData = () => { return new Buffer('00000000000000000000000000000000', 'hex'); };
+      lcd.mmu.getOBJ = () => { return {y: 16, x: 8, chrCode: 0x00, attr: 0x00}; };
+      lcd.mmu.getCharCode = () => { return 0x00; };
+      lcd.mmu.obg0 = () => { return 0b11100100; };
 
       lcd.drawTiles();
 
       // Everything must be darkest, as the OBJ is all transparent
       assertTransparentTile.call(lcd, 0, 0, lcd.imageDataOBJ);
+    });
+
+    it('should transform palettes to intensity array', () => {
+      assert.deepEqual(LCD.paletteToArray(0b11100100), [0, 1, 2, 3]);
+      assert.deepEqual(LCD.paletteToArray(0b00000000), [0, 0, 0, 0]);
+      assert.deepEqual(LCD.paletteToArray(0b11111111), [3, 3, 3, 3]);
+    });
+
+    it('should detect palette on OBJ', () => {
+
+      lcd.mmu.readOBJData = () => { return new Buffer('00ff00ff00ff00ff00ff00ff00ff00ff', 'hex'); };
+      lcd.mmu.getCharCode = () => { return 0x00; };
+      lcd.mmu.getOBJ = () => { return {y: 16, x: 8, chrCode: 0x00, attr: 0x00}; };
+      lcd.mmu.obg0 = () => { return 0b00000000; };
+
+      lcd.drawTiles();
+
+      // OBJ is using OBG0, which is transparent
+      assertTile.call(lcd, 0, 0, [0, 0, 0, 0], lcd.imageDataOBJ);
+
+      // Use OBG1
+      lcd.mmu.getOBJ = () => { return {y: 16, x: 8, chrCode: 0x00, attr: 0x10}; };
+      lcd.mmu.obg1 = () => { return 0b00000100; };
+
+      lcd.drawTiles();
+
+      assertTile.call(lcd, 0, 0, lcd.SHADES[1], lcd.imageDataOBJ);
+
+      lcd.mmu.obg1 = () => { return 0b00001000; };
+
+      lcd.drawTiles();
+
+      assertTile.call(lcd, 0, 0, lcd.SHADES[2], lcd.imageDataOBJ);
+
+      lcd.mmu.obg1 = () => { return 0b00001100; };
+
+      lcd.drawTiles();
+
+      assertTile.call(lcd, 0, 0, lcd.SHADES[3], lcd.imageDataOBJ);
     });
 
     it('should flip matrix horizontally', () => {
