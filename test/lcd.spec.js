@@ -227,6 +227,22 @@ describe('LCD', () => {
       assert.deepEqual(lcd.flipMatrixHorizontally(matrix), flipped);
     });
 
+    it('should flip matrix vertically', () => {
+      const matrix =  [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+      const flipped = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,];
+
+      assert.deepEqual(lcd.flipMatrixVertically(matrix), flipped);
+    });
+
+    it('should flip matrix both horizontally and vertically', () => {
+      // x0 --> 00
+      // 00     0x
+      const matrix =  [3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+      const flipped = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3];
+
+      assert.deepEqual(lcd.flipMatrixHorizontally(lcd.flipMatrixVertically(matrix)), flipped);
+    });
+
     it('should flip OBJ horizontally', () => {
 
       lcd.mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b00100000}; };

@@ -326,4 +326,17 @@ export default class LCD {
     }
     return flipped;
   }
+
+  /**
+   * @param {Array} matrix
+   * @returns {Array} flipped
+   */
+  flipMatrixVertically(matrix){
+    const firstHalf = matrix.slice(0, matrix.length/2);
+    const secondHalf = matrix.slice(matrix.length/2);
+
+    secondHalf.push(...firstHalf);
+
+    return secondHalf;
+  }
 }
