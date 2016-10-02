@@ -490,6 +490,19 @@ describe('MMU', () => {
     });
   });
 
+  describe('Palettes', () => {
+    it('should read palette registers', () => {
+      mmu.writeByteAt(mmu.ADDR_BGP, 0xff);
+      assert.equal(mmu.bgp(), 0xff);
+
+      mmu.writeByteAt(mmu.ADDR_OBG0, 0xee);
+      assert.equal(mmu.obg0(), 0xee);
+
+      mmu.writeByteAt(mmu.ADDR_OBG1, 0xcc);
+      assert.equal(mmu.obg1(), 0xcc);
+    });
+  });
+
   describe('Memory dumps', () => {
 
     it('should dump a memory snapshot', () => {

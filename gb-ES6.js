@@ -8410,6 +8410,9 @@ var MMU = function () {
     this.ADDR_STAT = 0xff41;
     this.ADDR_LY = 0xff44;
     this.ADDR_DMA = 0xff46;
+    this.ADDR_BGP = 0xff47;
+    this.ADDR_OBG0 = 0xff48;
+    this.ADDR_OBG1 = 0xff49;
     this.ADDR_KEY1 = 0xff4d;
     this.ADDR_VBK = 0xff4f;
     this.ADDR_SVBK = 0xff70;
@@ -9409,6 +9412,36 @@ var MMU = function () {
         chrCode: this.readByteAt(addr + 2),
         attr: this.readByteAt(addr + 3)
       };
+    }
+
+    /**
+     * @returns {number} BackGround Palette
+     */
+
+  }, {
+    key: 'bgp',
+    value: function bgp() {
+      return this.readByteAt(this.ADDR_BGP);
+    }
+
+    /**
+     * @returns {number} Object Palette 0
+     */
+
+  }, {
+    key: 'obg0',
+    value: function obg0() {
+      return this.readByteAt(this.ADDR_OBG0);
+    }
+
+    /**
+     * @returns {number} Object Palette 1
+     */
+
+  }, {
+    key: 'obg1',
+    value: function obg1() {
+      return this.readByteAt(this.ADDR_OBG1);
     }
   }]);
 
