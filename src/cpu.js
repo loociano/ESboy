@@ -1811,7 +1811,7 @@ export default class CPU {
    */
   ldd_a_0xhl(){
     this._r.a = this._0xhl();
-    this.dec_hl();
+    this._dec_hl();
   }
 
   /**
@@ -1819,7 +1819,7 @@ export default class CPU {
    */
   ldd_0xhl_a(){
     this._ld_0xnn_a(this.hl());
-    this.dec_hl();
+    this._dec_hl();
   }
 
   /** 
@@ -1957,6 +1957,7 @@ export default class CPU {
    */
   dec_bc(){
     this._dec_rr('b', 'c');
+    this._m++;
   }
 
   /**
@@ -1964,12 +1965,22 @@ export default class CPU {
    */
   dec_de(){
     this._dec_rr('d', 'e');
+    this._m++;
   }
 
   /**
    * Decrements hl by 1.
    */
   dec_hl(){
+    this._dec_hl();
+    this._m++;
+  }
+
+  /**
+   * Decrements hl by 1.
+   * @private
+   */
+  _dec_hl(){
     this._dec_rr('h', 'l');
   }
 
@@ -1977,7 +1988,12 @@ export default class CPU {
    * Decrements sp by 1.
    */
   dec_sp(){
-    this._r.sp--;
+    if (this._r.sp === 0){
+      this._r.sp = this.mmu.ADDR_MAX;
+    } else {
+      this._r.sp--;
+    }
+    this._m += 2;
   }
 
   /**
@@ -2377,7 +2393,7 @@ export default class CPU {
    * @public
    */
   inc_hl(){
-    this._inc_rr('h', 'l');
+    this._inc_hl();
     this._m++;
   }
 

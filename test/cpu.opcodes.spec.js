@@ -1477,11 +1477,31 @@ describe('CPU Instruction Set', function() {
     describe('DEC', () => {
 
       it('should decrement 16 bits registers', () => {
-        assertDecrementRegister(cpu, cpu.bc, cpu.dec_bc);
-        assertDecrementRegister(cpu, cpu.de, cpu.dec_de);
-        assertDecrementRegister(cpu, cpu.hl, cpu.dec_hl);
-        assertDecrementRegister(cpu, cpu.sp, cpu.dec_sp);
-        // TODO check flags
+
+        [{r: cpu.bc, ld: cpu.ld_bc_nn, dec: cpu.dec_bc},
+          {r: cpu.de, ld: cpu.ld_de_nn, dec: cpu.dec_de},
+          {r: cpu.hl, ld: cpu.ld_hl_nn, dec: cpu.dec_hl},
+          {r: cpu.sp, ld: cpu.ld_sp_nn, dec: cpu.dec_sp}].map(({r, ld, dec}) => {
+
+          const value = 0xc000;
+          ld.call(cpu, value);
+          const m = cpu.m();
+          const flags = cpu.f();
+
+          dec.call(cpu);
+
+          assert.equal(r.call(cpu), value - 1, `register ${r.name} decremented`);
+          assert.equal(cpu.f(), flags, 'Flags are not affected');
+          assert.equal(cpu.m() - m, 2, `DEC ${r.name} machine cycles`);
+
+          ld.call(cpu, 0);
+
+          dec.call(cpu);
+
+          assert.equal(r.call(cpu), 0xffff, `register ${r.name} goes to max`);
+          assert.equal(cpu.f(), flags, 'Flags are not affected');
+        });
+
       });
     });
 
