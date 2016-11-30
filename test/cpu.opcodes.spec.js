@@ -1496,9 +1496,13 @@ describe('CPU Instruction Set', function() {
 
           const value = 0xc000;
           ld.call(cpu, value);
+          const m = cpu.m();
+
           inc.call(cpu);
+
           assert.equal(r.call(cpu), value + 1, `register ${r} incremented`);
           // No flags are affected
+          assert.equal(cpu.m() - m, 2, 'Machine cycles');
         });
       });
     });

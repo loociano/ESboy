@@ -2385,6 +2385,7 @@ export default class CPU {
       throw new Error(`Cannot increase stack pointer more than ${this._r.sp}`);
     }
     this._r.sp++;
+    this._m += 2;
   }
 
   /**
@@ -2401,7 +2402,7 @@ export default class CPU {
       this._r[r1] = (value & 0xff00) >> 8;
       this._r[r2] = value & 0x00ff;
     }
-    this._m++;
+    this._m += 2;
   }
 
   /**
