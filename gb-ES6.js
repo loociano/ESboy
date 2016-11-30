@@ -4261,7 +4261,7 @@ var CPU = function () {
     key: 'ldd_a_0xhl',
     value: function ldd_a_0xhl() {
       this._r.a = this._0xhl();
-      this.dec_hl();
+      this._dec_hl();
     }
 
     /**
@@ -4272,7 +4272,7 @@ var CPU = function () {
     key: 'ldd_0xhl_a',
     value: function ldd_0xhl_a() {
       this._ld_0xnn_a(this.hl());
-      this.dec_hl();
+      this._dec_hl();
     }
 
     /** 
@@ -4283,7 +4283,7 @@ var CPU = function () {
     key: 'ldi_0xhl_a',
     value: function ldi_0xhl_a() {
       this._ld_0xnn_a(this.hl());
-      this.inc_hl();
+      this._inc_hl();
     }
 
     /**
@@ -4294,7 +4294,7 @@ var CPU = function () {
     key: 'ldi_a_0xhl',
     value: function ldi_a_0xhl() {
       this._ld_a_0xhl();
-      this.inc_hl();
+      this._inc_hl();
     }
 
     /**
@@ -4449,6 +4449,7 @@ var CPU = function () {
     key: 'dec_bc',
     value: function dec_bc() {
       this._dec_rr('b', 'c');
+      this._m++;
     }
 
     /**
@@ -4459,6 +4460,7 @@ var CPU = function () {
     key: 'dec_de',
     value: function dec_de() {
       this._dec_rr('d', 'e');
+      this._m++;
     }
 
     /**
@@ -4468,6 +4470,18 @@ var CPU = function () {
   }, {
     key: 'dec_hl',
     value: function dec_hl() {
+      this._dec_hl();
+      this._m++;
+    }
+
+    /**
+     * Decrements hl by 1.
+     * @private
+     */
+
+  }, {
+    key: '_dec_hl',
+    value: function _dec_hl() {
       this._dec_rr('h', 'l');
     }
 
@@ -4478,7 +4492,12 @@ var CPU = function () {
   }, {
     key: 'dec_sp',
     value: function dec_sp() {
-      this._r.sp--;
+      if (this._r.sp === 0) {
+        this._r.sp = this.mmu.ADDR_MAX;
+      } else {
+        this._r.sp--;
+      }
+      this._m += 2;
     }
 
     /**
@@ -5006,6 +5025,7 @@ var CPU = function () {
     key: 'inc_bc',
     value: function inc_bc() {
       this._inc_rr('b', 'c');
+      this._m++;
     }
 
     /**
@@ -5016,15 +5036,29 @@ var CPU = function () {
     key: 'inc_de',
     value: function inc_de() {
       this._inc_rr('d', 'e');
+      this._m++;
     }
 
     /**
      * Increases register hl by 1
+     * @public
      */
 
   }, {
     key: 'inc_hl',
     value: function inc_hl() {
+      this._inc_hl();
+      this._m++;
+    }
+
+    /**
+     * Increases register hl by 1
+     * @private
+     */
+
+  }, {
+    key: '_inc_hl',
+    value: function _inc_hl() {
       this._inc_rr('h', 'l');
     }
 
@@ -5035,10 +5069,12 @@ var CPU = function () {
   }, {
     key: 'inc_sp',
     value: function inc_sp() {
-      if (this._r.sp >= this.mmu.ADDR_MAX - 1) {
-        throw new Error('Cannot increase stack pointer more than ' + this._r.sp);
+      if (this._r.sp === this.mmu.ADDR_MAX) {
+        this._r.sp = 0;
+      } else {
+        this._r.sp++;
       }
-      this._r.sp++;
+      this._m += 2;
     }
 
     /**
@@ -5051,7 +5087,6 @@ var CPU = function () {
     value: function _inc_rr(r1, r2) {
       var value = (this._r[r1] << 8) + this._r[r2] + 1;
       if ((value & 0x10000) > 0) {
-        // TODO verify if INC 16 bits loops to 0
         this._r[r1] = 0;
         this._r[r2] = 0;
       } else {
