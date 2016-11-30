@@ -1497,12 +1497,20 @@ describe('CPU Instruction Set', function() {
           const value = 0xc000;
           ld.call(cpu, value);
           const m = cpu.m();
+          const flags = cpu.f();
 
           inc.call(cpu);
 
-          assert.equal(r.call(cpu), value + 1, `register ${r} incremented`);
-          // No flags are affected
+          assert.equal(r.call(cpu), value + 1, `register ${r.name} incremented`);
+          assert.equal(cpu.f(), flags, 'Flags are not affected');
           assert.equal(cpu.m() - m, 2, 'Machine cycles');
+
+          ld.call(cpu, 0xffff);
+
+          inc.call(cpu);
+
+          assert.equal(r.call(cpu), 0, `register ${r.name} goes to zero`);
+          assert.equal(cpu.f(), flags, 'Flags are not affected');
         });
       });
     });
@@ -1858,7 +1866,7 @@ describe('CPU Instruction Set', function() {
 
       assert.equal(cpu.a(), 0xf1, `register a has value 0xf1`);
       assert.equal(cpu.hl(), hl + 1, 'hl is incremented by 1');
-      assert.equal(cpu.m(), m + 2, 'LDI a,(hl) machine cycles');
+      assert.equal(cpu.m() - m, 2, 'LDI a,(hl) machine cycles');
     });
 
     it('should put a into memory address 0xff00 + 3', () => {

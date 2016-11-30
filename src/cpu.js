@@ -1827,7 +1827,7 @@ export default class CPU {
    */
   ldi_0xhl_a(){
     this._ld_0xnn_a(this.hl());
-    this.inc_hl();
+    this._inc_hl();
   }
 
   /**
@@ -1835,7 +1835,7 @@ export default class CPU {
    */
   ldi_a_0xhl(){
     this._ld_a_0xhl();
-    this.inc_hl();
+    this._inc_hl();
   }
 
   /**
@@ -2361,6 +2361,7 @@ export default class CPU {
    */
   inc_bc(){
     this._inc_rr('b', 'c');
+    this._m++;
   }
 
   /**
@@ -2368,12 +2369,23 @@ export default class CPU {
    */
   inc_de(){
     this._inc_rr('d', 'e');
+    this._m++;
   }
 
   /**
    * Increases register hl by 1
+   * @public
    */
   inc_hl(){
+    this._inc_rr('h', 'l');
+    this._m++;
+  }
+
+  /**
+   * Increases register hl by 1
+   * @private
+   */
+  _inc_hl(){
     this._inc_rr('h', 'l');
   }
 
@@ -2381,10 +2393,11 @@ export default class CPU {
    * Increases stack pointer by 1
    */
   inc_sp(){
-    if (this._r.sp >= this.mmu.ADDR_MAX - 1){
-      throw new Error(`Cannot increase stack pointer more than ${this._r.sp}`);
+    if (this._r.sp === this.mmu.ADDR_MAX){
+      this._r.sp = 0;
+    } else {
+      this._r.sp++;
     }
-    this._r.sp++;
     this._m += 2;
   }
 
@@ -2395,14 +2408,13 @@ export default class CPU {
   _inc_rr(r1, r2){
     const value = (this._r[r1] << 8) + this._r[r2] + 1;
     if ((value & 0x10000) > 0){
-      // TODO verify if INC 16 bits loops to 0
       this._r[r1] = 0;
       this._r[r2] = 0;
     } else {
       this._r[r1] = (value & 0xff00) >> 8;
       this._r[r2] = value & 0x00ff;
     }
-    this._m += 2;
+    this._m++;
   }
 
   /**
