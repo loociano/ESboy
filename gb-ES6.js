@@ -7950,27 +7950,38 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var LCD = function () {
-  function LCD(mmu, ctxBG, ctxOBJ, width, height) {
+  function LCD(mmu, ctxBG, ctxOBJ) {
+    var scale = arguments.length <= 3 || arguments[3] === undefined ? 1 : arguments[3];
+
     _classCallCheck(this, LCD);
+
+    this._HW_WIDTH = 160;
+    this._HW_HEIGHT = 144;
 
     this.mmu = mmu;
     this.ctxBG = ctxBG;
     this.ctxOBJ = ctxOBJ;
-    this.width = width;
-    this.height = height;
+    this.width = this._HW_WIDTH;
+    this.height = this._HW_HEIGHT;
+    this._scale = scale;
 
-    this.imageDataBG = this.ctxBG.createImageData(this.width, this.height);
-    this.imageDataOBJ = this.ctxOBJ.createImageData(this.width, this.height);
+    // Temp dataImages at hardware specs
+    this._imageDataBG = new ImageData(this.width, this.height);
+    this._imageDataOBJ = new ImageData(this.width, this.height);
+
+    // Real, final data images with scaling (if any)
+    this._scaledBG = this.ctxBG.createImageData(this.width * scale, this.height * scale);
+    this._scaledOBJ = this.ctxOBJ.createImageData(this.width * scale, this.height * scale);
 
     // Constants
     this.TILE_WIDTH = 8;
     this.TILE_HEIGHT = this.TILE_WIDTH;
 
-    this.H_TILES = width / this.TILE_WIDTH;
-    this.V_TILES = height / this.TILE_HEIGHT;
+    this.H_TILES = this.width / this.TILE_WIDTH;
+    this.V_TILES = this.height / this.TILE_HEIGHT;
 
     this._clear();
-    this._clear(this.imageDataOBJ, this.ctxOBJ);
+    this._clear(this._imageDataOBJ, this.ctxOBJ);
 
     this._cache = {};
 
@@ -7984,22 +7995,69 @@ var LCD = function () {
     this._readPalettes();
   }
 
-  /** 
-   * Clears the LCD by writing transparent pixels
-   * @private
-   */
-
-
   _createClass(LCD, [{
+    key: 'getImageDataBG',
+    value: function getImageDataBG() {
+      return this._imageDataBG;
+    }
+  }, {
+    key: 'getImageDataOBJ',
+    value: function getImageDataOBJ() {
+      return this._imageDataOBJ;
+    }
+
+    /**
+     * @param imageData
+     * @param ctx
+     * @private
+     */
+
+  }, {
+    key: '_putImageData',
+    value: function _putImageData() {
+      var imageData = arguments.length <= 0 || arguments[0] === undefined ? this._imageDataBG : arguments[0];
+      var ctx = arguments.length <= 1 || arguments[1] === undefined ? this.ctxBG : arguments[1];
+
+      this._updateScaledImageData(imageData);
+      ctx.putImageData(imageData, 0, 0);
+    }
+
+    /**
+     * @param imageData
+     * @private
+     */
+
+  }, {
+    key: '_updateScaledImageData',
+    value: function _updateScaledImageData() {
+      var imageData = arguments.length <= 0 || arguments[0] === undefined ? this._imageDataBG : arguments[0];
+
+      var toUpdate = this._scaledBG;
+      if (imageData === this._imageDataOBJ) {
+        toUpdate = this._scaledOBJ;
+      }
+
+      var scaled = LCD.scaleImageData(imageData.data, this._HW_WIDTH, this._scale);
+      for (var i = 0; i < scaled.length; i++) {
+        toUpdate.data[i] = scaled[i];
+      }
+    }
+
+    /** 
+     * Clears the LCD by writing transparent pixels
+     * @private
+     */
+
+  }, {
     key: '_clear',
     value: function _clear() {
-      var imageData = arguments.length <= 0 || arguments[0] === undefined ? this.imageDataBG : arguments[0];
+      var imageData = arguments.length <= 0 || arguments[0] === undefined ? this._imageDataBG : arguments[0];
       var ctx = arguments.length <= 1 || arguments[1] === undefined ? this.ctxBG : arguments[1];
 
       for (var p = 0; p < this.width * this.height * 4; p++) {
         imageData.data[p] = 0;
       }
-      ctx.putImageData(imageData, 0, 0);
+      this._putImageData(imageData, ctx);
     }
 
     /** 
@@ -8022,7 +8080,7 @@ var LCD = function () {
       }
 
       if (this.mmu.areOBJOn()) {
-        this._clear(this.imageDataOBJ, this.ctxOBJ);
+        this._clear(this._imageDataOBJ, this.ctxOBJ);
         this._drawOBJ();
       }
     }
@@ -8066,7 +8124,7 @@ var LCD = function () {
           });
         }
       }
-      this.ctxBG.putImageData(this.imageDataBG, 0, 0);
+      this._putImageData();
     }
 
     /**
@@ -8085,10 +8143,10 @@ var LCD = function () {
             grid_x: OBJ.x / this.TILE_WIDTH - 1,
             grid_y: OBJ.y / this.TILE_HEIGHT - 2,
             OBJAttr: OBJ.attr
-          }, this.imageDataOBJ, this.ctxOBJ);
+          }, this._imageDataOBJ, this.ctxOBJ);
         }
       }
-      this.ctxOBJ.putImageData(this.imageDataOBJ, 0, 0);
+      this._putImageData(this._imageDataOBJ, this.ctxOBJ);
     }
 
     /**
@@ -8120,7 +8178,7 @@ var LCD = function () {
       var grid_x = _ref.grid_x;
       var grid_y = _ref.grid_y;
       var OBJAttr = _ref.OBJAttr;
-      var imageData = arguments.length <= 1 || arguments[1] === undefined ? this.imageDataBG : arguments[1];
+      var imageData = arguments.length <= 1 || arguments[1] === undefined ? this._imageDataBG : arguments[1];
       var ctx = arguments.length <= 2 || arguments[2] === undefined ? this.ctxBG : arguments[2];
 
 
@@ -8316,7 +8374,7 @@ var LCD = function () {
       var y = _ref2.y;
       var level = _ref2.level;
       var palette = arguments.length <= 1 || arguments[1] === undefined ? this._bgp : arguments[1];
-      var imageData = arguments.length <= 2 || arguments[2] === undefined ? this.imageDataBG : arguments[2];
+      var imageData = arguments.length <= 2 || arguments[2] === undefined ? this._imageDataBG : arguments[2];
 
 
       if (level < 0 || level > 3) {
@@ -8380,6 +8438,15 @@ var LCD = function () {
 
       return secondHalf;
     }
+
+    /**
+     * Scales a imageData by a given scale
+     * @param {Uint8ClampedArray} data
+     * @param {number} width (in points)
+     * @param {number} scale e.g. 1,2,3...
+     * @returns {Uint8ClampedArray} scaled data
+     */
+
   }], [{
     key: 'paletteToArray',
     value: function paletteToArray(byte) {
@@ -8403,6 +8470,40 @@ var LCD = function () {
         }
       }
       return array;
+    }
+  }, {
+    key: 'scaleImageData',
+    value: function scaleImageData(data, width, scale) {
+
+      if (scale < 2) return data;
+
+      var scaled = [];
+      var width_px = width * 4;
+      var i = 0;
+
+      while (i < data.length) {
+        var lines = scale;
+
+        while (lines > 0) {
+
+          var times = scale;
+          while (times-- > 0) {
+            scaled.push(data[i]);
+            scaled.push(data[i + 1]);
+            scaled.push(data[i + 2]);
+            scaled.push(data[i + 3]);
+          }
+          i += 4;
+
+          if (i % width_px === 0) {
+            lines--;
+            if (lines > 0) {
+              i -= width_px;
+            }
+          }
+        }
+      }
+      return new Uint8ClampedArray(scaled);
     }
   }]);
 
@@ -9676,7 +9777,7 @@ function handleFileSelect(evt) {
  */
 function init(rom) {
   var mmu = new _mmu2.default(rom);
-  var lcd = new _lcd2.default(mmu, ctxBG, ctxOBJ, 160, 144);
+  var lcd = new _lcd2.default(mmu, ctxBG, ctxOBJ, 2);
 
   cpu = new _cpu2.default(mmu, lcd);
   new _inputHandler2.default(cpu, $body);
@@ -9874,6 +9975,43 @@ var Utils = function () {
       if (byte > 0xff) throw new Error('Not a byte');
       if (byte == null) throw new Error('No byte');
       return (byte >> 4 & 0x0f) + (byte << 4 & 0xf0);
+    }
+
+    /**
+     * Scales a matrix by a given factor
+     * @param {Array} matrix
+     * @param width
+     * @param {number} factor e.g. 2,3...
+     * @returns {Array}
+     */
+
+  }, {
+    key: 'scale',
+    value: function scale(matrix, width, factor) {
+      var scaled = [];
+      var i = 0;
+
+      while (i < matrix.length) {
+        var lines = factor;
+
+        while (lines > 0) {
+
+          var times = factor;
+          while (times-- > 0) {
+            scaled.push(matrix[i]);
+          }
+
+          i++;
+
+          if (i % width === 0) {
+            lines--;
+            if (lines > 0) {
+              i -= width;
+            }
+          }
+        }
+      }
+      return scaled;
     }
   }]);
 

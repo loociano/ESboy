@@ -42,7 +42,7 @@ function handleFileSelect(evt) {
  */
 function init(rom){
   const mmu = new MMU(rom);
-  const lcd = new LCD(mmu, ctxBG, ctxOBJ, 160, 144);
+  const lcd = new LCD(mmu, ctxBG, ctxOBJ, 2);
 
   cpu = new CPU(mmu, lcd);
   new InputHandler(cpu, $body);

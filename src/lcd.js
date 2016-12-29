@@ -3,26 +3,35 @@ import Logger from './logger';
 
 export default class LCD {
 
-  constructor(mmu, ctxBG, ctxOBJ, width, height){
-    
+  constructor(mmu, ctxBG, ctxOBJ, scale=1){
+
+    this._HW_WIDTH = 160;
+    this._HW_HEIGHT = 144;
+
     this.mmu = mmu;
     this.ctxBG = ctxBG;
     this.ctxOBJ = ctxOBJ;
-    this.width = width;
-    this.height = height;
+    this.width = this._HW_WIDTH;
+    this.height = this._HW_HEIGHT;
+    this._scale = scale;
 
-    this.imageDataBG = this.ctxBG.createImageData(this.width, this.height);
-    this.imageDataOBJ = this.ctxOBJ.createImageData(this.width, this.height);
+    // Temp dataImages at hardware specs
+    this._imageDataBG = new ImageData(this.width, this.height);
+    this._imageDataOBJ = new ImageData(this.width, this.height);
+
+    // Real, final data images with scaling (if any)
+    this._scaledBG = this.ctxBG.createImageData(this.width*scale, this.height*scale);
+    this._scaledOBJ = this.ctxOBJ.createImageData(this.width*scale, this.height*scale);
 
     // Constants
     this.TILE_WIDTH = 8;
     this.TILE_HEIGHT = this.TILE_WIDTH;
 
-    this.H_TILES = width / this.TILE_WIDTH;
-    this.V_TILES = height / this.TILE_HEIGHT;
+    this.H_TILES = this.width / this.TILE_WIDTH;
+    this.V_TILES = this.height / this.TILE_HEIGHT;
 
     this._clear();
-    this._clear(this.imageDataOBJ, this.ctxOBJ);
+    this._clear(this._imageDataOBJ, this.ctxOBJ);
 
     this._cache = {};
 
@@ -36,15 +45,49 @@ export default class LCD {
     this._readPalettes();
   }
 
+  getImageDataBG(){
+    return this._imageDataBG;
+  }
+
+  getImageDataOBJ(){
+    return this._imageDataOBJ;
+  }
+
+  /**
+   * @param imageData
+   * @param ctx
+   * @private
+   */
+  _putImageData(imageData=this._imageDataBG, ctx=this.ctxBG){
+    this._updateScaledImageData(imageData);
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  /**
+   * @param imageData
+   * @private
+   */
+  _updateScaledImageData(imageData=this._imageDataBG){
+    let toUpdate = this._scaledBG;
+    if (imageData === this._imageDataOBJ){
+      toUpdate = this._scaledOBJ;
+    }
+
+    const scaled = LCD.scaleImageData(imageData.data, this._HW_WIDTH, this._scale);
+    for(let i = 0; i < scaled.length; i++){
+      toUpdate.data[i] = scaled[i];
+    }
+  }
+
   /** 
    * Clears the LCD by writing transparent pixels
    * @private
    */
-  _clear(imageData=this.imageDataBG, ctx=this.ctxBG){
+  _clear(imageData=this._imageDataBG, ctx=this.ctxBG){
     for(let p = 0; p < this.width * this.height * 4; p++){
       imageData.data[p] = 0;
     }
-    ctx.putImageData(imageData, 0, 0);
+    this._putImageData(imageData, ctx);
   }
 
   /** 
@@ -65,7 +108,7 @@ export default class LCD {
     }
 
     if (this.mmu.areOBJOn()) {
-      this._clear(this.imageDataOBJ, this.ctxOBJ);
+      this._clear(this._imageDataOBJ, this.ctxOBJ);
       this._drawOBJ();
     }
   }
@@ -100,7 +143,7 @@ export default class LCD {
         });
       }
     }
-    this.ctxBG.putImageData(this.imageDataBG, 0, 0);
+    this._putImageData();
   }
 
   /**
@@ -116,10 +159,10 @@ export default class LCD {
           grid_x: (OBJ.x/this.TILE_WIDTH) - 1,
           grid_y: (OBJ.y/this.TILE_HEIGHT) - 2,
           OBJAttr: OBJ.attr
-        }, this.imageDataOBJ, this.ctxOBJ);
+        }, this._imageDataOBJ, this.ctxOBJ);
       }
     }
-    this.ctxOBJ.putImageData(this.imageDataOBJ, 0, 0);
+    this._putImageData(this._imageDataOBJ, this.ctxOBJ);
   }
 
   /**
@@ -140,7 +183,7 @@ export default class LCD {
    * @param {Object} imageData
    * @param {Object} context
    */
-  drawTile({tile_number, grid_x, grid_y, OBJAttr}, imageData=this.imageDataBG, ctx=this.ctxBG){
+  drawTile({tile_number, grid_x, grid_y, OBJAttr}, imageData=this._imageDataBG, ctx=this.ctxBG){
 
     if (grid_x > this.H_TILES-1 || grid_y > this.V_TILES-1) return;
 
@@ -308,7 +351,7 @@ export default class LCD {
    * @param {Map} palette
    * @param {Object} imageData
    */
-  drawPixel({x, y, level}, palette=this._bgp, imageData=this.imageDataBG) {
+  drawPixel({x, y, level}, palette=this._bgp, imageData=this._imageDataBG) {
     
     if (level < 0 || level > 3){
       Logger.error(`Unrecognized level gray level ${level}`); 
@@ -364,26 +407,26 @@ export default class LCD {
   }
 
   /**
-   * Scales a imageData by a given factor
+   * Scales a imageData by a given scale
    * @param {Uint8ClampedArray} data
    * @param {number} width (in points)
-   * @param {number} factor e.g. 2,3...
+   * @param {number} scale e.g. 1,2,3...
    * @returns {Uint8ClampedArray} scaled data
    */
-  static scaleImageData(data, width, factor){
+  static scaleImageData(data, width, scale){
 
-    if (factor < 2) return data;
+    if (scale < 2) return data;
 
     const scaled = [];
     const width_px = width*4;
     let i = 0;
 
     while( i < data.length ){
-      let lines = factor;
+      let lines = scale;
 
       while(lines > 0){
 
-        let times = factor;
+        let times = scale;
         while(times-- > 0){
           scaled.push(data[i]);
           scaled.push(data[i+1]);

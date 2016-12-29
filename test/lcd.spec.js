@@ -8,21 +8,9 @@ import {describe, beforeEach, it} from 'mocha';
 describe('LCD', () => {
 
   let lcd;
-  const WIDTH = 160;
-  const HEIGHT = 144;
 
   beforeEach(function() {
-    lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock(), WIDTH, HEIGHT);
-  });
-
-  it('should _clear the LCD', () => {
-
-    lcd._clear();
-
-    for(let i = 0; i < WIDTH * HEIGHT * 4; i++) {
-      assert.equal(lcd.imageDataBG.data[i], 0);
-    }
-
+    lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock());
   });
 
   it('should transform a Nintendo tile buffer into a matrix', () => {
@@ -75,8 +63,10 @@ describe('LCD', () => {
 
   it('should write pixel data', () => {
 
+    const WIDTH = lcd._HW_WIDTH;
+    const HEIGHT = lcd._HW_HEIGHT;
     const lastIndex = WIDTH*HEIGHT*4 - 1;
-    const data = lcd.imageDataBG.data;
+    const data = lcd.getImageDataBG().data;
 
     let pixel = {x: 0, y:0, level:0};
     lcd.drawPixel(pixel);
@@ -101,17 +91,17 @@ describe('LCD', () => {
 
   it('should not write tiles out of screen', () => {
     lcd.mmu.readBGData = () => { return new Buffer('ffffffffffffffffffffffffffffffff', 'hex'); };
-    const bg = lcd.imageDataBG;
+    const bg = lcd.getImageDataBG();
 
     // Max x is 19
     lcd.drawTile({tile_number: 0, grid_x: 20, grid_y: 0});
 
-    assert.deepEqual(bg, lcd.imageDataBG, 'No change');
+    assert.deepEqual(bg, lcd.getImageDataBG(), 'No change');
 
     // Max y is 17
     lcd.drawTile({tile_number: 0, grid_x: 0, grid_y: 18});
 
-    assert.deepEqual(bg, lcd.imageDataBG, 'No change');
+    assert.deepEqual(bg, lcd.getImageDataBG(), 'No change');
   });
 
   it('should write darkest tiles on screen', () => {
@@ -122,9 +112,9 @@ describe('LCD', () => {
     lcd.drawTile({tile_number: 1, grid_x: 10, grid_y: 9});
     lcd.drawTile({tile_number: 1, grid_x: 19, grid_y: 17});
 
-    assertDarkestTile.call(lcd, 0, 0, lcd.imageDataBG);
-    assertDarkestTile.call(lcd, 10, 9, lcd.imageDataBG);
-    assertDarkestTile.call(lcd, 19, 17, lcd.imageDataBG);
+    assertDarkestTile.call(lcd, 0, 0, lcd.getImageDataBG());
+    assertDarkestTile.call(lcd, 10, 9, lcd.getImageDataBG());
+    assertDarkestTile.call(lcd, 19, 17, lcd.getImageDataBG());
   });
 
   describe('OBJ (Sprites)', () => {
@@ -149,9 +139,9 @@ describe('LCD', () => {
       for(let x = 0; x < lcd.H_TILES; x++){
         for(let y = 0; y < lcd.V_TILES; y++){
           if (x === 0 && y === 0){
-            assertDarkestTile.call(lcd, x, y, lcd.imageDataOBJ);
+            assertDarkestTile.call(lcd, x, y, lcd.getImageDataOBJ());
           } else {
-            assertLightestTile.call(lcd, x, y, lcd.imageDataBG);
+            assertLightestTile.call(lcd, x, y, lcd.getImageDataBG());
           }
         }
       }
@@ -167,7 +157,7 @@ describe('LCD', () => {
       lcd.drawTiles();
 
       // Everything must be darkest, as the OBJ is all transparent
-      assertTransparentTile.call(lcd, 0, 0, lcd.imageDataOBJ);
+      assertTransparentTile.call(lcd, 0, 0, lcd.getImageDataOBJ());
     });
 
     it('should not paint pixels 00 from OBJ regardless of their palette', () => {
@@ -179,7 +169,7 @@ describe('LCD', () => {
       lcd.drawTiles();
 
       // Still, no OBJ is painted as the buffer is zero
-      assertTransparentTile.call(lcd, 0, 0, lcd.imageDataOBJ);
+      assertTransparentTile.call(lcd, 0, 0, lcd.getImageDataOBJ());
     });
 
     it('should transform palettes to intensity array', () => {
@@ -197,7 +187,7 @@ describe('LCD', () => {
 
       lcd.drawTiles();
 
-      assertTile.call(lcd, 0, 0, lcd.SHADES[0], lcd.imageDataOBJ);
+      assertTile.call(lcd, 0, 0, lcd.SHADES[0], lcd.getImageDataOBJ());
 
       // Use OBG1
       lcd.mmu.getOBJ = () => { return {y: 16, x: 8, chrCode: 0x00, attr: 0x10}; };
@@ -205,19 +195,19 @@ describe('LCD', () => {
 
       lcd.drawTiles();
 
-      assertTile.call(lcd, 0, 0, lcd.SHADES[1], lcd.imageDataOBJ);
+      assertTile.call(lcd, 0, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
 
       lcd.mmu.obg1 = () => { return 0b00001000; };
 
       lcd.drawTiles();
 
-      assertTile.call(lcd, 0, 0, lcd.SHADES[2], lcd.imageDataOBJ);
+      assertTile.call(lcd, 0, 0, lcd.SHADES[2], lcd.getImageDataOBJ());
 
       lcd.mmu.obg1 = () => { return 0b00001100; };
 
       lcd.drawTiles();
 
-      assertTile.call(lcd, 0, 0, lcd.SHADES[3], lcd.imageDataOBJ);
+      assertTile.call(lcd, 0, 0, lcd.SHADES[3], lcd.getImageDataOBJ());
     });
 
     it('should flip matrix horizontally', () => {
@@ -257,9 +247,9 @@ describe('LCD', () => {
       for(let x = 0; x < 8; x++){
         for(let y = 0; y < 8; y++){
           if (x < 4){
-            assert.deepEqual(lcd.getPixelData(x, y, lcd.imageDataOBJ), [0, 0, 0, 0], 'Left half is transparent');
+            assert.deepEqual(lcd.getPixelData(x, y, lcd.getImageDataOBJ()), [0, 0, 0, 0], 'Left half is transparent');
           } else {
-            assert.deepEqual(lcd.getPixelData(x, y, lcd.imageDataOBJ), lcd.SHADES[3], 'Right half is darkest');
+            assert.deepEqual(lcd.getPixelData(x, y, lcd.getImageDataOBJ()), lcd.SHADES[3], 'Right half is darkest');
           }
         }
       }
@@ -280,9 +270,9 @@ describe('LCD', () => {
       for(let x = 0; x < 8; x++){
         for(let y = 0; y < 8; y++){
           if (y < 4){
-            assert.deepEqual(lcd.getPixelData(x, y, lcd.imageDataOBJ), [0, 0, 0, 0], 'Top half is transparent');
+            assert.deepEqual(lcd.getPixelData(x, y, lcd.getImageDataOBJ()), [0, 0, 0, 0], 'Top half is transparent');
           } else {
-            assert.deepEqual(lcd.getPixelData(x, y, lcd.imageDataOBJ), lcd.SHADES[3], 'Bottom half is darkest');
+            assert.deepEqual(lcd.getPixelData(x, y, lcd.getImageDataOBJ()), lcd.SHADES[3], 'Bottom half is darkest');
           }
         }
       }
@@ -299,14 +289,14 @@ describe('LCD', () => {
 
       lcd.drawTiles();
 
-      assertTile.call(lcd, 0, 0, lcd.SHADES[1], lcd.imageDataOBJ);
+      assertTile.call(lcd, 0, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
 
       // Priority flag: BG over OBJ
       lcd.mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b10000000}; };
 
       lcd.drawTiles();
 
-      assertTransparentTile.call(lcd, 0, 0, lcd.imageDataOBJ);
+      assertTransparentTile.call(lcd, 0, 0, lcd.getImageDataOBJ());
     });
 
     it('should display an OBJ with a priority flag only if the BG behind is zero', () => {
@@ -319,7 +309,7 @@ describe('LCD', () => {
 
       lcd.drawTiles();
 
-      assertTile.call(lcd, 0, 0, lcd.SHADES[1], lcd.imageDataOBJ);
+      assertTile.call(lcd, 0, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
     });
   });
 
