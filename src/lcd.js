@@ -16,8 +16,12 @@ export default class LCD {
     this._scale = scale;
 
     // Temp dataImages at hardware specs
-    this._imageDataBG = new ImageData(this.width, this.height);
-    this._imageDataOBJ = new ImageData(this.width, this.height);
+    this._imageDataBG = {
+      data: new Uint8ClampedArray(this.width*this.height*4)
+    };
+    this._imageDataOBJ = {
+      data: new Uint8ClampedArray(this.width*this.height*4)
+    };
 
     // Real, final data images with scaling (if any)
     this._scaledBG = this.ctxBG.createImageData(this.width*scale, this.height*scale);
