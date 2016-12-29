@@ -63,7 +63,8 @@ export default class LCD {
    * @private
    */
   _clear(imageData=this._imageDataBG, ctx=this.ctxBG){
-    for(let p = 0; p < this.width * this.height * 4; p++){
+    const size = this.width * this._scale * this.height * this._scale * 4;
+    for(let p = 0; p < size; p++){
       imageData.data[p] = 0;
     }
     this._putImageData(imageData, ctx);
