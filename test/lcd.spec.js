@@ -316,6 +316,7 @@ describe('LCD', () => {
   describe('Scaling', () => {
 
     it('should compute scaling coords', () => {
+      lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock(), 2);
       assert.deepEqual(lcd.get2xScalingCoords(0, 0), [0, 4, 1280, 1284]);
       assert.deepEqual(lcd.get2xScalingCoords(159, 143), [367352,367356,368632,368636]);
     });

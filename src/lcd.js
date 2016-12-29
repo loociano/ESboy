@@ -361,12 +361,13 @@ export default class LCD {
    * @returns {Array} 2x2 coordinates
    */
   get2xScalingCoords(x, y){
-    return [
-      (2*x + 2*2*y*this.width)*4,
-      ((2*x+1) + 2*2*y*this.width)*4,
-      (2*x + 2*(2*y+1)*this.width)*4,
-      ((2*x+1) + 2*(2*y+1)*this.width)*4
-    ];
+    const coords = [];
+    for(let ry = 0; ry < this._scale; ry++){
+      for(let rx = 0; rx < this._scale; rx++){
+        coords.push(( (2*x+rx) + 2*(2*y+ry)*this.width)*4);
+      }
+    }
+    return coords;
   }
 
   /**
