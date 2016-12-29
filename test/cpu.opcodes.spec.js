@@ -96,7 +96,8 @@ describe('CPU Instruction Set', function() {
   });
 
   describe('Jumps', () => {
-    it('should jump to address', () => {
+    
+    it('should jump JP to address', () => {
       const m = cpu.m();
 
       cpu.jp(0x123);
@@ -115,26 +116,69 @@ describe('CPU Instruction Set', function() {
       assert.equal(cpu.m(), m+1, 'JP (HL) runs in 1 machine cycle');
     });
 
-    it('should jump to signed offset', () => {
-      let pc = cpu.pc(); // 0
-      let offset = Utils.uint8ToInt8(0x05);
+    describe('Jump with signed integer', () => {
 
-      assert.throws( () => {
-        cpu.jp_n(0xff); // -1
-      }, Error, 'cannot jump outside memory space');
+      it('should jump forward and backwards', () => {
+        const instr_length = 2;
+        let s_int = 0;
+        const m = cpu.m();
+        cpu.setPC(cpu.pc() + instr_length);
+        
+        cpu.jp_n(s_int);
 
-      const m = cpu.m();
-      cpu.jp_n(0x05);
+        assert.equal(cpu.pc(), 2, 'jump forward 2');
+        assert.equal(cpu.m() - m, 3, 'JP e cycles');
 
-      assert.equal(cpu.pc(), pc + offset, `jump forward ${offset}`);
-      assert.equal(cpu.m(), m+3, 'JP e runs in 3 machine cycles');
+        s_int = 0xfd;
 
-      pc = cpu.pc();
-      offset = Utils.uint8ToInt8(0xff);
+        cpu.setPC(cpu.pc() + instr_length);
+        cpu.jp_n(s_int);
 
-      cpu.jp_n(0xff);
+        assert.equal(cpu.pc(), 1, 'jump backwards 1');
+      });
 
-      assert.equal(cpu.pc(), pc + offset, `jump backward ${offset}`);
+      it('should jump around lowest address memory', () => {
+        const max = 0x7f;
+        const min = 0x80;
+        const instr_length = 2;
+        cpu.setPC(cpu.pc() + instr_length);
+      
+        cpu.jp_n(max);
+
+        assert.equal(cpu.pc(), 0x0081);
+
+        cpu.setPC(0 + instr_length);
+
+        cpu.jp_n(min);
+
+        assert.equal(cpu.pc(), 0xff82);
+      });
+
+      it('should jump around highest address memory', () => {
+        const max = 0x7f;
+        cpu.setPC(0xffff); // 0xfffd + 2
+      
+        cpu.jp_n(max);
+
+        assert.equal(cpu.pc(), 0x007e); // 0xfffd + 0x7f
+
+        const min = 0x80;
+        cpu.setPC(0xffff); // 0xfffd + 2
+
+        cpu.jp_n(min);
+
+        assert.equal(cpu.pc(), 0xff7f); // 0xfffd - 0x80
+      });
+
+      it('should jump to same address', () => {
+        const addr = 0xc000;
+        const s_int = 0xfe; // -2
+        cpu.setPC(addr + 2);
+
+        cpu.jp_n(s_int);
+
+        assert.equal(cpu.pc(), addr);
+      });
     });
 
     describe('Jump NZ with address', () => {
