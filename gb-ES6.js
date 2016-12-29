@@ -7965,13 +7965,9 @@ var LCD = function () {
     this.height = this._HW_HEIGHT;
     this._scale = scale;
 
-    // Temp dataImages at hardware specs
-    this._imageDataBG = new ImageData(this.width, this.height);
-    this._imageDataOBJ = new ImageData(this.width, this.height);
-
     // Real, final data images with scaling (if any)
-    this._scaledBG = this.ctxBG.createImageData(this.width * scale, this.height * scale);
-    this._scaledOBJ = this.ctxOBJ.createImageData(this.width * scale, this.height * scale);
+    this._imageDataBG = this.ctxBG.createImageData(this.width * scale, this.height * scale);
+    this._imageDataOBJ = this.ctxOBJ.createImageData(this.width * scale, this.height * scale);
 
     // Constants
     this.TILE_WIDTH = 8;
@@ -8017,27 +8013,8 @@ var LCD = function () {
     value: function _putImageData() {
       var imageData = arguments.length <= 0 || arguments[0] === undefined ? this._imageDataBG : arguments[0];
       var ctx = arguments.length <= 1 || arguments[1] === undefined ? this.ctxBG : arguments[1];
-      var scaledData = arguments.length <= 2 || arguments[2] === undefined ? this._scaledBG : arguments[2];
 
-      this._updateScaledImageData(imageData, scaledData);
-      ctx.putImageData(scaledData, 0, 0);
-    }
-
-    /**
-     * @param imageData
-     * @private
-     */
-
-  }, {
-    key: '_updateScaledImageData',
-    value: function _updateScaledImageData() {
-      var imageData = arguments.length <= 0 || arguments[0] === undefined ? this._imageDataBG : arguments[0];
-      var scaledData = arguments.length <= 1 || arguments[1] === undefined ? this._scaledBG : arguments[1];
-
-      var scaled = LCD.scaleImageData(imageData.data, this._HW_WIDTH, this._scale);
-      for (var i = 0; i < scaled.length; i++) {
-        scaledData.data[i] = scaled[i];
-      }
+      ctx.putImageData(imageData, 0, 0);
     }
 
     /** 
@@ -8051,10 +8028,11 @@ var LCD = function () {
       var imageData = arguments.length <= 0 || arguments[0] === undefined ? this._imageDataBG : arguments[0];
       var ctx = arguments.length <= 1 || arguments[1] === undefined ? this.ctxBG : arguments[1];
 
-      for (var p = 0; p < this.width * this.height * 4; p++) {
+      var size = this.width * this._scale * this.height * this._scale * 4;
+      for (var p = 0; p < size; p++) {
         imageData.data[p] = 0;
       }
-      this._putImageData();
+      this._putImageData(imageData, ctx);
     }
 
     /** 
@@ -8143,7 +8121,7 @@ var LCD = function () {
           }, this._imageDataOBJ, this.ctxOBJ);
         }
       }
-      this._putImageData(this._imageDataOBJ, this.ctxOBJ, this._scaledOBJ);
+      this._putImageData(this._imageDataOBJ, this.ctxOBJ);
     }
 
     /**
@@ -8385,8 +8363,48 @@ var LCD = function () {
         return; // Transparent
       }
 
-      var start = (x + y * this.width) * 4;
-      imageData.data.set(this.SHADES[palette[level]], start);
+      if (this._scale < 2) {
+        var start = (x + y * this.width) * 4;
+        imageData.data.set(this.SHADES[palette[level]], start);
+      } else {
+        var coords = this.get2xScalingCoords(x, y);
+        var _iteratorNormalCompletion2 = true;
+        var _didIteratorError2 = false;
+        var _iteratorError2 = undefined;
+
+        try {
+          for (var _iterator2 = coords[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+            var _start = _step2.value;
+
+            imageData.data.set(this.SHADES[palette[level]], _start);
+          }
+        } catch (err) {
+          _didIteratorError2 = true;
+          _iteratorError2 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion2 && _iterator2.return) {
+              _iterator2.return();
+            }
+          } finally {
+            if (_didIteratorError2) {
+              throw _iteratorError2;
+            }
+          }
+        }
+      }
+    }
+
+    /**
+     * @param x 0..159
+     * @param y 0..143
+     * @returns {Array} 2x2 coordinates
+     */
+
+  }, {
+    key: 'get2xScalingCoords',
+    value: function get2xScalingCoords(x, y) {
+      return [(2 * x + 2 * 2 * y * this.width) * 4, (2 * x + 1 + 2 * 2 * y * this.width) * 4, (2 * x + 2 * (2 * y + 1) * this.width) * 4, (2 * x + 1 + 2 * (2 * y + 1) * this.width) * 4];
     }
 
     /**
