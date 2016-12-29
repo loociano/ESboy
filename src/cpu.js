@@ -1178,9 +1178,11 @@ export default class CPU {
    * @param {number} n, signed integer
    */
   jp_n(n){
-    const nextAddress = this._r.pc + Utils.uint8ToInt8(n);
-    if (nextAddress < 0 || nextAddress > this.mmu.ADDR_MAX){
-      throw new Error(`Program counter outside memory space at ${Utils.hex4(this._r.pc)}`);
+    let nextAddress = this._r.pc + Utils.uint8ToInt8(n);
+    if (nextAddress < 0){
+      nextAddress += 0x10000;
+    } else if (nextAddress > 0xffff) {
+      nextAddress -= 0x10000;
     }
     this._r.pc = nextAddress;
     this._m += 3;
