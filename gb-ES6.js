@@ -3404,8 +3404,10 @@ var CPU = function () {
     key: 'jp_n',
     value: function jp_n(n) {
       var nextAddress = this._r.pc + _utils2.default.uint8ToInt8(n);
-      if (nextAddress < 0 || nextAddress > this.mmu.ADDR_MAX) {
-        throw new Error('Program counter outside memory space at ' + _utils2.default.hex4(this._r.pc));
+      if (nextAddress < 0) {
+        nextAddress += 0x10000;
+      } else if (nextAddress > 0xffff) {
+        nextAddress -= 0x10000;
       }
       this._r.pc = nextAddress;
       this._m += 3;
