@@ -8017,9 +8017,10 @@ var LCD = function () {
     value: function _putImageData() {
       var imageData = arguments.length <= 0 || arguments[0] === undefined ? this._imageDataBG : arguments[0];
       var ctx = arguments.length <= 1 || arguments[1] === undefined ? this.ctxBG : arguments[1];
+      var scaledData = arguments.length <= 2 || arguments[2] === undefined ? this._scaledBG : arguments[2];
 
-      this._updateScaledImageData(imageData);
-      ctx.putImageData(imageData, 0, 0);
+      this._updateScaledImageData(imageData, scaledData);
+      ctx.putImageData(scaledData, 0, 0);
     }
 
     /**
@@ -8031,15 +8032,11 @@ var LCD = function () {
     key: '_updateScaledImageData',
     value: function _updateScaledImageData() {
       var imageData = arguments.length <= 0 || arguments[0] === undefined ? this._imageDataBG : arguments[0];
-
-      var toUpdate = this._scaledBG;
-      if (imageData === this._imageDataOBJ) {
-        toUpdate = this._scaledOBJ;
-      }
+      var scaledData = arguments.length <= 1 || arguments[1] === undefined ? this._scaledBG : arguments[1];
 
       var scaled = LCD.scaleImageData(imageData.data, this._HW_WIDTH, this._scale);
       for (var i = 0; i < scaled.length; i++) {
-        toUpdate.data[i] = scaled[i];
+        scaledData.data[i] = scaled[i];
       }
     }
 
@@ -8057,7 +8054,7 @@ var LCD = function () {
       for (var p = 0; p < this.width * this.height * 4; p++) {
         imageData.data[p] = 0;
       }
-      this._putImageData(imageData, ctx);
+      this._putImageData();
     }
 
     /** 
@@ -8146,7 +8143,7 @@ var LCD = function () {
           }, this._imageDataOBJ, this.ctxOBJ);
         }
       }
-      this._putImageData(this._imageDataOBJ, this.ctxOBJ);
+      this._putImageData(this._imageDataOBJ, this.ctxOBJ, this._scaledOBJ);
     }
 
     /**

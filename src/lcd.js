@@ -58,24 +58,19 @@ export default class LCD {
    * @param ctx
    * @private
    */
-  _putImageData(imageData=this._imageDataBG, ctx=this.ctxBG){
-    this._updateScaledImageData(imageData);
-    ctx.putImageData(imageData, 0, 0);
+  _putImageData(imageData=this._imageDataBG, ctx=this.ctxBG, scaledData=this._scaledBG){
+    this._updateScaledImageData(imageData, scaledData);
+    ctx.putImageData(scaledData, 0, 0);
   }
 
   /**
    * @param imageData
    * @private
    */
-  _updateScaledImageData(imageData=this._imageDataBG){
-    let toUpdate = this._scaledBG;
-    if (imageData === this._imageDataOBJ){
-      toUpdate = this._scaledOBJ;
-    }
-
+  _updateScaledImageData(imageData=this._imageDataBG, scaledData=this._scaledBG){
     const scaled = LCD.scaleImageData(imageData.data, this._HW_WIDTH, this._scale);
     for(let i = 0; i < scaled.length; i++){
-      toUpdate.data[i] = scaled[i];
+      scaledData.data[i] = scaled[i];
     }
   }
 
@@ -87,7 +82,7 @@ export default class LCD {
     for(let p = 0; p < this.width * this.height * 4; p++){
       imageData.data[p] = 0;
     }
-    this._putImageData(imageData, ctx);
+    this._putImageData();
   }
 
   /** 
@@ -162,7 +157,7 @@ export default class LCD {
         }, this._imageDataOBJ, this.ctxOBJ);
       }
     }
-    this._putImageData(this._imageDataOBJ, this.ctxOBJ);
+    this._putImageData(this._imageDataOBJ, this.ctxOBJ, this._scaledOBJ);
   }
 
   /**
