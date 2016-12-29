@@ -362,4 +362,44 @@ export default class LCD {
 
     return secondHalf;
   }
+
+  /**
+   * Scales a imageData by a given factor
+   * @param {Uint8ClampedArray} data
+   * @param {number} width (in points)
+   * @param {number} factor e.g. 2,3...
+   * @returns {Uint8ClampedArray} scaled data
+   */
+  static scaleImageData(data, width, factor){
+
+    if (factor < 2) return data;
+
+    const scaled = [];
+    const width_px = width*4;
+    let i = 0;
+
+    while( i < data.length ){
+      let lines = factor;
+
+      while(lines > 0){
+
+        let times = factor;
+        while(times-- > 0){
+          scaled.push(data[i]);
+          scaled.push(data[i+1]);
+          scaled.push(data[i+2]);
+          scaled.push(data[i+3]);
+        }
+        i += 4;
+
+        if (i % width_px === 0){
+          lines--;
+          if (lines > 0) {
+            i -= width_px;
+          }
+        }
+      }
+    }
+    return new Uint8ClampedArray(scaled);
+  }
 }
