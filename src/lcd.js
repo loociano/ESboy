@@ -348,7 +348,7 @@ export default class LCD {
       const start = (x + y * this.width) * 4;
       imageData.data.set(this.SHADES[palette[level]], start);
     } else {
-      const coords = this.get2xScalingCoords(x, y);
+      const coords = this.getScalingCoords(x, y);
       for(let start of coords){
         imageData.data.set(this.SHADES[palette[level]], start);
       }
@@ -360,11 +360,11 @@ export default class LCD {
    * @param y 0..143
    * @returns {Array} 2x2 coordinates
    */
-  get2xScalingCoords(x, y){
+  getScalingCoords(x, y){
     const coords = [];
     for(let ry = 0; ry < this._scale; ry++){
       for(let rx = 0; rx < this._scale; rx++){
-        coords.push(( (2*x+rx) + 2*(2*y+ry)*this.width)*4);
+        coords.push(( (this._scale*x + rx) + this._scale*(this._scale*y + ry)*this.width)*4);
       }
     }
     return coords;

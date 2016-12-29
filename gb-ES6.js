@@ -8367,7 +8367,7 @@ var LCD = function () {
         var start = (x + y * this.width) * 4;
         imageData.data.set(this.SHADES[palette[level]], start);
       } else {
-        var coords = this.get2xScalingCoords(x, y);
+        var coords = this.getScalingCoords(x, y);
         var _iteratorNormalCompletion2 = true;
         var _didIteratorError2 = false;
         var _iteratorError2 = undefined;
@@ -8402,9 +8402,15 @@ var LCD = function () {
      */
 
   }, {
-    key: 'get2xScalingCoords',
-    value: function get2xScalingCoords(x, y) {
-      return [(2 * x + 2 * 2 * y * this.width) * 4, (2 * x + 1 + 2 * 2 * y * this.width) * 4, (2 * x + 2 * (2 * y + 1) * this.width) * 4, (2 * x + 1 + 2 * (2 * y + 1) * this.width) * 4];
+    key: 'getScalingCoords',
+    value: function getScalingCoords(x, y) {
+      var coords = [];
+      for (var ry = 0; ry < this._scale; ry++) {
+        for (var rx = 0; rx < this._scale; rx++) {
+          coords.push((this._scale * x + rx + this._scale * (this._scale * y + ry) * this.width) * 4);
+        }
+      }
+      return coords;
     }
 
     /**
@@ -9791,8 +9797,9 @@ function handleFileSelect(evt) {
  * @param {Uint8Array} rom
  */
 function init(rom) {
+  var scale = 3;
   var mmu = new _mmu2.default(rom);
-  var lcd = new _lcd2.default(mmu, ctxBG, ctxOBJ, 2);
+  var lcd = new _lcd2.default(mmu, ctxBG, ctxOBJ, scale);
 
   cpu = new _cpu2.default(mmu, lcd);
   new _inputHandler2.default(cpu, $body);

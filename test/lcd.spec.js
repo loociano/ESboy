@@ -315,10 +315,16 @@ describe('LCD', () => {
 
   describe('Scaling', () => {
 
-    it('should compute scaling coords', () => {
+    it('should compute 2x scaling coords', () => {
       lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock(), 2);
-      assert.deepEqual(lcd.get2xScalingCoords(0, 0), [0, 4, 1280, 1284]);
-      assert.deepEqual(lcd.get2xScalingCoords(159, 143), [367352,367356,368632,368636]);
+      assert.deepEqual(lcd.getScalingCoords(0, 0), [0, 4, 1280, 1284]);
+      assert.deepEqual(lcd.getScalingCoords(159, 143), [367352,367356,368632,368636]);
+    });
+
+    it('should compute 3x scaling coords', () => {
+      lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock(), 3);
+      assert.deepEqual(lcd.getScalingCoords(0, 0), [0, 4, 8, 1920, 1924, 1928, 3840, 3844, 3848]);
+      assert.deepEqual(lcd.getScalingCoords(159, 143), [825588, 825592, 825596, 827508, 827512, 827516, 829428, 829432, 829436]);
     });
 
     it('should scale an imageData', () => {
