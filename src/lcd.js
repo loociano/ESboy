@@ -30,6 +30,7 @@ export default class LCD {
     this._clear(this._imageDataOBJ, this.ctxOBJ);
 
     this._cache = {};
+    this._cacheScaling = {};
 
     this.SHADES = {
       0: [155,188,15,255],
@@ -361,13 +362,20 @@ export default class LCD {
    * @returns {Array} 2x2 coordinates
    */
   getScalingCoords(x, y){
-    const coords = [];
-    for(let ry = 0; ry < this._scale; ry++){
-      for(let rx = 0; rx < this._scale; rx++){
-        coords.push(( (this._scale*x + rx) + this._scale*(this._scale*y + ry)*this.width)*4);
+
+    const result = this._cacheScaling[`${x},${y}`];
+    if (result != null) {
+      return result;
+    } else {
+      const coords = [];
+      for (let ry = 0; ry < this._scale; ry++) {
+        for (let rx = 0; rx < this._scale; rx++) {
+          coords.push(( (this._scale * x + rx) + this._scale * (this._scale * y + ry) * this.width) * 4);
+        }
       }
+      this._cacheScaling[`${x},${y}`] = coords;
+      return coords;
     }
-    return coords;
   }
 
   /**

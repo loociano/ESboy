@@ -7980,6 +7980,7 @@ var LCD = function () {
     this._clear(this._imageDataOBJ, this.ctxOBJ);
 
     this._cache = {};
+    this._cacheScaling = {};
 
     this.SHADES = {
       0: [155, 188, 15, 255],
@@ -8404,13 +8405,20 @@ var LCD = function () {
   }, {
     key: 'getScalingCoords',
     value: function getScalingCoords(x, y) {
-      var coords = [];
-      for (var ry = 0; ry < this._scale; ry++) {
-        for (var rx = 0; rx < this._scale; rx++) {
-          coords.push((this._scale * x + rx + this._scale * (this._scale * y + ry) * this.width) * 4);
+
+      var result = this._cacheScaling[x + ',' + y];
+      if (result != null) {
+        return result;
+      } else {
+        var coords = [];
+        for (var ry = 0; ry < this._scale; ry++) {
+          for (var rx = 0; rx < this._scale; rx++) {
+            coords.push((this._scale * x + rx + this._scale * (this._scale * y + ry) * this.width) * 4);
+          }
         }
+        this._cacheScaling[x + ',' + y] = coords;
+        return coords;
       }
-      return coords;
     }
 
     /**
