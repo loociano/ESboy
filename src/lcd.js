@@ -15,17 +15,9 @@ export default class LCD {
     this.height = this._HW_HEIGHT;
     this._scale = scale;
 
-    // Temp dataImages at hardware specs
-    this._imageDataBG = {
-      data: new Uint8ClampedArray(this.width*this.height*4)
-    };
-    this._imageDataOBJ = {
-      data: new Uint8ClampedArray(this.width*this.height*4)
-    };
-
     // Real, final data images with scaling (if any)
-    this._scaledBG = this.ctxBG.createImageData(this.width*scale, this.height*scale);
-    this._scaledOBJ = this.ctxOBJ.createImageData(this.width*scale, this.height*scale);
+    this._imageDataBG = this.ctxBG.createImageData(this.width*scale, this.height*scale);
+    this._imageDataOBJ = this.ctxOBJ.createImageData(this.width*scale, this.height*scale);
 
     // Constants
     this.TILE_WIDTH = 8;
@@ -62,20 +54,8 @@ export default class LCD {
    * @param ctx
    * @private
    */
-  _putImageData(imageData=this._imageDataBG, ctx=this.ctxBG, scaledData=this._scaledBG){
-    this._updateScaledImageData(imageData, scaledData);
-    ctx.putImageData(scaledData, 0, 0);
-  }
-
-  /**
-   * @param imageData
-   * @private
-   */
-  _updateScaledImageData(imageData=this._imageDataBG, scaledData=this._scaledBG){
-    const scaled = LCD.scaleImageData(imageData.data, this._HW_WIDTH, this._scale);
-    for(let i = 0; i < scaled.length; i++){
-      scaledData.data[i] = scaled[i];
-    }
+  _putImageData(imageData=this._imageDataBG, ctx=this.ctxBG){
+    ctx.putImageData(imageData, 0, 0);
   }
 
   /** 
@@ -86,7 +66,7 @@ export default class LCD {
     for(let p = 0; p < this.width * this.height * 4; p++){
       imageData.data[p] = 0;
     }
-    this._putImageData();
+    this._putImageData(imageData, ctx);
   }
 
   /** 
@@ -161,7 +141,7 @@ export default class LCD {
         }, this._imageDataOBJ, this.ctxOBJ);
       }
     }
-    this._putImageData(this._imageDataOBJ, this.ctxOBJ, this._scaledOBJ);
+    this._putImageData(this._imageDataOBJ, this.ctxOBJ);
   }
 
   /**
@@ -363,8 +343,24 @@ export default class LCD {
       return; // Transparent
     }
 
-    const start = (x + y * this.width) * 4;
-    imageData.data.set(this.SHADES[palette[level]], start);
+    if (this._scale < 2) {
+      const start = (x + y * this.width) * 4;
+      imageData.data.set(this.SHADES[palette[level]], start);
+    } else {
+      const coords = this._getScalingCoords(x, y);
+      for(let start of coords){
+        imageData.data.set(this.SHADES[palette[level]], start);
+      }
+    }
+  }
+
+  _getScalingCoords(x, y){
+    return [
+      (x + y*this.width*this._scale)*4,
+      (x+1 + y*this.width*this._scale)*4,
+      (x + (y+1)*this.width*this._scale)*4,
+      (x+1 + (y+1)*this.width*this._scale)*4
+    ];
   }
 
   /**

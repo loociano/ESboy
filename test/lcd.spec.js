@@ -342,6 +342,20 @@ describe('LCD', () => {
           3,3,3,3, 3,3,3,3, 4,4,4,4, 4,4,4,4, 5,5,5,5, 5,5,5,5 ]);
     });
 
+    it('should draw pixels scale=2', () => {
+      lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock(), 2);
+      const data = lcd.getImageDataBG().data;
+      const line1 = 160 * 2 * 4;
+      let pixel = {x: 0, y:0, level: 1};
+
+      lcd.drawPixel(pixel);
+
+      assert.deepEqual([data[0], data[1], data[2], data[3]], lcd.SHADES[lcd._bgp[pixel.level]]);
+      assert.deepEqual([data[4], data[5], data[6], data[7]], lcd.SHADES[lcd._bgp[pixel.level]]);
+      assert.deepEqual([data[line1], data[line1+1], data[line1+2], data[line1+3]], lcd.SHADES[lcd._bgp[pixel.level]]);
+      assert.deepEqual([data[line1+4], data[line1+5], data[line1+6], data[line1+7]], lcd.SHADES[lcd._bgp[pixel.level]]);
+    });
+
   });
 });
 
