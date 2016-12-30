@@ -218,8 +218,23 @@ describe('LCD', () => {
     });
 
     it('should flip matrix vertically', () => {
-      const matrix =  [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-      const flipped = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,];
+      const matrix =  [0,0,0,0,0,0,0,0,
+                       0,0,0,0,0,0,0,0,
+                       0,0,3,3,0,0,0,0,
+                       0,0,3,3,0,0,0,0,
+                       0,0,0,0,0,0,0,0,
+                       0,0,0,0,0,0,0,0,
+                       0,0,0,0,0,0,0,0,
+                       0,0,0,0,0,0,0,0];
+
+      const flipped = [0,0,0,0,0,0,0,0,
+                       0,0,0,0,0,0,0,0,
+                       0,0,0,0,0,0,0,0,
+                       0,0,0,0,0,0,0,0,
+                       0,0,3,3,0,0,0,0,
+                       0,0,3,3,0,0,0,0,
+                       0,0,0,0,0,0,0,0,
+                       0,0,0,0,0,0,0,0];
 
       assert.deepEqual(lcd.flipMatrixVertically(matrix), flipped);
     });
@@ -227,8 +242,23 @@ describe('LCD', () => {
     it('should flip matrix both horizontally and vertically', () => {
       // x0 --> 00
       // 00     0x
-      const matrix =  [3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-      const flipped = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3];
+      const matrix =  [0,0,0,0,0,0,0,0,
+                       0,0,0,0,0,0,0,0,
+                       0,0,3,3,0,0,0,0,
+                       0,0,3,3,0,0,0,0,
+                       0,0,0,0,0,0,0,0,
+                       0,0,0,0,0,0,0,0,
+                       0,0,0,0,0,0,0,0,
+                       0,0,0,0,0,0,0,0];
+
+      const flipped = [0,0,0,0,0,0,0,0,
+                       0,0,0,0,0,0,0,0,
+                       0,0,0,0,0,0,0,0,
+                       0,0,0,0,0,0,0,0,
+                       0,0,0,0,3,3,0,0,
+                       0,0,0,0,3,3,0,0,
+                       0,0,0,0,0,0,0,0,
+                       0,0,0,0,0,0,0,0];
 
       assert.deepEqual(lcd.flipMatrixHorizontally(lcd.flipMatrixVertically(matrix)), flipped);
     });
@@ -273,6 +303,29 @@ describe('LCD', () => {
             assert.deepEqual(lcd.getPixelData(x, y, lcd.getImageDataOBJ()), [0, 0, 0, 0], 'Top half is transparent');
           } else {
             assert.deepEqual(lcd.getPixelData(x, y, lcd.getImageDataOBJ()), lcd.SHADES[3], 'Bottom half is darkest');
+          }
+        }
+      }
+
+    });
+
+    it('should flip OBJ horizontally and vertically', () => {
+
+      lcd.mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b01100000}; };
+
+      lcd.mmu.readOBJData = (any) => {
+        // pixel at top-left most is darkest
+        return new Buffer('80800000000000000000000000000000', 'hex');
+      };
+
+      lcd.drawTiles();
+
+      for(let x = 0; x < 8; x++){
+        for(let y = 0; y < 8; y++){
+          if (x === 7 && y === 7){
+            assert.deepEqual(lcd.getPixelData(x, y, lcd.getImageDataOBJ()), lcd.SHADES[3], 'Bottom-right most pixel is darkest');
+          } else {
+            assert.deepEqual(lcd.getPixelData(x, y, lcd.getImageDataOBJ()), [0,0,0,0], `${x},${y} is transparent`);
           }
         }
       }

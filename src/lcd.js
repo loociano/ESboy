@@ -376,11 +376,10 @@ export default class LCD {
    * @returns {Array} flipped
    */
   flipMatrixVertically(matrix){
-    const firstHalf = matrix.slice(0, matrix.length/2);
-    const secondHalf = matrix.slice(matrix.length/2);
-
-    secondHalf.push(...firstHalf);
-
-    return secondHalf;
+    const flipped = [];
+    for(let l = matrix.length - 1; l > 1; l -= 8){
+      flipped.push(...matrix.slice(l-7, l+1));
+    }
+    return flipped;
   }
 }
