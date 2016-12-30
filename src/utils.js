@@ -121,38 +121,4 @@ export default class Utils {
     if (byte == null) throw new Error('No byte');
     return (byte >> 4 & 0x0f) + (byte << 4 & 0xf0);
   }
-
-  /**
-   * Scales a matrix by a given factor
-   * @param {Array} matrix
-   * @param width
-   * @param {number} factor e.g. 2,3...
-   * @returns {Array}
-   */
-  static scale(matrix, width, factor){
-    const scaled = [];
-    let i = 0;
-
-    while( i < matrix.length ){
-      let lines = factor;
-
-      while(lines > 0){
-
-        let times = factor;
-        while(times-- > 0){
-          scaled.push(matrix[i]);
-        }
-
-        i++;
-
-        if (i % width === 0){
-          lines--;
-          if (lines > 0) {
-            i -= width;
-          }
-        }
-      }
-    }
-    return scaled;
-  }
 }

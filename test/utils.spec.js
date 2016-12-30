@@ -85,19 +85,4 @@ describe('Utils', () => {
     assert.throws( () => Utils.swapNybbles(), Error, 'Missing byte');
   });
 
-  it('should scale a matrix', () => {
-    const matrix = [0,1,2,3,4,5];
-    assert.deepEqual(Utils.scale(matrix, 3, 1), matrix);
-    assert.deepEqual(Utils.scale(matrix, 3, 2), [0,0,1,1,2,2,
-                                                 0,0,1,1,2,2,
-                                                 3,3,4,4,5,5,
-                                                 3,3,4,4,5,5]);
-    assert.deepEqual(Utils.scale(matrix, 3, 3), [0,0,0,1,1,1,2,2,2,
-                                                 0,0,0,1,1,1,2,2,2,
-                                                 0,0,0,1,1,1,2,2,2,
-                                                 3,3,3,4,4,4,5,5,5,
-                                                 3,3,3,4,4,4,5,5,5,
-                                                 3,3,3,4,4,4,5,5,5]);
-  });
-
 });

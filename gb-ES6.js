@@ -8467,15 +8467,6 @@ var LCD = function () {
 
       return secondHalf;
     }
-
-    /**
-     * Scales a imageData by a given scale
-     * @param {Uint8ClampedArray} data
-     * @param {number} width (in points)
-     * @param {number} scale e.g. 1,2,3...
-     * @returns {Uint8ClampedArray} scaled data
-     */
-
   }], [{
     key: 'paletteToArray',
     value: function paletteToArray(byte) {
@@ -8499,40 +8490,6 @@ var LCD = function () {
         }
       }
       return array;
-    }
-  }, {
-    key: 'scaleImageData',
-    value: function scaleImageData(data, width, scale) {
-
-      if (scale < 2) return data;
-
-      var scaled = [];
-      var width_px = width * 4;
-      var i = 0;
-
-      while (i < data.length) {
-        var lines = scale;
-
-        while (lines > 0) {
-
-          var times = scale;
-          while (times-- > 0) {
-            scaled.push(data[i]);
-            scaled.push(data[i + 1]);
-            scaled.push(data[i + 2]);
-            scaled.push(data[i + 3]);
-          }
-          i += 4;
-
-          if (i % width_px === 0) {
-            lines--;
-            if (lines > 0) {
-              i -= width_px;
-            }
-          }
-        }
-      }
-      return new Uint8ClampedArray(scaled);
     }
   }]);
 
@@ -9805,7 +9762,7 @@ function handleFileSelect(evt) {
  * @param {Uint8Array} rom
  */
 function init(rom) {
-  var scale = 3;
+  var scale = 1;
   var mmu = new _mmu2.default(rom);
   var lcd = new _lcd2.default(mmu, ctxBG, ctxOBJ, scale);
 
@@ -10005,43 +9962,6 @@ var Utils = function () {
       if (byte > 0xff) throw new Error('Not a byte');
       if (byte == null) throw new Error('No byte');
       return (byte >> 4 & 0x0f) + (byte << 4 & 0xf0);
-    }
-
-    /**
-     * Scales a matrix by a given factor
-     * @param {Array} matrix
-     * @param width
-     * @param {number} factor e.g. 2,3...
-     * @returns {Array}
-     */
-
-  }, {
-    key: 'scale',
-    value: function scale(matrix, width, factor) {
-      var scaled = [];
-      var i = 0;
-
-      while (i < matrix.length) {
-        var lines = factor;
-
-        while (lines > 0) {
-
-          var times = factor;
-          while (times-- > 0) {
-            scaled.push(matrix[i]);
-          }
-
-          i++;
-
-          if (i % width === 0) {
-            lines--;
-            if (lines > 0) {
-              i -= width;
-            }
-          }
-        }
-      }
-      return scaled;
     }
   }]);
 
