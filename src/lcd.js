@@ -377,8 +377,8 @@ export default class LCD {
    */
   flipMatrixVertically(matrix){
     const flipped = [];
-    for(let l = matrix.length - 1; l > 1; l -= 8){
-      flipped.push(...matrix.slice(l-7, l+1));
+    for(let l = matrix.length; l > 0; l -= this.TILE_WIDTH){
+      flipped.push(...matrix.slice(l - this.TILE_WIDTH, l));
     }
     return flipped;
   }

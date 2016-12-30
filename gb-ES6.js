@@ -8402,12 +8402,11 @@ var LCD = function () {
   }, {
     key: 'flipMatrixVertically',
     value: function flipMatrixVertically(matrix) {
-      var firstHalf = matrix.slice(0, matrix.length / 2);
-      var secondHalf = matrix.slice(matrix.length / 2);
-
-      secondHalf.push.apply(secondHalf, _toConsumableArray(firstHalf));
-
-      return secondHalf;
+      var flipped = [];
+      for (var l = matrix.length; l > 0; l -= this.TILE_WIDTH) {
+        flipped.push.apply(flipped, _toConsumableArray(matrix.slice(l - this.TILE_WIDTH, l)));
+      }
+      return flipped;
     }
   }], [{
     key: 'paletteToArray',
