@@ -3,7 +3,7 @@ import Logger from './logger';
 
 export default class LCD {
 
-  constructor(mmu, ctxBG, ctxOBJ, scale=1){
+  constructor(mmu, ctxBG, ctxOBJ){
 
     this._HW_WIDTH = 160;
     this._HW_HEIGHT = 144;
@@ -13,11 +13,9 @@ export default class LCD {
     this.ctxOBJ = ctxOBJ;
     this.width = this._HW_WIDTH;
     this.height = this._HW_HEIGHT;
-    this._scale = scale;
 
-    // Real, final data images with scaling (if any)
-    this._imageDataBG = this.ctxBG.createImageData(this.width*scale, this.height*scale);
-    this._imageDataOBJ = this.ctxOBJ.createImageData(this.width*scale, this.height*scale);
+    this._imageDataBG = this.ctxBG.createImageData(this.width, this.height);
+    this._imageDataOBJ = this.ctxOBJ.createImageData(this.width, this.height);
 
     // Constants
     this.TILE_WIDTH = 8;
@@ -30,7 +28,6 @@ export default class LCD {
     this._clear(this._imageDataOBJ, this.ctxOBJ);
 
     this._cache = {};
-    this._cacheScaling = {};
 
     this.SHADES = {
       0: [155,188,15,255],
@@ -64,7 +61,7 @@ export default class LCD {
    * @private
    */
   _clear(imageData=this._imageDataBG, ctx=this.ctxBG){
-    const size = this.width * this._scale * this.height * this._scale * 4;
+    const size = this.width * this.height * 4;
     for(let p = 0; p < size; p++){
       imageData.data[p] = 0;
     }
@@ -345,37 +342,8 @@ export default class LCD {
       return; // Transparent
     }
 
-    if (this._scale < 2) {
-      const start = (x + y * this.width) * 4;
-      imageData.data.set(this.SHADES[palette[level]], start);
-    } else {
-      const coords = this.getScalingCoords(x, y);
-      for(let start of coords){
-        imageData.data.set(this.SHADES[palette[level]], start);
-      }
-    }
-  }
-
-  /**
-   * @param x 0..159
-   * @param y 0..143
-   * @returns {Array} 2x2 coordinates
-   */
-  getScalingCoords(x, y){
-
-    const result = this._cacheScaling[`${x},${y}`];
-    if (result != null) {
-      return result;
-    } else {
-      const coords = [];
-      for (let ry = 0; ry < this._scale; ry++) {
-        for (let rx = 0; rx < this._scale; rx++) {
-          coords.push(( (this._scale * x + rx) + this._scale * (this._scale * y + ry) * this.width) * 4);
-        }
-      }
-      this._cacheScaling[`${x},${y}`] = coords;
-      return coords;
-    }
+    const start = (x + y * this.width) * 4;
+    imageData.data.set(this.SHADES[palette[level]], start);
   }
 
   /**

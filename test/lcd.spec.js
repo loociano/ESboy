@@ -312,49 +312,6 @@ describe('LCD', () => {
       assertTile.call(lcd, 0, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
     });
   });
-
-  describe('Scaling', () => {
-
-    it('should compute 2x scaling coords', () => {
-      lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock(), 2);
-      assert.deepEqual(lcd.getScalingCoords(0, 0), [0, 4, 1280, 1284]);
-      assert.deepEqual(lcd.getScalingCoords(159, 143), [367352,367356,368632,368636]);
-    });
-
-    it('should compute 3x scaling coords', () => {
-      lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock(), 3);
-      assert.deepEqual(lcd.getScalingCoords(0, 0), [0, 4, 8, 1920, 1924, 1928, 3840, 3844, 3848]);
-      assert.deepEqual(lcd.getScalingCoords(159, 143), [825588, 825592, 825596, 827508, 827512, 827516, 829428, 829432, 829436]);
-    });
-
-    it('should draw pixels scale=2', () => {
-      lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock(), 2);
-      const data = lcd.getImageDataBG().data;
-      const line1 = 320 * 4;
-      const lastIL42 = 320 * 287 * 4 - 1
-      const lastIndex = 320 * 288 * 4 - 1;
-      let pixel = {x: 0, y:0, level: 1};
-
-      lcd.drawPixel(pixel);
-
-      // scale-2 -> 4 pixels
-      assert.deepEqual([data[0], data[1], data[2], data[3]], lcd.SHADES[lcd._bgp[pixel.level]]);
-      assert.deepEqual([data[4], data[5], data[6], data[7]], lcd.SHADES[lcd._bgp[pixel.level]]);
-      assert.deepEqual([data[line1], data[line1+1], data[line1+2], data[line1+3]], lcd.SHADES[lcd._bgp[pixel.level]]);
-      assert.deepEqual([data[line1+4], data[line1+5], data[line1+6], data[line1+7]], lcd.SHADES[lcd._bgp[pixel.level]]);
-
-      pixel = {x: 159, y:143, level:3};
-
-      lcd.drawPixel(pixel);
-
-      // scale-2 -> 4 pixels
-      assert.deepEqual([data[lastIL42-7], data[lastIL42-6], data[lastIL42-5], data[lastIL42-4]], lcd.SHADES[lcd._bgp[pixel.level]]);
-      assert.deepEqual([data[lastIL42-3], data[lastIL42-2], data[lastIL42-1], data[lastIL42]], lcd.SHADES[lcd._bgp[pixel.level]]);
-      assert.deepEqual([data[lastIndex-7], data[lastIndex-6], data[lastIndex-5], data[lastIndex-4]], lcd.SHADES[lcd._bgp[pixel.level]]);
-      assert.deepEqual([data[lastIndex-3], data[lastIndex-2], data[lastIndex-1], data[lastIndex]], lcd.SHADES[lcd._bgp[pixel.level]]);
-    });
-
-  });
 });
 
 /**

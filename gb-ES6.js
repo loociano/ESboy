@@ -7951,8 +7951,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var LCD = function () {
   function LCD(mmu, ctxBG, ctxOBJ) {
-    var scale = arguments.length <= 3 || arguments[3] === undefined ? 1 : arguments[3];
-
     _classCallCheck(this, LCD);
 
     this._HW_WIDTH = 160;
@@ -7963,11 +7961,9 @@ var LCD = function () {
     this.ctxOBJ = ctxOBJ;
     this.width = this._HW_WIDTH;
     this.height = this._HW_HEIGHT;
-    this._scale = scale;
 
-    // Real, final data images with scaling (if any)
-    this._imageDataBG = this.ctxBG.createImageData(this.width * scale, this.height * scale);
-    this._imageDataOBJ = this.ctxOBJ.createImageData(this.width * scale, this.height * scale);
+    this._imageDataBG = this.ctxBG.createImageData(this.width, this.height);
+    this._imageDataOBJ = this.ctxOBJ.createImageData(this.width, this.height);
 
     // Constants
     this.TILE_WIDTH = 8;
@@ -7980,7 +7976,6 @@ var LCD = function () {
     this._clear(this._imageDataOBJ, this.ctxOBJ);
 
     this._cache = {};
-    this._cacheScaling = {};
 
     this.SHADES = {
       0: [155, 188, 15, 255],
@@ -8029,7 +8024,7 @@ var LCD = function () {
       var imageData = arguments.length <= 0 || arguments[0] === undefined ? this._imageDataBG : arguments[0];
       var ctx = arguments.length <= 1 || arguments[1] === undefined ? this.ctxBG : arguments[1];
 
-      var size = this.width * this._scale * this.height * this._scale * 4;
+      var size = this.width * this.height * 4;
       for (var p = 0; p < size; p++) {
         imageData.data[p] = 0;
       }
@@ -8364,61 +8359,8 @@ var LCD = function () {
         return; // Transparent
       }
 
-      if (this._scale < 2) {
-        var start = (x + y * this.width) * 4;
-        imageData.data.set(this.SHADES[palette[level]], start);
-      } else {
-        var coords = this.getScalingCoords(x, y);
-        var _iteratorNormalCompletion2 = true;
-        var _didIteratorError2 = false;
-        var _iteratorError2 = undefined;
-
-        try {
-          for (var _iterator2 = coords[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-            var _start = _step2.value;
-
-            imageData.data.set(this.SHADES[palette[level]], _start);
-          }
-        } catch (err) {
-          _didIteratorError2 = true;
-          _iteratorError2 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion2 && _iterator2.return) {
-              _iterator2.return();
-            }
-          } finally {
-            if (_didIteratorError2) {
-              throw _iteratorError2;
-            }
-          }
-        }
-      }
-    }
-
-    /**
-     * @param x 0..159
-     * @param y 0..143
-     * @returns {Array} 2x2 coordinates
-     */
-
-  }, {
-    key: 'getScalingCoords',
-    value: function getScalingCoords(x, y) {
-
-      var result = this._cacheScaling[x + ',' + y];
-      if (result != null) {
-        return result;
-      } else {
-        var coords = [];
-        for (var ry = 0; ry < this._scale; ry++) {
-          for (var rx = 0; rx < this._scale; rx++) {
-            coords.push((this._scale * x + rx + this._scale * (this._scale * y + ry) * this.width) * 4);
-          }
-        }
-        this._cacheScaling[x + ',' + y] = coords;
-        return coords;
-      }
+      var start = (x + y * this.width) * 4;
+      imageData.data.set(this.SHADES[palette[level]], start);
     }
 
     /**
@@ -9762,9 +9704,8 @@ function handleFileSelect(evt) {
  * @param {Uint8Array} rom
  */
 function init(rom) {
-  var scale = 1;
   var mmu = new _mmu2.default(rom);
-  var lcd = new _lcd2.default(mmu, ctxBG, ctxOBJ, scale);
+  var lcd = new _lcd2.default(mmu, ctxBG, ctxOBJ);
 
   cpu = new _cpu2.default(mmu, lcd);
   new _inputHandler2.default(cpu, $body);

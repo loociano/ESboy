@@ -41,9 +41,8 @@ function handleFileSelect(evt) {
  * @param {Uint8Array} rom
  */
 function init(rom){
-  const scale = 1;
   const mmu = new MMU(rom);
-  const lcd = new LCD(mmu, ctxBG, ctxOBJ, scale);
+  const lcd = new LCD(mmu, ctxBG, ctxOBJ);
 
   cpu = new CPU(mmu, lcd);
   new InputHandler(cpu, $body);

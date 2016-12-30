@@ -21,6 +21,11 @@
 
     #bg, #obj {
       position: absolute;
+      width: 480px;
+      height: 432px;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-crisp-edges;
+      image-rendering: pixelated;
     }
 
     #cartridge {
@@ -35,8 +40,8 @@
       <input type="file" id="cartridge" tabindex="-1" />
 
       <div id="dmg">
-        <canvas id="bg" width="480" height="432"></canvas>
-        <canvas id="obj" width="480" height="432"></canvas>
+        <canvas id="bg" width="160" height="144"></canvas>
+        <canvas id="obj" width="160" height="144"></canvas>
       </div>
 
     </div>
