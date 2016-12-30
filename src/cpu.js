@@ -19,8 +19,10 @@ export default class CPU {
     }
 
     this.mmu = mmu;
-    this.lcd = lcd;
 
+    this._checkSupportedROM();
+
+    this.lcd = lcd;
     this._lastInstrWasEI = false;
 
     this._m = 0; // machine cycles for lcd
@@ -571,6 +573,17 @@ export default class CPU {
       0xfe: {fn: this.cp_n, paramBytes: 1},
       0xff: {fn: this.rst_38, paramBytes: 0},
     };
+  }
+
+  /**
+   * @private
+   */
+  _checkSupportedROM(){
+    try {
+      this.mmu.getCartridgeType();
+    } catch(e){
+      throw e;
+    }
   }
 
   /**

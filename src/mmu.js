@@ -655,6 +655,7 @@ export default class MMU {
     switch(type){
       case this._ROM_ONLY: return 'ROM ONLY';
       case this._ROM_MBC1: return 'ROM+MBC1';
+      // TODO: implement rest of types
       default:
         throw new Error(`Cartridge type ${type} unknown`);
     }

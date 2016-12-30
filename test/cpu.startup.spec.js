@@ -30,4 +30,14 @@ describe('Start BIOS', () => {
     assert.equal(cpu.mmu.readByteAt(0x9fff), 0x00, 'Top VRAM empty');
     assert.equal(cpu.mmu.readByteAt(0x8000), 0x00, 'Bottom VRAM empty');
   });
+
+  it('should not start unsupported roms', () => {
+    const mmuMock = {
+      getCartridgeType: function () {
+        throw Error('Unsupported Cartridge type');
+      }
+    };
+
+    assert.throws( () => new CPU(mmuMock, new lcdMock()), Error, 'Unsupported Cartridge type');
+  });
 });
