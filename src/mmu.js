@@ -123,7 +123,26 @@ export default class MMU {
     // Cartridge types
     this._ROM_ONLY = 0;
     this._ROM_MBC1 = 1;
-    // TODO add rest of types
+    this._ROM_MBC1_RAM = 2;
+    this._ROM_MBC1_RAM_BATT = 3;
+    this._ROM_MBC2 = 5;
+    this._ROM_MBC2_BATTERY = 6;
+    this._ROM_RAM = 8;
+    this._ROM_RAM_BATTERY = 9;
+    this._ROM_MMM01 = 0xb;
+    this._ROM_MMM01_SRAM = 0xc;
+    this._ROM_MMM01_SRAM_BATT = 0xd;
+    this._ROM_MBC3_RAM = 0x12;
+    this._ROM_MBC3_RAM_BATT = 0x13;
+    this._ROM_MBC5 = 0x19;
+    this._ROM_MBC5_RAM = 0x1a;
+    this._ROM_MBC5_RAM_BATT = 0x1b;
+    this._ROM_MBC5_RUMBLE = 0x1c;
+    this._ROM_MBC5_RUMBLE_SRAM = 0x1d;
+    this._ROM_MBC5_RUMBLE_SRAM_BATT = 0x1e;
+    this._POCKET_CAMERA = 0x1f;
+    this._BANDAI_TAMA5 = 0xfd;
+    this._HUDSON_ON_HUC3 = 0xfe;
 
     // Rom sizes
     this._32KB = 0x0;
