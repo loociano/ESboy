@@ -140,9 +140,10 @@ export default class MMU {
     this._ROM_MBC5_RUMBLE = 0x1c;
     this._ROM_MBC5_RUMBLE_SRAM = 0x1d;
     this._ROM_MBC5_RUMBLE_SRAM_BATT = 0x1e;
-    this._POCKET_CAMERA = 0x1f;
+    this._POCKET_CAMERA = 0xfc;
     this._BANDAI_TAMA5 = 0xfd;
-    this._HUDSON_ON_HUC3 = 0xfe;
+    this._HUC3 = 0xfe;
+    this._HUC1_RAM_BATTERY = 0xff;
 
     // Rom sizes
     this._32KB = 0x0;
