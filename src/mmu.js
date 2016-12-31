@@ -9,6 +9,8 @@ export default class MMU {
    */
   constructor(rom){
 
+    this._rom = rom;
+
     // Addresses
     this.ADDR_GAME_START = 0x100;
     this.ADDR_NINTENDO_GRAPHIC_START = 0x104;
@@ -22,7 +24,10 @@ export default class MMU {
     this.ADDR_RAM_SIZE = 0x149;
     this.ADDR_DESTINATION_CODE = 0x14a;
     this.ADDR_COMPLEMENT_CHECK = 0x14d;
-    this.ADDR_ROM_MAX = 0x7fff;
+
+    this.ADDR_ROM_BANK_START = 0x4000;
+    this.ADDR_ROM_BANK_END = 0x7fff;
+    this.ADDR_ROM_MAX = this.ADDR_ROM_BANK_END;
 
     // VRAM
     this.ADDR_VRAM_START = 0x8000;
@@ -146,16 +151,16 @@ export default class MMU {
     this._HUC1_RAM_BATTERY = 0xff;
 
     // Rom sizes
-    this._32KB = 0x0;
-    this._64KB = 0x1;
-    this._128KB = 0x2;
-    this._256KB = 0x3;
-    this._512KB = 0x4;
-    this._1MB = 0x5;
+    this._32KB = 0;
+    this._64KB = 1;
+    this._128KB = 2;
+    this._256KB = 3;
+    this._512KB = 4;
+    this._1MB = 5;
     this._1_1MB = 0x52;
     this._1_2MB = 0x53;
     this._1_5MB = 0x54;
-    this._2MB = 0x6;
+    this._2MB = 6;
 
     // RAM Size
     this.RAM_NONE = 0x0;
@@ -168,6 +173,11 @@ export default class MMU {
     this.JAPANESE = 0x0;
     this.NON_JAPANESE = 0x1;
 
+    // MBC1
+    this.ROM_BANK_SIZE = 0x4000;
+    this.MAX_BANK_NB = 0x1f; // 0..31
+
+    // Variables
     this._memory = new Uint8Array(this.ADDR_MAX + 1);
     this._bios = this.getBIOS();
 
@@ -179,22 +189,32 @@ export default class MMU {
     this._LCDCUpdated = false;
 
     this._div = 0x0000; // Internal divider, register DIV is msb
+    this._hasMBC1 = false;
+    this._selectedBankNb = 1; // default is bank 1
 
     this._initMemory();
-    this._loadROM(rom);
+    this._loadROM();
+    this._setMBC1();
   }
 
   /**
-   * @param {Uint8array} rom
    * @private
    */
-  _loadROM(rom){
+  _setMBC1(){
+    const type = this.romByteAt(this.ADDR_CARTRIDGE_TYPE);
+    this._hasMBC1 = (type === 1 || type === 2 || type === 3);
+  }
+
+  /**
+   * @private
+   */
+  _loadROM(){
     const memory_start = 0;
     const rom_start = 0;
     const rom_32kb = 0x7fff;
 
     try {
-      this._memory.set(rom.subarray(rom_start, rom_32kb), memory_start);
+      this._memory.set(this._rom.subarray(rom_start, rom_32kb), memory_start);
 
     } catch (e){
       throw new Error('Could not load ROM into memory');
@@ -421,10 +441,19 @@ export default class MMU {
    * @param {number} byte
    */
   writeByteAt(addr, n){
-    if (addr > this.ADDR_MAX || addr < 0 || addr <= this.ADDR_ROM_MAX){
+    if (addr > this.ADDR_MAX || addr < 0 ){
       Logger.warn(`Cannot set memory address ${Utils.hexStr(addr)}`);
       return;
     }
+    if (addr <= this.ADDR_ROM_MAX){
+      if (this._hasMBC1 && this._isMBCAddress(addr)){
+        this._selectROMBank(n);
+      } else {
+        Logger.warn(`Cannot set memory address ${Utils.hexStr(addr)}`);
+      }
+      return;
+    }
+
     if (n < 0 || n > 0xff){
       throw new Error(`Cannot write value ${n} in memory`);
     }
@@ -457,6 +486,31 @@ export default class MMU {
         return;
     }
     this._memory[addr] = n;
+  }
+
+  /**
+   * @param addr
+   * @returns {boolean}
+   * @private
+   */
+  _isMBCAddress(addr){
+    return (addr >= 0x2000 && addr < 0x4000);
+  }
+
+  /**
+   * Selects a ROM bank and updates the Program Switching Area
+   * @param n byte
+   * @private
+   */
+  _selectROMBank(n){
+    if(n === 0 || n > this.MAX_BANK_NB){
+      this._selectedBankNb = 1;
+    } else {
+      this._selectedBankNb = n % this.getNbBanks();
+    }
+    const start = this.ADDR_ROM_BANK_START * this._selectedBankNb;
+    const end = start + this.ROM_BANK_SIZE;
+    this._memory.set(this._rom.subarray(start, end), this.ADDR_ROM_BANK_START);
   }
 
   /**
@@ -671,7 +725,7 @@ export default class MMU {
    * @returns {string} cartridge type
    */
   getCartridgeType() {
-    const type = this.romByteAt(this.ADDR_CARTRIDGE_TYPE)
+    const type = this.romByteAt(this.ADDR_CARTRIDGE_TYPE);
     switch(type){
       case this._ROM_ONLY: return 'ROM ONLY';
       case this._ROM_MBC1: return 'ROM+MBC1';
@@ -926,5 +980,25 @@ export default class MMU {
    */
   obg1() {
     return this.readByteAt(this.ADDR_OBG1);
+  }
+
+  /**
+   * MBC1 mode: 0 is 2MB ROM/8KB RAM, 1 is 512KB ROM/32KB RAM
+   * @returns {number}
+   */
+  getMBC1Mode(){
+    // TODO: implement
+    return 0;
+  }
+
+  /**
+   * @returns {number} number of banks (integer)
+   */
+  getNbBanks(){
+    return this._rom.length / this.ROM_BANK_SIZE;
+  }
+
+  getSelectedBankNb(){
+    return this._selectedBankNb;
   }
 }
