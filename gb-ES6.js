@@ -2059,8 +2059,10 @@ var CPU = function () {
     }
 
     this.mmu = mmu;
-    this.lcd = lcd;
 
+    this._checkSupportedROM();
+
+    this.lcd = lcd;
     this._lastInstrWasEI = false;
 
     this._m = 0; // machine cycles for lcd
@@ -2614,11 +2616,25 @@ var CPU = function () {
   }
 
   /**
-   * @returns {number} Accumulator
+   * @private
    */
 
 
   _createClass(CPU, [{
+    key: '_checkSupportedROM',
+    value: function _checkSupportedROM() {
+      try {
+        this.mmu.getCartridgeType();
+      } catch (e) {
+        throw e;
+      }
+    }
+
+    /**
+     * @returns {number} Accumulator
+     */
+
+  }, {
     key: 'a',
     value: function a() {
       return this._r.a;
@@ -8550,6 +8566,8 @@ var MMU = function () {
   function MMU(rom) {
     _classCallCheck(this, MMU);
 
+    this._rom = rom;
+
     // Addresses
     this.ADDR_GAME_START = 0x100;
     this.ADDR_NINTENDO_GRAPHIC_START = 0x104;
@@ -8563,7 +8581,10 @@ var MMU = function () {
     this.ADDR_RAM_SIZE = 0x149;
     this.ADDR_DESTINATION_CODE = 0x14a;
     this.ADDR_COMPLEMENT_CHECK = 0x14d;
-    this.ADDR_ROM_MAX = 0x7fff;
+
+    this.ADDR_ROM_BANK_START = 0x4000;
+    this.ADDR_ROM_BANK_END = 0x7fff;
+    this.ADDR_ROM_MAX = this.ADDR_ROM_BANK_END;
 
     // VRAM
     this.ADDR_VRAM_START = 0x8000;
@@ -8664,19 +8685,39 @@ var MMU = function () {
     // Cartridge types
     this._ROM_ONLY = 0;
     this._ROM_MBC1 = 1;
-    // TODO add rest of types
+    this._ROM_MBC1_RAM = 2;
+    this._ROM_MBC1_RAM_BATT = 3;
+    this._ROM_MBC2 = 5;
+    this._ROM_MBC2_BATTERY = 6;
+    this._ROM_RAM = 8;
+    this._ROM_RAM_BATTERY = 9;
+    this._ROM_MMM01 = 0xb;
+    this._ROM_MMM01_SRAM = 0xc;
+    this._ROM_MMM01_SRAM_BATT = 0xd;
+    this._ROM_MBC3_RAM = 0x12;
+    this._ROM_MBC3_RAM_BATT = 0x13;
+    this._ROM_MBC5 = 0x19;
+    this._ROM_MBC5_RAM = 0x1a;
+    this._ROM_MBC5_RAM_BATT = 0x1b;
+    this._ROM_MBC5_RUMBLE = 0x1c;
+    this._ROM_MBC5_RUMBLE_SRAM = 0x1d;
+    this._ROM_MBC5_RUMBLE_SRAM_BATT = 0x1e;
+    this._POCKET_CAMERA = 0xfc;
+    this._BANDAI_TAMA5 = 0xfd;
+    this._HUC3 = 0xfe;
+    this._HUC1_RAM_BATTERY = 0xff;
 
     // Rom sizes
-    this._32KB = 0x0;
-    this._64KB = 0x1;
-    this._128KB = 0x2;
-    this._256KB = 0x3;
-    this._512KB = 0x4;
-    this._1MB = 0x5;
+    this._32KB = 0;
+    this._64KB = 1;
+    this._128KB = 2;
+    this._256KB = 3;
+    this._512KB = 4;
+    this._1MB = 5;
     this._1_1MB = 0x52;
     this._1_2MB = 0x53;
     this._1_5MB = 0x54;
-    this._2MB = 0x6;
+    this._2MB = 6;
 
     // RAM Size
     this.RAM_NONE = 0x0;
@@ -8689,6 +8730,11 @@ var MMU = function () {
     this.JAPANESE = 0x0;
     this.NON_JAPANESE = 0x1;
 
+    // MBC1
+    this.ROM_BANK_SIZE = 0x4000;
+    this.MAX_BANK_NB = 0x1f; // 0..31
+
+    // Variables
     this._memory = new Uint8Array(this.ADDR_MAX + 1);
     this._bios = this.getBIOS();
 
@@ -8700,26 +8746,39 @@ var MMU = function () {
     this._LCDCUpdated = false;
 
     this._div = 0x0000; // Internal divider, register DIV is msb
+    this._hasMBC1 = false;
+    this._selectedBankNb = 1; // default is bank 1
 
     this._initMemory();
-    this._loadROM(rom);
+    this._loadROM();
+    this._setMBC1();
   }
 
   /**
-   * @param {Uint8array} rom
    * @private
    */
 
 
   _createClass(MMU, [{
+    key: '_setMBC1',
+    value: function _setMBC1() {
+      var type = this.romByteAt(this.ADDR_CARTRIDGE_TYPE);
+      this._hasMBC1 = type === 1 || type === 2 || type === 3;
+    }
+
+    /**
+     * @private
+     */
+
+  }, {
     key: '_loadROM',
-    value: function _loadROM(rom) {
+    value: function _loadROM() {
       var memory_start = 0;
       var rom_start = 0;
       var rom_32kb = 0x7fff;
 
       try {
-        this._memory.set(rom.subarray(rom_start, rom_32kb), memory_start);
+        this._memory.set(this._rom.subarray(rom_start, rom_32kb), memory_start);
       } catch (e) {
         throw new Error('Could not load ROM into memory');
       }
@@ -8989,10 +9048,19 @@ var MMU = function () {
   }, {
     key: 'writeByteAt',
     value: function writeByteAt(addr, n) {
-      if (addr > this.ADDR_MAX || addr < 0 || addr <= this.ADDR_ROM_MAX) {
+      if (addr > this.ADDR_MAX || addr < 0) {
         _logger2.default.warn('Cannot set memory address ' + _utils2.default.hexStr(addr));
         return;
       }
+      if (addr <= this.ADDR_ROM_MAX) {
+        if (this._hasMBC1 && this._isMBCAddress(addr)) {
+          this._selectROMBank(n);
+        } else {
+          _logger2.default.warn('Cannot set memory address ' + _utils2.default.hexStr(addr));
+        }
+        return;
+      }
+
       if (n < 0 || n > 0xff) {
         throw new Error('Cannot write value ' + n + ' in memory');
       }
@@ -9025,6 +9093,37 @@ var MMU = function () {
           return;
       }
       this._memory[addr] = n;
+    }
+
+    /**
+     * @param addr
+     * @returns {boolean}
+     * @private
+     */
+
+  }, {
+    key: '_isMBCAddress',
+    value: function _isMBCAddress(addr) {
+      return addr >= 0x2000 && addr < 0x4000;
+    }
+
+    /**
+     * Selects a ROM bank and updates the Program Switching Area
+     * @param n byte
+     * @private
+     */
+
+  }, {
+    key: '_selectROMBank',
+    value: function _selectROMBank(n) {
+      if (n === 0 || n > this.MAX_BANK_NB) {
+        this._selectedBankNb = 1;
+      } else {
+        this._selectedBankNb = n % this.getNbBanks();
+      }
+      var start = this.ADDR_ROM_BANK_START * this._selectedBankNb;
+      var end = start + this.ROM_BANK_SIZE;
+      this._memory.set(this._rom.subarray(start, end), this.ADDR_ROM_BANK_START);
     }
 
     /**
@@ -9307,6 +9406,7 @@ var MMU = function () {
           return 'ROM ONLY';
         case this._ROM_MBC1:
           return 'ROM+MBC1';
+        // TODO: implement rest of types
         default:
           throw new Error('Cartridge type ' + type + ' unknown');
       }
@@ -9635,6 +9735,33 @@ var MMU = function () {
     key: 'obg1',
     value: function obg1() {
       return this.readByteAt(this.ADDR_OBG1);
+    }
+
+    /**
+     * MBC1 mode: 0 is 2MB ROM/8KB RAM, 1 is 512KB ROM/32KB RAM
+     * @returns {number}
+     */
+
+  }, {
+    key: 'getMBC1Mode',
+    value: function getMBC1Mode() {
+      // TODO: implement
+      return 0;
+    }
+
+    /**
+     * @returns {number} number of banks (integer)
+     */
+
+  }, {
+    key: 'getNbBanks',
+    value: function getNbBanks() {
+      return this._rom.length / this.ROM_BANK_SIZE;
+    }
+  }, {
+    key: 'getSelectedBankNb',
+    value: function getSelectedBankNb() {
+      return this._selectedBankNb;
     }
   }]);
 
