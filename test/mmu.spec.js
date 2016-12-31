@@ -513,4 +513,20 @@ describe('MMU', () => {
     });
   });
 
+  describe('Memory Bank Controllers (MBC)', () => {
+    describe('MBC1', () => {
+      it('should get mode', () => {
+        assert.equal(mmu.getMBC1Mode(), 0);
+      })
+
+      it('should get number of ROM banks', () => {
+        assert.equal(mmu.getNbBanks(), 4, 'Blargg test rom has 4 banks');
+      });
+
+      it('should get selected bank number', () => {
+        assert.equal(mmu.getSelectedBankNb(), 1, 'default is bank 1');
+      });
+    });
+  });
+
 });
