@@ -2,6 +2,10 @@ ERRATA
 
 Game Boy Programming Manual
 
+- Page 59:
+  It says: With y=10, object displayed from top edge of LCD screen.
+  It should say: With y=0x10, object displayed from top edge of LCD screen.
+
 - Page 105, instruction JR e.
   It says: e = -127 to +129
   It should say: e = -126 to +129
