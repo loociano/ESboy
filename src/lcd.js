@@ -10,31 +10,8 @@ export default class LCD {
    */
   constructor(mmu, ctxBG, ctxOBJ){
 
-    // Constants
-    this._HW_WIDTH = 160;
-    this._HW_HEIGHT = 144;
-
-    this.mmu = mmu;
-    this.ctxBG = ctxBG;
-    this.ctxOBJ = ctxOBJ;
-    this.width = this._HW_WIDTH;
-    this.height = this._HW_HEIGHT;
-
-    this._imageDataBG = this.ctxBG.createImageData(this.width, this.height);
-    this._imageDataOBJ = this.ctxOBJ.createImageData(this.width, this.height);
-
-    // Constants
+    // Public constants
     this.TILE_WIDTH = 8;
-    this.TILE_HEIGHT = this.TILE_WIDTH;
-
-    this.H_TILES = this.width / this.TILE_WIDTH;
-    this.V_TILES = this.height / this.TILE_HEIGHT;
-
-    this._clear();
-    this._clear(this._imageDataOBJ, this.ctxOBJ);
-
-    this._cache = {};
-
     this.SHADES = {
       0: [155,188,15,255],
       1: [139,172,15,255],
@@ -42,7 +19,34 @@ export default class LCD {
       3: [15,56,15,255]
     };
 
+    // Constants
+    this._HW_WIDTH = 160;
+    this._HW_HEIGHT = 144;
+    this._TILE_HEIGHT = this.TILE_WIDTH;
+    this._H_TILES = this._HW_WIDTH / this.TILE_WIDTH;
+    this._V_TILES = this._HW_HEIGHT / this._TILE_HEIGHT;
+
+    this._mmu = mmu;
+    this._ctxBG = ctxBG;
+    this._ctxOBJ = ctxOBJ;
+    this._cache = {};
+    this._bgp = null;
+    this._obg0 = null;
+    this._obg1 = null;
+    this._imageDataBG = this._ctxBG.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
+    this._imageDataOBJ = this._ctxOBJ.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
+
+    this._clear();
+    this._clear(this._imageDataOBJ, this._ctxOBJ);
     this._readPalettes();
+  }
+
+  /**
+   * Only for testing
+   * @returns {MMU}
+   */
+  getMMU(){
+    return this._mmu;
   }
 
   getImageDataBG(){
@@ -58,7 +62,7 @@ export default class LCD {
    * @param {CanvasRenderingContext2D} ctx
    * @private
    */
-  _putImageData(imageData=this._imageDataBG, ctx=this.ctxBG){
+  _putImageData(imageData=this._imageDataBG, ctx=this._ctxBG){
     ctx.putImageData(imageData, 0, 0);
   }
 
@@ -68,8 +72,8 @@ export default class LCD {
    * @param {CanvasRenderingContext2D} ctx
    * @private
    */
-  _clear(imageData=this._imageDataBG, ctx=this.ctxBG){
-    const size = this.width * this.height * 4;
+  _clear(imageData=this._imageDataBG, ctx=this._ctxBG){
+    const size = this._HW_WIDTH * this._HW_HEIGHT * 4;
     for(let p = 0; p < size; p++){
       imageData.data[p] = 0;
     }
@@ -83,18 +87,18 @@ export default class LCD {
 
     this._readPalettes();
 
-    if (this.mmu._VRAMRefreshed) {
+    if (this._mmu._VRAMRefreshed) {
       this._clearMatrixCache();
       this._drawBG();
-      this.mmu._VRAMRefreshed = false;
+      this._mmu._VRAMRefreshed = false;
 
-    } else if (this.mmu._LCDCUpdated){
+    } else if (this._mmu._LCDCUpdated){
       this._drawBG();
-      this.mmu._LCDCUpdated = false;
+      this._mmu._LCDCUpdated = false;
     }
 
-    if (this.mmu.areOBJOn()) {
-      this._clear(this._imageDataOBJ, this.ctxOBJ);
+    if (this._mmu.areOBJOn()) {
+      this._clear(this._imageDataOBJ, this._ctxOBJ);
       this._drawOBJ();
     }
   }
@@ -103,9 +107,9 @@ export default class LCD {
    * @private
    */
   _readPalettes(){
-    this._bgp = LCD.paletteToArray(this.mmu.bgp());
-    this._obg0 = LCD.paletteToArray(this.mmu.obg0());
-    this._obg1 = LCD.paletteToArray(this.mmu.obg1());
+    this._bgp = LCD.paletteToArray(this._mmu.bgp());
+    this._obg0 = LCD.paletteToArray(this._mmu.obg0());
+    this._obg1 = LCD.paletteToArray(this._mmu.obg1());
   }
 
   /**
@@ -120,10 +124,10 @@ export default class LCD {
    * @private
    */
   _drawBG(){
-    for(let grid_x = 0; grid_x < this.H_TILES; grid_x++){
-      for(let grid_y = 0; grid_y < this.V_TILES; grid_y++){
+    for(let grid_x = 0; grid_x < this._H_TILES; grid_x++){
+      for(let grid_y = 0; grid_y < this._V_TILES; grid_y++){
         this.drawTile({
-          tile_number: this.mmu.getCharCode(grid_x, grid_y),
+          tile_number: this._mmu.getCharCode(grid_x, grid_y),
           grid_x: grid_x,
           grid_y: grid_y
         });
@@ -137,18 +141,18 @@ export default class LCD {
    * @private
    */
   _drawOBJ(){
-    for(let n = 0; n < this.mmu.MAX_OBJ; n++){
-      const OBJ = this.mmu.getOBJ(n);
+    for(let n = 0; n < this._mmu.MAX_OBJ; n++){
+      const OBJ = this._mmu.getOBJ(n);
       if (LCD._isValidOBJ(OBJ)) {
         this.drawTile({
           tile_number: OBJ.chrCode,
           grid_x: (OBJ.x/this.TILE_WIDTH) - 1,
-          grid_y: (OBJ.y/this.TILE_HEIGHT) - 2,
+          grid_y: (OBJ.y/this._TILE_HEIGHT) - 2,
           OBJAttr: OBJ.attr
-        }, this._imageDataOBJ, this.ctxOBJ);
+        }, this._imageDataOBJ);
       }
     }
-    this._putImageData(this._imageDataOBJ, this.ctxOBJ);
+    this._putImageData(this._imageDataOBJ, this._ctxOBJ);
   }
 
   /**
@@ -170,12 +174,12 @@ export default class LCD {
    * @param {ImageData} imageData
    * @param {CanvasRenderingContext2D} context
    */
-  drawTile({tile_number, grid_x, grid_y, OBJAttr}, imageData=this._imageDataBG, ctx=this.ctxBG){
+  drawTile({tile_number, grid_x, grid_y, OBJAttr}, imageData=this._imageDataBG){
 
-    if (grid_x > this.H_TILES-1 || grid_y > this.V_TILES-1) return;
+    if (grid_x > this._H_TILES-1 || grid_y > this._V_TILES-1) return;
 
     const x_start = grid_x * this.TILE_WIDTH;
-    const y_start = grid_y * this.TILE_HEIGHT;
+    const y_start = grid_y * this._TILE_HEIGHT;
 
     let x = x_start;
     let y = y_start;
@@ -205,7 +209,7 @@ export default class LCD {
    * @private
    */
   _getOBJPalette(OBJAttr){
-    if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_OBG) === 0){
+    if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_OBG) === 0){
       return this._obg0;
     } else {
       return this._obg1;
@@ -233,9 +237,9 @@ export default class LCD {
    * @private
    */
   _handleOBJAttributes(OBJAttr, intensityMatrix, grid_x, grid_y){
-    if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_PRIORITY) === this.mmu.MASK_OBJ_ATTR_PRIORITY){
+    if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_PRIORITY) === this._mmu.MASK_OBJ_ATTR_PRIORITY){
 
-      const chrCode = this.mmu.getCharCode(grid_x, grid_y);
+      const chrCode = this._mmu.getCharCode(grid_x, grid_y);
       const matrix = this._getMatrix(chrCode);
 
       // Exception: OBJ with priority flag are displayed only in the underneath BG is lightest
@@ -244,11 +248,11 @@ export default class LCD {
       }
     }
 
-    if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_HFLIP) === this.mmu.MASK_OBJ_ATTR_HFLIP){
+    if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_HFLIP) === this._mmu.MASK_OBJ_ATTR_HFLIP){
       intensityMatrix = LCD.flipMatrixHorizontally(intensityMatrix, this.TILE_WIDTH);
     }
 
-    if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_VFLIP) === this.mmu.MASK_OBJ_ATTR_VFLIP){
+    if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_VFLIP) === this._mmu.MASK_OBJ_ATTR_VFLIP){
       intensityMatrix = LCD.flipMatrixVertically(intensityMatrix, this.TILE_WIDTH);
     }
 
@@ -301,9 +305,9 @@ export default class LCD {
   _calculateMatrix(tile_number, isOBJ){
     let tile;
     if (isOBJ) {
-      tile = this.mmu.readOBJData(tile_number);
+      tile = this._mmu.readOBJData(tile_number);
     } else {
-      tile = this.mmu.readBGData(tile_number);
+      tile = this._mmu.readBGData(tile_number);
     }
     return LCD.tileToMatrix(tile);
   }
@@ -355,7 +359,7 @@ export default class LCD {
       return; // Transparent
     }
 
-    const start = (x + y * this.width) * 4;
+    const start = (x + y * this._HW_WIDTH) * 4;
     imageData.data.set(this.SHADES[palette[level]], start);
   }
 
@@ -366,14 +370,14 @@ export default class LCD {
    * @returns {Array} pixel data
    */
   getPixelData(x, y, imageData){
-    const index = (x + y * this.width) * 4;
+    const index = (x + y * this._HW_WIDTH) * 4;
     return imageData.data.slice(index, index + 4);
   }
 
   /**
    * Flips a tile array horizontally
    * @param {Array} matrix
-   * @param {number} matrix width
+   * @param {number} matrix _HW_WIDTH
    * @returns {Array} flipped matrix
    */
   static flipMatrixHorizontally(matrix, width){
