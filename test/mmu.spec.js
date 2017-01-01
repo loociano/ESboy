@@ -343,8 +343,22 @@ describe('MMU', () => {
       mmu.writeBuffer(OBJData_ff, 0x8ff0);
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_OBJ_ON);
 
-      assert.deepEqual(mmu.readOBJData(0x00), OBJData_00, 'OBJ 0x00 data matches');
-      assert.deepEqual(mmu.readOBJData(0xff), OBJData_ff, 'OBJ 0xff data matches');
+      assert.deepEqual([...mmu.readOBJData(0x00,0),
+        ...mmu.readOBJData(0x00,1),
+        ...mmu.readOBJData(0x00,2),
+        ...mmu.readOBJData(0x00,3),
+        ...mmu.readOBJData(0x00,4),
+        ...mmu.readOBJData(0x00,5),
+        ...mmu.readOBJData(0x00,6),
+        ...mmu.readOBJData(0x00,7)], OBJData_00, 'OBJ 0x00 data matches');
+      assert.deepEqual([...mmu.readOBJData(0xff,0),
+        ...mmu.readOBJData(0xff,1),
+        ...mmu.readOBJData(0xff,2),
+        ...mmu.readOBJData(0xff,3),
+        ...mmu.readOBJData(0xff,4),
+        ...mmu.readOBJData(0xff,5),
+        ...mmu.readOBJData(0xff,6),
+        ...mmu.readOBJData(0xff,7)], OBJData_ff, 'OBJ 0xff data matches');
     });
 
     it('should read OBJs from OAM', () => {

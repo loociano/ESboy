@@ -149,7 +149,7 @@ export default class LCD {
     let palette = this._bgp;
 
     if(isOBJ){
-      intensityVector = this._handleOBJAttributes(OBJAttr, intensityVector, gridX, gridY);
+      intensityVector = this._handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, gridX, gridY);
       palette = this._getOBJPalette(OBJAttr);
     }
 
@@ -249,13 +249,15 @@ export default class LCD {
 
 
   /**
+   * @param {Array} intensityVector
+   * @param {number} tileNumber
+   * @param {number} tileLine
    * @param {number} OBJAttr
-   * @param {Array} intensityMatrix
    * @param {number} gridX
    * @param {number} gridY
    * @private
    */
-  _handleOBJAttributes(OBJAttr, intensityMatrix, gridX, gridY){
+  _handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, gridX, gridY){
     if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_PRIORITY) === this._mmu.MASK_OBJ_ATTR_PRIORITY){
 
       const chrCode = this._mmu.getCharCode(gridX, gridY);
@@ -268,14 +270,23 @@ export default class LCD {
     }
 
     if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_HFLIP) === this._mmu.MASK_OBJ_ATTR_HFLIP){
-      intensityMatrix = LCD.flipMatrixHorizontally(intensityMatrix, this.TILE_WIDTH);
+      intensityVector = intensityVector.reverse();
     }
 
     if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_VFLIP) === this._mmu.MASK_OBJ_ATTR_VFLIP){
-      intensityMatrix = LCD.flipMatrixVertically(intensityMatrix, this.TILE_WIDTH);
+      intensityVector = this._getIntensityVector(tileNumber, this._getVerticalMirrorLine(tileLine), true);
     }
 
-    return intensityMatrix;
+    return intensityVector;
+  }
+
+  /**
+   * @param line
+   * @returns {number}
+   * @private
+   */
+  _getVerticalMirrorLine(tileLine){
+    return (7 - tileLine) & 7;
   }
 
   /**
@@ -325,7 +336,7 @@ export default class LCD {
   _calculateIntensityVector(tileNumber, tileLine, isOBJ){
     let tileLineData;
     if (isOBJ) {
-      tileLineData = this._mmu.readOBJData(tileNumber);
+      tileLineData = this._mmu.readOBJData(tileNumber, tileLine);
     } else {
       tileLineData = this._mmu.readBGData(tileNumber, tileLine);
     }

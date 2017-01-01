@@ -376,20 +376,24 @@ export default class MMU {
   }
 
   /**
-   * @param tile_number
+   * @param tileNumber
+   * @param tileLine
    * @returns {Uint8Array}
    */
-  readOBJData(tile_number){
-    if (tile_number < 0 || tile_number > 0xff){
-      throw new Error(`OBJ ${tile_number} out of range`);
+  readOBJData(tileNumber, tileLine){
+    if (tileNumber < 0 || tileNumber > 0xff){
+      throw new Error(`OBJ ${tileNumber} out of range`);
+    }
+    if (tileLine < 0 || tileLine > 7){
+      throw new Error(`Invalid tile line ${tile_line}`);
     }
 
     if ((this.lcdc() & this.MASK_OBJ_ON) === 0){
       return this._genEmptyCharLineBuffer();
     }
 
-    const start_addr = this.getOBJCharDataStartAddr(tile_number);
-    return this._memory.slice(start_addr, start_addr + this.CHAR_SIZE);
+    const start_addr = this.getOBJCharDataStartAddr(tileNumber) + tileLine*2;
+    return this._memory.slice(start_addr, start_addr + this.CHAR_LINE_SIZE);
   }
 
   /**

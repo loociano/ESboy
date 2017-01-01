@@ -301,11 +301,12 @@ describe('LCD', () => {
 
     it('should flip OBJ horizontally', () => {
       const mmu = lcd.getMMU();
-      mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b00100000}; };
-
+      mmu.getCharCode = (any) => { return 0; };
+      mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b00100000/* hor flip flag */ }; };
+      mmu.readBGData = (any) => { return new Buffer('0000', 'hex'); };
       mmu.readOBJData = (any) => {
         // Left half is darkest, right half is transparent
-        return new Buffer('f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0', 'hex');
+        return new Buffer('f0f0', 'hex');
       };
 
       lcd.drawTiles();
@@ -324,10 +325,16 @@ describe('LCD', () => {
 
     it('should flip OBJ vertically', () => {
       const mmu = lcd.getMMU();
+      mmu.getCharCode = (any) => { return 0; };
+      mmu.readBGData = (any) => { return new Buffer('0000', 'hex'); };
       mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b01000000}; };
-      mmu.readOBJData = (any) => {
+      mmu.readOBJData = (tileNumber, tileLine) => {
         // Top half is darkest, bottom half is transparent
-        return new Buffer('ffffffffffffffff0000000000000000', 'hex');
+        if (tileLine < 4) {
+          return new Buffer('ffff', 'hex');
+        } else {
+          return new Buffer('0000', 'hex');
+        }
       };
 
       lcd.drawTiles();
