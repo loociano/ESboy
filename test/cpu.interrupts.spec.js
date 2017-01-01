@@ -17,7 +17,7 @@ describe('Interruptions', () => {
     this.cpu = new CPU(new MMU(loader.asUint8Array()), new lcdMock());
 
     this.cpu.setPC = function(pc){
-      this.mmu.inBIOS = false;
+      this.mmu.setRunningBIOS(false);
       this._r.pc = pc; // for testing!
     };
   });

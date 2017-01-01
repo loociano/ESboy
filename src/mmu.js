@@ -9,7 +9,7 @@ export default class MMU {
    */
   constructor(rom){
 
-    this._rom = rom;
+    if (!rom) throw new Error('Missing ROM');
 
     // Addresses
     this.ADDR_GAME_START = 0x100;
@@ -178,16 +178,14 @@ export default class MMU {
     this.MAX_BANK_NB = 0x1f; // 0..31
 
     // Variables
+    this._rom = rom;
     this._memory = new Uint8Array(this.ADDR_MAX + 1);
     this._bios = this.getBIOS();
-
-    this.inBIOS = true;
+    this._inBIOS = true;
     this._isDMA = false;
     this._buttons = 0x0f; // Buttons unpressed, on HIGH
-
     this._VRAMRefreshed = true;
     this._LCDCUpdated = false;
-
     this._div = 0x0000; // Internal divider, register DIV is msb
     this._hasMBC1 = false;
     this._selectedBankNb = 1; // default is bank 1
@@ -195,6 +193,28 @@ export default class MMU {
     this._initMemory();
     this._loadROM();
     this._setMBC1();
+  }
+
+  /**
+   * @returns {boolean} true if running BIOS
+   */
+  isRunningBIOS(){
+    return this._inBIOS;
+  }
+
+  /**
+   * @param {boolean} inBIOS
+   */
+  setRunningBIOS(inBIOS){
+    this._inBIOS = inBIOS;
+  }
+
+  setDMA(isDMA){
+    this._isDMA = isDMA;
+  }
+
+  isDMA(){
+    return this._isDMA;
   }
 
   /**
@@ -296,7 +316,7 @@ export default class MMU {
     }
 
     if (addr <= this.ADDR_ROM_MAX){
-      if (addr < this.ADDR_GAME_START && this.inBIOS){
+      if (addr < this.ADDR_GAME_START && this._inBIOS){
         return this._biosByteAt(addr);
       }
       return this.romByteAt(addr);
@@ -539,14 +559,6 @@ export default class MMU {
     this._isDMA = true;
   }
 
-  setDMA(isDMA){
-    this._isDMA = isDMA;
-  }
-
-  isDMA(){
-    return this._isDMA;
-  }
-
   /**
    * @param addr
    * @returns {boolean} true if addr is in OAM range
@@ -677,6 +689,11 @@ export default class MMU {
     return this._memory[address];
   }
 
+  /**
+   * @param {number} addr
+   * @returns {number} byte value
+   * @private
+   */
   _biosByteAt(addr){
     if (addr >= this.ADDR_GAME_START || addr < 0){
       throw new Error(`Cannot read bios address ${Utils.hexStr(addr)}`);
@@ -697,7 +714,9 @@ export default class MMU {
     return this._memory.slice(addr_start, addr_end);
   }
 
-  /** @return {string} game title */
+  /**
+   * @return {string} game title
+   */
   getGameTitle(){
     const titleArray = this._memory.slice(this.ADDR_TITLE_START, this.ADDR_TITLE_END);
 
@@ -709,7 +728,9 @@ export default class MMU {
     return title;
   }
 
-  /** @return {boolean} true if game is in color */
+  /**
+   * @return {boolean} true if game is in color
+   */
   isGameInColor() {
     return this.romByteAt(this.ADDR_IS_GB_COLOR) === this.IS_GB_COLOR;
   }
@@ -877,6 +898,9 @@ export default class MMU {
     return this.readByteAt(this.ADDR_VBK);
   }
 
+  /**
+   * @returns {number} P1
+   */
   p1(){
     return this.readByteAt(this.ADDR_P1);
   }

@@ -1030,7 +1030,7 @@ export default class CPU {
    * @private
    */
   _afterBIOS(){
-    this.mmu.inBIOS = false;
+    this.mmu.setRunningBIOS(false);
     this.mmu.setIe(0x00);
     this.mmu.setLy(0x00);
     this._r.c = 0x13; // there's a bug somewhere that leaves c=0x14
@@ -1057,7 +1057,7 @@ export default class CPU {
     this._halt = false;
 
     // BIOS does not have an vblank routine to execute
-    if (!this.mmu.inBIOS) {
+    if (!this.mmu.isRunningBIOS()) {
       this.di();
       this._rst_40();
     }

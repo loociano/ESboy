@@ -18,7 +18,7 @@ describe('MMU', () => {
   });
 
   it('should handle missing ROM', () => {
-    assert.throws(() => new MMU(), Error, 'Missing ROM');
+    assert.throws(() => new MMU(undefined), Error, 'Missing ROM');
   });
 
   it('should write bytes in memory', () => {

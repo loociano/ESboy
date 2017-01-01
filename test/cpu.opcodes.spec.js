@@ -18,7 +18,7 @@ describe('CPU Instruction Set', function() {
     cpu = new CPU(new MMU(loader.asUint8Array()), new lcdMock());
 
     cpu.setPC = function(pc){
-      this.mmu.inBIOS = false;
+      this.mmu.setRunningBIOS(false);
       this._r.pc = pc;
     };
   });

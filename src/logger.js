@@ -10,7 +10,7 @@ export default class Logger {
   }
 
   static _logBIOS(cpu){
-    if (!cpu.mmu.inBIOS) {
+    if (!cpu.mmu.isRunningBIOS()) {
       return true;
     } else {
       return config.LOG_BIOS;
