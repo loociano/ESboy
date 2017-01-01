@@ -1,6 +1,5 @@
 import assert from 'assert';
 import LCD from '../src/lcd';
-import MMU from '../src/mmu';
 import ContextMock from './mock/contextMock';
 import MMUMock from './mock/mmuMock';
 import {describe, beforeEach, it} from 'mocha';
@@ -13,109 +12,124 @@ describe('LCD', () => {
     lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock());
   });
 
-  it('should transform a Nintendo tile buffer into a matrix', () => {
-    const array = LCD.tileToMatrix(new Buffer('3c004200b900a500b900a50042003c00', 'hex'));
-    assert.deepEqual(array, [0,0,1,1,1,1,0,0,
-                             0,1,0,0,0,0,1,0,
-                             1,0,1,1,1,0,0,1,
-                             1,0,1,0,0,1,0,1,
-                             1,0,1,1,1,0,0,1,
-                             1,0,1,0,0,1,0,1,
-                             0,1,0,0,0,0,1,0,
-                             0,0,1,1,1,1,0,0]);
+  describe('Tile reading', () => {
+
+    it('should transform a Nintendo tile buffer into a matrix', () => {
+      const array = LCD.tileToMatrix(new Buffer('3c004200b900a500b900a50042003c00', 'hex'));
+      assert.deepEqual(array, [0, 0, 1, 1, 1, 1, 0, 0,
+        0, 1, 0, 0, 0, 0, 1, 0,
+        1, 0, 1, 1, 1, 0, 0, 1,
+        1, 0, 1, 0, 0, 1, 0, 1,
+        1, 0, 1, 1, 1, 0, 0, 1,
+        1, 0, 1, 0, 0, 1, 0, 1,
+        0, 1, 0, 0, 0, 0, 1, 0,
+        0, 0, 1, 1, 1, 1, 0, 0]);
+    });
+
+    it('should transform a tile buffer into levels of gray matrix', () => {
+      const array = LCD.tileToMatrix(new Buffer('5533aacc5533aacc5533aacc5533aacc', 'hex'));
+      assert.deepEqual(array, [0, 1, 2, 3, 0, 1, 2, 3,
+        3, 2, 1, 0, 3, 2, 1, 0,
+        0, 1, 2, 3, 0, 1, 2, 3,
+        3, 2, 1, 0, 3, 2, 1, 0,
+        0, 1, 2, 3, 0, 1, 2, 3,
+        3, 2, 1, 0, 3, 2, 1, 0,
+        0, 1, 2, 3, 0, 1, 2, 3,
+        3, 2, 1, 0, 3, 2, 1, 0]);
+    });
+
+    it('should transform a tile buffer into a the lightest matrix', () => {
+      const array = LCD.tileToMatrix(new Buffer('00000000000000000000000000000000', 'hex'));
+      assert.deepEqual(array, [0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0]);
+    });
+
+    it('should transform a tile buffer into a darkest matrix', () => {
+      const array = LCD.tileToMatrix(new Buffer('ffffffffffffffffffffffffffffffff', 'hex'));
+      assert.deepEqual(array, [3, 3, 3, 3, 3, 3, 3, 3,
+        3, 3, 3, 3, 3, 3, 3, 3,
+        3, 3, 3, 3, 3, 3, 3, 3,
+        3, 3, 3, 3, 3, 3, 3, 3,
+        3, 3, 3, 3, 3, 3, 3, 3,
+        3, 3, 3, 3, 3, 3, 3, 3,
+        3, 3, 3, 3, 3, 3, 3, 3,
+        3, 3, 3, 3, 3, 3, 3, 3]);
+    });
   });
 
-  it('should transform a tile buffer into levels of gray matrix', () => {
-    const array = LCD.tileToMatrix(new Buffer('5533aacc5533aacc5533aacc5533aacc', 'hex'));
-    assert.deepEqual(array, [0,1,2,3,0,1,2,3,
-                             3,2,1,0,3,2,1,0,
-                             0,1,2,3,0,1,2,3,
-                             3,2,1,0,3,2,1,0,
-                             0,1,2,3,0,1,2,3,
-                             3,2,1,0,3,2,1,0,
-                             0,1,2,3,0,1,2,3,
-                             3,2,1,0,3,2,1,0]);
+  describe('Pixel drawing', () => {
+
+    it('should write pixel data', () => {
+
+      const WIDTH = 160;
+      const HEIGHT = 144;
+      const lastIndex = WIDTH * HEIGHT * 4 - 1;
+      const data = lcd.getImageDataBG().data;
+
+      let pixel = {x: 0, y: 0, level: 0};
+      lcd.drawPixel(pixel);
+
+      assert.deepEqual([data[0], data[1], data[2], data[3]], lcd.SHADES[lcd._bgp[pixel.level]]);
+
+      pixel = {x: 1, y: 0, level: 1};
+      lcd.drawPixel(pixel);
+
+      assert.deepEqual([data[4], data[5], data[6], data[7]], lcd.SHADES[lcd._bgp[pixel.level]]);
+
+      pixel = {x: WIDTH - 1, y: 0, level: 2};
+      lcd.drawPixel(pixel);
+
+      assert.deepEqual([data[WIDTH * 4 - 4], data[WIDTH * 4 - 3], data[WIDTH * 4 - 2], data[WIDTH * 4 - 1]], lcd.SHADES[lcd._bgp[pixel.level]]);
+
+      pixel = {x: WIDTH - 1, y: HEIGHT - 1, level: 3};
+      lcd.drawPixel(pixel);
+
+      assert.deepEqual([data[lastIndex - 3], data[lastIndex - 2], data[lastIndex - 1], data[lastIndex]], lcd.SHADES[lcd._bgp[pixel.level]]);
+    });
+
   });
 
-  it('should transform a tile buffer into a the lightest matrix', () => {
-    const array = LCD.tileToMatrix(new Buffer('00000000000000000000000000000000', 'hex'));
-    assert.deepEqual(array, [0,0,0,0,0,0,0,0,
-                             0,0,0,0,0,0,0,0,
-                             0,0,0,0,0,0,0,0,
-                             0,0,0,0,0,0,0,0,
-                             0,0,0,0,0,0,0,0,
-                             0,0,0,0,0,0,0,0,
-                             0,0,0,0,0,0,0,0,
-                             0,0,0,0,0,0,0,0]);
-  });
+  describe('Tile drawing', () => {
 
-  it('should transform a tile buffer into a darkest matrix', () => {
-    const array = LCD.tileToMatrix(new Buffer('ffffffffffffffffffffffffffffffff', 'hex'));
-    assert.deepEqual(array, [3,3,3,3,3,3,3,3,
-                             3,3,3,3,3,3,3,3,
-                             3,3,3,3,3,3,3,3,
-                             3,3,3,3,3,3,3,3,
-                             3,3,3,3,3,3,3,3,
-                             3,3,3,3,3,3,3,3,
-                             3,3,3,3,3,3,3,3,
-                             3,3,3,3,3,3,3,3]);
-  });
+    it('should not write tiles out of screen', () => {
+      const mmu = lcd.getMMU();
+      mmu.readBGData = () => {
+        return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
+      };
+      const bg = lcd.getImageDataBG();
 
-  it('should write pixel data', () => {
+      // Max x is 19
+      lcd.drawTile({tile_number: 0, grid_x: 20, grid_y: 0});
 
-    const WIDTH = 160;
-    const HEIGHT = 144;
-    const lastIndex = WIDTH*HEIGHT*4 - 1;
-    const data = lcd.getImageDataBG().data;
+      assert.deepEqual(bg, lcd.getImageDataBG(), 'No change');
 
-    let pixel = {x: 0, y:0, level:0};
-    lcd.drawPixel(pixel);
+      // Max y is 17
+      lcd.drawTile({tile_number: 0, grid_x: 0, grid_y: 18});
 
-    assert.deepEqual([data[0], data[1], data[2], data[3]], lcd.SHADES[lcd._bgp[pixel.level]]);
+      assert.deepEqual(bg, lcd.getImageDataBG(), 'No change');
+    });
 
-    pixel = {x: 1, y:0, level: 1};
-    lcd.drawPixel(pixel);
+    it('should write darkest tiles on screen', () => {
+      const mmu = lcd.getMMU();
+      mmu.readBGData = () => {
+        return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
+      };
 
-    assert.deepEqual([data[4], data[5], data[6], data[7]], lcd.SHADES[lcd._bgp[pixel.level]]);
+      lcd.drawTile({tile_number: 1, grid_x: 0, grid_y: 0});
+      lcd.drawTile({tile_number: 1, grid_x: 10, grid_y: 9});
+      lcd.drawTile({tile_number: 1, grid_x: 19, grid_y: 17});
 
-    pixel = {x: WIDTH-1, y:0, level:2};
-    lcd.drawPixel(pixel);
+      assertDarkestTile.call(lcd, 0, 0, lcd.getImageDataBG());
+      assertDarkestTile.call(lcd, 10, 9, lcd.getImageDataBG());
+      assertDarkestTile.call(lcd, 19, 17, lcd.getImageDataBG());
+    });
 
-    assert.deepEqual([data[WIDTH*4-4], data[WIDTH*4-3], data[WIDTH*4-2], data[WIDTH*4-1]], lcd.SHADES[lcd._bgp[pixel.level]]);
-
-    pixel = {x: WIDTH-1, y:HEIGHT-1, level:3};
-    lcd.drawPixel(pixel);
-
-    assert.deepEqual([data[lastIndex-3], data[lastIndex-2], data[lastIndex-1], data[lastIndex]], lcd.SHADES[lcd._bgp[pixel.level]]);
-  });
-
-  it('should not write tiles out of screen', () => {
-    const mmu = lcd.getMMU();
-    mmu.readBGData = () => { return new Buffer('ffffffffffffffffffffffffffffffff', 'hex'); };
-    const bg = lcd.getImageDataBG();
-
-    // Max x is 19
-    lcd.drawTile({tile_number: 0, grid_x: 20, grid_y: 0});
-
-    assert.deepEqual(bg, lcd.getImageDataBG(), 'No change');
-
-    // Max y is 17
-    lcd.drawTile({tile_number: 0, grid_x: 0, grid_y: 18});
-
-    assert.deepEqual(bg, lcd.getImageDataBG(), 'No change');
-  });
-
-  it('should write darkest tiles on screen', () => {
-    const mmu = lcd.getMMU();
-    mmu.readBGData = () => { return new Buffer('ffffffffffffffffffffffffffffffff', 'hex'); };
-
-    lcd.drawTile({tile_number: 1, grid_x: 0, grid_y: 0});
-    lcd.drawTile({tile_number: 1, grid_x: 10, grid_y: 9});
-    lcd.drawTile({tile_number: 1, grid_x: 19, grid_y: 17});
-
-    assertDarkestTile.call(lcd, 0, 0, lcd.getImageDataBG());
-    assertDarkestTile.call(lcd, 10, 9, lcd.getImageDataBG());
-    assertDarkestTile.call(lcd, 19, 17, lcd.getImageDataBG());
   });
 
   describe('OBJ (Sprites)', () => {
@@ -367,6 +381,7 @@ describe('LCD', () => {
       assertTile.call(lcd, 0, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
     });
   });
+
 });
 
 /**
