@@ -3,8 +3,14 @@ import Logger from './logger';
 
 export default class LCD {
 
+  /**
+   * @param {MMU} mmu
+   * @param {CanvasRenderingContext2D} ctxBG
+   * @param {CanvasRenderingContext2D} ctxOBJ
+   */
   constructor(mmu, ctxBG, ctxOBJ){
 
+    // Constants
     this._HW_WIDTH = 160;
     this._HW_HEIGHT = 144;
 
@@ -48,8 +54,8 @@ export default class LCD {
   }
 
   /**
-   * @param imageData
-   * @param ctx
+   * @param {ImageData} imageData
+   * @param {CanvasRenderingContext2D} ctx
    * @private
    */
   _putImageData(imageData=this._imageDataBG, ctx=this.ctxBG){
@@ -58,6 +64,8 @@ export default class LCD {
 
   /** 
    * Clears the LCD by writing transparent pixels
+   * @param {ImageData} imageData
+   * @param {CanvasRenderingContext2D} ctx
    * @private
    */
   _clear(imageData=this._imageDataBG, ctx=this.ctxBG){
@@ -131,7 +139,7 @@ export default class LCD {
   _drawOBJ(){
     for(let n = 0; n < this.mmu.MAX_OBJ; n++){
       const OBJ = this.mmu.getOBJ(n);
-      if (this._isValidOBJ(OBJ)) {
+      if (LCD._isValidOBJ(OBJ)) {
         this.drawTile({
           tile_number: OBJ.chrCode,
           grid_x: (OBJ.x/this.TILE_WIDTH) - 1,
@@ -144,11 +152,11 @@ export default class LCD {
   }
 
   /**
-   * @param OBJ
+   * @param {Object} OBJ
    * @returns {boolean}
    * @private
    */
-  _isValidOBJ(OBJ){
+  static _isValidOBJ(OBJ){
     return OBJ.x !== 0 || OBJ.y !== 0 || OBJ.chrCode !== 0 || OBJ.attr !== 0;
   }
 
@@ -158,8 +166,9 @@ export default class LCD {
    * @param {number} tile_number
    * @param {number} grid_x from 0x00 to 0x13 [0-19]
    * @param {number} grid_y from 0x00 to 0x12 [0-17]
-   * @param {Object} imageData
-   * @param {Object} context
+   * @param {number} OBJAttr
+   * @param {ImageData} imageData
+   * @param {CanvasRenderingContext2D} context
    */
   drawTile({tile_number, grid_x, grid_y, OBJAttr}, imageData=this._imageDataBG, ctx=this.ctxBG){
 
@@ -191,7 +200,7 @@ export default class LCD {
   }
 
   /**
-   * @param OBJAttr
+   * @param {number} OBJAttr
    * @returns {Array}
    * @private
    */
@@ -219,6 +228,8 @@ export default class LCD {
   /**
    * @param {number} OBJAttr
    * @param {Array} intensityMatrix
+   * @param {number} grid_x
+   * @param {number} grid_y
    * @private
    */
   _handleOBJAttributes(OBJAttr, intensityMatrix, grid_x, grid_y){
@@ -228,28 +239,28 @@ export default class LCD {
       const matrix = this._getMatrix(chrCode);
 
       // Exception: OBJ with priority flag are displayed only in the underneath BG is lightest
-      if (!this._isLightestMatrix(matrix)){
+      if (!LCD._isLightestMatrix(matrix)){
         return new Array(64).fill(0);
       }
     }
 
     if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_HFLIP) === this.mmu.MASK_OBJ_ATTR_HFLIP){
-      intensityMatrix = this.flipMatrixHorizontally(intensityMatrix);
+      intensityMatrix = LCD.flipMatrixHorizontally(intensityMatrix, this.TILE_WIDTH);
     }
 
     if ((OBJAttr & this.mmu.MASK_OBJ_ATTR_VFLIP) === this.mmu.MASK_OBJ_ATTR_VFLIP){
-      intensityMatrix = this.flipMatrixVertically(intensityMatrix);
+      intensityMatrix = LCD.flipMatrixVertically(intensityMatrix, this.TILE_WIDTH);
     }
 
     return intensityMatrix;
   }
 
   /**
-   * @param matrix
+   * @param {Array} matrix
    * @returns {boolean} true if the matrix is the lightest possible
    * @private
    */
-  _isLightestMatrix(matrix){
+  static _isLightestMatrix(matrix){
     for(let intensity of matrix){
       if (intensity > 0) return false;
     }
@@ -325,9 +336,11 @@ export default class LCD {
   /**
    * Draws pixel in image data, given its coords and grey level
    * 
-   * @param {Object} pixel
+   * @param x
+   * @param y
+   * @param level
    * @param {Map} palette
-   * @param {Object} imageData
+   * @param {ImageData} imageData
    */
   drawPixel({x, y, level}, palette=this._bgp, imageData=this._imageDataBG) {
     
@@ -347,9 +360,10 @@ export default class LCD {
   }
 
   /**
-   * @param x
-   * @param y
-   * @returns {Object} pixel imageData
+   * @param {number} x
+   * @param {number} y
+   * @param {ImageData} imageData
+   * @returns {Array} pixel data
    */
   getPixelData(x, y, imageData){
     const index = (x + y * this.width) * 4;
@@ -359,13 +373,14 @@ export default class LCD {
   /**
    * Flips a tile array horizontally
    * @param {Array} matrix
-   * @returns {Array}
+   * @param {number} matrix width
+   * @returns {Array} flipped matrix
    */
-  flipMatrixHorizontally(matrix){
+  static flipMatrixHorizontally(matrix, width){
     const flipped = [];
 
-    for(let line = 0; line < matrix.length; line += this.TILE_WIDTH){
-      const flippedLine = matrix.slice(line, line + this.TILE_WIDTH).reverse();
+    for(let line = 0; line < matrix.length; line += width){
+      const flippedLine = matrix.slice(line, line + width).reverse();
       flipped.push(...flippedLine);
     }
     return flipped;
@@ -373,12 +388,13 @@ export default class LCD {
 
   /**
    * @param {Array} matrix
-   * @returns {Array} flipped
+   * @param {number} matrix width
+   * @returns {Array} flipped matrix
    */
-  flipMatrixVertically(matrix){
+  static flipMatrixVertically(matrix, width){
     const flipped = [];
-    for(let l = matrix.length; l > 0; l -= this.TILE_WIDTH){
-      flipped.push(...matrix.slice(l - this.TILE_WIDTH, l));
+    for(let l = matrix.length; l > 0; l -= width){
+      flipped.push(...matrix.slice(l - width, l));
     }
     return flipped;
   }
