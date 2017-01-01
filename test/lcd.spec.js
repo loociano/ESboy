@@ -10,8 +10,11 @@ describe('LCD', () => {
 
   beforeEach(function() {
     lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock());
+    // For testing purposes, LCD HW will always draw line by line
     lcd.drawTiles = function() {
-      // For testing purposes, LCD HW will always draw line by line
+      this._readPalettes();
+      this._clear();
+      this._clear(this._imageDataOBJ, this._ctxOBJ);
       for(let l = 0; l < lcd._HW_HEIGHT; l++){
         lcd.drawLine(l);
       }
@@ -176,7 +179,8 @@ describe('LCD', () => {
 
     it('should detect transparency on OBJ', () => {
       const mmu = lcd.getMMU();
-      mmu.readOBJData = () => { return new Buffer('00000000000000000000000000000000', 'hex'); };
+      mmu.readBGData = () => { return new Buffer('ffff', 'hex'); };
+      mmu.readOBJData = () => { return new Buffer('0000', 'hex'); };
       mmu.getOBJ = () => { return {y: 16, x: 8, chrCode: 0x00, attr: 0x00}; };
       mmu.getCharCode = () => { return 0x00; };
       mmu.obg0 = () => { return 0b11100100; };
@@ -189,7 +193,8 @@ describe('LCD', () => {
 
     it('should not paint pixels 00 from OBJ regardless of their palette', () => {
       const mmu = lcd.getMMU();
-      mmu.readOBJData = () => { return new Buffer('00000000000000000000000000000000', 'hex'); };
+      mmu.readBGData = () => { return new Buffer('ffff', 'hex'); };
+      mmu.readOBJData = () => { return new Buffer('0000', 'hex'); };
       mmu.getOBJ = () => { return {y: 16, x: 8, chrCode: 0x00, attr: 0x00}; };
       mmu.getCharCode = () => { return 0x00; };
       mmu.obg0 = () => { return 0b11111111; }; // force lightest level bit0,1 to darkest
@@ -208,7 +213,8 @@ describe('LCD', () => {
 
     it('should detect palette on OBJ', () => {
       const mmu = lcd.getMMU();
-      mmu.readOBJData = () => { return new Buffer('ff00ff00ff00ff00ff00ff00ff00ff00', 'hex'); };
+      mmu.readBGData = () => { return new Buffer('0000', 'hex'); };
+      mmu.readOBJData = () => { return new Buffer('ff00', 'hex'); };
       mmu.getCharCode = () => { return 0x00; };
       mmu.getOBJ = () => { return {y: 16, x: 8, chrCode: 0x00, attr: 0x00}; };
       mmu.obg0 = () => { return 0b00000000; };

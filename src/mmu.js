@@ -368,7 +368,7 @@ export default class MMU {
     }
 
     if ((this.lcdc() & this.LCDC_BG) === 0){
-      return this._genEmptyCharBuffer();
+      return this._genEmptyCharLineBuffer();
     }
 
     const start_addr = this.getBgCharDataStartAddr(tile_number) + tile_line*2;
@@ -385,7 +385,7 @@ export default class MMU {
     }
 
     if ((this.lcdc() & this.MASK_OBJ_ON) === 0){
-      return this._genEmptyCharBuffer();
+      return this._genEmptyCharLineBuffer();
     }
 
     const start_addr = this.getOBJCharDataStartAddr(tile_number);
@@ -393,11 +393,11 @@ export default class MMU {
   }
 
   /**
-   * @returns {Uint8Array} generates an char-size, empty buffer
+   * @returns {Uint8Array} generates an char-line, empty buffer
    * @private
    */
-  _genEmptyCharBuffer(){
-    return new Buffer(this.CHAR_SIZE).fill(0);
+  _genEmptyCharLineBuffer(){
+    return new Buffer(this.CHAR_LINE_SIZE).fill(0);
   }
 
   /**
