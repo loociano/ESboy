@@ -110,6 +110,8 @@ export default class MMU {
     this.MASK_OBJ_ATTR_OBG = 0x10;
 
     // Character Data
+    this.CHAR_LINE_SIZE = 2;
+    this.CHAR_HEIGHT = 8;
     this.CHAR_SIZE = 0x10; // 0x00 to 0x0f
 
     // LCD
@@ -353,20 +355,24 @@ export default class MMU {
   /**
    * Returns the buffer given a tile number
    * Tiles are numbered from 0x00 to 0xff
-   * @param tile_number
+   * @param {number} tile_number
+   * @param {number} tile_line
    * @returns {Uint8Array}
    */
-  readBGData(tile_number){
+  readBGData(tile_number, tile_line=0){
     if (tile_number < 0 || tile_number > 0xff){
       throw new Error(`Cannot read tile ${tile_number}`);
+    }
+    if (tile_line < 0 || tile_line > 7){
+      throw new Error(`Invalid tile line ${tile_line}`);
     }
 
     if ((this.lcdc() & this.LCDC_BG) === 0){
       return this._genEmptyCharBuffer();
     }
 
-    const start_addr = this.getBgCharDataStartAddr(tile_number);
-    return this._memory.slice(start_addr, start_addr + this.CHAR_SIZE);
+    const start_addr = this.getBgCharDataStartAddr(tile_number) + tile_line*2;
+    return this._memory.slice(start_addr, start_addr + this.CHAR_LINE_SIZE);
   }
 
   /**

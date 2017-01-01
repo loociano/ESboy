@@ -10,56 +10,34 @@ describe('LCD', () => {
 
   beforeEach(function() {
     lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock());
+    lcd.drawTiles = function() {
+      // For testing purposes, LCD HW will always draw line by line
+      for(let l = 0; l < lcd._HW_HEIGHT; l++){
+        lcd.drawLine(l);
+      }
+    }
   });
 
   describe('Tile reading', () => {
 
     it('should transform a Nintendo tile buffer into a matrix', () => {
-      const array = LCD.tileToMatrix(new Buffer('3c004200b900a500b900a50042003c00', 'hex'));
-      assert.deepEqual(array, [0, 0, 1, 1, 1, 1, 0, 0,
-        0, 1, 0, 0, 0, 0, 1, 0,
-        1, 0, 1, 1, 1, 0, 0, 1,
-        1, 0, 1, 0, 0, 1, 0, 1,
-        1, 0, 1, 1, 1, 0, 0, 1,
-        1, 0, 1, 0, 0, 1, 0, 1,
-        0, 1, 0, 0, 0, 0, 1, 0,
-        0, 0, 1, 1, 1, 1, 0, 0]);
+      assert.deepEqual(LCD.tileToIntensityVector(new Buffer('3c00', 'hex')), [0,0,1,1,1,1,0,0]);
+      assert.deepEqual(LCD.tileToIntensityVector(new Buffer('4200', 'hex')), [0,1,0,0,0,0,1,0]);
+      assert.deepEqual(LCD.tileToIntensityVector(new Buffer('b900', 'hex')), [1,0,1,1,1,0,0,1]);
+      assert.deepEqual(LCD.tileToIntensityVector(new Buffer('a500', 'hex')), [1,0,1,0,0,1,0,1]);
     });
 
     it('should transform a tile buffer into levels of gray matrix', () => {
-      const array = LCD.tileToMatrix(new Buffer('5533aacc5533aacc5533aacc5533aacc', 'hex'));
-      assert.deepEqual(array, [0, 1, 2, 3, 0, 1, 2, 3,
-        3, 2, 1, 0, 3, 2, 1, 0,
-        0, 1, 2, 3, 0, 1, 2, 3,
-        3, 2, 1, 0, 3, 2, 1, 0,
-        0, 1, 2, 3, 0, 1, 2, 3,
-        3, 2, 1, 0, 3, 2, 1, 0,
-        0, 1, 2, 3, 0, 1, 2, 3,
-        3, 2, 1, 0, 3, 2, 1, 0]);
+      assert.deepEqual(LCD.tileToIntensityVector(new Buffer('5533', 'hex')), [0,1,2,3,0,1,2,3]);
+      assert.deepEqual(LCD.tileToIntensityVector(new Buffer('aacc', 'hex')), [3,2,1,0,3,2,1,0]);
     });
 
     it('should transform a tile buffer into a the lightest matrix', () => {
-      const array = LCD.tileToMatrix(new Buffer('00000000000000000000000000000000', 'hex'));
-      assert.deepEqual(array, [0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0]);
+      assert.deepEqual(LCD.tileToIntensityVector(new Buffer('0000', 'hex')), [0,0,0,0,0,0,0,0]);
     });
 
     it('should transform a tile buffer into a darkest matrix', () => {
-      const array = LCD.tileToMatrix(new Buffer('ffffffffffffffffffffffffffffffff', 'hex'));
-      assert.deepEqual(array, [3, 3, 3, 3, 3, 3, 3, 3,
-        3, 3, 3, 3, 3, 3, 3, 3,
-        3, 3, 3, 3, 3, 3, 3, 3,
-        3, 3, 3, 3, 3, 3, 3, 3,
-        3, 3, 3, 3, 3, 3, 3, 3,
-        3, 3, 3, 3, 3, 3, 3, 3,
-        3, 3, 3, 3, 3, 3, 3, 3,
-        3, 3, 3, 3, 3, 3, 3, 3]);
+      assert.deepEqual(LCD.tileToIntensityVector(new Buffer('ffff', 'hex')), [3,3,3,3,3,3,3,3]);
     });
   });
 
@@ -97,33 +75,67 @@ describe('LCD', () => {
 
   describe('Tile drawing', () => {
 
-    it('should not write tiles out of screen', () => {
+    it('should draw a line', () => {
       const mmu = lcd.getMMU();
-      mmu.readBGData = () => {
-        return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
+      mmu.readBGData = (tileNumber) => {
+        if (tileNumber === 0) {
+          return new Buffer('ffff', 'hex');
+        } else {
+          return new Buffer('0000', 'hex');
+        }
       };
+      mmu.getCharCode = (gridX) => {
+        if (gridX === 0) {
+          return 0;
+        } else {
+          return 1;
+        }
+      };
+
+      const expectedData = new Uint8ClampedArray(160*1*4); // first LCD line
+      for(let p = 0; p < expectedData.length; p++){
+        if (p < 8*4){
+          expectedData[p] = lcd.SHADES[lcd._bgp[3]][p % 4]; // left-most tile
+        } else {
+          expectedData[p] = lcd.SHADES[lcd._bgp[0]][p % 4];
+        }
+      }
+
+      lcd.drawLine(0);
+
+      assert.deepEqual(lcd.getImageDataBG().data.subarray(0, 1*160*4), expectedData);
+    });
+
+    it('should not draw lines outside screen', () => {
       const bg = lcd.getImageDataBG();
 
-      // Max x is 19
-      lcd.drawTile({tile_number: 0, grid_x: 20, grid_y: 0});
-
-      assert.deepEqual(bg, lcd.getImageDataBG(), 'No change');
-
-      // Max y is 17
-      lcd.drawTile({tile_number: 0, grid_x: 0, grid_y: 18});
+      lcd.drawLine(144);
 
       assert.deepEqual(bg, lcd.getImageDataBG(), 'No change');
     });
 
     it('should write darkest tiles on screen', () => {
       const mmu = lcd.getMMU();
-      mmu.readBGData = () => {
-        return new Buffer('ffffffffffffffffffffffffffffffff', 'hex');
+      mmu.readBGData = (tileNumber) => {
+        if (tileNumber === 0) {
+          return new Buffer('ffff', 'hex');
+        } else {
+          return new Buffer('0000', 'hex');
+        }
+      };
+      mmu.getCharCode = (gridX, gridY) => {
+        if (gridX === 0 && gridY === 0) {
+          return 0; // top-left most tile
+        } else if (gridX === 19 && gridY === 17){
+          return 0; // bottom-right most tile
+        } else if (gridX === 10 && gridY === 9){
+          return 0; // center tile
+        } else {
+          return 1;
+        }
       };
 
-      lcd.drawTile({tile_number: 1, grid_x: 0, grid_y: 0});
-      lcd.drawTile({tile_number: 1, grid_x: 10, grid_y: 9});
-      lcd.drawTile({tile_number: 1, grid_x: 19, grid_y: 17});
+      lcd.drawTiles();
 
       assertDarkestTile.call(lcd, 0, 0, lcd.getImageDataBG());
       assertDarkestTile.call(lcd, 10, 9, lcd.getImageDataBG());
@@ -135,8 +147,8 @@ describe('LCD', () => {
   describe('OBJ (Sprites)', () => {
     it('should write OBJ on top of BG', () => {
       const mmu = lcd.getMMU();
-      mmu.readBGData = (any) => { return new Buffer('00000000000000000000000000000000', 'hex'); };
-      mmu.readOBJData = (any) => { return new Buffer('ffffffffffffffffffffffffffffffff', 'hex'); };
+      mmu.readBGData = (any) => { return new Buffer('0000', 'hex'); };
+      mmu.readOBJData = (any) => { return new Buffer('ffff', 'hex'); };
       mmu.getOBJ = function(obj_number) {
         if (obj_number === 0) {
           return {y: 16, x: 8, chrCode: 0x01, attr: 0x00};
