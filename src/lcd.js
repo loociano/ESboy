@@ -210,7 +210,7 @@ export default class LCD {
    * @private
    */
   _isOBJInLine(line, coordY){
-    return line >= (coordY-10) && line <= (coordY-3);
+    return line >= (coordY-0x10) && line <= (coordY-0x10 + 7);
   }
 
   /**
