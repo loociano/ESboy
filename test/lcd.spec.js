@@ -353,10 +353,21 @@ describe('LCD', () => {
 
     it('should flip OBJ horizontally and vertically', () => {
       const mmu = lcd.getMMU();
-      mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b01100000}; };
-      mmu.readOBJData = (any) => {
-        // pixel at top-left most is darkest
-        return new Buffer('80800000000000000000000000000000', 'hex');
+      mmu.getCharCode = (any) => { return 0; };
+      mmu.getOBJ = (number) => {
+        if (number === 0){
+          return {y: 16, x: 8, chrCode: 0, attr: 0b01100000};
+        } else {
+          return {y: 0, x: 0, chrCode: 0, attr: 0}
+        }
+      };
+      mmu.readBGData = (any) => { return new Buffer('0000', 'hex'); };
+      mmu.readOBJData = (tileNumber, tileLine) => {
+        if (tileNumber === 0 && tileLine === 0) {
+          return new Buffer('8080', 'hex'); // pixel at top-left most is darkest
+        } else {
+          return new Buffer('0000', 'hex');
+        }
       };
 
       lcd.drawTiles();
@@ -375,9 +386,9 @@ describe('LCD', () => {
 
     it('should detect OBJ priority flag', () => {
       const mmu = lcd.getMMU();
-      mmu.readBGData = (any) => { return new Buffer('ffffffffffffffffffffffffffffffff', 'hex'); };
-      mmu.readOBJData = (any) => { return new Buffer('ff00ff00ff00ff00ff00ff00ff00ff00', 'hex'); };
-      mmu.getCharCode = (any) => { return 0x00; };
+      mmu.readBGData = (any) => { return new Buffer('ffff', 'hex'); };
+      mmu.readOBJData = (tileNumber, tileLine) => { return new Buffer('ff00', 'hex'); };
+      mmu.getCharCode = (any) => { return 0; };
       mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b00000000}; };
       mmu.obg0 = () => { return 0b11100100; };
 

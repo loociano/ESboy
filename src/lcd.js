@@ -260,23 +260,24 @@ export default class LCD {
   _handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, gridX, gridY){
     if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_PRIORITY) === this._mmu.MASK_OBJ_ATTR_PRIORITY){
 
-      const chrCode = this._mmu.getCharCode(gridX, gridY);
-      const matrix = this._getIntensityVector(chrCode);
+      const tileNumber = this._mmu.getCharCode(gridX, gridY);
+      const bgIntensityVector = this._getIntensityVector(tileNumber, tileLine, false);
 
       // Exception: OBJ with priority flag are displayed only in the underneath BG is lightest
-      if (!LCD._isLightestMatrix(matrix)){
-        return new Array(64).fill(0);
+      if (!LCD._isLightestVector(bgIntensityVector)){
+        return new Array(this.TILE_WIDTH).fill(0);
       }
     }
 
-    if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_HFLIP) === this._mmu.MASK_OBJ_ATTR_HFLIP){
-      intensityVector = intensityVector.reverse();
-    }
-
+    // Flipping order matters
     if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_VFLIP) === this._mmu.MASK_OBJ_ATTR_VFLIP){
       intensityVector = this._getIntensityVector(tileNumber, this._getVerticalMirrorLine(tileLine), true);
     }
-
+    if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_HFLIP) === this._mmu.MASK_OBJ_ATTR_HFLIP){
+      const copy = intensityVector.slice();
+      copy.reverse();
+      intensityVector = copy;
+    }
     return intensityVector;
   }
 
@@ -290,12 +291,12 @@ export default class LCD {
   }
 
   /**
-   * @param {Array} matrix
-   * @returns {boolean} true if the matrix is the lightest possible
+   * @param {Array} vector
+   * @returns {boolean} true if the vector is the lightest possible
    * @private
    */
-  static _isLightestMatrix(matrix){
-    for(let intensity of matrix){
+  static _isLightestVector(vector){
+    for(let intensity of vector){
       if (intensity > 0) return false;
     }
     return true;
