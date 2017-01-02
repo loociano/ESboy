@@ -426,33 +426,4 @@ export default class LCD {
     const index = (x + y * this._HW_WIDTH) * 4;
     return imageData.data.slice(index, index + 4);
   }
-
-  /**
-   * Flips a tile array horizontally
-   * @param {Array} matrix
-   * @param {number} matrix _HW_WIDTH
-   * @returns {Array} flipped matrix
-   */
-  static flipMatrixHorizontally(matrix, width){
-    const flipped = [];
-
-    for(let line = 0; line < matrix.length; line += width){
-      const flippedLine = matrix.slice(line, line + width).reverse();
-      flipped.push(...flippedLine);
-    }
-    return flipped;
-  }
-
-  /**
-   * @param {Array} matrix
-   * @param {number} matrix width
-   * @returns {Array} flipped matrix
-   */
-  static flipMatrixVertically(matrix, width){
-    const flipped = [];
-    for(let l = matrix.length; l > 0; l -= width){
-      flipped.push(...matrix.slice(l - width, l));
-    }
-    return flipped;
-  }
 }

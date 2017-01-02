@@ -276,61 +276,6 @@ describe('LCD', () => {
       assertTile.call(lcd, 0, 0, lcd.SHADES[3], lcd.getImageDataOBJ());
     });
 
-    it('should flip matrix horizontally', () => {
-      const matrix =  [3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0];
-      const flipped = [0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3,0,0,0,0,3,3,3,3];
-
-      assert.deepEqual(LCD.flipMatrixHorizontally(matrix, lcd.TILE_WIDTH), flipped);
-    });
-
-    it('should flip matrix vertically', () => {
-      const matrix =  [0,0,0,0,0,0,0,0,
-                       0,0,0,0,0,0,0,0,
-                       0,0,3,3,0,0,0,0,
-                       0,0,3,3,0,0,0,0,
-                       0,0,0,0,0,0,0,0,
-                       0,0,0,0,0,0,0,0,
-                       0,0,0,0,0,0,0,0,
-                       0,0,0,0,0,0,0,0];
-
-      const flipped = [0,0,0,0,0,0,0,0,
-                       0,0,0,0,0,0,0,0,
-                       0,0,0,0,0,0,0,0,
-                       0,0,0,0,0,0,0,0,
-                       0,0,3,3,0,0,0,0,
-                       0,0,3,3,0,0,0,0,
-                       0,0,0,0,0,0,0,0,
-                       0,0,0,0,0,0,0,0];
-
-      assert.deepEqual(LCD.flipMatrixVertically(matrix, lcd.TILE_WIDTH), flipped);
-    });
-
-    it('should flip matrix both horizontally and vertically', () => {
-      // x0 --> 00
-      // 00     0x
-      const matrix =  [0,0,0,0,0,0,0,0,
-                       0,0,0,0,0,0,0,0,
-                       0,0,3,3,0,0,0,0,
-                       0,0,3,3,0,0,0,0,
-                       0,0,0,0,0,0,0,0,
-                       0,0,0,0,0,0,0,0,
-                       0,0,0,0,0,0,0,0,
-                       0,0,0,0,0,0,0,0];
-
-      const flipped = [0,0,0,0,0,0,0,0,
-                       0,0,0,0,0,0,0,0,
-                       0,0,0,0,0,0,0,0,
-                       0,0,0,0,0,0,0,0,
-                       0,0,0,0,3,3,0,0,
-                       0,0,0,0,3,3,0,0,
-                       0,0,0,0,0,0,0,0,
-                       0,0,0,0,0,0,0,0];
-
-      assert.deepEqual(LCD.flipMatrixHorizontally(
-        LCD.flipMatrixVertically(matrix, lcd.TILE_WIDTH),
-        lcd.TILE_WIDTH), flipped);
-    });
-
     it('should flip OBJ horizontally', () => {
       const mmu = lcd.getMMU();
       mmu.getCharCode = (any) => { return 0; };
