@@ -999,6 +999,7 @@ export default class CPU {
       case 2:
         if (this._m > (this._mLyOffset() + this.M_CYCLES_STOP_MODE_2)) {
           this.mmu.setLCDMode(3);
+          this.lcd.drawLine(this.ly());
         }
         break;
       case 3:
