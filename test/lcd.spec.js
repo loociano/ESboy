@@ -133,6 +133,37 @@ describe('LCD', () => {
       assert.deepEqual(lcd.getImageDataBG().data.subarray(0, 1*160*4), expectedData);
     });
 
+    it('should draw 2 lines', () => {
+      const mmu = lcd.getMMU();
+      mmu.readBGData = (tileNumber, tileLine) => {
+        if (tileLine % 2 === 0) {
+          return new Buffer('ffff', 'hex'); // even lines are dark
+        } else {
+          return new Buffer('0000', 'hex'); // odd lines are light
+        }
+      };
+      mmu.getCharCode = (any) => 0;
+
+      const lineRgbaLength = 160*4;
+      const expectedDarkLine = new Uint8ClampedArray(lineRgbaLength);
+      const expectedLightLine = new Uint8ClampedArray(lineRgbaLength);
+      for(let p = 0; p < expectedDarkLine.length; p++){
+        expectedDarkLine[p] = lcd.SHADES[lcd._bgp[3]][p % 4];
+        expectedLightLine[p] = lcd.SHADES[lcd._bgp[0]][p % 4];
+      }
+
+      lcd.drawTiles();
+
+      for(let l = 0; l < 144; l++) {
+        const lineData = lcd.getImageDataBG().data.subarray(l*lineRgbaLength, (l+1)*lineRgbaLength);
+        if (l % 2 === 0) {
+          assert.deepEqual(lineData, expectedDarkLine);
+        } else {
+          assert.deepEqual(lineData, expectedLightLine);
+        }
+      }
+    });
+
     it('should not draw lines outside screen', () => {
       const bg = lcd.getImageDataBG();
 
