@@ -10,13 +10,27 @@ describe('LCD', () => {
 
   beforeEach(function() {
     lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock());
-    // For testing purposes, LCD HW will always draw line by line
+    /**
+     * For testing purposes, LCD HW will always draw line by line
+     */
     lcd.drawTiles = function() {
       this._readPalettes();
       this._clear();
       this._clear(this._imageDataOBJ, this._ctxOBJ);
       for(let l = 0; l < lcd._HW_HEIGHT; l++){
         lcd.drawLine(l);
+      }
+    };
+    /**
+     * Asserts that each pixel of a line at x,y equals to a rbga vector
+     * @param {number} line
+     * @param {number} grid_x
+     * @param {Array} rgba
+     * @param {ImageData} imageData
+     */
+    lcd.assertLinePixels = function(line, grid_x, rgba, imageData){
+      for(let x = grid_x*8; x < (grid_x+1)*8; x++){
+        assert.deepEqual(this.getPixelData(x, line, imageData), rgba, `Line=${line} x=${x} pixel data ${rgba}`);
       }
     }
   });
@@ -148,9 +162,28 @@ describe('LCD', () => {
   });
 
   describe('OBJ (Sprites)', () => {
+    it('should draw OBJs if they are enabled on MMU', () => {
+      const mmu = lcd.getMMU();
+      mmu.getCharCode = (any) => { return 0; };
+      mmu.readBGData = (any) => { return new Buffer('0000', 'hex'); };
+      mmu.readOBJData = (any) => { return new Buffer('ffff', 'hex'); };
+      mmu.areOBJOn = () => { return true; };
+      mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0, attr: 0}; };
+
+      lcd.drawLine(0);
+
+      lcd.assertLinePixels(0, 0, lcd.SHADES[3], lcd.getImageDataOBJ());
+
+      mmu.areOBJOn = () => { return false; };
+      lcd.drawLine(0);
+
+      lcd.assertLinePixels(0, 0, [0,0,0,0], lcd.getImageDataOBJ());
+    });
+
     it('should write OBJ on top of BG', () => {
       const mmu = lcd.getMMU();
       mmu.readBGData = (any) => { return new Buffer('0000', 'hex'); };
+      mmu.areOBJOn = () => true;
       mmu.readOBJData = (any) => { return new Buffer('ffff', 'hex'); };
       mmu.getOBJ = function(obj_number) {
         if (obj_number === 0) {
