@@ -5,13 +5,14 @@ import assert from 'assert';
 import {describe, before, it} from 'mocha';
 import lcdMock from './mock/lcdMock';
 
-let cpu;
+let cpu, lcd;
 
 describe('Start BIOS', () => {
 
   before( () => {
     const loader = new Loader('./roms/blargg_cpu_instrs.gb');
-    cpu = new CPU(new MMU(loader.asUint8Array()), new lcdMock());
+    lcd = new lcdMock();
+    cpu = new CPU(new MMU(loader.asUint8Array()), lcd);
   });
 
   it('should start with pc, sp and registers at right values', () => {
@@ -40,4 +41,22 @@ describe('Start BIOS', () => {
 
     assert.throws( () => new CPU(mmuMock, new lcdMock()), Error, 'Unsupported Cartridge type');
   });
+
+  describe('LCD', () => {
+    it('should draw lines on LCD mode 3', () => {
+      let lines = [];
+      lcd.drawLine = (line) => {
+        lines[line] = true;
+      };
+      cpu.mmu.writeByteAt(cpu.mmu.ADDR_LCDC, 0x80); // LCD on
+      cpu._execute = () => cpu.nop();
+
+      cpu.frame();
+
+      for(let l = 0; l < 144; l++) {
+        assert.equal(lines[l], true);
+      }
+    });
+  });
+
 });
