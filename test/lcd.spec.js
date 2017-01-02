@@ -14,7 +14,6 @@ describe('LCD', () => {
      * For testing purposes, LCD HW will always draw line by line
      */
     lcd.drawTiles = function() {
-      this._readPalettes();
       this._clear();
       this._clear(this._imageDataOBJ, this._ctxOBJ);
       for(let l = 0; l < lcd._HW_HEIGHT; l++){

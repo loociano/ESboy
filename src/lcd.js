@@ -128,6 +128,7 @@ export default class LCD {
       Logger.warn(`Cannot draw line ${line}`);
       return;
     }
+    this._readPalettes();
 
     this._drawLineBG(line);
 
