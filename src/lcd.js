@@ -80,6 +80,23 @@ export default class LCD {
     this._putImageData(imageData, ctx);
   }
 
+  /**
+   * Clears the LCD line by writing transparent pixels
+   * @param {number} line
+   * @param {ImageData} imageData
+   * @param {CanvasRenderingContext2D} ctx
+   * @private
+   */
+  _clearLine(line, imageData=this._imageDataBG, ctx=this._ctxBG){
+    const start = this._HW_WIDTH * line * 4;
+    const end = start + this._HW_WIDTH*4;
+
+    for(let p = start; p < end; p++){
+      imageData.data[p] = 0;
+    }
+    this._putImageData(imageData, ctx);
+  }
+
   /** 
    * Draw all tiles on screen
    */
@@ -111,8 +128,13 @@ export default class LCD {
       Logger.warn(`Cannot draw line ${line}`);
       return;
     }
+
     this._drawLineBG(line);
-    this._drawLineOBJ(line);
+
+    this._clearLine(line, this._imageDataOBJ, this._ctxOBJ);
+    if (this._mmu.areOBJOn()) {
+      this._drawLineOBJ(line);
+    }
   }
 
   /**
