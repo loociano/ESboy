@@ -17,71 +17,73 @@ describe('MMU', () => {
     mmu = new MMU(loader.asUint8Array());
   });
 
-  it('should handle missing ROM', () => {
-    assert.throws(() => new MMU(undefined), Error, 'Missing ROM');
+  describe('Initialization', () => {
+    it('should handle missing ROM', () => {
+      assert.throws(() => new MMU(undefined), Error, 'Missing ROM');
+    });
+    it('should start the memory map', () => {
+
+      assert.equal(mmu._memory.length, 0x10000, 'Memory size is 0x10000');
+
+      // Starting values at addresses
+      assert.equal(mmu.readByteAt(0xff10), 0x80);
+      assert.equal(mmu.readByteAt(0xff14), 0xbf);
+      assert.equal(mmu.readByteAt(0xff16), 0x3f);
+      assert.equal(mmu.readByteAt(0xff17), 0x00);
+      assert.equal(mmu.readByteAt(0xff19), 0xbf);
+      assert.equal(mmu.readByteAt(0xff1a), 0x7f);
+      assert.equal(mmu.readByteAt(0xff1b), 0xff);
+      assert.equal(mmu.readByteAt(0xff1c), 0x9f);
+      assert.equal(mmu.readByteAt(0xff1e), 0xbf);
+      assert.equal(mmu.readByteAt(0xff20), 0xff);
+      assert.equal(mmu.readByteAt(0xff21), 0x00);
+      assert.equal(mmu.readByteAt(0xff22), 0x00);
+      assert.equal(mmu.readByteAt(0xff23), 0xbf);
+      assert.equal(mmu.readByteAt(mmu.ADDR_IE), 0x01); // Allow vblank
+    });
   });
 
-  it('should write bytes in memory', () => {
-    mmu.writeByteAt(0xc000, 0xab);
-    assert.equal(mmu.readByteAt(0xc000), 0xab, 'write 0xab in memory address 0xc000');
-  });
+  describe('Read/Write', () => {
+    it('should write bytes in memory', () => {
+      mmu.writeByteAt(0xc000, 0xab);
+      assert.equal(mmu.readByteAt(0xc000), 0xab, 'write 0xab in memory address 0xc000');
+    });
+    it('should write in Interrupt Enable register', () => {
+      mmu.writeByteAt(0xffff, 0x0f);
+      assert.equal(mmu.ie(), 0x0f, 'should write on 0xffff');
+    });
+    it('should not write bytes in ROM', () => {
 
-  it('should write in Interrupt Enable register', () => {
-    mmu.writeByteAt(0xffff, 0x0f);
-    assert.equal(mmu.ie(), 0x0f, 'should write on 0xffff');
-  });
+      let addr = 0x0000;
 
-  it('should not write bytes in ROM', () => {
-    
-    let addr = 0x0000;
+      assert.doesNotThrow( () => {
+        mmu.writeByteAt(addr, 0xab);
+      }, Error, `should not write on ${addr}`);
 
-    assert.doesNotThrow( () => {
+      addr = 0x7fff;
+
+      assert.doesNotThrow( () => {
+        mmu.writeByteAt(addr, 0xab);
+      }, Error, `should not write on ${addr}`);
+
+      addr = 0x8000;
+
       mmu.writeByteAt(addr, 0xab);
-    }, Error, `should not write on ${addr}`);
 
-    addr = 0x7fff;
-
-    assert.doesNotThrow( () => {
-      mmu.writeByteAt(addr, 0xab);
-    }, Error, `should not write on ${addr}`);
-
-    addr = 0x8000;
-
-    mmu.writeByteAt(addr, 0xab);
-
-    assert.equal(mmu.readByteAt(addr), 0xab, `can write on ${addr}`);
+      assert.equal(mmu.readByteAt(addr), 0xab, `can write on ${addr}`);
+    });
   });
 
-  it('should start the memory map', () => {
-
-    assert.equal(mmu._memory.length, 0x10000, 'Memory size is 0x10000');
-
-    // Starting values at addresses
-    assert.equal(mmu.readByteAt(0xff10), 0x80);
-    assert.equal(mmu.readByteAt(0xff14), 0xbf);
-    assert.equal(mmu.readByteAt(0xff16), 0x3f);
-    assert.equal(mmu.readByteAt(0xff17), 0x00);
-    assert.equal(mmu.readByteAt(0xff19), 0xbf);
-    assert.equal(mmu.readByteAt(0xff1a), 0x7f);
-    assert.equal(mmu.readByteAt(0xff1b), 0xff);
-    assert.equal(mmu.readByteAt(0xff1c), 0x9f);
-    assert.equal(mmu.readByteAt(0xff1e), 0xbf);
-    assert.equal(mmu.readByteAt(0xff20), 0xff);
-    assert.equal(mmu.readByteAt(0xff21), 0x00);
-    assert.equal(mmu.readByteAt(0xff22), 0x00);
-    assert.equal(mmu.readByteAt(0xff23), 0xbf);
-    assert.equal(mmu.readByteAt(mmu.ADDR_IE), 0x01); // Allow vblank
-  });
-
-  it('should load the BIOS in memory', () => {
-    assert.deepEqual(mmu.readBIOSBuffer(), mmu.getBIOS(), 'BIOS is in memory');
-  });
-
-  it('should read BIOS', () => {
-    assert.equal(mmu.readByteAt(0x0000), 0x31, 'first BIOS byte');
-    assert.equal(mmu.readByteAt(0x00ff), 0x50, 'last BIOS byte');
-    assert.equal(mmu.readByteAt(0x0100), 0x00, 'first GAME byte');
-    assert.equal(mmu.readByteAt(0x0101), 0xc3, 'second GAME byte');
+  describe('BIOS', () => {
+    it('should load the BIOS in memory', () => {
+      assert.deepEqual(mmu.readBIOSBuffer(), mmu.getBIOS(), 'BIOS is in memory');
+    });
+    it('should read BIOS', () => {
+      assert.equal(mmu.readByteAt(0x0000), 0x31, 'first BIOS byte');
+      assert.equal(mmu.readByteAt(0x00ff), 0x50, 'last BIOS byte');
+      assert.equal(mmu.readByteAt(0x0100), 0x00, 'first GAME byte');
+      assert.equal(mmu.readByteAt(0x0101), 0xc3, 'second GAME byte');
+    });
   });
 
   describe('ROM checks', () => {
