@@ -1,19 +1,28 @@
 import CPU from '../src/cpu';
 import MMU from '../src/mmu';
+import LCD from '../src/lcd';
 import Loader from '../src/loader';
 import assert from 'assert';
 import {describe, beforeEach, it} from 'mocha';
-import lcdMock from './mock/lcdMock';
+import ContextMock from './mock/contextMock';
 import config from '../src/config';
 
 describe('BIOS execution', function() {
 
-  config.DEBUG = true;
+  config.DEBUG = false;
+  config.TEST = true;
 
   const stopAt = 0x0100;
 
   const loader = new Loader('./roms/blargg_cpu_instrs.gb');
-  const cpu = new CPU(new MMU(loader.asUint8Array()), new lcdMock());
+  const mmu = new MMU(loader.asUint8Array());
+  const lcd = new LCD(mmu, new ContextMock(), new ContextMock());
+  const cpu = new CPU(mmu, lcd);
+
+  lcd.getBGTileLineData = function(grid_x, grid_y){
+    const index = (grid_x*this.TILE_WIDTH + grid_y*this.TILE_WIDTH * this._HW_WIDTH) * 4;
+    return this._imageDataBG.data.slice(index, index + this.TILE_WIDTH*4);
+  };
 
   cpu.runUntil(stopAt);
 
@@ -92,6 +101,21 @@ describe('BIOS execution', function() {
     assert.equal(cpu.l(), 0x4d, 'l');
     assert.equal(cpu.sp(), 0xfffe, 'a');
     assert.equal(cpu.f(), 0b1011, 'flags');
+  });
+
+  it('should paint the Nintendo logo on screen', () => {
+    const tile1Line0Data = [
+      ...lcd.SHADES[lcd._bgp[3]],
+      ...lcd.SHADES[lcd._bgp[3]],
+      ...lcd.SHADES[lcd._bgp[3]],
+      ...lcd.SHADES[lcd._bgp[3]],
+      ...lcd.SHADES[lcd._bgp[0]],
+      ...lcd.SHADES[lcd._bgp[0]],
+      ...lcd.SHADES[lcd._bgp[0]],
+      ...lcd.SHADES[lcd._bgp[0]]];
+
+    assert.equal(cpu.mmu.getCharCode(0x04, 0x08), 0x01, 'Tile 1 at 0x04,0x08');
+    assert.deepEqual(lcd.getBGTileLineData(4, 8), tile1Line0Data);
   });
 
 });
