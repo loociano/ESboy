@@ -159,26 +159,28 @@ describe('MMU', () => {
       const BGData_ff = new Uint8Array([0x11,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xff]);
       mmu.writeBuffer(BGData_00, 0x8000);
       mmu.writeBuffer(BGData_ff, 0x8ff0);
-
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_CHAR_DATA_8000 | mmu.MASK_BG_ON);
       
-      assert.deepEqual(mmu.readBGData(0x00, 0), BGData_00.subarray(0,2));
-      assert.deepEqual(mmu.readBGData(0x00, 1), BGData_00.subarray(2,4));
-      assert.deepEqual(mmu.readBGData(0x00, 2), BGData_00.subarray(4,6));
-      assert.deepEqual(mmu.readBGData(0x00, 3), BGData_00.subarray(6,8));
-      assert.deepEqual(mmu.readBGData(0x00, 4), BGData_00.subarray(8,10));
-      assert.deepEqual(mmu.readBGData(0x00, 5), BGData_00.subarray(10,12));
-      assert.deepEqual(mmu.readBGData(0x00, 6), BGData_00.subarray(12,14));
-      assert.deepEqual(mmu.readBGData(0x00, 7), BGData_00.subarray(14,16));
+      assert.deepEqual([
+        ...mmu.readBGData(0x00, 0),
+        ...mmu.readBGData(0x00, 1),
+        ...mmu.readBGData(0x00, 2),
+        ...mmu.readBGData(0x00, 3),
+        ...mmu.readBGData(0x00, 4),
+        ...mmu.readBGData(0x00, 5),
+        ...mmu.readBGData(0x00, 6),
+        ...mmu.readBGData(0x00, 7)]
+        , BGData_00);
 
-      assert.deepEqual(mmu.readBGData(0xff, 0), BGData_ff.subarray(0,2));
-      assert.deepEqual(mmu.readBGData(0xff, 1), BGData_ff.subarray(2,4));
-      assert.deepEqual(mmu.readBGData(0xff, 2), BGData_ff.subarray(4,6));
-      assert.deepEqual(mmu.readBGData(0xff, 3), BGData_ff.subarray(6,8));
-      assert.deepEqual(mmu.readBGData(0xff, 4), BGData_ff.subarray(8,10));
-      assert.deepEqual(mmu.readBGData(0xff, 5), BGData_ff.subarray(10,12));
-      assert.deepEqual(mmu.readBGData(0xff, 6), BGData_ff.subarray(12,14));
-      assert.deepEqual(mmu.readBGData(0xff, 7), BGData_ff.subarray(14,16));
+      assert.deepEqual([
+        ...mmu.readBGData(0xff, 0),
+        ...mmu.readBGData(0xff, 1),
+        ...mmu.readBGData(0xff, 2),
+        ...mmu.readBGData(0xff, 3),
+        ...mmu.readBGData(0xff, 4),
+        ...mmu.readBGData(0xff, 5),
+        ...mmu.readBGData(0xff, 6),
+        ...mmu.readBGData(0xff, 7)], BGData_ff);
     });
 
     it('should return tile address for BG data', () => {
