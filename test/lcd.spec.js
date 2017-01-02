@@ -7,9 +7,17 @@ import {describe, beforeEach, it} from 'mocha';
 describe('LCD', () => {
 
   let lcd;
+  const lineRgbaLength = 160*4;
 
   beforeEach(function() {
     lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock());
+    /**
+     * @param {number} line
+     * @returns {Uint8ClampedArray}
+     */
+    lcd.getBGLineData = function(line){
+      return this.getImageDataBG().data.subarray(line*lineRgbaLength, (line+1)*lineRgbaLength);
+    };
     /**
      * For testing purposes, LCD HW will always draw line by line
      */
@@ -119,7 +127,7 @@ describe('LCD', () => {
         }
       };
 
-      const expectedData = new Uint8ClampedArray(160*1*4); // first LCD line
+      const expectedData = new Uint8ClampedArray(lineRgbaLength); // first LCD line
       for(let p = 0; p < expectedData.length; p++){
         if (p < 8*4){
           expectedData[p] = lcd.SHADES[lcd._bgp[3]][p % 4]; // left-most tile
@@ -130,7 +138,7 @@ describe('LCD', () => {
 
       lcd.drawLine(0);
 
-      assert.deepEqual(lcd.getImageDataBG().data.subarray(0, 1*160*4), expectedData);
+      assert.deepEqual(lcd.getBGLineData(0), expectedData);
     });
 
     it('should draw 2 lines', () => {
@@ -144,7 +152,6 @@ describe('LCD', () => {
       };
       mmu.getCharCode = (any) => 0;
 
-      const lineRgbaLength = 160*4;
       const expectedDarkLine = new Uint8ClampedArray(lineRgbaLength);
       const expectedLightLine = new Uint8ClampedArray(lineRgbaLength);
       for(let p = 0; p < expectedDarkLine.length; p++){
@@ -155,7 +162,7 @@ describe('LCD', () => {
       lcd.drawTiles();
 
       for(let l = 0; l < 144; l++) {
-        const lineData = lcd.getImageDataBG().data.subarray(l*lineRgbaLength, (l+1)*lineRgbaLength);
+        const lineData = lcd.getBGLineData(l);
         if (l % 2 === 0) {
           assert.deepEqual(lineData, expectedDarkLine);
         } else {
