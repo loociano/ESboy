@@ -141,7 +141,7 @@ describe('LCD', () => {
       assert.deepEqual(lcd.getBGLineData(0), expectedData);
     });
 
-    it('should draw 2 lines', () => {
+    it('should draw horizontal lines, dark and light', () => {
       const mmu = lcd.getMMU();
       mmu.readBGData = (tileNumber, tileLine) => {
         if (tileLine % 2 === 0) {
