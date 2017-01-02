@@ -31,7 +31,18 @@ describe('LCD', () => {
       for(let x = grid_x*8; x < (grid_x+1)*8; x++){
         assert.deepEqual(this.getPixelData(x, line, imageData), rgba, `Line=${line} x=${x} pixel data ${rgba}`);
       }
-    }
+    };
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @param {ImageData} imageData
+     * @returns {Array} pixel data
+     */
+    lcd.getPixelData = function(x, y, imageData){
+      const index = (x + y * this._HW_WIDTH) * 4;
+      return imageData.data.slice(index, index + 4);
+    };
+
   });
 
   describe('Tile reading', () => {

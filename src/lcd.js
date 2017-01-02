@@ -415,15 +415,4 @@ export default class LCD {
     const start = (x + y * this._HW_WIDTH) * 4;
     imageData.data.set(this.SHADES[palette[level]], start);
   }
-
-  /**
-   * @param {number} x
-   * @param {number} y
-   * @param {ImageData} imageData
-   * @returns {Array} pixel data
-   */
-  getPixelData(x, y, imageData){
-    const index = (x + y * this._HW_WIDTH) * 4;
-    return imageData.data.slice(index, index + 4);
-  }
 }
