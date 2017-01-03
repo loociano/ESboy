@@ -129,6 +129,11 @@ export default class LCD {
     }
     this._readPalettes();
 
+    if (this._mmu._VRAMRefreshed) {
+      this._cache = {};
+      this._mmu._VRAMRefreshed = false;
+    }
+
     this._drawLineBG(line);
 
     this._clearLine(line, this._imageDataOBJ, this._ctxOBJ);
@@ -195,13 +200,6 @@ export default class LCD {
     this._bgp = LCD.paletteToArray(this._mmu.bgp());
     this._obg0 = LCD.paletteToArray(this._mmu.obg0());
     this._obg1 = LCD.paletteToArray(this._mmu.obg1());
-  }
-
-  /**
-   * @private
-   */
-  _clearMatrixCache(){
-    this._cache = {};
   }
 
   /**
@@ -331,7 +329,7 @@ export default class LCD {
    * @private
    */
   _getIntensityVector(tileNumber, tileLine, isOBJ){
-    let key = `BG_${tileNumber}_$${tileLine}`;
+    let key = `BG_${tileNumber}_${tileLine}`;
 
     if (isOBJ){
       key = `OBJ_${tileNumber}_${tileLine}`;
