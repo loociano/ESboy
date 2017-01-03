@@ -3175,14 +3175,14 @@ var CPU = function () {
           break; // No transition during vblank
         case 2:
           if (this._m > this._mLyOffset() + this.M_CYCLES_STOP_MODE_2) {
-            this.lcd.drawLine(this.ly());
             this.mmu.setLCDMode(3);
           }
           break;
         case 3:
           if (this._m > this._mLyOffset() + this.M_CYCLES_STOP_MODE_3) {
-            this._lineDrawn = true;
             this.mmu.setLCDMode(0);
+            this.lcd.drawLine(this.ly());
+            this._lineDrawn = true;
           }
           break;
       }
@@ -8119,6 +8119,11 @@ var LCD = function () {
       }
       this._readPalettes();
 
+      if (this._mmu._VRAMRefreshed) {
+        this._cache = {};
+        this._mmu._VRAMRefreshed = false;
+      }
+
       this._drawLineBG(line);
 
       this._clearLine(line, this._imageDataOBJ, this._ctxOBJ);
@@ -8164,7 +8169,6 @@ var LCD = function () {
       var OBJAttr = _ref.OBJAttr;
       var imageData = arguments.length <= 1 || arguments[1] === undefined ? this._imageDataBG : arguments[1];
 
-
       var tileLine = line % this._TILE_HEIGHT;
       var x_start = gridX * this.TILE_WIDTH;
       var isOBJ = OBJAttr !== undefined;
@@ -8206,16 +8210,6 @@ var LCD = function () {
       this._bgp = LCD.paletteToArray(this._mmu.bgp());
       this._obg0 = LCD.paletteToArray(this._mmu.obg0());
       this._obg1 = LCD.paletteToArray(this._mmu.obg1());
-    }
-
-    /**
-     * @private
-     */
-
-  }, {
-    key: '_clearMatrixCache',
-    value: function _clearMatrixCache() {
-      this._cache = {};
     }
 
     /**
@@ -8349,7 +8343,7 @@ var LCD = function () {
      * @private
      */
     value: function _getIntensityVector(tileNumber, tileLine, isOBJ) {
-      var key = 'BG_' + tileNumber + '_$' + tileLine;
+      var key = 'BG_' + tileNumber + '_' + tileLine;
 
       if (isOBJ) {
         key = 'OBJ_' + tileNumber + '_' + tileLine;
