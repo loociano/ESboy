@@ -171,6 +171,30 @@ describe('LCD', () => {
       }
     });
 
+    it('should cache tiles and clear cache when VRAM is updated', () => {
+      const mmu = lcd.getMMU();
+      let calculated = 0;
+      mmu.getCharCode = (any) => 0;
+      mmu.writeByteAt = (addr, n) => {
+        mmu._VRAMRefreshed = true;
+      };
+      lcd._calculateIntensityVector = () => {
+        calculated++;
+        return [1,1,1,1,1,1,1,1];
+      };
+
+      lcd.drawLine(0);
+      lcd.drawLine(0);
+
+      assert.equal(calculated, 1, 'only calculated once');
+
+      mmu.writeByteAt(mmu.ADDR_VRAM_START, 0x01);
+
+      lcd.drawLine(0);
+
+      assert.equal(calculated, 2, 'calculated again');
+    });
+
     it('should not draw lines outside screen', () => {
       const bg = lcd.getImageDataBG();
 
