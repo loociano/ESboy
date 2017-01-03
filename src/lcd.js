@@ -166,7 +166,6 @@ export default class LCD {
    * @param imageData
    */
   _drawTileLine({tileNumber, gridX, gridY, line, OBJAttr}, imageData=this._imageDataBG){
-
     const tileLine = line % this._TILE_HEIGHT;
     const x_start = gridX * this.TILE_WIDTH;
     const isOBJ = OBJAttr !== undefined;

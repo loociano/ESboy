@@ -236,20 +236,33 @@ describe('LCD', () => {
   describe('OBJ (Sprites)', () => {
     it('should draw OBJs if they are enabled on MMU', () => {
       const mmu = lcd.getMMU();
-      mmu.getCharCode = (any) => { return 0; };
-      mmu.readBGData = (any) => { return new Buffer('0000', 'hex'); };
-      mmu.readOBJData = (any) => { return new Buffer('ffff', 'hex'); };
-      mmu.areOBJOn = () => { return true; };
+      mmu.getCharCode = (any) =>  0;
+      mmu.readBGData = (any) => new Buffer('0000', 'hex');
+      mmu.readOBJData = (any) => new Buffer('ffff', 'hex');
+      mmu.areOBJOn = () => true;
       mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0, attr: 0}; };
 
       lcd.drawLine(0);
 
       lcd.assertLinePixels(0, 0, lcd.SHADES[3], lcd.getImageDataOBJ());
 
-      mmu.areOBJOn = () => { return false; };
+      mmu.areOBJOn = () => false;
       lcd.drawLine(0);
 
       lcd.assertLinePixels(0, 0, [0,0,0,0], lcd.getImageDataOBJ());
+    });
+
+    it('should draw OBJs in any line', () => {
+      const mmu = lcd.getMMU();
+      mmu.getCharCode = (any) =>  0;
+      mmu.readBGData = (any) => new Buffer('0000', 'hex');
+      mmu.readOBJData = (any) => new Buffer('ffff', 'hex');
+      mmu.areOBJOn = () => true;
+      mmu.getOBJ = (any) => { return {y: 116, x: 108, chrCode: 0, attr: 0}; };
+
+      lcd.drawLine(100);
+
+      lcd.assertLinePixels(100, 12.5, lcd.SHADES[3], lcd.getImageDataOBJ());
     });
 
     it('should write OBJ on top of BG', () => {
