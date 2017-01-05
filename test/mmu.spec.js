@@ -385,6 +385,62 @@ describe('MMU', () => {
       assert.throws( () => this.mmu.getOBJ(40), Error, '40 out of range');
     });
   });
+
+  describe('LCD signals', () => {
+    it('should detect changes on tiles', () => {
+      mmu.writeByteAt(0x9800, 0xab);
+      mmu.writeByteAt(0x9a33, 0xcd); // last visible tile
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_CODE_AREA_1);
+
+      assert.equal(mmu.getCharCode(0, 0), 0xab, 'Tile x 0,y 0');
+      assert.equal(mmu.getCharCode(19, 17), 0xcd, 'Tile x 19,y 17');
+
+      for(let i = 0; i < 8; i++){
+        assert.equal(mmu.isTileLineDrawn(i*20), false);
+      }
+
+      for(let i = 0; i < 8; i++){
+        mmu.setTileLineDrawn(i*20);
+      }
+      mmu.setTileLineDrawn(22899);
+      mmu.setTileLineDrawn(22919);
+      mmu.setTileLineDrawn(22939);
+      mmu.setTileLineDrawn(22959);
+      mmu.setTileLineDrawn(22979);
+      mmu.setTileLineDrawn(22999);
+      mmu.setTileLineDrawn(23019);
+      mmu.setTileLineDrawn(23039);
+
+      assert.equal(mmu.isTileLineDrawn(0), true);
+      assert.equal(mmu.isTileLineDrawn(20), true);
+      assert.equal(mmu.isTileLineDrawn(40), true);
+      assert.equal(mmu.isTileLineDrawn(60), true);
+      assert.equal(mmu.isTileLineDrawn(80), true);
+      assert.equal(mmu.isTileLineDrawn(100), true);
+      assert.equal(mmu.isTileLineDrawn(120), true);
+      assert.equal(mmu.isTileLineDrawn(140), true);
+
+      assert.equal(mmu.isTileLineDrawn(22899), true);
+      //...
+      assert.equal(mmu.isTileLineDrawn(23039), true);
+
+      mmu.writeByteAt(0x9800, 0x01); // update tile 0. Should release 0,20,40...140
+      mmu.writeByteAt(0x9a33, 0x02); // update last tile
+
+      for(let i = 0; i < 8; i++){
+        assert.equal(mmu.isTileLineDrawn(i*20), false);
+      }
+
+      assert.equal(mmu.isTileLineDrawn(22899), true);
+      assert.equal(mmu.isTileLineDrawn(22919), true);
+      assert.equal(mmu.isTileLineDrawn(22939), true);
+      assert.equal(mmu.isTileLineDrawn(22959), true);
+      assert.equal(mmu.isTileLineDrawn(22979), true);
+      assert.equal(mmu.isTileLineDrawn(22999), true);
+      assert.equal(mmu.isTileLineDrawn(23019), true);
+      assert.equal(mmu.isTileLineDrawn(23039), true);
+    });
+  });
   
   describe('Joypad', () => {
     it('should return all high by default', () => {
