@@ -15,6 +15,16 @@ describe('MMU', () => {
   beforeEach( () => {
     const loader = new Loader('./roms/blargg_cpu_instrs.gb');
     mmu = new MMU(loader.asUint8Array());
+    mmu.assertTileLineDrawn = function(posX, posY, expected){
+      for(let i = 0; i < 8; i++){
+        assert.equal(mmu.isTileLineDrawn(mmu.getTileLinePos(posX, posY) + i*20), expected);
+      }
+    };
+    mmu.setTileDrawn = function(posX, posY){
+      for(let i = 0; i < 8; i++){
+        mmu.setTileLineDrawn(mmu.getTileLinePos(posX, posY) + i*20);
+      }
+    };
   });
 
   describe('Initialization', () => {
@@ -388,46 +398,48 @@ describe('MMU', () => {
 
   describe('LCD signals', () => {
     it('should detect changes on tiles', () => {
-
-      mmu.assertTileLineDrawn = function(posX, posY, expected){
-        for(let i = 0; i < 8; i++){
-          assert.equal(mmu.isTileLineDrawn(mmu.getTileLinePos(posX, posY) + i*20), expected);
-        }
-      };
-      mmu.setTileDrawn = function(posX, posY){
-        for(let i = 0; i < 8; i++){
-          mmu.setTileLineDrawn(mmu.getTileLinePos(posX, posY) + i*20);
-        }
-      };
-
       mmu.writeByteAt(0x9800, 0xab); // tile 0
       mmu.writeByteAt(0x9a20, 0xcd); // tile 340 (out of 359)
-      //mmu.writeByteAt(0x9a33, 0xef);
+      mmu.writeByteAt(0x9a33, 0xef);
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_CODE_AREA_1);
 
       assert.equal(mmu.getCharCode(0, 0), 0xab, 'Tile x 0,y 0');
       assert.equal(mmu.getCharCode(0, 17), 0xcd, 'Tile x 0,y 17');
-      //assert.equal(mmu.getCharCode(19, 17), 0xef, 'Tile x 19,y 17');
+      assert.equal(mmu.getCharCode(19, 17), 0xef, 'Tile x 19,y 17');
 
       mmu.assertTileLineDrawn(0, 0, false);
       mmu.assertTileLineDrawn(0, 17, false);
-      //mmu.assertTileLineDrawn(19, 17, false);
+      mmu.assertTileLineDrawn(19, 17, false);
 
       mmu.setTileDrawn(0, 0);
       mmu.setTileDrawn(0, 17);
-      //mmu.setTileDrawn(19, 17);
+      mmu.setTileDrawn(19, 17);
 
       mmu.assertTileLineDrawn(0, 0, true);
       mmu.assertTileLineDrawn(0, 17, true);
-      //mmu.assertTileLineDrawn(19, 17, true);
+      mmu.assertTileLineDrawn(19, 17, true);
 
       mmu.writeByteAt(0x9800, 0x01); // update tile 0. Should release 0,20,40...140
       mmu.writeByteAt(0x9a20, 0x01);
-      //mmu.writeByteAt(0x9a33, 0x03); // update last tile
+      mmu.writeByteAt(0x9a33, 0x03); // update last tile
 
-      mmu.assertTileLineDrawn(19, 17, false);
       mmu.assertTileLineDrawn(0, 0, false);
-      //mmu.assertTileLineDrawn(0, 17, false);
+      mmu.assertTileLineDrawn(0, 17, false);
+      mmu.assertTileLineDrawn(19, 17, false);
+
+      mmu.setTileDrawn(0, 0);
+      mmu.setTileDrawn(0, 17);
+      mmu.setTileDrawn(19, 17);
+    });
+
+    it('should redraw whenever data tile area changes', () => {
+      mmu.writeByteAt(0x9800, 0xab);
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_CODE_AREA_1);
+      mmu.assertTileLineDrawn(0, 0, false);
+      mmu.setTileDrawn(0, 0);
+      mmu.assertTileLineDrawn(0, 0, true);
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_CODE_AREA_2);
+      mmu.assertTileLineDrawn(0, 0, false);
     });
   });
   
