@@ -127,18 +127,8 @@ export default class LCD {
    */
   _drawLineBG(line){
     for(let x = 0; x < this._HW_WIDTH; x += 8){
-
-      const tileNumberPos = x/8 + this._H_TILES*line;
-
-      if (!this._mmu.isTileLineDrawn(tileNumberPos)){
-        const tileNumber = this._mmu.getCharCode(x/8, Math.floor(line/8));
-        this._drawTileLine({
-          tileNumber: tileNumber,
-          x: x,
-          y: line
-        }, line);
-        this._mmu.setTileLineDrawn(tileNumberPos);
-      }
+      const tileNumber = this._mmu.getCharCode(x/8, Math.floor(line/8));
+      this._drawTileLine({ tileNumber: tileNumber, x: x, y: line }, line);
     }
   }
 

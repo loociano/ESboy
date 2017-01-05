@@ -195,29 +195,6 @@ describe('LCD', () => {
       assert.equal(calculated, 2, 'calculated again');
     });
 
-    it('should not drawn the same line twice', () => {
-      let called = 0;
-      const array = [];
-
-      const mmu = lcd.getMMU();
-      mmu.isTileLineDrawn = (pos) => {
-        return array[pos];
-      };
-      mmu.setTileLineDrawn = (pos) => {
-        array[pos] = true;
-      };
-
-      lcd._drawTileLine = () => {
-        called++;
-      };
-
-      lcd.drawLine(0);
-      lcd.drawLine(0);
-      lcd.drawLine(0);
-
-      assert.equal(called, 20, 'draw 20 tile once');
-    });
-
     it('should not draw lines outside screen', () => {
       const bg = lcd.getImageDataBG();
 

@@ -1085,19 +1085,4 @@ export default class MMU {
   getSelectedBankNb(){
     return this._selectedBankNb;
   }
-
-  /**
-   * @param {number} tileLinePos: 0 to 2879 (20 hor tiles * 144 lines)
-   */
-  setTileLineDrawn(tileLinePos){
-    this._drawnTileLines[tileLinePos] = true;
-  }
-
-  /**
-   * @param tileLinePos
-   * @returns {boolean} true if tile line has been drawn
-   */
-  isTileLineDrawn(tileLinePos){
-    return this._drawnTileLines[tileLinePos];
-  }
 }
