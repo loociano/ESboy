@@ -10,6 +10,12 @@ const ctxBG = document.getElementById('bg').getContext('2d');
 const ctxOBJ = document.getElementById('obj').getContext('2d');
 let cpu;
 
+const MAX_FPS = 60;
+let now;
+let then = Date.now();
+let interval = 1000/MAX_FPS;
+let delta;
+
 /**
  * Handles file selection
  * @param evt
@@ -47,15 +53,23 @@ function init(rom){
   cpu = new CPU(mmu, lcd);
   new InputHandler(cpu, $body);
 
-  window.requestAnimationFrame(frame);
+  frame();
 }
 
 /**
  * Main loop
  */
 function frame(){
-  cpu.start();
   window.requestAnimationFrame(frame);
+  now = Date.now();
+  delta = now - then;
+
+  if (delta > interval) {
+    // fps limitation logic, Kindly borrowed from Rishabh
+    // http://codetheory.in/controlling-the-frame-rate-with-requestanimationframe
+    then = now - (delta % interval);
+    cpu.start();
+  }
 }
 
 $cartridge.addEventListener('change', handleFileSelect, false);
