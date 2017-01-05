@@ -192,11 +192,15 @@ export default class MMU {
     this._div = 0x0000; // Internal divider, register DIV is msb
     this._hasMBC1 = false;
     this._selectedBankNb = 1; // default is bank 1
-    this._drawnTileLines = new Array(this.VISIBLE_CHARS_PER_LINE*18*8).fill(false);
+    this._resetDrawnTileLines();
 
     this._initMemory();
     this._loadROM();
     this._setMBC1();
+  }
+
+  _resetDrawnTileLines(){
+    this._drawnTileLines = new Array(this.VISIBLE_CHARS_PER_LINE*18*8).fill(false);
   }
 
   /**
@@ -539,10 +543,11 @@ export default class MMU {
   _clearDrawnTileLines(addr){
     const offset = addr - this._getBgDisplayDataStartAddr();
     const posX = offset % this.CHARS_PER_LINE;
-    const posY = offset / this.CHARS_PER_LINE;
+    const posY = Math.floor(offset / this.CHARS_PER_LINE);
     if ((posX >= 0 && posX <= 0x13) && ((posY >= 0 && posY <= 0x11))){
       for(let i = 0; i < 8; i++){
-        this._drawnTileLines[this.getTileLinePos(posX, posY) + i*this.VISIBLE_CHARS_PER_LINE] = false;
+        const pos = this.getTileLinePos(posX, posY) + i*this.VISIBLE_CHARS_PER_LINE;
+        this._drawnTileLines[pos] = false;
       }
     }
   }
@@ -685,6 +690,9 @@ export default class MMU {
         break;
       default:
         throw new Error('OBJ 8x16 unsupported');
+    }
+    if ((n & this.MASK_BG_CODE_AREA_2) !== (this.lcdc() & this.MASK_BG_CODE_AREA_2)){
+      this._resetDrawnTileLines();
     }
     this._LCDCUpdated = true;
   }
