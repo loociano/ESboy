@@ -117,6 +117,7 @@ export default class MMU {
     // LCD
     this.NUM_LINES = 153;
     this.CHARS_PER_LINE = 32;
+    this.VISIBLE_CHARS_PER_LINE = 20;
 
     // OBJ
     this.MAX_OBJ = 40;
@@ -191,6 +192,7 @@ export default class MMU {
     this._div = 0x0000; // Internal divider, register DIV is msb
     this._hasMBC1 = false;
     this._selectedBankNb = 1; // default is bank 1
+    this._drawnTileLines = new Array(this.VISIBLE_CHARS_PER_LINE*8*144).fill(false);
 
     this._initMemory();
     this._loadROM();
@@ -493,6 +495,9 @@ export default class MMU {
     if (this._isVRAMAddr(addr)){
       if (!this._canAccessVRAM()) throw new Error('Cannot write on VRAM');
       this._VRAMRefreshed = true;
+      if (this._isBgCodeArea(addr)){
+        this._clearDrawnTileLines(addr);
+      }
     }
 
     switch(addr){
@@ -516,6 +521,39 @@ export default class MMU {
         return;
     }
     this._memory[addr] = n;
+  }
+
+  /**
+   * @param addr
+   * @return {number} char number 0..1023
+   * @private
+   */
+  _getCharNb(addr){
+    return (addr - this._getBgDisplayDataStartAddr());
+  }
+
+  /**
+   * @param addr
+   * @private
+   */
+  _clearDrawnTileLines(addr){
+    const offset = addr - this._getBgDisplayDataStartAddr();
+    const posX = offset % this.CHARS_PER_LINE;
+    const posY = offset / this.CHARS_PER_LINE;
+    if ((posX >= 0 && posX <= 0x13) && ((posY >= 0 && posY <= 0x11))){
+      for(let i = 0; i < 8; i++){
+        this._drawnTileLines[posX + i*this.VISIBLE_CHARS_PER_LINE] = false;
+      }
+    }
+  }
+
+  /**
+   * @param {number} addr
+   * @returns {boolean}
+   * @private
+   */
+  _isBgCodeArea(addr){
+    return addr >= this.BG_DISPLAY_DATA_1 && addr <= this.ADDR_VRAM_END;
   }
 
   /**
@@ -1034,5 +1072,20 @@ export default class MMU {
 
   getSelectedBankNb(){
     return this._selectedBankNb;
+  }
+
+  /**
+   * @param {number} tileLinePos: 0 to 23039 (160*144)
+   */
+  setTileLineDrawn(tileLinePos){
+    this._drawnTileLines[tileLinePos] = true;
+  }
+
+  /**
+   * @param tileLinePos
+   * @returns {boolean} true if tile line has been drawn
+   */
+  isTileLineDrawn(tileLinePos){
+    return this._drawnTileLines[tileLinePos];
   }
 }
