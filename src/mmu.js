@@ -542,7 +542,7 @@ export default class MMU {
     const posY = offset / this.CHARS_PER_LINE;
     if ((posX >= 0 && posX <= 0x13) && ((posY >= 0 && posY <= 0x11))){
       for(let i = 0; i < 8; i++){
-        this._drawnTileLines[posX + i*this.VISIBLE_CHARS_PER_LINE] = false;
+        this._drawnTileLines[posX + i*this.VISIBLE_CHARS_PER_LINE + 160*posY] = false;
       }
     }
   }
