@@ -49,4 +49,8 @@ export default class MMUMock {
   setTileLineDrawn(tileLine){
     // do nothing
   }
+
+  getCharCode(){
+    return 0;
+  }
 }
