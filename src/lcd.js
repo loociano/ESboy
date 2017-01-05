@@ -126,19 +126,17 @@ export default class LCD {
    * @private
    */
   _drawLineBG(line){
-    for(let gridX = 0; gridX < this._H_TILES; gridX++){
+    for(let x = 0; x < this._HW_WIDTH; x += 8){
 
-      const tileNumberPos = gridX + this._H_TILES*line;
+      const tileNumberPos = x/8 + this._H_TILES*line;
 
       if (!this._mmu.isTileLineDrawn(tileNumberPos)){
-        const gridY = this._getGridY(line);
-        const tileNumber = this._mmu.getCharCode(gridX, gridY);
+        const tileNumber = this._mmu.getCharCode(x/8, Math.floor(line/8));
         this._drawTileLine({
           tileNumber: tileNumber,
-          gridX: gridX,
-          gridY: gridY,
-          line
-        });
+          x: x,
+          y: line
+        }, line);
         this._mmu.setTileLineDrawn(tileNumberPos);
       }
     }
@@ -151,21 +149,25 @@ export default class LCD {
    * @param OBJAttr
    * @param imageData
    */
-  _drawTileLine({tileNumber, gridX, gridY, line, OBJAttr}, imageData=this._imageDataBG){
-    const tileLine = line % this._TILE_HEIGHT;
-    const x_start = gridX * this.TILE_WIDTH;
+  _drawTileLine({tileNumber, x, y, OBJAttr}, line, imageData=this._imageDataBG){
+
     const isOBJ = OBJAttr !== undefined;
+    let tileLine = y % this._TILE_HEIGHT;
+
+    if (isOBJ){
+      tileLine = line - y;
+    }
 
     let intensityVector = this._getIntensityVector(tileNumber, tileLine, isOBJ);
     let palette = this._bgp;
 
     if(isOBJ){
-      intensityVector = this._handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, gridX, gridY);
+      intensityVector = this._handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, x, y);
       palette = this._getOBJPalette(OBJAttr);
     }
 
     for(let i = 0; i < intensityVector.length; i++){
-      this.drawPixel({x: x_start+i, y: line, level: intensityVector[i]}, palette, imageData);
+      this.drawPixel({x: x+i, y: line, level: intensityVector[i]}, palette, imageData);
     }
   }
 
@@ -197,11 +199,10 @@ export default class LCD {
       if (LCD._isValidOBJ(OBJ) && this._isOBJInLine(line, OBJ.y)){
         this._drawTileLine({
           tileNumber: OBJ.chrCode,
-          gridX: (OBJ.x/this.TILE_WIDTH) - 1,
-          gridY: (OBJ.y/this._TILE_HEIGHT) - 2,
-          line: line,
-          OBJAttr: OBJ.attr
-        }, this._imageDataOBJ);
+          x: OBJ.x - 8,
+          y: OBJ.y - 16,
+          OBJAttr: OBJ.attr,
+        }, line, this._imageDataOBJ);
       }
     }
   }
@@ -256,14 +257,14 @@ export default class LCD {
    * @param {number} tileNumber
    * @param {number} tileLine
    * @param {number} OBJAttr
-   * @param {number} gridX
-   * @param {number} gridY
+   * @param {number} x
+   * @param {number} y
    * @private
    */
-  _handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, gridX, gridY){
+  _handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, x, y){
     if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_PRIORITY) === this._mmu.MASK_OBJ_ATTR_PRIORITY){
 
-      const tileNumber = this._mmu.getCharCode(gridX, gridY);
+      const tileNumber = this._mmu.getCharCode(x/8, y/8);
       const bgIntensityVector = this._getIntensityVector(tileNumber, tileLine, false);
 
       // Exception: OBJ with priority flag are displayed only in the underneath BG is lightest
@@ -290,7 +291,7 @@ export default class LCD {
    * @private
    */
   _getVerticalMirrorLine(tileLine){
-    return (7 - tileLine) & 7;
+    return Math.abs(7 - tileLine);
   }
 
   /**

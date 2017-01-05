@@ -37,7 +37,7 @@ describe('LCD', () => {
      */
     lcd.assertLinePixels = function(line, grid_x, rgba, imageData){
       for(let x = grid_x*8; x < (grid_x+1)*8; x++){
-        assert.deepEqual(this.getPixelData(x, line, imageData), rgba, `Line=${line} x=${x} pixel data ${rgba}`);
+        assert.deepEqual(Array.from(this.getPixelData(x, line, imageData)), Array.from(rgba), `Line=${line} x=${x} pixel data ${rgba}`);
       }
     };
     /**
@@ -138,7 +138,7 @@ describe('LCD', () => {
 
       lcd.drawLine(0);
 
-      assert.deepEqual(lcd.getBGLineData(0), expectedData);
+      assert.deepEqual(Array.from(lcd.getBGLineData(0)), Array.from(expectedData));
     });
 
     it('should draw horizontal lines, dark and light', () => {
@@ -279,13 +279,28 @@ describe('LCD', () => {
       const mmu = lcd.getMMU();
       mmu.getCharCode = (any) =>  0;
       mmu.readBGData = (any) => new Buffer('0000', 'hex');
-      mmu.readOBJData = (any) => new Buffer('ffff', 'hex');
+      mmu.readOBJData = (tileNumber, tileLine) => {
+        if (tileLine % 2 === 0){
+          return new Buffer('ffff', 'hex');
+        } else {
+          return new Buffer('ff00', 'hex');
+        }
+      };
       mmu.areOBJOn = () => true;
-      mmu.getOBJ = (any) => { return {y: 116, x: 108, chrCode: 0, attr: 0}; };
+      mmu.getOBJ = (n) => {
+        if (n === 0){
+          return {y: 116, x: 108, chrCode: 0, attr: 0};
+        } else {
+          return {y: 0, x: 0};
+        }
+      };
 
+      // OBJ should be in lines 100..107
       lcd.drawLine(100);
+      lcd.drawLine(101);
 
       lcd.assertLinePixels(100, 12.5, lcd.SHADES[3], lcd.getImageDataOBJ());
+      lcd.assertLinePixels(101, 12.5, lcd.SHADES[1], lcd.getImageDataOBJ());
     });
 
     it('should write OBJ on top of BG', () => {
@@ -413,7 +428,13 @@ describe('LCD', () => {
       const mmu = lcd.getMMU();
       mmu.getCharCode = (any) => { return 0; };
       mmu.readBGData = (any) => { return new Buffer('0000', 'hex'); };
-      mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b01000000}; };
+      mmu.getOBJ = (n) => {
+        if ( n === 0 ){
+          return {y: 16, x: 8, chrCode: 0x00, attr: 0b01000000};
+        } else {
+          return {y: 0, x: 0};
+        }
+      };
       mmu.readOBJData = (tileNumber, tileLine) => {
         // Top half is darkest, bottom half is transparent
         if (tileLine < 4) {
@@ -516,7 +537,7 @@ function assertTile(grid_x, grid_y, rgba, imageData){
 
   for(let x = grid_x*8; x < (grid_x+1)*8; x++){
     for(let y = grid_y*8; y < (grid_y+1)*8; y++){
-       assert.deepEqual(this.getPixelData(x, y, imageData), rgba, `Tile: ${grid_x},${grid_y} x=${x}, y=${y} pixel data ${rgba}`);
+       assert.deepEqual(Array.from(this.getPixelData(x, y, imageData)), Array.from(rgba), `Tile: ${grid_x},${grid_y} x=${x}, y=${y} pixel data ${rgba}`);
     } 
   }
 }
