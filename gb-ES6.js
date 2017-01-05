@@ -1909,14 +1909,7 @@ function isnan (val) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"base64-js":1,"ieee754":5,"isarray":4}],4:[function(require,module,exports){
-var toString = {}.toString;
-
-module.exports = Array.isArray || function (arr) {
-  return toString.call(arr) == '[object Array]';
-};
-
-},{}],5:[function(require,module,exports){
+},{"base64-js":1,"ieee754":4,"isarray":5}],4:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -2001,6 +1994,13 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 
   buffer[offset + i - d] |= s * 128
 }
+
+},{}],5:[function(require,module,exports){
+var toString = {}.toString;
+
+module.exports = Array.isArray || function (arr) {
+  return toString.call(arr) == '[object Array]';
+};
 
 },{}],6:[function(require,module,exports){
 "use strict";
@@ -2805,7 +2805,7 @@ var CPU = function () {
   }, {
     key: 'peek_stack',
     value: function peek_stack() {
-      var offset = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
+      var offset = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 
       return this.mmu.readByteAt(this.sp() + offset);
     }
@@ -3053,7 +3053,7 @@ var CPU = function () {
   }, {
     key: 'start',
     value: function start() {
-      var pc_stop = arguments.length <= 0 || arguments[0] === undefined ? -1 : arguments[0];
+      var pc_stop = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : -1;
 
       try {
         this.frame(pc_stop);
@@ -3326,10 +3326,9 @@ var CPU = function () {
         opcode = (opcode << 8) + this._nextOpcode();
       }
 
-      var _getInstruction2 = this._getInstruction(opcode);
-
-      var fn = _getInstruction2.fn;
-      var paramBytes = _getInstruction2.paramBytes;
+      var _getInstruction2 = this._getInstruction(opcode),
+          fn = _getInstruction2.fn,
+          paramBytes = _getInstruction2.paramBytes;
 
       var param = this._getInstrParams(paramBytes);
 
@@ -5980,7 +5979,7 @@ var CPU = function () {
   }, {
     key: '_rl_r',
     value: function _rl_r(setter, getter) {
-      var carried = arguments.length <= 2 || arguments[2] === undefined ? this.C() : arguments[2];
+      var carried = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.C();
 
 
       var value = getter.call(this);
@@ -6099,7 +6098,7 @@ var CPU = function () {
   }, {
     key: '_rr_r',
     value: function _rr_r(setter, getter) {
-      var carried = arguments.length <= 2 || arguments[2] === undefined ? this.C() : arguments[2];
+      var carried = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.C();
 
 
       var value = getter.call(this);
@@ -6125,7 +6124,7 @@ var CPU = function () {
   }, {
     key: 'rl_0xhl',
     value: function rl_0xhl() {
-      var carried = arguments.length <= 0 || arguments[0] === undefined ? this.C() : arguments[0];
+      var carried = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.C();
 
       this._rl_r(this._ld_0xhl_n, this._0xhl, carried);
     }
@@ -6137,7 +6136,7 @@ var CPU = function () {
   }, {
     key: 'rr_0xhl',
     value: function rr_0xhl() {
-      var carried = arguments.length <= 0 || arguments[0] === undefined ? this.C() : arguments[0];
+      var carried = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.C();
 
       this._rr_r(this._ld_0xhl_n, this._0xhl, carried);
     }
@@ -6349,7 +6348,7 @@ var CPU = function () {
   }, {
     key: '_sub_n',
     value: function _sub_n(value) {
-      var carry = arguments.length <= 1 || arguments[1] === undefined ? 0 : arguments[1];
+      var carry = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
 
 
       this.setN(1);
@@ -6588,7 +6587,7 @@ var CPU = function () {
   }, {
     key: '_add_r',
     value: function _add_r(value) {
-      var carry = arguments.length <= 1 || arguments[1] === undefined ? 0 : arguments[1];
+      var carry = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
 
 
       this.setN(0);
@@ -8004,6 +8003,8 @@ var LCD = function () {
     this._clear();
     this._clear(this._imageDataOBJ, this._ctxOBJ);
     this._readPalettes();
+
+    this.paint();
   }
 
   /**
@@ -8031,15 +8032,14 @@ var LCD = function () {
     /**
      * @param {ImageData} imageData
      * @param {CanvasRenderingContext2D} ctx
+     * NOTE: EXPENSIVE
      */
 
   }, {
     key: 'paint',
     value: function paint() {
-      var imageData = arguments.length <= 0 || arguments[0] === undefined ? this._imageDataBG : arguments[0];
-      var ctx = arguments.length <= 1 || arguments[1] === undefined ? this._ctxBG : arguments[1];
-
-      ctx.putImageData(imageData, 0, 0);
+      this._ctxBG.putImageData(this._imageDataBG, 0, 0);
+      this._ctxOBJ.putImageData(this._imageDataOBJ, 0, 0);
     }
 
     /** 
@@ -8052,14 +8052,13 @@ var LCD = function () {
   }, {
     key: '_clear',
     value: function _clear() {
-      var imageData = arguments.length <= 0 || arguments[0] === undefined ? this._imageDataBG : arguments[0];
-      var ctx = arguments.length <= 1 || arguments[1] === undefined ? this._ctxBG : arguments[1];
+      var imageData = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this._imageDataBG;
+      var ctx = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._ctxBG;
 
       var size = this._HW_WIDTH * this._HW_HEIGHT * 4;
       for (var p = 0; p < size; p++) {
         imageData.data[p] = 0;
       }
-      this.paint(imageData, ctx);
     }
 
     /**
@@ -8073,8 +8072,8 @@ var LCD = function () {
   }, {
     key: '_clearLine',
     value: function _clearLine(line) {
-      var imageData = arguments.length <= 1 || arguments[1] === undefined ? this._imageDataBG : arguments[1];
-      var ctx = arguments.length <= 2 || arguments[2] === undefined ? this._ctxBG : arguments[2];
+      var imageData = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._imageDataBG;
+      var ctx = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this._ctxBG;
 
       var start = this._HW_WIDTH * line * 4;
       var end = start + this._HW_WIDTH * 4;
@@ -8082,27 +8081,7 @@ var LCD = function () {
       for (var p = start; p < end; p++) {
         imageData.data[p] = 0;
       }
-      this.paint(imageData, ctx);
     }
-
-    /** 
-     * Draw all tiles on screen
-     */
-    /*drawTiles(){
-        this._readPalettes();
-        if (this._mmu._VRAMRefreshed) {
-        this._clearMatrixCache();
-        this._drawLineBG();
-        this._mmu._VRAMRefreshed = false;
-        } else if (this._mmu._LCDCUpdated){
-        this._drawLineBG();
-        this._mmu._LCDCUpdated = false;
-      }
-        if (this._mmu.areOBJOn()) {
-        this._clear(this._imageDataOBJ, this._ctxOBJ);
-        this._drawOBJ();
-      }
-    }*/
 
     /**
      * @param {number} line
@@ -8111,7 +8090,7 @@ var LCD = function () {
   }, {
     key: 'drawLine',
     value: function drawLine() {
-      var line = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
+      var line = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 
       if (line >= this._HW_HEIGHT || line < 0) {
         _logger2.default.warn('Cannot draw line ' + line);
@@ -8141,13 +8120,20 @@ var LCD = function () {
     key: '_drawLineBG',
     value: function _drawLineBG(line) {
       for (var gridX = 0; gridX < this._H_TILES; gridX++) {
-        var gridY = this._getGridY(line);
-        this._drawTileLine({
-          tileNumber: this._mmu.getCharCode(gridX, gridY),
-          gridX: gridX,
-          gridY: gridY,
-          line: line
-        });
+
+        var tileNumberPos = gridX + this._H_TILES * line;
+
+        if (!this._mmu.isTileLineDrawn(tileNumberPos)) {
+          var gridY = this._getGridY(line);
+          var tileNumber = this._mmu.getCharCode(gridX, gridY);
+          this._drawTileLine({
+            tileNumber: tileNumber,
+            gridX: gridX,
+            gridY: gridY,
+            line: line
+          });
+          this._mmu.setTileLineDrawn(tileNumberPos);
+        }
       }
     }
 
@@ -8162,12 +8148,12 @@ var LCD = function () {
   }, {
     key: '_drawTileLine',
     value: function _drawTileLine(_ref) {
-      var tileNumber = _ref.tileNumber;
-      var gridX = _ref.gridX;
-      var gridY = _ref.gridY;
-      var line = _ref.line;
-      var OBJAttr = _ref.OBJAttr;
-      var imageData = arguments.length <= 1 || arguments[1] === undefined ? this._imageDataBG : arguments[1];
+      var tileNumber = _ref.tileNumber,
+          gridX = _ref.gridX,
+          gridY = _ref.gridY,
+          line = _ref.line,
+          OBJAttr = _ref.OBJAttr;
+      var imageData = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._imageDataBG;
 
       var tileLine = line % this._TILE_HEIGHT;
       var x_start = gridX * this.TILE_WIDTH;
@@ -8195,7 +8181,7 @@ var LCD = function () {
   }, {
     key: '_getGridY',
     value: function _getGridY() {
-      var line = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
+      var line = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 
       return Math.floor(line / this._TILE_HEIGHT);
     }
@@ -8232,7 +8218,6 @@ var LCD = function () {
           }, this._imageDataOBJ);
         }
       }
-      this.paint(this._imageDataOBJ, this._ctxOBJ);
     }
 
     /**
@@ -8406,11 +8391,11 @@ var LCD = function () {
      * @param {ImageData} imageData
      */
     value: function drawPixel(_ref2) {
-      var x = _ref2.x;
-      var y = _ref2.y;
-      var level = _ref2.level;
-      var palette = arguments.length <= 1 || arguments[1] === undefined ? this._bgp : arguments[1];
-      var imageData = arguments.length <= 2 || arguments[2] === undefined ? this._imageDataBG : arguments[2];
+      var x = _ref2.x,
+          y = _ref2.y,
+          level = _ref2.level;
+      var palette = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._bgp;
+      var imageData = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this._imageDataBG;
 
 
       if (level < 0 || level > 3) {
@@ -8710,6 +8695,7 @@ var MMU = function () {
     // LCD
     this.NUM_LINES = 153;
     this.CHARS_PER_LINE = 32;
+    this.VISIBLE_CHARS_PER_LINE = 20;
 
     // OBJ
     this.MAX_OBJ = 40;
@@ -8784,18 +8770,24 @@ var MMU = function () {
     this._div = 0x0000; // Internal divider, register DIV is msb
     this._hasMBC1 = false;
     this._selectedBankNb = 1; // default is bank 1
+    this._resetDrawnTileLines();
 
     this._initMemory();
     this._loadROM();
     this._setMBC1();
   }
 
-  /**
-   * @returns {boolean} true if running BIOS
-   */
-
-
   _createClass(MMU, [{
+    key: '_resetDrawnTileLines',
+    value: function _resetDrawnTileLines() {
+      this._drawnTileLines = new Array(this.VISIBLE_CHARS_PER_LINE * 18 * 8).fill(false);
+    }
+
+    /**
+     * @returns {boolean} true if running BIOS
+     */
+
+  }, {
     key: 'isRunningBIOS',
     value: function isRunningBIOS() {
       return this._inBIOS;
@@ -8988,7 +8980,7 @@ var MMU = function () {
   }, {
     key: 'readBGData',
     value: function readBGData(tile_number) {
-      var tile_line = arguments.length <= 1 || arguments[1] === undefined ? 0 : arguments[1];
+      var tile_line = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
 
       if (tile_number < 0 || tile_number > 0xff) {
         throw new Error('Cannot read tile ' + tile_number);
@@ -9146,6 +9138,9 @@ var MMU = function () {
       if (this._isVRAMAddr(addr)) {
         if (!this._canAccessVRAM()) throw new Error('Cannot write on VRAM');
         this._VRAMRefreshed = true;
+        if (this._isBgCodeArea(addr)) {
+          this._clearDrawnTileLines(addr);
+        }
       }
 
       switch (addr) {
@@ -9169,6 +9164,54 @@ var MMU = function () {
           return;
       }
       this._memory[addr] = n;
+    }
+
+    /**
+     * @param addr
+     * @return {number} char number 0..1023
+     * @private
+     */
+
+  }, {
+    key: '_getCharNb',
+    value: function _getCharNb(addr) {
+      return addr - this._getBgDisplayDataStartAddr();
+    }
+
+    /**
+     * @param addr
+     * @private
+     */
+
+  }, {
+    key: '_clearDrawnTileLines',
+    value: function _clearDrawnTileLines(addr) {
+      var offset = addr - this._getBgDisplayDataStartAddr();
+      var posX = offset % this.CHARS_PER_LINE;
+      var posY = Math.floor(offset / this.CHARS_PER_LINE);
+      if (posX >= 0 && posX <= 0x13 && posY >= 0 && posY <= 0x11) {
+        for (var i = 0; i < 8; i++) {
+          var pos = this.getTileLinePos(posX, posY) + i * this.VISIBLE_CHARS_PER_LINE;
+          this._drawnTileLines[pos] = false;
+        }
+      }
+    }
+  }, {
+    key: 'getTileLinePos',
+    value: function getTileLinePos(posX, posY) {
+      return posX + 160 * posY;
+    }
+
+    /**
+     * @param {number} addr
+     * @returns {boolean}
+     * @private
+     */
+
+  }, {
+    key: '_isBgCodeArea',
+    value: function _isBgCodeArea(addr) {
+      return addr >= this.BG_DISPLAY_DATA_1 && addr <= this.ADDR_VRAM_END;
     }
 
     /**
@@ -9329,6 +9372,9 @@ var MMU = function () {
           break;
         default:
           throw new Error('OBJ 8x16 unsupported');
+      }
+      if ((n & this.MASK_BG_CODE_AREA_2) !== (this.lcdc() & this.MASK_BG_CODE_AREA_2)) {
+        this._resetDrawnTileLines();
       }
       this._LCDCUpdated = true;
     }
@@ -9845,6 +9891,27 @@ var MMU = function () {
     value: function getSelectedBankNb() {
       return this._selectedBankNb;
     }
+
+    /**
+     * @param {number} tileLinePos: 0 to 2879 (20 hor tiles * 144 lines)
+     */
+
+  }, {
+    key: 'setTileLineDrawn',
+    value: function setTileLineDrawn(tileLinePos) {
+      this._drawnTileLines[tileLinePos] = true;
+    }
+
+    /**
+     * @param tileLinePos
+     * @returns {boolean} true if tile line has been drawn
+     */
+
+  }, {
+    key: 'isTileLineDrawn',
+    value: function isTileLineDrawn(tileLinePos) {
+      return this._drawnTileLines[tileLinePos];
+    }
   }]);
 
   return MMU;
@@ -10049,7 +10116,7 @@ var Utils = function () {
   }, {
     key: 'toFsStamp',
     value: function toFsStamp() {
-      var date = arguments.length <= 0 || arguments[0] === undefined ? new Date() : arguments[0];
+      var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();
 
       return date.toISOString().replace(/\.|:/g, '-');
     }
