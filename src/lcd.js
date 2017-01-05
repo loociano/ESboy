@@ -39,6 +39,8 @@ export default class LCD {
     this._clear();
     this._clear(this._imageDataOBJ, this._ctxOBJ);
     this._readPalettes();
+
+    this.paint();
   }
 
   /**
@@ -60,9 +62,11 @@ export default class LCD {
   /**
    * @param {ImageData} imageData
    * @param {CanvasRenderingContext2D} ctx
+   * NOTE: EXPENSIVE
    */
-  paint(imageData=this._imageDataBG, ctx=this._ctxBG){
-    ctx.putImageData(imageData, 0, 0);
+  paint(){
+    this._ctxBG.putImageData(this._imageDataBG, 0, 0);
+    this._ctxOBJ.putImageData(this._imageDataOBJ, 0, 0);
   }
 
   /** 
@@ -76,7 +80,6 @@ export default class LCD {
     for(let p = 0; p < size; p++){
       imageData.data[p] = 0;
     }
-    this.paint(imageData, ctx);
   }
 
   /**
@@ -93,7 +96,6 @@ export default class LCD {
     for(let p = start; p < end; p++){
       imageData.data[p] = 0;
     }
-    this.paint(imageData, ctx);
   }
 
   /**
@@ -202,7 +204,6 @@ export default class LCD {
         }, this._imageDataOBJ);
       }
     }
-    this.paint(this._imageDataOBJ, this._ctxOBJ);
   }
 
   /**
