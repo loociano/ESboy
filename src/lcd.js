@@ -96,29 +96,6 @@ export default class LCD {
     this.paint(imageData, ctx);
   }
 
-  /** 
-   * Draw all tiles on screen
-   */
-  /*drawTiles(){
-
-    this._readPalettes();
-
-    if (this._mmu._VRAMRefreshed) {
-      this._clearMatrixCache();
-      this._drawLineBG();
-      this._mmu._VRAMRefreshed = false;
-
-    } else if (this._mmu._LCDCUpdated){
-      this._drawLineBG();
-      this._mmu._LCDCUpdated = false;
-    }
-
-    if (this._mmu.areOBJOn()) {
-      this._clear(this._imageDataOBJ, this._ctxOBJ);
-      this._drawOBJ();
-    }
-  }*/
-
   /**
    * @param {number} line
    */
@@ -152,14 +129,14 @@ export default class LCD {
       const tileNumberPos = gridX + this._V_TILES*line;
 
       if (!this._mmu.isTileLineDrawn(tileNumberPos)){
-      const gridY = this._getGridY(line);
+        const gridY = this._getGridY(line);
         const tileNumber = this._mmu.getCharCode(gridX, gridY);
-      this._drawTileLine({
+        this._drawTileLine({
           tileNumber: tileNumber,
-        gridX: gridX,
-        gridY: gridY,
-        line
-      });
+          gridX: gridX,
+          gridY: gridY,
+          line
+        });
         this._mmu.setTileLineDrawn(tileNumberPos);
       }
     }
