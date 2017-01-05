@@ -1,5 +1,10 @@
 export default class lcdMock {
 
-  drawTiles(){}
+  drawLine(line){
+    // Do nothing
+  }
 
+  paint(){
+    // Do nothing
+  }
 }

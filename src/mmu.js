@@ -110,11 +110,14 @@ export default class MMU {
     this.MASK_OBJ_ATTR_OBG = 0x10;
 
     // Character Data
+    this.CHAR_LINE_SIZE = 2;
+    this.CHAR_HEIGHT = 8;
     this.CHAR_SIZE = 0x10; // 0x00 to 0x0f
 
     // LCD
     this.NUM_LINES = 153;
     this.CHARS_PER_LINE = 32;
+    this.VISIBLE_CHARS_PER_LINE = 20;
 
     // OBJ
     this.MAX_OBJ = 40;
@@ -189,10 +192,15 @@ export default class MMU {
     this._div = 0x0000; // Internal divider, register DIV is msb
     this._hasMBC1 = false;
     this._selectedBankNb = 1; // default is bank 1
+    this._resetDrawnTileLines();
 
     this._initMemory();
     this._loadROM();
     this._setMBC1();
+  }
+
+  _resetDrawnTileLines(){
+    this._drawnTileLines = new Array(this.VISIBLE_CHARS_PER_LINE*18*8).fill(false);
   }
 
   /**
@@ -353,45 +361,53 @@ export default class MMU {
   /**
    * Returns the buffer given a tile number
    * Tiles are numbered from 0x00 to 0xff
-   * @param tile_number
+   * @param {number} tile_number
+   * @param {number} tile_line
    * @returns {Uint8Array}
    */
-  readBGData(tile_number){
+  readBGData(tile_number, tile_line=0){
     if (tile_number < 0 || tile_number > 0xff){
       throw new Error(`Cannot read tile ${tile_number}`);
     }
-
-    if ((this.lcdc() & this.LCDC_BG) === 0){
-      return this._genEmptyCharBuffer();
+    if (tile_line < 0 || tile_line > 7){
+      throw new Error(`Invalid tile line ${tile_line}`);
     }
 
-    const start_addr = this.getBgCharDataStartAddr(tile_number);
-    return this._memory.slice(start_addr, start_addr + this.CHAR_SIZE);
+    if ((this.lcdc() & this.LCDC_BG) === 0){
+      return this._genEmptyCharLineBuffer();
+    }
+
+    const start_addr = this.getBgCharDataStartAddr(tile_number) + tile_line*2;
+    return this._memory.slice(start_addr, start_addr + this.CHAR_LINE_SIZE);
   }
 
   /**
-   * @param tile_number
+   * @param tileNumber
+   * @param tileLine
    * @returns {Uint8Array}
    */
-  readOBJData(tile_number){
-    if (tile_number < 0 || tile_number > 0xff){
-      throw new Error(`OBJ ${tile_number} out of range`);
+  readOBJData(tileNumber, tileLine){
+    if (tileNumber < 0 || tileNumber > 0xff){
+      throw new Error(`OBJ ${tileNumber} out of range`);
+    }
+    if (tileLine < 0 || tileLine > 7){
+      throw new Error(`Invalid tile line ${tile_line}`);
     }
 
     if ((this.lcdc() & this.MASK_OBJ_ON) === 0){
-      return this._genEmptyCharBuffer();
+      return this._genEmptyCharLineBuffer();
     }
 
-    const start_addr = this.getOBJCharDataStartAddr(tile_number);
-    return this._memory.slice(start_addr, start_addr + this.CHAR_SIZE);
+    const start_addr = this.getOBJCharDataStartAddr(tileNumber) + tileLine*2;
+    return this._memory.slice(start_addr, start_addr + this.CHAR_LINE_SIZE);
   }
 
   /**
-   * @returns {Uint8Array} generates an char-size, empty buffer
+   * @returns {Uint8Array} generates an char-line, empty buffer
    * @private
    */
-  _genEmptyCharBuffer(){
-    return new Buffer(this.CHAR_SIZE).fill(0);
+  _genEmptyCharLineBuffer(){
+    return new Buffer(this.CHAR_LINE_SIZE).fill(0);
   }
 
   /**
@@ -483,6 +499,9 @@ export default class MMU {
     if (this._isVRAMAddr(addr)){
       if (!this._canAccessVRAM()) throw new Error('Cannot write on VRAM');
       this._VRAMRefreshed = true;
+      if (this._isBgCodeArea(addr)){
+        this._clearDrawnTileLines(addr);
+      }
     }
 
     switch(addr){
@@ -506,6 +525,44 @@ export default class MMU {
         return;
     }
     this._memory[addr] = n;
+  }
+
+  /**
+   * @param addr
+   * @return {number} char number 0..1023
+   * @private
+   */
+  _getCharNb(addr){
+    return (addr - this._getBgDisplayDataStartAddr());
+  }
+
+  /**
+   * @param addr
+   * @private
+   */
+  _clearDrawnTileLines(addr){
+    const offset = addr - this._getBgDisplayDataStartAddr();
+    const posX = offset % this.CHARS_PER_LINE;
+    const posY = Math.floor(offset / this.CHARS_PER_LINE);
+    if ((posX >= 0 && posX <= 0x13) && ((posY >= 0 && posY <= 0x11))){
+      for(let i = 0; i < 8; i++){
+        const pos = this.getTileLinePos(posX, posY) + i*this.VISIBLE_CHARS_PER_LINE;
+        this._drawnTileLines[pos] = false;
+      }
+    }
+  }
+
+  getTileLinePos(posX, posY){
+    return posX + 160*posY;
+  }
+
+  /**
+   * @param {number} addr
+   * @returns {boolean}
+   * @private
+   */
+  _isBgCodeArea(addr){
+    return addr >= this.BG_DISPLAY_DATA_1 && addr <= this.ADDR_VRAM_END;
   }
 
   /**
@@ -633,6 +690,9 @@ export default class MMU {
         break;
       default:
         throw new Error('OBJ 8x16 unsupported');
+    }
+    if ((n & this.MASK_BG_CODE_AREA_2) !== (this.lcdc() & this.MASK_BG_CODE_AREA_2)){
+      this._resetDrawnTileLines();
     }
     this._LCDCUpdated = true;
   }

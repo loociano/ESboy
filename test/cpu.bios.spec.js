@@ -1,19 +1,28 @@
 import CPU from '../src/cpu';
 import MMU from '../src/mmu';
+import LCD from '../src/lcd';
 import Loader from '../src/loader';
 import assert from 'assert';
 import {describe, beforeEach, it} from 'mocha';
-import lcdMock from './mock/lcdMock';
+import ContextMock from './mock/contextMock';
 import config from '../src/config';
 
 describe('BIOS execution', function() {
 
-  config.DEBUG = true;
+  config.DEBUG = false;
+  config.TEST = true;
 
   const stopAt = 0x0100;
 
   const loader = new Loader('./roms/blargg_cpu_instrs.gb');
-  const cpu = new CPU(new MMU(loader.asUint8Array()), new lcdMock());
+  const mmu = new MMU(loader.asUint8Array());
+  const lcd = new LCD(mmu, new ContextMock(), new ContextMock());
+  const cpu = new CPU(mmu, lcd);
+
+  lcd.getBGTileLineData = function(grid_x, grid_y){
+    const index = (grid_x*this.TILE_WIDTH + grid_y*this.TILE_WIDTH * this._HW_WIDTH) * 4;
+    return this._imageDataBG.data.slice(index, index + this.TILE_WIDTH*4);
+  };
 
   cpu.runUntil(stopAt);
 
@@ -26,11 +35,25 @@ describe('BIOS execution', function() {
   });
 
   it('should copy the nintendo tiles in VRAM', function() {
-    assert.deepEqual(cpu.mmu.readBGData(0x1), new Uint8Array([0xf0,0x00,0xf0,0x00,0xfc,0x00,0xfc,0x00,0xfc,0x00,0xfc,0x00,0xf3,0x00,0xf3,0x00]), 'Nintendo tile 1');
-    assert.deepEqual(cpu.mmu.readBGData(0x2), new Uint8Array([0x3c,0x00,0x3c,0x00,0x3c,0x00,0x3c,0x00,0x3c,0x00,0x3c,0x00,0x3c,0x00,0x3c,0x00]), 'Nintendo tile 2');
-    assert.deepEqual(cpu.mmu.readBGData(0x3), new Uint8Array([0xf0,0x00,0xf0,0x00,0xf0,0x00,0xf0,0x00,0x00,0x00,0x00,0x00,0xf3,0x00,0xf3,0x00]), 'Nintendo tile 3');
+    // Nintendo tile 1
+    assert.deepEqual(cpu.mmu.readBGData(0x1, 0), [0xf0,0x00]);
+    assert.deepEqual(cpu.mmu.readBGData(0x1, 1), [0xf0,0x00]);
+    assert.deepEqual(cpu.mmu.readBGData(0x1, 2), [0xfc,0x00]);
+    assert.deepEqual(cpu.mmu.readBGData(0x1, 3), [0xfc,0x00]);
+    assert.deepEqual(cpu.mmu.readBGData(0x1, 4), [0xfc,0x00]);
+    assert.deepEqual(cpu.mmu.readBGData(0x1, 5), [0xfc,0x00]);
+    assert.deepEqual(cpu.mmu.readBGData(0x1, 6), [0xf3,0x00]);
+    assert.deepEqual(cpu.mmu.readBGData(0x1, 7), [0xf3,0x00]);
     //...
-    assert.deepEqual(cpu.mmu.readBGData(0x19), new Uint8Array([0x3c,0x00,0x42,0x00,0xb9,0x00,0xa5,0x00,0xb9,0x00,0xa5,0x00,0x42,0x00,0x3c,0x00]), 'Nintendo tile 24');
+    // Nintendo tile 24
+    assert.deepEqual(cpu.mmu.readBGData(0x19, 0), [0x3c,0x00]);
+    assert.deepEqual(cpu.mmu.readBGData(0x19, 1), [0x42,0x00]);
+    assert.deepEqual(cpu.mmu.readBGData(0x19, 2), [0xb9,0x00]);
+    assert.deepEqual(cpu.mmu.readBGData(0x19, 3), [0xa5,0x00]);
+    assert.deepEqual(cpu.mmu.readBGData(0x19, 4), [0xb9,0x00]);
+    assert.deepEqual(cpu.mmu.readBGData(0x19, 5), [0xa5,0x00]);
+    assert.deepEqual(cpu.mmu.readBGData(0x19, 6), [0x42,0x00]);
+    assert.deepEqual(cpu.mmu.readBGData(0x19, 7), [0x3c,0x00]);
   });
 
   it('should write the map to tiles', function() {
@@ -78,6 +101,21 @@ describe('BIOS execution', function() {
     assert.equal(cpu.l(), 0x4d, 'l');
     assert.equal(cpu.sp(), 0xfffe, 'a');
     assert.equal(cpu.f(), 0b1011, 'flags');
+  });
+
+  it('should paint the Nintendo logo on screen', () => {
+    const tile1Line0Data = [
+      ...lcd.SHADES[lcd._bgp[3]],
+      ...lcd.SHADES[lcd._bgp[3]],
+      ...lcd.SHADES[lcd._bgp[3]],
+      ...lcd.SHADES[lcd._bgp[3]],
+      ...lcd.SHADES[lcd._bgp[0]],
+      ...lcd.SHADES[lcd._bgp[0]],
+      ...lcd.SHADES[lcd._bgp[0]],
+      ...lcd.SHADES[lcd._bgp[0]]];
+
+    assert.equal(cpu.mmu.getCharCode(0x04, 0x08), 0x01, 'Tile 1 at 0x04,0x08');
+    assert.deepEqual(Array.from(lcd.getBGTileLineData(4, 8)), tile1Line0Data);
   });
 
 });

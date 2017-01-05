@@ -968,6 +968,7 @@ export default class CPU {
     if (this._m >= (this._mLyOffset() + this.M_CYCLES_PER_LINE)) {
 
       this.mmu.incrementLy();
+      this._lineDrawn = false;
 
       if (this.ly() === 0) {
         this._m = 0;
@@ -990,7 +991,7 @@ export default class CPU {
   _handleTransitionsBeforeVBL() {
     switch (this.mmu.getLCDMode()) {
       case 0:
-        if (this._m < (this._mLyOffset() + this.M_CYCLES_STOP_MODE_0)) {
+        if (!this._lineDrawn && this._m > (this._mLyOffset() + this.M_CYCLES_STOP_MODE_0)) {
           this.mmu.setLCDMode(2);
         }
         break;
@@ -1004,6 +1005,8 @@ export default class CPU {
       case 3:
         if (this._m > (this._mLyOffset() + this.M_CYCLES_STOP_MODE_3)) {
           this.mmu.setLCDMode(0);
+          this.lcd.drawLine(this.ly());
+          this._lineDrawn = true;
         }
         break;
     }
@@ -1061,8 +1064,7 @@ export default class CPU {
       this.di();
       this._rst_40();
     }
-
-    this.lcd.drawTiles();
+    this.lcd.paint();
   }
 
   /**

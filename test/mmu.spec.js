@@ -15,73 +15,85 @@ describe('MMU', () => {
   beforeEach( () => {
     const loader = new Loader('./roms/blargg_cpu_instrs.gb');
     mmu = new MMU(loader.asUint8Array());
+    mmu.assertTileLineDrawn = function(posX, posY, expected){
+      for(let i = 0; i < 8; i++){
+        assert.equal(mmu.isTileLineDrawn(mmu.getTileLinePos(posX, posY) + i*20), expected);
+      }
+    };
+    mmu.setTileDrawn = function(posX, posY){
+      for(let i = 0; i < 8; i++){
+        mmu.setTileLineDrawn(mmu.getTileLinePos(posX, posY) + i*20);
+      }
+    };
   });
 
-  it('should handle missing ROM', () => {
-    assert.throws(() => new MMU(undefined), Error, 'Missing ROM');
+  describe('Initialization', () => {
+    it('should handle missing ROM', () => {
+      assert.throws(() => new MMU(undefined), Error, 'Missing ROM');
+    });
+    it('should start the memory map', () => {
+
+      assert.equal(mmu._memory.length, 0x10000, 'Memory size is 0x10000');
+
+      // Starting values at addresses
+      assert.equal(mmu.readByteAt(0xff10), 0x80);
+      assert.equal(mmu.readByteAt(0xff14), 0xbf);
+      assert.equal(mmu.readByteAt(0xff16), 0x3f);
+      assert.equal(mmu.readByteAt(0xff17), 0x00);
+      assert.equal(mmu.readByteAt(0xff19), 0xbf);
+      assert.equal(mmu.readByteAt(0xff1a), 0x7f);
+      assert.equal(mmu.readByteAt(0xff1b), 0xff);
+      assert.equal(mmu.readByteAt(0xff1c), 0x9f);
+      assert.equal(mmu.readByteAt(0xff1e), 0xbf);
+      assert.equal(mmu.readByteAt(0xff20), 0xff);
+      assert.equal(mmu.readByteAt(0xff21), 0x00);
+      assert.equal(mmu.readByteAt(0xff22), 0x00);
+      assert.equal(mmu.readByteAt(0xff23), 0xbf);
+      assert.equal(mmu.readByteAt(mmu.ADDR_IE), 0x01); // Allow vblank
+    });
   });
 
-  it('should write bytes in memory', () => {
-    mmu.writeByteAt(0xc000, 0xab);
-    assert.equal(mmu.readByteAt(0xc000), 0xab, 'write 0xab in memory address 0xc000');
-  });
+  describe('Read/Write', () => {
+    it('should write bytes in memory', () => {
+      mmu.writeByteAt(0xc000, 0xab);
+      assert.equal(mmu.readByteAt(0xc000), 0xab, 'write 0xab in memory address 0xc000');
+    });
+    it('should write in Interrupt Enable register', () => {
+      mmu.writeByteAt(0xffff, 0x0f);
+      assert.equal(mmu.ie(), 0x0f, 'should write on 0xffff');
+    });
+    it('should not write bytes in ROM', () => {
 
-  it('should write in Interrupt Enable register', () => {
-    mmu.writeByteAt(0xffff, 0x0f);
-    assert.equal(mmu.ie(), 0x0f, 'should write on 0xffff');
-  });
+      let addr = 0x0000;
 
-  it('should not write bytes in ROM', () => {
-    
-    let addr = 0x0000;
+      assert.doesNotThrow( () => {
+        mmu.writeByteAt(addr, 0xab);
+      }, Error, `should not write on ${addr}`);
 
-    assert.doesNotThrow( () => {
+      addr = 0x7fff;
+
+      assert.doesNotThrow( () => {
+        mmu.writeByteAt(addr, 0xab);
+      }, Error, `should not write on ${addr}`);
+
+      addr = 0x8000;
+
       mmu.writeByteAt(addr, 0xab);
-    }, Error, `should not write on ${addr}`);
 
-    addr = 0x7fff;
-
-    assert.doesNotThrow( () => {
-      mmu.writeByteAt(addr, 0xab);
-    }, Error, `should not write on ${addr}`);
-
-    addr = 0x8000;
-
-    mmu.writeByteAt(addr, 0xab);
-
-    assert.equal(mmu.readByteAt(addr), 0xab, `can write on ${addr}`);
+      assert.equal(mmu.readByteAt(addr), 0xab, `can write on ${addr}`);
+    });
   });
 
-  it('should start the memory map', () => {
-
-    assert.equal(mmu._memory.length, 0x10000, 'Memory size is 0x10000');
-
-    // Starting values at addresses
-    assert.equal(mmu.readByteAt(0xff10), 0x80);
-    assert.equal(mmu.readByteAt(0xff14), 0xbf);
-    assert.equal(mmu.readByteAt(0xff16), 0x3f);
-    assert.equal(mmu.readByteAt(0xff17), 0x00);
-    assert.equal(mmu.readByteAt(0xff19), 0xbf);
-    assert.equal(mmu.readByteAt(0xff1a), 0x7f);
-    assert.equal(mmu.readByteAt(0xff1b), 0xff);
-    assert.equal(mmu.readByteAt(0xff1c), 0x9f);
-    assert.equal(mmu.readByteAt(0xff1e), 0xbf);
-    assert.equal(mmu.readByteAt(0xff20), 0xff);
-    assert.equal(mmu.readByteAt(0xff21), 0x00);
-    assert.equal(mmu.readByteAt(0xff22), 0x00);
-    assert.equal(mmu.readByteAt(0xff23), 0xbf);
-    assert.equal(mmu.readByteAt(mmu.ADDR_IE), 0x01); // Allow vblank
-  });
-
-  it('should load the BIOS in memory', () => {
-    assert.deepEqual(mmu.readBIOSBuffer(), mmu.getBIOS(), 'BIOS is in memory');
-  });
-
-  it('should read BIOS', () => {
-    assert.equal(mmu.readByteAt(0x0000), 0x31, 'first BIOS byte');
-    assert.equal(mmu.readByteAt(0x00ff), 0x50, 'last BIOS byte');
-    assert.equal(mmu.readByteAt(0x0100), 0x00, 'first GAME byte');
-    assert.equal(mmu.readByteAt(0x0101), 0xc3, 'second GAME byte');
+  describe('BIOS', () => {
+    it('should load the BIOS in memory', () => {
+      assert.deepEqual(mmu.readBIOSBuffer(), mmu.getBIOS(), 'BIOS is in memory');
+    });
+    it('should read BIOS', () => {
+      assert.equal(mmu.readByteAt(0x0000), 0x31, 'first BIOS byte');
+      assert.equal(mmu.readByteAt(0x00ff), 0x50, 'last BIOS byte');
+      assert.equal(mmu.readByteAt(0x0100), 0x00, 'first GAME byte');
+      assert.equal(mmu.readByteAt(0x0101), 0xc3, 'second GAME byte');
+    });
   });
 
   describe('ROM checks', () => {
@@ -157,11 +169,28 @@ describe('MMU', () => {
       const BGData_ff = new Uint8Array([0x11,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xff]);
       mmu.writeBuffer(BGData_00, 0x8000);
       mmu.writeBuffer(BGData_ff, 0x8ff0);
-
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_CHAR_DATA_8000 | mmu.MASK_BG_ON);
       
-      assert.deepEqual(mmu.readBGData(0x00), BGData_00, 'BG tile 0x00 data matches');
-      assert.deepEqual(mmu.readBGData(0xff), BGData_ff, 'BG tile 0xff data matches');
+      assert.deepEqual([
+        ...mmu.readBGData(0x00, 0),
+        ...mmu.readBGData(0x00, 1),
+        ...mmu.readBGData(0x00, 2),
+        ...mmu.readBGData(0x00, 3),
+        ...mmu.readBGData(0x00, 4),
+        ...mmu.readBGData(0x00, 5),
+        ...mmu.readBGData(0x00, 6),
+        ...mmu.readBGData(0x00, 7)]
+        , BGData_00);
+
+      assert.deepEqual([
+        ...mmu.readBGData(0xff, 0),
+        ...mmu.readBGData(0xff, 1),
+        ...mmu.readBGData(0xff, 2),
+        ...mmu.readBGData(0xff, 3),
+        ...mmu.readBGData(0xff, 4),
+        ...mmu.readBGData(0xff, 5),
+        ...mmu.readBGData(0xff, 6),
+        ...mmu.readBGData(0xff, 7)], BGData_ff);
     });
 
     it('should return tile address for BG data', () => {
@@ -190,10 +219,43 @@ describe('MMU', () => {
 
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_CHAR_DATA_8800 | mmu.MASK_BG_ON);
 
-      assert.deepEqual(mmu.readBGData(0x00), BGData_00, 'BG data 0x00 data matches');
-      assert.deepEqual(mmu.readBGData(0x7f), BGData_7f, 'BG data 0x7f data matches');
-      assert.deepEqual(mmu.readBGData(0x80), BGData_80, 'BG data 0x80 data matches');
-      assert.deepEqual(mmu.readBGData(0xff), BGData_ff, 'BG data 0xff data matches');
+      assert.deepEqual([
+        ...mmu.readBGData(0x00, 0),
+        ...mmu.readBGData(0x00, 1),
+        ...mmu.readBGData(0x00, 2),
+        ...mmu.readBGData(0x00, 3),
+        ...mmu.readBGData(0x00, 4),
+        ...mmu.readBGData(0x00, 5),
+        ...mmu.readBGData(0x00, 6),
+        ...mmu.readBGData(0x00, 7)],
+        BGData_00, 'BG data 0x00 data matches');
+      assert.deepEqual([
+        ...mmu.readBGData(0x7f, 0),
+        ...mmu.readBGData(0x7f, 1),
+        ...mmu.readBGData(0x7f, 2),
+        ...mmu.readBGData(0x7f, 3),
+        ...mmu.readBGData(0x7f, 4),
+        ...mmu.readBGData(0x7f, 5),
+        ...mmu.readBGData(0x7f, 6),
+        ...mmu.readBGData(0x7f, 7)], BGData_7f, 'BG data 0x7f data matches');
+      assert.deepEqual([
+        ...mmu.readBGData(0x80, 0),
+        ...mmu.readBGData(0x80, 1),
+        ...mmu.readBGData(0x80, 2),
+        ...mmu.readBGData(0x80, 3),
+        ...mmu.readBGData(0x80, 4),
+        ...mmu.readBGData(0x80, 5),
+        ...mmu.readBGData(0x80, 6),
+        ...mmu.readBGData(0x80, 7)], BGData_80, 'BG data 0x80 data matches');
+      assert.deepEqual([
+        ...mmu.readBGData(0xff, 0),
+        ...mmu.readBGData(0xff, 1),
+        ...mmu.readBGData(0xff, 2),
+        ...mmu.readBGData(0xff, 3),
+        ...mmu.readBGData(0xff, 4),
+        ...mmu.readBGData(0xff, 5),
+        ...mmu.readBGData(0xff, 6),
+        ...mmu.readBGData(0xff, 7)], BGData_ff, 'BG data 0xff data matches');
     });
 
     it('should read character code from 0x9800 based on LCDC bit 3', () => {
@@ -230,11 +292,27 @@ describe('MMU', () => {
       mmu.writeBuffer(chrData, 0x8000);
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_ON | mmu.MASK_BG_CHAR_DATA_8000);
 
-      assert.deepEqual(mmu.readBGData(0), chrData, 'Character data matches');
+      assert.deepEqual([
+        ...mmu.readBGData(0,0),
+        ...mmu.readBGData(0,1),
+        ...mmu.readBGData(0,2),
+        ...mmu.readBGData(0,3),
+        ...mmu.readBGData(0,4),
+        ...mmu.readBGData(0,5),
+        ...mmu.readBGData(0,6),
+        ...mmu.readBGData(0,7)], chrData, 'Character data matches');
 
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_OFF);
 
-      assert.deepEqual(mmu.readBGData(0), new Uint8Array([0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]), 'Transparent');
+      assert.deepEqual([
+        ...mmu.readBGData(0,0),
+        ...mmu.readBGData(0,1),
+        ...mmu.readBGData(0,2),
+        ...mmu.readBGData(0,3),
+        ...mmu.readBGData(0,4),
+        ...mmu.readBGData(0,5),
+        ...mmu.readBGData(0,6),
+        ...mmu.readBGData(0,7)], new Uint8Array([0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]), 'Transparent');
     });
 
   });
@@ -279,8 +357,22 @@ describe('MMU', () => {
       mmu.writeBuffer(OBJData_ff, 0x8ff0);
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_OBJ_ON);
 
-      assert.deepEqual(mmu.readOBJData(0x00), OBJData_00, 'OBJ 0x00 data matches');
-      assert.deepEqual(mmu.readOBJData(0xff), OBJData_ff, 'OBJ 0xff data matches');
+      assert.deepEqual([...mmu.readOBJData(0x00,0),
+        ...mmu.readOBJData(0x00,1),
+        ...mmu.readOBJData(0x00,2),
+        ...mmu.readOBJData(0x00,3),
+        ...mmu.readOBJData(0x00,4),
+        ...mmu.readOBJData(0x00,5),
+        ...mmu.readOBJData(0x00,6),
+        ...mmu.readOBJData(0x00,7)], OBJData_00, 'OBJ 0x00 data matches');
+      assert.deepEqual([...mmu.readOBJData(0xff,0),
+        ...mmu.readOBJData(0xff,1),
+        ...mmu.readOBJData(0xff,2),
+        ...mmu.readOBJData(0xff,3),
+        ...mmu.readOBJData(0xff,4),
+        ...mmu.readOBJData(0xff,5),
+        ...mmu.readOBJData(0xff,6),
+        ...mmu.readOBJData(0xff,7)], OBJData_ff, 'OBJ 0xff data matches');
     });
 
     it('should read OBJs from OAM', () => {
