@@ -388,57 +388,46 @@ describe('MMU', () => {
 
   describe('LCD signals', () => {
     it('should detect changes on tiles', () => {
+
+      mmu.assertTileLineDrawn = function(posX, posY, expected){
+        for(let i = 0; i < 8; i++){
+          assert.equal(mmu.isTileLineDrawn(mmu.getTileLinePos(posX, posY) + i*20), expected);
+        }
+      };
+      mmu.setTileDrawn = function(posX, posY){
+        for(let i = 0; i < 8; i++){
+          mmu.setTileLineDrawn(mmu.getTileLinePos(posX, posY) + i*20);
+        }
+      };
+
       mmu.writeByteAt(0x9800, 0xab); // tile 0
       mmu.writeByteAt(0x9a20, 0xcd); // tile 340 (out of 359)
+      //mmu.writeByteAt(0x9a33, 0xef);
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_CODE_AREA_1);
 
       assert.equal(mmu.getCharCode(0, 0), 0xab, 'Tile x 0,y 0');
       assert.equal(mmu.getCharCode(0, 17), 0xcd, 'Tile x 0,y 17');
+      //assert.equal(mmu.getCharCode(19, 17), 0xef, 'Tile x 19,y 17');
 
-      for(let i = 0; i < 8; i++){
-        assert.equal(mmu.isTileLineDrawn(i*20), false);
-      }
+      mmu.assertTileLineDrawn(0, 0, false);
+      mmu.assertTileLineDrawn(0, 17, false);
+      //mmu.assertTileLineDrawn(19, 17, false);
 
-      for(let i = 0; i < 8; i++){
-        mmu.setTileLineDrawn(i*20);
-      }
-      mmu.setTileLineDrawn(2720);
-      mmu.setTileLineDrawn(2740);
-      mmu.setTileLineDrawn(2760);
-      mmu.setTileLineDrawn(2780);
-      mmu.setTileLineDrawn(2800);
-      mmu.setTileLineDrawn(2820);
-      mmu.setTileLineDrawn(2840);
-      mmu.setTileLineDrawn(2860);
+      mmu.setTileDrawn(0, 0);
+      mmu.setTileDrawn(0, 17);
+      //mmu.setTileDrawn(19, 17);
 
-      assert.equal(mmu.isTileLineDrawn(0), true);
-      assert.equal(mmu.isTileLineDrawn(20), true);
-      assert.equal(mmu.isTileLineDrawn(40), true);
-      assert.equal(mmu.isTileLineDrawn(60), true);
-      assert.equal(mmu.isTileLineDrawn(80), true);
-      assert.equal(mmu.isTileLineDrawn(100), true);
-      assert.equal(mmu.isTileLineDrawn(120), true);
-      assert.equal(mmu.isTileLineDrawn(140), true);
-
-      assert.equal(mmu.isTileLineDrawn(2720), true);
-      //...
-      assert.equal(mmu.isTileLineDrawn(2860), true);
+      mmu.assertTileLineDrawn(0, 0, true);
+      mmu.assertTileLineDrawn(0, 17, true);
+      //mmu.assertTileLineDrawn(19, 17, true);
 
       mmu.writeByteAt(0x9800, 0x01); // update tile 0. Should release 0,20,40...140
-      mmu.writeByteAt(0x9a20, 0x02); // update last tile
+      mmu.writeByteAt(0x9a20, 0x01);
+      //mmu.writeByteAt(0x9a33, 0x03); // update last tile
 
-      for(let i = 0; i < 8; i++){
-        assert.equal(mmu.isTileLineDrawn(i*20), false);
-      }
-
-      assert.equal(mmu.isTileLineDrawn(2720), false);
-      assert.equal(mmu.isTileLineDrawn(2740), false);
-      assert.equal(mmu.isTileLineDrawn(2760), false);
-      assert.equal(mmu.isTileLineDrawn(2780), false);
-      assert.equal(mmu.isTileLineDrawn(2800), false);
-      assert.equal(mmu.isTileLineDrawn(2820), false);
-      assert.equal(mmu.isTileLineDrawn(2840), false);
-      assert.equal(mmu.isTileLineDrawn(2860), false);
+      mmu.assertTileLineDrawn(19, 17, false);
+      mmu.assertTileLineDrawn(0, 0, false);
+      //mmu.assertTileLineDrawn(0, 17, false);
     });
   });
   

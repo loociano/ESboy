@@ -192,7 +192,7 @@ export default class MMU {
     this._div = 0x0000; // Internal divider, register DIV is msb
     this._hasMBC1 = false;
     this._selectedBankNb = 1; // default is bank 1
-    this._drawnTileLines = new Array(this.VISIBLE_CHARS_PER_LINE*8*144).fill(false);
+    this._drawnTileLines = new Array(this.VISIBLE_CHARS_PER_LINE*18*8).fill(false);
 
     this._initMemory();
     this._loadROM();
@@ -542,9 +542,13 @@ export default class MMU {
     const posY = offset / this.CHARS_PER_LINE;
     if ((posX >= 0 && posX <= 0x13) && ((posY >= 0 && posY <= 0x11))){
       for(let i = 0; i < 8; i++){
-        this._drawnTileLines[posX + i*this.VISIBLE_CHARS_PER_LINE + 160*posY] = false;
+        this._drawnTileLines[this.getTileLinePos(posX, posY) + i*this.VISIBLE_CHARS_PER_LINE] = false;
       }
     }
+  }
+
+  getTileLinePos(posX, posY){
+    return posX + 160*posY;
   }
 
   /**
@@ -1075,7 +1079,7 @@ export default class MMU {
   }
 
   /**
-   * @param {number} tileLinePos: 0 to 23039 (160*144)
+   * @param {number} tileLinePos: 0 to 2879 (20 hor tiles * 144 lines)
    */
   setTileLineDrawn(tileLinePos){
     this._drawnTileLines[tileLinePos] = true;
