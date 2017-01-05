@@ -126,7 +126,7 @@ export default class LCD {
   _drawLineBG(line){
     for(let gridX = 0; gridX < this._H_TILES; gridX++){
 
-      const tileNumberPos = gridX + this._V_TILES*line;
+      const tileNumberPos = gridX + this._H_TILES*line;
 
       if (!this._mmu.isTileLineDrawn(tileNumberPos)){
         const gridY = this._getGridY(line);
