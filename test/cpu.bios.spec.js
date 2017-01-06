@@ -114,18 +114,8 @@ describe('BIOS execution', function() {
       ...lcd.SHADES[lcd._bgp[0]],
       ...lcd.SHADES[lcd._bgp[0]]];
 
-    assert.equal(cpu.mmu.getCharCode(0x04, 0x08), 0x01, 'Tile 1 at 0x04,0x08');
+    assert.equal(cpu.mmu.getCharCode(4, 8), 0x01, 'Tile 1 at 0x04,0x08');
     assert.deepEqual(Array.from(lcd.getBGTileLineData(4, 8)), tile1Line0Data);
   });
 
 });
-
-/**
- * Returns a new Buffer given a hexadecimal string
- * @param hex_string
- * @returns {*|Buffer}
- * @constructor
- */
-function B(hex_string){
-  return new Buffer(hex_string, 'hex');
-}
