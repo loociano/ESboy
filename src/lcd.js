@@ -20,6 +20,8 @@ export default class LCD {
     };
 
     // Constants
+    this._OUT_WIDTH = 256;
+    this._OUT_HEIGHT = 256;
     this._HW_WIDTH = 160;
     this._HW_HEIGHT = 144;
     this._TILE_HEIGHT = this.TILE_WIDTH;
@@ -102,7 +104,7 @@ export default class LCD {
    * @param {number} line
    */
   drawLine(line=0){
-    if (line >= this._HW_HEIGHT || line < 0) {
+    if (line < 0) {
       Logger.warn(`Cannot draw line ${line}`);
       return;
     }
@@ -126,7 +128,11 @@ export default class LCD {
    * @private
    */
   _drawLineBG(line){
-    for(let x = 0; x < this._HW_WIDTH; x += 8){
+    let max = this._OUT_WIDTH;
+    if (this._mmu.scx() === 0){
+      max = this._HW_WIDTH;
+    }
+    for(let x = 0; x < max; x += 8){
       const tileNumber = this._mmu.getCharCode(x/8, Math.floor(line/8));
       this._drawTileLine({ tileNumber: tileNumber, x: x, y: line }, line);
     }
@@ -157,7 +163,11 @@ export default class LCD {
     }
 
     for(let i = 0; i < intensityVector.length; i++){
-      this.drawPixel({x: x+i, y: line, level: intensityVector[i]}, palette, imageData);
+      this.drawPixel({
+        x: (x+i+this._mmu.scx()) % this._OUT_WIDTH,
+        y: (line+this._mmu.scy()) % this._OUT_HEIGHT,
+        level: intensityVector[i]},
+        palette, imageData);
     }
   }
 
@@ -377,7 +387,7 @@ export default class LCD {
       return;
     }
 
-    if (x < 0 || y < 0) return;
+    if (x < 0 || y < 0 || x >= this._HW_WIDTH || y >= this._HW_HEIGHT) return;
 
     if ((palette === this._obg0 || palette === this._obg1) && level === 0) {
       return; // Transparent
