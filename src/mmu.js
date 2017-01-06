@@ -60,6 +60,7 @@ export default class MMU {
     this.ADDR_SCY = 0xff42;
     this.ADDR_SCX = 0xff43;
     this.ADDR_LY = 0xff44;
+    this.ADDR_LYC = 0xff45;
     this.ADDR_DMA = 0xff46;
     this.ADDR_BGP = 0xff47;
     this.ADDR_OBG0 = 0xff48;
@@ -104,7 +105,10 @@ export default class MMU {
     this.MASK_BG_CODE_AREA_1 = 0xf7;
     this.MASK_BG_CODE_AREA_2 = 0x08;
 
+    // STAT masks
     this.MASK_STAT_MODE = 0x03;
+    this.MASK_STAT_LYC_ON = 0x04;
+    this.MASK_STAT_LYC_OFF = 0xfb;
 
     this.MASK_OBJ_ATTR_PRIORITY = 0x80;
     this.MASK_OBJ_ATTR_VFLIP = 0x40;
@@ -526,7 +530,24 @@ export default class MMU {
         this.set_HW_DIV(0);
         return;
     }
+
     this._memory[addr] = n;
+
+    // Post-write
+    switch(addr){
+      case this.ADDR_LY:
+      case this.ADDR_LYC:
+        this._updateStatLyc();
+        break;
+    }
+  }
+
+  _updateStatLyc(){
+    if (this.ly() === this.lyc()){
+      this.writeByteAt(this.ADDR_STAT, this.stat() | this.MASK_STAT_LYC_ON);  
+    } else {
+      this.writeByteAt(this.ADDR_STAT, this.stat() & this.MASK_STAT_LYC_OFF);
+    }
   }
 
   /**
@@ -950,6 +971,10 @@ export default class MMU {
       ly++;
     }
     this.setLy(ly);
+  }
+
+  lyc(){
+    return this.readByteAt(this.ADDR_LYC);
   }
 
   /**

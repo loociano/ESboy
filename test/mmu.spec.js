@@ -318,6 +318,7 @@ describe('MMU', () => {
   });
 
   describe('STAT or LCDC Status Flag', () => {
+    
     it('should read/write STAT', () => {
       mmu.writeByteAt(mmu.ADDR_STAT, 0x00);
       assert.equal(mmu.stat(), 0x80, 'STAT.7 always set');
@@ -337,6 +338,18 @@ describe('MMU', () => {
       assert.equal(mmu.readByteAt(mmu.ADDR_OAM_START), 0xff, 'Cannot read OAM on mode 3');
       assert.throws( () => mmu.writeByteAt(mmu.ADDR_VRAM_START, 0x00), Error, 'Cannot write VRAM on mode 3');
       assert.equal(mmu.readByteAt(mmu.ADDR_VRAM_START), 0xff, 'Cannot read VRAM on mode 3');
+    });
+
+    it('should update STAT.2 when LY equals LYC', () => {
+
+      mmu.writeByteAt(mmu.ADDR_LYC, 1);
+      mmu.setLy(2);
+
+      assert.equal((mmu.stat() & mmu.MASK_STAT_LYC_ON) >> 2, 0, 'LYC !== LY');
+
+      mmu.writeByteAt(mmu.ADDR_LYC, 2);
+      
+      assert.equal((mmu.stat() & mmu.MASK_STAT_LYC_ON) >> 2, 1, 'LYC === LY');      
     });
 
   });
