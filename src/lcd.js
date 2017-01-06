@@ -134,9 +134,22 @@ export default class LCD {
       max = this._HW_WIDTH;
     }
     for(let x = 0; x < max; x += this.TILE_WIDTH){
-      const tileNumber = this._mmu.getCharCode(x/this.TILE_WIDTH, Math.floor(line/this.TILE_WIDTH));
-      this._drawTileLine({ tileNumber: tileNumber, x: x, y: line }, line);
+      const tileNumber = this._mmu.getCharCode(this.getGrid(x, this._mmu.scx()), this.getGrid(line, this._mmu.scy()));
+      this._drawTileLine({
+        tileNumber: tileNumber,
+        x: x,
+        y: line
+      }, line);
     }
+  }
+
+  /**
+   * @param coord
+   * @param coordOffset
+   * @returns {number}
+   */
+  getGrid(coord, coordOffset){
+    return Math.floor(((coord + coordOffset) % this._OUT_HEIGHT)/this._TILE_HEIGHT);
   }
 
   /**
@@ -166,8 +179,8 @@ export default class LCD {
 
     for(let i = 0; i < intensityVector.length; i++){
       this.drawPixel({
-        x: (x + this._mmu.scx() + i) % this._OUT_WIDTH,
-        y: (line + this._mmu.scy()) % this._OUT_HEIGHT,
+        x: (x - this._mmu.scx() + i) % this._OUT_WIDTH,
+        y: (line - this._mmu.scy()) % this._OUT_HEIGHT,
         level: intensityVector[i]},
         palette, imageData);
     }

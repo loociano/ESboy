@@ -24,7 +24,7 @@ describe('LCD', () => {
     lcd.drawTiles = function() {
       this._clear();
       this._clear(this._imageDataOBJ, this._ctxOBJ);
-      for(let l = 0; l < lcd._OUT_HEIGHT; l++){
+      for(let l = 0; l < 256; l++){
         lcd.drawLine(l);
       }
     };
@@ -236,12 +236,12 @@ describe('LCD', () => {
 
     it('should shift background by means of registers SCX and SCY', () => {
       const mmu = lcd.getMMU();
-      // 1 dark pixel at x=0 y=0
+      // 1 dark pixel at x=1 y=1
       mmu.readBGData = (tileNumber, tileLine) => {
         switch(tileNumber){
           case 0:
-            if (tileLine === 0){
-              return new Buffer('8080', 'hex');
+            if (tileLine === 1){
+              return new Buffer('4040', 'hex');
             } else {
               return new Buffer('0000', 'hex');
             }
@@ -253,13 +253,34 @@ describe('LCD', () => {
         return 0;
       };
 
+      lcd.drawTiles();
+
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 1, lcd.getImageDataBG())), lcd.SHADES[3]);
+
+      lcd._clear();
       mmu.scx = () => 1;
       mmu.scy = () => 1;
 
       lcd.drawTiles();
 
-      assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageDataBG())), lcd.SHADES[0]);
-      assert.deepEqual(Array.from(lcd.getPixelData(1, 1, lcd.getImageDataBG())), lcd.SHADES[3], 'shifted from 0,0 to 1,1');
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageDataBG())), lcd.SHADES[3], 'shifted from 0,0 to 1,1');
+    });
+
+    it('should compute grid', () => {
+
+      assert.equal(lcd.getGrid(0, 0), 0);
+      assert.equal(lcd.getGrid(0, 1), 0);
+      assert.equal(lcd.getGrid(0, 7), 0);
+      assert.equal(lcd.getGrid(0, 8), 1);
+      assert.equal(lcd.getGrid(0, 16), 2);
+
+      assert.equal(lcd.getGrid(8, 0), 1);
+      assert.equal(lcd.getGrid(8, 8), 2);
+
+      assert.equal(lcd.getGrid(255, 0), 31);
+      assert.equal(lcd.getGrid(255, 1), 0);
+      assert.equal(lcd.getGrid(255, 9), 1);
+
     });
 
   });
