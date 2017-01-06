@@ -349,7 +349,11 @@ describe('MMU', () => {
 
       mmu.writeByteAt(mmu.ADDR_LYC, 2);
       
-      assert.equal((mmu.stat() & mmu.MASK_STAT_LYC_ON) >> 2, 1, 'LYC === LY');      
+      assert.equal((mmu.stat() & mmu.MASK_STAT_LYC_ON) >> 2, 1, 'LYC === LY');
+
+      mmu.setLy(3);
+
+      assert.equal((mmu.stat() & mmu.MASK_STAT_LYC_ON) >> 2, 0, 'LYC !== LY');            
     });
 
   });
