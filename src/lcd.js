@@ -25,6 +25,7 @@ export default class LCD {
     this._HW_WIDTH = 160;
     this._HW_HEIGHT = 144;
     this._TILE_HEIGHT = this.TILE_WIDTH;
+    this._MAX_TILE_HEIGHT = 2 * this._TILE_HEIGHT;
     this._H_TILES = this._HW_WIDTH / this.TILE_WIDTH;
     this._V_TILES = this._HW_HEIGHT / this._TILE_HEIGHT;
 
@@ -91,7 +92,7 @@ export default class LCD {
    * @param {CanvasRenderingContext2D} ctx
    * @private
    */
-  _clearLine(line, imageData=this._imageDataBG, ctx=this._ctxBG){
+  _clearLine(line, imageData=this._imageDataBG){
     const start = this._HW_WIDTH * line * 4;
     const end = start + this._HW_WIDTH*4;
 
@@ -117,7 +118,7 @@ export default class LCD {
 
     this._drawLineBG(line);
 
-    this._clearLine(line, this._imageDataOBJ, this._ctxOBJ);
+    this._clearLine(line, this._imageDataOBJ);
     if (this._mmu.areOBJOn()) {
       this._drawLineOBJ(line);
     }
@@ -132,17 +133,18 @@ export default class LCD {
     if (this._mmu.scx() === 0){
       max = this._HW_WIDTH;
     }
-    for(let x = 0; x < max; x += 8){
-      const tileNumber = this._mmu.getCharCode(x/8, Math.floor(line/8));
+    for(let x = 0; x < max; x += this.TILE_WIDTH){
+      const tileNumber = this._mmu.getCharCode(x/this.TILE_WIDTH, Math.floor(line/this.TILE_WIDTH));
       this._drawTileLine({ tileNumber: tileNumber, x: x, y: line }, line);
     }
   }
 
   /**
    * @param tileNumber
-   * @param gridX
-   * @param line
+   * @param x
+   * @param y
    * @param OBJAttr
+   * @param line
    * @param imageData
    */
   _drawTileLine({tileNumber, x, y, OBJAttr}, line, imageData=this._imageDataBG){
@@ -164,23 +166,15 @@ export default class LCD {
 
     for(let i = 0; i < intensityVector.length; i++){
       this.drawPixel({
-        x: (x+i+this._mmu.scx()) % this._OUT_WIDTH,
-        y: (line+this._mmu.scy()) % this._OUT_HEIGHT,
+        x: (x + this._mmu.scx() + i) % this._OUT_WIDTH,
+        y: (line + this._mmu.scy()) % this._OUT_HEIGHT,
         level: intensityVector[i]},
         palette, imageData);
     }
   }
 
   /**
-   * @param {number} line: 0,1,2...
-   * @returns {number} grid_y
-   * @private
-   */
-  _getGridY(line=0){
-    return Math.floor(line/this._TILE_HEIGHT);
-  }
-
-  /**
+   * Reads palettes
    * @private
    */
   _readPalettes(){
@@ -199,8 +193,8 @@ export default class LCD {
       if (LCD._isValidOBJ(OBJ) && this._isOBJInLine(line, OBJ.y)){
         this._drawTileLine({
           tileNumber: OBJ.chrCode,
-          x: OBJ.x - 8,
-          y: OBJ.y - 16,
+          x: OBJ.x - this.TILE_WIDTH,
+          y: OBJ.y - this._MAX_TILE_HEIGHT, /* tiles can be 8x16 pixels */
           OBJAttr: OBJ.attr,
         }, line, this._imageDataOBJ);
       }
@@ -209,12 +203,13 @@ export default class LCD {
 
   /**
    * @param {number} line
-   * @param {number} coordY
+   * @param {number} y
    * @returns {boolean}
    * @private
    */
-  _isOBJInLine(line, coordY){
-    return line >= (coordY-0x10) && line <= (coordY-0x10 + 7);
+  _isOBJInLine(line, y){
+    const offset = y - this._MAX_TILE_HEIGHT;
+    return line >= offset && line < (offset + this._TILE_HEIGHT);
   }
 
   /**
@@ -264,7 +259,7 @@ export default class LCD {
   _handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, x, y){
     if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_PRIORITY) === this._mmu.MASK_OBJ_ATTR_PRIORITY){
 
-      const tileNumber = this._mmu.getCharCode(x/8, y/8);
+      const tileNumber = this._mmu.getCharCode(x/this.TILE_WIDTH, y/this._TILE_HEIGHT);
       const bgIntensityVector = this._getIntensityVector(tileNumber, tileLine, false);
 
       // Exception: OBJ with priority flag are displayed only in the underneath BG is lightest
@@ -291,7 +286,7 @@ export default class LCD {
    * @private
    */
   _getVerticalMirrorLine(tileLine){
-    return Math.abs(7 - tileLine);
+    return Math.abs(this._TILE_HEIGHT-1 - tileLine);
   }
 
   /**
@@ -334,6 +329,7 @@ export default class LCD {
    * Calculates palette matrix given a tile number.
    * Expensive operation.
    * @param {number} tileNumber
+   * @param {number} tileLine
    * @param {boolean} isOBJ
    * @returns {Array}
    * @private
