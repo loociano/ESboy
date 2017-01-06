@@ -10,6 +10,14 @@ export default class MMUMock {
     this.MASK_OBJ_ATTR_OBG = 0x10;
   }
 
+  scx(){
+    return 0;
+  }
+
+  scy(){
+    return 0;
+  }
+
   ly(){
     return this._ly;
   }

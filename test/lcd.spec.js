@@ -197,6 +197,9 @@ describe('LCD', () => {
 
     it('should not draw lines outside screen', () => {
       const bg = lcd.getImageDataBG();
+      const mmu = lcd.getMMU();
+      mmu.readBGData = (any) => new Buffer('0000', 'hex');
+      mmu.scy = () => 0; // no vertical scrolling
 
       lcd.drawLine(144);
 
