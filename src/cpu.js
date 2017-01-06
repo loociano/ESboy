@@ -40,6 +40,8 @@ export default class CPU {
     // Masks
     this.IF_VBLANK_ON = 0b00001;
     this.IF_VBLANK_OFF = 0b11110;
+    this.IF_STAT_ON = 0b00010;
+    this.IF_STAT_OFF = 0b11101;
 
     this._r = {
       pc: 0,
@@ -926,9 +928,21 @@ export default class CPU {
         this._afterBIOS();
       }
 
+      if (this._isLYCInterrupt()){
+        this._handleLYCInterrupt();      
+      }
+
     } while (!this._isVBlankTriggered());
 
     this._handleVBlankInterrupt();
+  }
+
+  _isLYCInterrupt(){
+    return (((this.mmu.ie() & this.IF_STAT_ON) & (this.mmu.If() & this.IF_STAT_ON)) >> 1) === 1;
+  }
+
+  _handleLYCInterrupt(){
+    if (this.mmu.lyEqualsLyc())
   }
 
   /**

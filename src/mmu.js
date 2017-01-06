@@ -977,6 +977,10 @@ export default class MMU {
     return this.readByteAt(this.ADDR_LYC);
   }
 
+  lyEqualsLyc(){
+    return ((mmu.stat() & mmu.MASK_STAT_LYC_ON) >> 2) === 1;
+  }
+
   /**
    * Bank register for LCD display RAM.
    * Always zero in DMG.

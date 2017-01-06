@@ -345,15 +345,18 @@ describe('MMU', () => {
       mmu.writeByteAt(mmu.ADDR_LYC, 1);
       mmu.setLy(2);
 
-      assert.equal((mmu.stat() & mmu.MASK_STAT_LYC_ON) >> 2, 0, 'LYC !== LY');
+      assert.equal(mmu.lyEqualsLyc(), false, 'LYC !== LY');
+      assert.equal(mmu.If(), 0b00000000);
 
       mmu.writeByteAt(mmu.ADDR_LYC, 2);
       
-      assert.equal((mmu.stat() & mmu.MASK_STAT_LYC_ON) >> 2, 1, 'LYC === LY');
+      assert.equal(mmu.lyEqualsLyc(), true, 'LYC === LY');
+      assert.equal(mmu.If(), 0b00000010);
 
       mmu.setLy(3);
 
-      assert.equal((mmu.stat() & mmu.MASK_STAT_LYC_ON) >> 2, 0, 'LYC !== LY');            
+      assert.equal(mmu.lyEqualsLyc(), false, 'LYC !== LY');  
+      assert.equal(mmu.If(), 0b00000000);          
     });
 
   });
