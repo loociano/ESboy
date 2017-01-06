@@ -24,7 +24,7 @@ describe('LCD', () => {
     lcd.drawTiles = function() {
       this._clear();
       this._clear(this._imageDataOBJ, this._ctxOBJ);
-      for(let l = 0; l < lcd._HW_HEIGHT; l++){
+      for(let l = 0; l < lcd._OUT_HEIGHT; l++){
         lcd.drawLine(l);
       }
     };
@@ -229,6 +229,34 @@ describe('LCD', () => {
       assertDarkestTile.call(lcd, 0, 0, lcd.getImageDataBG());
       assertDarkestTile.call(lcd, 10, 9, lcd.getImageDataBG());
       assertDarkestTile.call(lcd, 19, 17, lcd.getImageDataBG());
+    });
+
+    it('should shift background by means of registers SCX and SCY', () => {
+      const mmu = lcd.getMMU();
+      // 1 dark pixel at x=0 y=0
+      mmu.readBGData = (tileNumber, tileLine) => {
+        switch(tileNumber){
+          case 0:
+            if (tileLine === 0){
+              return new Buffer('8080', 'hex');
+            } else {
+              return new Buffer('0000', 'hex');
+            }
+          case 1: return new Buffer('0000', 'hex');
+        }
+      };
+      mmu.getCharCode = (gridX, gridY) => {
+        if (gridX !== 0 || gridY !== 0) return 1;
+        return 0;
+      };
+
+      mmu.scx = () => 1;
+      mmu.scy = () => 1;
+
+      lcd.drawTiles();
+
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageDataBG())), lcd.SHADES[0]);
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 1, lcd.getImageDataBG())), lcd.SHADES[3], 'shifted from 0,0 to 1,1');
     });
 
   });
