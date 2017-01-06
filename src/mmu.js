@@ -57,6 +57,8 @@ export default class MMU {
     this.ADDR_IF = 0xff0f;
     this.ADDR_LCDC = 0xff40;
     this.ADDR_STAT = 0xff41;
+    this.ADDR_SCY = 0xff42;
+    this.ADDR_SCX = 0xff43;
     this.ADDR_LY = 0xff44;
     this.ADDR_DMA = 0xff46;
     this.ADDR_BGP = 0xff47;
@@ -1084,5 +1086,13 @@ export default class MMU {
 
   getSelectedBankNb(){
     return this._selectedBankNb;
+  }
+
+  scx(){
+    return this.readByteAt(this.ADDR_SCX);
+  }
+
+  scy(){
+    return this.readByteAt(this.ADDR_SCY);
   }
 }
