@@ -246,9 +246,16 @@ describe('LCD', () => {
               return new Buffer('0000', 'hex');
             }
           case 1: return new Buffer('0000', 'hex');
+          case 2:
+            if (tileLine === 0){
+              return new Buffer('8080', 'hex');
+            } else {
+              return new Buffer('0000', 'hex');
+            }
         }
       };
       mmu.getCharCode = (gridX, gridY) => {
+        if (gridX === 20 && gridY === 18) return 2;
         if (gridX !== 0 || gridY !== 0) return 1;
         return 0;
       };
@@ -264,6 +271,7 @@ describe('LCD', () => {
       lcd.drawTiles();
 
       assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageDataBG())), lcd.SHADES[3], 'shifted from 0,0 to 1,1');
+      assert.deepEqual(Array.from(lcd.getPixelData(159, 143, lcd.getImageDataBG())), lcd.SHADES[3], 'shifted from 160,144 to 159,143');
     });
 
     it('should compute grid', () => {
