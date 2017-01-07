@@ -3247,6 +3247,10 @@ var CPU = function () {
     key: '_handleVBlankInterrupt',
     value: function _handleVBlankInterrupt() {
 
+      for (var line = this.lcd._HW_HEIGHT; line < this.lcd._OUT_HEIGHT; line++) {
+        this.lcd.drawLine(line);
+      }
+
       this._resetVBlank();
       this._halt = false;
 
@@ -7984,9 +7988,12 @@ var LCD = function () {
     };
 
     // Constants
+    this._OUT_WIDTH = 256;
+    this._OUT_HEIGHT = 256;
     this._HW_WIDTH = 160;
     this._HW_HEIGHT = 144;
     this._TILE_HEIGHT = this.TILE_WIDTH;
+    this._MAX_TILE_HEIGHT = 2 * this._TILE_HEIGHT;
     this._H_TILES = this._HW_WIDTH / this.TILE_WIDTH;
     this._V_TILES = this._HW_HEIGHT / this._TILE_HEIGHT;
 
@@ -8073,7 +8080,6 @@ var LCD = function () {
     key: '_clearLine',
     value: function _clearLine(line) {
       var imageData = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._imageDataBG;
-      var ctx = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this._ctxBG;
 
       var start = this._HW_WIDTH * line * 4;
       var end = start + this._HW_WIDTH * 4;
@@ -8092,7 +8098,7 @@ var LCD = function () {
     value: function drawLine() {
       var line = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 
-      if (line >= this._HW_HEIGHT || line < 0) {
+      if (line < 0) {
         _logger2.default.warn('Cannot draw line ' + line);
         return;
       }
@@ -8105,7 +8111,7 @@ var LCD = function () {
 
       this._drawLineBG(line);
 
-      this._clearLine(line, this._imageDataOBJ, this._ctxOBJ);
+      this._clearLine(line, this._imageDataOBJ);
       if (this._mmu.areOBJOn()) {
         this._drawLineOBJ(line);
       }
@@ -8119,17 +8125,40 @@ var LCD = function () {
   }, {
     key: '_drawLineBG',
     value: function _drawLineBG(line) {
-      for (var x = 0; x < this._HW_WIDTH; x += 8) {
-        var tileNumber = this._mmu.getCharCode(x / 8, Math.floor(line / 8));
-        this._drawTileLine({ tileNumber: tileNumber, x: x, y: line }, line);
+      var max = this._OUT_WIDTH;
+      var scx = this._mmu.scx();
+      var scy = this._mmu.scy();
+      if (scx === 0) {
+        max = this._HW_WIDTH;
+      }
+      for (var x = 0; x < max; x += this.TILE_WIDTH) {
+        var tileNumber = this._mmu.getCharCode(this.getGrid(x, scx), this.getGrid(line, scy));
+        this._drawTileLine({
+          tileNumber: tileNumber,
+          x: x,
+          y: line
+        }, line);
       }
     }
 
     /**
+     * @param coord
+     * @param coordOffset
+     * @returns {number}
+     */
+
+  }, {
+    key: 'getGrid',
+    value: function getGrid(coord, coordOffset) {
+      return Math.floor((coord + coordOffset) % this._OUT_HEIGHT / this._TILE_HEIGHT);
+    }
+
+    /**
      * @param tileNumber
-     * @param gridX
-     * @param line
+     * @param x
+     * @param y
      * @param OBJAttr
+     * @param line
      * @param imageData
      */
 
@@ -8144,7 +8173,7 @@ var LCD = function () {
 
 
       var isOBJ = OBJAttr !== undefined;
-      var tileLine = y % this._TILE_HEIGHT;
+      var tileLine = (line + this._mmu.scy()) % this._OUT_HEIGHT % this._TILE_HEIGHT;
 
       if (isOBJ) {
         tileLine = line - y;
@@ -8159,25 +8188,15 @@ var LCD = function () {
       }
 
       for (var i = 0; i < intensityVector.length; i++) {
-        this.drawPixel({ x: x + i, y: line, level: intensityVector[i] }, palette, imageData);
+        this.drawPixel({
+          x: (x - this._mmu.scx() + i) % this._OUT_WIDTH,
+          y: line,
+          level: intensityVector[i] }, palette, imageData);
       }
     }
 
     /**
-     * @param {number} line: 0,1,2...
-     * @returns {number} grid_y
-     * @private
-     */
-
-  }, {
-    key: '_getGridY',
-    value: function _getGridY() {
-      var line = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-
-      return Math.floor(line / this._TILE_HEIGHT);
-    }
-
-    /**
+     * Reads palettes
      * @private
      */
 
@@ -8202,8 +8221,8 @@ var LCD = function () {
         if (LCD._isValidOBJ(OBJ) && this._isOBJInLine(line, OBJ.y)) {
           this._drawTileLine({
             tileNumber: OBJ.chrCode,
-            x: OBJ.x - 8,
-            y: OBJ.y - 16,
+            x: OBJ.x - this.TILE_WIDTH,
+            y: OBJ.y - this._MAX_TILE_HEIGHT, /* tiles can be 8x16 pixels */
             OBJAttr: OBJ.attr
           }, line, this._imageDataOBJ);
         }
@@ -8212,15 +8231,16 @@ var LCD = function () {
 
     /**
      * @param {number} line
-     * @param {number} coordY
+     * @param {number} y
      * @returns {boolean}
      * @private
      */
 
   }, {
     key: '_isOBJInLine',
-    value: function _isOBJInLine(line, coordY) {
-      return line >= coordY - 0x10 && line <= coordY - 0x10 + 7;
+    value: function _isOBJInLine(line, y) {
+      var offset = y - this._MAX_TILE_HEIGHT;
+      return line >= offset && line < offset + this._TILE_HEIGHT;
     }
 
     /**
@@ -8267,7 +8287,7 @@ var LCD = function () {
     value: function _handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, x, y) {
       if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_PRIORITY) === this._mmu.MASK_OBJ_ATTR_PRIORITY) {
 
-        var _tileNumber = this._mmu.getCharCode(x / 8, y / 8);
+        var _tileNumber = this._mmu.getCharCode(x / this.TILE_WIDTH, y / this._TILE_HEIGHT);
         var bgIntensityVector = this._getIntensityVector(_tileNumber, tileLine, false);
 
         // Exception: OBJ with priority flag are displayed only in the underneath BG is lightest
@@ -8297,7 +8317,7 @@ var LCD = function () {
   }, {
     key: '_getVerticalMirrorLine',
     value: function _getVerticalMirrorLine(tileLine) {
-      return Math.abs(7 - tileLine);
+      return Math.abs(this._TILE_HEIGHT - 1 - tileLine);
     }
 
     /**
@@ -8338,6 +8358,7 @@ var LCD = function () {
      * Calculates palette matrix given a tile number.
      * Expensive operation.
      * @param {number} tileNumber
+     * @param {number} tileLine
      * @param {boolean} isOBJ
      * @returns {Array}
      * @private
@@ -8393,7 +8414,7 @@ var LCD = function () {
         return;
       }
 
-      if (x < 0 || y < 0) return;
+      if (x < 0 || y < 0 || x >= this._HW_WIDTH || y >= this._HW_HEIGHT) return;
 
       if ((palette === this._obg0 || palette === this._obg1) && level === 0) {
         return; // Transparent
@@ -8625,7 +8646,10 @@ var MMU = function () {
     this.ADDR_IF = 0xff0f;
     this.ADDR_LCDC = 0xff40;
     this.ADDR_STAT = 0xff41;
+    this.ADDR_SCY = 0xff42;
+    this.ADDR_SCX = 0xff43;
     this.ADDR_LY = 0xff44;
+    this.ADDR_LYC = 0xff45;
     this.ADDR_DMA = 0xff46;
     this.ADDR_BGP = 0xff47;
     this.ADDR_OBG0 = 0xff48;
@@ -8670,7 +8694,10 @@ var MMU = function () {
     this.MASK_BG_CODE_AREA_1 = 0xf7;
     this.MASK_BG_CODE_AREA_2 = 0x08;
 
+    // STAT masks
     this.MASK_STAT_MODE = 0x03;
+    this.MASK_STAT_LYC_ON = 0x04;
+    this.MASK_STAT_LYC_OFF = 0xfb;
 
     this.MASK_OBJ_ATTR_PRIORITY = 0x80;
     this.MASK_OBJ_ATTR_VFLIP = 0x40;
@@ -9153,7 +9180,25 @@ var MMU = function () {
           this.set_HW_DIV(0);
           return;
       }
+
       this._memory[addr] = n;
+
+      // Post-write
+      switch (addr) {
+        case this.ADDR_LY:
+        case this.ADDR_LYC:
+          this._updateStatLyc();
+          break;
+      }
+    }
+  }, {
+    key: '_updateStatLyc',
+    value: function _updateStatLyc() {
+      if (this.ly() === this.lyc()) {
+        this.writeByteAt(this.ADDR_STAT, this.stat() | this.MASK_STAT_LYC_ON);
+      } else {
+        this.writeByteAt(this.ADDR_STAT, this.stat() & this.MASK_STAT_LYC_OFF);
+      }
     }
 
     /**
@@ -9704,6 +9749,11 @@ var MMU = function () {
       }
       this.setLy(ly);
     }
+  }, {
+    key: 'lyc',
+    value: function lyc() {
+      return this.readByteAt(this.ADDR_LYC);
+    }
 
     /**
      * Bank register for LCD display RAM.
@@ -9880,6 +9930,16 @@ var MMU = function () {
     key: 'getSelectedBankNb',
     value: function getSelectedBankNb() {
       return this._selectedBankNb;
+    }
+  }, {
+    key: 'scx',
+    value: function scx() {
+      return this.readByteAt(this.ADDR_SCX);
+    }
+  }, {
+    key: 'scy',
+    value: function scy() {
+      return this.readByteAt(this.ADDR_SCY);
     }
   }]);
 
