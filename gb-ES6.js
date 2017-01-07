@@ -2070,7 +2070,12 @@ var CPU = function () {
 
     // Constants
     this.EXTENDED_PREFIX = 0xcb;
-    this.ADDR_VBLANK_INTERRUPT = 0x0040;
+    this.ADDR_VBLANK_INTERRUPT = 0x40;
+    this.ADDR_STAT_INTERRUPT = 0x48;
+    this.ADDR_TIMER_INTERRUPT = 0x50;
+    this.ADDR_SERIAL_INTERRUPT = 0x58;
+    this.ADDR_P10P13_INTERRUPT = 0x60;
+
     this.M_CYCLES_PER_LINE = 114;
     this.M_CYCLES_STOP_MODE_0 = 4;
     this.M_CYCLES_STOP_MODE_2 = 20;
@@ -2106,7 +2111,7 @@ var CPU = function () {
       0x01: { fn: this.ld_bc_nn, paramBytes: 2 },
       0x02: { fn: this.ld_0xbc_a, paramBytes: 0 },
       0x03: { fn: this.inc_bc, paramBytes: 0 },
-      0x04: { fn: this.inc_c, paramBytes: 0 },
+      0x04: { fn: this.inc_b, paramBytes: 0 },
       0x05: { fn: this.dec_b, paramBytes: 0 },
       0x06: { fn: this.ld_b_n, paramBytes: 1 },
       0x07: { fn: this.rlca, paramBytes: 0 },
@@ -2126,7 +2131,7 @@ var CPU = function () {
       0x15: { fn: this.dec_d, paramBytes: 0 },
       0x16: { fn: this.ld_d_n, paramBytes: 1 },
       0x17: { fn: this.rla, paramBytes: 0 },
-      0x18: { fn: this.jp_n, paramBytes: 1 },
+      0x18: { fn: this.jr_e, paramBytes: 1 },
       0x19: { fn: this.add_hl_de, paramBytes: 0 },
       0x1a: { fn: this.ld_a_0xde, paramBytes: 0 },
       0x1b: { fn: this.dec_de, paramBytes: 0 },
@@ -3091,9 +3096,38 @@ var CPU = function () {
         if (this._r.pc === this.mmu.ADDR_GAME_START) {
           this._afterBIOS();
         }
+
+        if (this._isLYCInterrupt()) {
+          this._handleLYCInterrupt();
+        }
       } while (!this._isVBlankTriggered());
 
       this._handleVBlankInterrupt();
+    }
+
+    /**
+     * @returns {boolean}
+     * @private
+     */
+
+  }, {
+    key: '_isLYCInterrupt',
+    value: function _isLYCInterrupt() {
+      return (this.mmu.ie() & this.mmu.If() & this.mmu.IF_STAT_ON) >> 1 === 1;
+    }
+
+    /**
+     * @private
+     */
+
+  }, {
+    key: '_handleLYCInterrupt',
+    value: function _handleLYCInterrupt() {
+      if (this._r.ime === 0) {
+        return false;
+      }
+      this.setIf(this.If() & this.mmu.IF_STAT_OFF);
+      this._rst_48();
     }
 
     /**
@@ -3418,13 +3452,13 @@ var CPU = function () {
 
     /**
      * Adds signed byte to current address and jumps to it.
-     * @param {number} n, signed integer
+     * @param {number} signed byte
      */
 
   }, {
-    key: 'jp_n',
-    value: function jp_n(n) {
-      var nextAddress = this._r.pc + _utils2.default.uint8ToInt8(n);
+    key: 'jr_e',
+    value: function jr_e(signed) {
+      var nextAddress = this._r.pc + _utils2.default.uint8ToInt8(signed);
       if (nextAddress < 0) {
         nextAddress += 0x10000;
       } else if (nextAddress > 0xffff) {
@@ -4635,7 +4669,7 @@ var CPU = function () {
     key: '_jr_flag_n',
     value: function _jr_flag_n(flag, valueToJump, n) {
       if (flag === valueToJump) {
-        this.jp_n(n);
+        this.jr_e(n);
       } else {
         this._m += 2;
       }
@@ -6965,6 +6999,17 @@ var CPU = function () {
     }
 
     /**
+     * Jumps to STAT interrupt routine
+     * @private
+     */
+
+  }, {
+    key: '_rst_48',
+    value: function _rst_48() {
+      this._rst_n(this.ADDR_STAT_INTERRUPT);
+    }
+
+    /**
      * Pushes the pc into stack and jumps to address n
      * @param n
      * @private
@@ -8704,6 +8749,10 @@ var MMU = function () {
     this.MASK_OBJ_ATTR_HFLIP = 0x20;
     this.MASK_OBJ_ATTR_OBG = 0x10;
 
+    // IF masks
+    this.IF_STAT_ON = 2;
+    this.IF_STAT_OFF = 29;
+
     // Character Data
     this.CHAR_LINE_SIZE = 2;
     this.CHAR_HEIGHT = 8;
@@ -9196,6 +9245,7 @@ var MMU = function () {
     value: function _updateStatLyc() {
       if (this.ly() === this.lyc()) {
         this.writeByteAt(this.ADDR_STAT, this.stat() | this.MASK_STAT_LYC_ON);
+        this.setIf(this.If() | this.IF_STAT_ON);
       } else {
         this.writeByteAt(this.ADDR_STAT, this.stat() & this.MASK_STAT_LYC_OFF);
       }
@@ -9735,8 +9785,8 @@ var MMU = function () {
     }
 
     /**
-    * Increments register LY by 1. Resets after 153.
-    */
+     * Increments register LY by 1. Resets after 153.
+     */
 
   }, {
     key: 'incrementLy',
@@ -9749,10 +9799,25 @@ var MMU = function () {
       }
       this.setLy(ly);
     }
+
+    /**
+     * @returns {number} LYC register
+     */
+
   }, {
     key: 'lyc',
     value: function lyc() {
       return this.readByteAt(this.ADDR_LYC);
+    }
+
+    /**
+     * @returns {boolean} true if LY === LYC
+     */
+
+  }, {
+    key: 'lyEqualsLyc',
+    value: function lyEqualsLyc() {
+      return (this.stat() & this.MASK_STAT_LYC_ON) >> 2 === 1;
     }
 
     /**
