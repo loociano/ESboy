@@ -234,44 +234,102 @@ describe('LCD', () => {
       assertDarkestTile.call(lcd, 19, 17, lcd.getImageDataBG());
     });
 
-    it('should shift background by means of registers SCX and SCY', () => {
-      const mmu = lcd.getMMU();
-      // 1 dark pixel at x=1 y=1
-      mmu.readBGData = (tileNumber, tileLine) => {
-        switch(tileNumber){
-          case 0:
-            if (tileLine === 1){
-              return new Buffer('4040', 'hex');
-            } else {
+    describe('Scrolling (SCX, SCY)', () => {
+      it('should shift background vertically', () => {
+        const mmu = lcd.getMMU();
+        mmu.readBGData = (tileNumber, tileLine) => {
+
+          switch(tileNumber){
+            case 1: // 1 pixel level-3 on top-left corner
+              if (tileLine === 0){
+                return new Buffer('8080', 'hex');
+              } else {
+                return new Buffer('0000', 'hex');
+              }
+            case 2: // 1 pixel level-3 on bottom-left corner
+              if (tileLine === 7){
+                return new Buffer('8080', 'hex');
+              } else {
+                return new Buffer('0000', 'hex');
+              }
+            case 3: // 1 pixel level-2 on top-left corner
+              if (tileLine === 0){
+                return new Buffer('0080', 'hex');
+              } else {
+                return new Buffer('0000', 'hex');
+              }
+            default:
               return new Buffer('0000', 'hex');
-            }
-          case 1: return new Buffer('0000', 'hex');
-          case 2:
-            if (tileLine === 0){
-              return new Buffer('8080', 'hex');
-            } else {
-              return new Buffer('0000', 'hex');
-            }
-        }
-      };
-      mmu.getCharCode = (gridX, gridY) => {
-        if (gridX === 20 && gridY === 18) return 2;
-        if (gridX !== 0 || gridY !== 0) return 1;
-        return 0;
-      };
+          }
+        };
+        mmu.getCharCode = (gridX, gridY) => {
+          if (gridX === 0 && gridY === 12) return 1;
+          if (gridX === 0 && gridY === 31) return 2;
+          if (gridX === 0 && gridY === 0)  return 3;
+          return 0;
+        };
 
-      lcd.drawTiles();
+        lcd.drawLine(0);
+        lcd.drawLine(96);
+        // line 255 out of bounds
 
-      assert.deepEqual(Array.from(lcd.getPixelData(1, 1, lcd.getImageDataBG())), lcd.SHADES[3]);
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageDataBG())), lcd.SHADES[2]);
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 96, lcd.getImageDataBG())), lcd.SHADES[3]);
 
-      lcd._clear();
-      mmu.scx = () => 1;
-      mmu.scy = () => 1;
+        mmu.scy = () => 96;
 
-      lcd.drawTiles();
+        lcd.drawLine(0);
 
-      assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageDataBG())), lcd.SHADES[3], 'shifted from 0,0 to 1,1');
-      assert.deepEqual(Array.from(lcd.getPixelData(159, 143, lcd.getImageDataBG())), lcd.SHADES[3], 'shifted from 160,144 to 159,143');
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageDataBG())), lcd.SHADES[3], 'pixel shifted 100px up');
+
+        mmu.scy = () => 255;
+
+        lcd.drawLine(0);
+        lcd.drawLine(1);
+
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageDataBG())), lcd.SHADES[3], 'pixel shifted 255px up');
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 1, lcd.getImageDataBG())), lcd.SHADES[2], 'pixel loop-shifted 255px up');
+      });
+
+      it('should shift background by means of registers SCX and SCY', () => {
+        const mmu = lcd.getMMU();
+        // 1 dark pixel at x=1 y=1
+        mmu.readBGData = (tileNumber, tileLine) => {
+          switch(tileNumber){
+            case 0:
+              if (tileLine === 1){
+                return new Buffer('4040', 'hex');
+              } else {
+                return new Buffer('0000', 'hex');
+              }
+            case 1: return new Buffer('0000', 'hex');
+            case 2:
+              if (tileLine === 0){
+                return new Buffer('8080', 'hex');
+              } else {
+                return new Buffer('0000', 'hex');
+              }
+          }
+        };
+        mmu.getCharCode = (gridX, gridY) => {
+          if (gridX === 20 && gridY === 18) return 2;
+          if (gridX !== 0 || gridY !== 0) return 1;
+          return 0;
+        };
+
+        lcd.drawTiles();
+
+        assert.deepEqual(Array.from(lcd.getPixelData(1, 1, lcd.getImageDataBG())), lcd.SHADES[3]);
+
+        lcd._clear();
+        mmu.scx = () => 1;
+        mmu.scy = () => 1;
+
+        lcd.drawTiles();
+
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageDataBG())), lcd.SHADES[3], 'shifted from 0,0 to 1,1');
+        assert.deepEqual(Array.from(lcd.getPixelData(159, 143, lcd.getImageDataBG())), lcd.SHADES[3], 'shifted from 160,144 to 159,143');
+      });
     });
 
     it('should compute grid', () => {
@@ -288,7 +346,6 @@ describe('LCD', () => {
       assert.equal(lcd.getGrid(255, 0), 31);
       assert.equal(lcd.getGrid(255, 1), 0);
       assert.equal(lcd.getGrid(255, 9), 1);
-
     });
 
   });
