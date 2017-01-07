@@ -71,7 +71,7 @@ export default class CPU {
       0x01: {fn: this.ld_bc_nn, paramBytes: 2},
       0x02: {fn: this.ld_0xbc_a, paramBytes: 0},
       0x03: {fn: this.inc_bc, paramBytes: 0},
-      0x04: {fn: this.inc_c, paramBytes: 0},
+      0x04: {fn: this.inc_b, paramBytes: 0},
       0x05: {fn: this.dec_b, paramBytes: 0},
       0x06: {fn: this.ld_b_n, paramBytes: 1},
       0x07: {fn: this.rlca, paramBytes: 0},
