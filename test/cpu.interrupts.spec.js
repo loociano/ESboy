@@ -61,9 +61,10 @@ describe('Interruptions', () => {
       this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
       this.cpu.mmu.setLy(0);
       this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_STAT, 0b01000000); // LYC=LY interrupt on 
-      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_IE, 0b00000011); // Allow STAT, VBL interrupt
+      this.cpu.mmu.setIe(0b00000011); // Allow STAT, VBL interrupt
       this.cpu._execute = () => this.cpu.nop();
       this.cpu._handleLYCInterrupt = () => {
+        this.cpu.mmu.setIf(this.cpu.mmu.If() & this.cpu.mmu.IF_STAT_OFF);
         called++;
       };
 

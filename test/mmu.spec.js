@@ -355,8 +355,8 @@ describe('MMU', () => {
 
       mmu.setLy(3);
 
-      assert.equal(mmu.lyEqualsLyc(), false, 'LYC !== LY');  
-      assert.equal(mmu.If(), 0b00000000);          
+      assert.equal(mmu.lyEqualsLyc(), false, 'LYC !== LY');
+      assert.equal(mmu.If(), 0b00000010, 'CPU will reset IF when interrupt is handled');
     });
 
   });
