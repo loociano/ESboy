@@ -51,6 +51,31 @@ describe('Interruptions', () => {
 
   });
 
+  describe('STAT interrupt', () => {
+
+    it('should STAT interrupt LYC=LY', function() {
+
+      let called = 0;
+
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LYC, 2);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
+      this.cpu.mmu.setLy(0);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_STAT, 0b01000000); // LYC=LY interrupt on 
+      this.cpu.mmu.setIe(0b00000011); // Allow STAT, VBL interrupt
+      this.cpu._execute = () => this.cpu.nop();
+      this.cpu._handleLYCInterrupt = () => {
+        this.cpu.mmu.setIf(this.cpu.mmu.If() & this.cpu.mmu.IF_STAT_OFF);
+        called++;
+      };
+
+      this.cpu.ei();
+      this.cpu.frame();
+
+      assert.equal(called, 1);
+    });
+
+  });
+
   describe('VBL Interrupt', () => {
 
     it('should not scan lines with lcd off', function() {

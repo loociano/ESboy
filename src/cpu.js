@@ -30,7 +30,12 @@ export default class CPU {
 
     // Constants
     this.EXTENDED_PREFIX = 0xcb;
-    this.ADDR_VBLANK_INTERRUPT = 0x0040;
+    this.ADDR_VBLANK_INTERRUPT = 0x40;
+    this.ADDR_STAT_INTERRUPT = 0x48;
+    this.ADDR_TIMER_INTERRUPT = 0x50;
+    this.ADDR_SERIAL_INTERRUPT = 0x58;
+    this.ADDR_P10P13_INTERRUPT = 0x60;
+
     this.M_CYCLES_PER_LINE = 114;
     this.M_CYCLES_STOP_MODE_0 = 4;
     this.M_CYCLES_STOP_MODE_2 = 20;
@@ -926,9 +931,29 @@ export default class CPU {
         this._afterBIOS();
       }
 
+      if (this._isLYCInterrupt()){
+        this._handleLYCInterrupt();      
+      }
+
     } while (!this._isVBlankTriggered());
 
     this._handleVBlankInterrupt();
+  }
+
+  /**
+   * @returns {boolean}
+   * @private
+   */
+  _isLYCInterrupt(){
+    return ( (this.mmu.ie() & this.mmu.If() & this.mmu.IF_STAT_ON) >> 1) === 1;
+  }
+
+  /**
+   * @private
+   */
+  _handleLYCInterrupt(){
+    this.setIf(this.If() & this.mmu.IF_STAT_OFF);
+    this._rst_48();
   }
 
   /**
@@ -3814,6 +3839,14 @@ export default class CPU {
    */
   _rst_40(){
     this._rst_n(this.ADDR_VBLANK_INTERRUPT);
+  }
+
+  /**
+   * Jumps to STAT interrupt routine
+   * @private
+   */
+  _rst_48(){
+    this._rst_n(this.ADDR_STAT_INTERRUPT);
   }
 
   /**

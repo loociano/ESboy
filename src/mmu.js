@@ -115,6 +115,10 @@ export default class MMU {
     this.MASK_OBJ_ATTR_HFLIP = 0x20;
     this.MASK_OBJ_ATTR_OBG = 0x10;
 
+    // IF masks
+    this.IF_STAT_ON = 0b00010;
+    this.IF_STAT_OFF = 0b11101;
+
     // Character Data
     this.CHAR_LINE_SIZE = 2;
     this.CHAR_HEIGHT = 8;
@@ -544,7 +548,8 @@ export default class MMU {
 
   _updateStatLyc(){
     if (this.ly() === this.lyc()){
-      this.writeByteAt(this.ADDR_STAT, this.stat() | this.MASK_STAT_LYC_ON);  
+      this.writeByteAt(this.ADDR_STAT, this.stat() | this.MASK_STAT_LYC_ON);
+      this.setIf(this.If() | this.IF_STAT_ON);
     } else {
       this.writeByteAt(this.ADDR_STAT, this.stat() & this.MASK_STAT_LYC_OFF);
     }
@@ -960,7 +965,7 @@ export default class MMU {
     this.writeByteAt(this.ADDR_LY, line);
   }
 
-    /**
+  /**
    * Increments register LY by 1. Resets after 153.
    */
   incrementLy(){
@@ -973,8 +978,18 @@ export default class MMU {
     this.setLy(ly);
   }
 
+  /**
+   * @returns {number} LYC register
+   */
   lyc(){
     return this.readByteAt(this.ADDR_LYC);
+  }
+
+  /**
+   * @returns {boolean} true if LY === LYC
+   */
+  lyEqualsLyc(){
+    return ((this.stat() & this.MASK_STAT_LYC_ON) >> 2) === 1;
   }
 
   /**
