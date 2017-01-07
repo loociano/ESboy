@@ -952,6 +952,9 @@ export default class CPU {
    * @private
    */
   _handleLYCInterrupt(){
+    if (this._r.ime === 0){
+      return false;
+    }
     this.setIf(this.If() & this.mmu.IF_STAT_OFF);
     this._rst_48();
   }
