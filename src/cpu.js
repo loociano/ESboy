@@ -91,7 +91,7 @@ export default class CPU {
       0x15: {fn: this.dec_d, paramBytes: 0},
       0x16: {fn: this.ld_d_n, paramBytes: 1},
       0x17: {fn: this.rla, paramBytes: 0},
-      0x18: {fn: this.jp_n, paramBytes: 1},
+      0x18: {fn: this.jr_e, paramBytes: 1},
       0x19: {fn: this.add_hl_de, paramBytes: 0},
       0x1a: {fn: this.ld_a_0xde, paramBytes: 0},
       0x1b: {fn: this.dec_de, paramBytes: 0},
@@ -1219,10 +1219,10 @@ export default class CPU {
 
   /**
    * Adds signed byte to current address and jumps to it.
-   * @param {number} n, signed integer
+   * @param {number} signed byte
    */
-  jp_n(n){
-    let nextAddress = this._r.pc + Utils.uint8ToInt8(n);
+  jr_e(signed){
+    let nextAddress = this._r.pc + Utils.uint8ToInt8(signed);
     if (nextAddress < 0){
       nextAddress += 0x10000;
     } else if (nextAddress > 0xffff) {
@@ -2127,7 +2127,7 @@ export default class CPU {
    */
   _jr_flag_n(flag, valueToJump, n){
     if (flag === valueToJump){
-      this.jp_n(n);
+      this.jr_e(n);
     } else {
       this._m += 2;
     }

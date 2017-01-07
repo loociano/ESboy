@@ -118,38 +118,19 @@ describe('CPU Instruction Set', function() {
 
     describe('Jump with signed integer', () => {
 
-      it('should jump forward and backwards', () => {
-        const instr_length = 2;
-        let s_int = 0;
-        const m = cpu.m();
-        cpu.setPC(cpu.pc() + instr_length);
-        
-        cpu.jp_n(s_int);
-
-        assert.equal(cpu.pc(), 2, 'jump forward 2');
-        assert.equal(cpu.m() - m, 3, 'JP e cycles');
-
-        s_int = 0xfd;
-
-        cpu.setPC(cpu.pc() + instr_length);
-        cpu.jp_n(s_int);
-
-        assert.equal(cpu.pc(), 1, 'jump backwards 1');
-      });
-
       it('should jump around lowest address memory', () => {
         const max = 0x7f;
         const min = 0x80;
         const instr_length = 2;
         cpu.setPC(cpu.pc() + instr_length);
       
-        cpu.jp_n(max);
+        cpu.jr_e(max);
 
         assert.equal(cpu.pc(), 0x0081);
 
         cpu.setPC(0 + instr_length);
 
-        cpu.jp_n(min);
+        cpu.jr_e(min);
 
         assert.equal(cpu.pc(), 0xff82);
       });
@@ -158,14 +139,14 @@ describe('CPU Instruction Set', function() {
         const max = 0x7f;
         cpu.setPC(0xffff); // 0xfffd + 2
       
-        cpu.jp_n(max);
+        cpu.jr_e(max);
 
         assert.equal(cpu.pc(), 0x007e); // 0xfffd + 0x7f
 
         const min = 0x80;
         cpu.setPC(0xffff); // 0xfffd + 2
 
-        cpu.jp_n(min);
+        cpu.jr_e(min);
 
         assert.equal(cpu.pc(), 0xff7f); // 0xfffd - 0x80
       });
@@ -175,7 +156,7 @@ describe('CPU Instruction Set', function() {
         const s_int = 0xfe; // -2
         cpu.setPC(addr + 2);
 
-        cpu.jp_n(s_int);
+        cpu.jr_e(s_int);
 
         assert.equal(cpu.pc(), addr);
       });
@@ -202,6 +183,23 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.pc(), pc, 'do not jump to address');
         assert.equal(cpu.m(), m+3, 'JP NZ runs in 3 machine cycles if does not jump');
       });
+    });
+
+    describe('JR', () => {
+      it('should jump an offset', () => {
+        cpu.setPC(0x100);
+        const m = cpu.m();
+
+        cpu.jr_e(0x01);
+
+        assert.equal(cpu.pc(), 0x100 + 1, 'jump forward');
+        assert.equal(cpu.m() - m, 3, 'JR machine cycles');
+
+        cpu.jr_e(0xfc); // -4
+
+        assert.equal(cpu.pc(), 0x101 - 4, 'jump backward');
+      });
+
     });
 
     describe('Jump NZ with signed byte', () => {
