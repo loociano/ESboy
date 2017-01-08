@@ -1809,11 +1809,41 @@ describe('CPU Instruction Set', function() {
           const m = cpu.m();
           pop.call(cpu);
 
-          assert.equal(r.call(cpu), 0xabcd, `Pop into ${r.name}`);
+          if (r === cpu.af){
+            // Special case. Hidden lower bits from f should be zero
+            assert.equal(r.call(cpu), 0xabc0, `Pop into ${r.name}`);
+          } else {
+            assert.equal(r.call(cpu), 0xabcd, `Pop into ${r.name}`);
+          }
           assert.equal(cpu.sp(), sp + 2, 'sp incremented twice');
           assert.equal(cpu.m(), m+3, 'Pop rr machine cycles');
         });
       });
+    });
+
+    describe('PUSH-POP with AF', () => {
+
+      it('should pop and push flags accordingly', () => {
+        cpu.ld_sp_nn(0xdffd);
+        cpu.ld_bc_nn(0x1301);
+
+        cpu.push_bc();
+
+        assert.equal(cpu.mmu.readByteAt(cpu.sp() + 1), cpu.b(), 'store b into stack');
+        assert.equal(cpu.mmu.readByteAt(cpu.sp()), cpu.c(), 'store c into stack');
+
+        cpu.pop_af();
+
+        assert.equal(cpu.a(), 0x13);
+        assert.equal(cpu.f(), 0, 'should not load 0x01 in flags!!');
+
+        cpu.push_af();
+        cpu.pop_bc();
+
+        assert.equal(cpu.b(), 0x13);
+        assert.equal(cpu.c(), 0x00, 'not 0x01!');
+      })
+
     });
   });
 
