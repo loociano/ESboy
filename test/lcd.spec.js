@@ -235,6 +235,49 @@ describe('LCD', () => {
     });
 
     describe('Scrolling (SCX, SCY)', () => {
+      it('should shift background horizontally', () => {
+        const mmu = lcd.getMMU();
+        mmu.readBGData = (tileNumber, tileLine) => {
+          switch(tileNumber){
+            case 1: // [1 0 0 0 0 0 0 0]
+              return new Buffer('8000', 'hex');
+            case 2: // [2 0 0 0 0 0 0 2]
+              return new Buffer('0081', 'hex');
+            default:
+              return new Buffer('0000', 'hex');
+          }
+        };
+        mmu.getCharCode = (gridX) => {
+          if (gridX === 12 || gridX === 0) return 1;
+          if (gridX === 31) return 2;
+          return 0;
+        };
+
+        lcd.drawLine(0);
+
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageDataBG())), lcd.SHADES[1]);
+        assert.deepEqual(Array.from(lcd.getPixelData(12*8, 0, lcd.getImageDataBG())), lcd.SHADES[1]);
+        // tile 31 is not visible
+
+        mmu.scx = () => 1;
+        lcd.drawLine(0);
+
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageDataBG())), lcd.SHADES[0]);
+
+        mmu.scx = () => 96;
+        lcd.drawLine(0);
+
+        assert.deepEqual(Array.from(lcd.getPixelData(12*8 - 96, 0, lcd.getImageDataBG())), lcd.SHADES[1], 'pixel shifted 96px left');
+        assert.deepEqual(Array.from(lcd.getPixelData(31*8 - 96, 0, lcd.getImageDataBG())), lcd.SHADES[2], 'pixel shifted 96px left');
+        assert.deepEqual(Array.from(lcd.getPixelData(31*8 - 96 + 7, 0, lcd.getImageDataBG())), lcd.SHADES[2], 'pixel shifted 96px left');
+
+        mmu.scx = () => 255;
+        lcd.drawLine(0);
+
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageDataBG())), lcd.SHADES[2], 'pixel shifted 255px left');
+        assert.deepEqual(Array.from(lcd.getPixelData(1, 0, lcd.getImageDataBG())), lcd.SHADES[1], 'pixel loop-shifted 255px left');
+      });
+
       it('should shift background vertically', () => {
         const mmu = lcd.getMMU();
         mmu.readBGData = (tileNumber, tileLine) => {
