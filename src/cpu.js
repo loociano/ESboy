@@ -2952,7 +2952,9 @@ export default class CPU {
    * Pushes register af into stack.
    */
   push_af(){
-    this._push('a', '_f');
+    this.mmu.writeByteAt(--this._r.sp, this._r.a);
+    this.mmu.writeByteAt(--this._r.sp, (this._r._f & 0xf0)); // do not store lower hidden bits on stack
+    this._m += 4;
   }
 
   /**
@@ -2992,7 +2994,9 @@ export default class CPU {
    * Pops two bytes off the stack into af
    */
   pop_af(){
-    this._pop('a', '_f');
+    this._r._f = (this.mmu.readByteAt(this._r.sp++) & 0xf0); // keep hidden bits at zero
+    this._r.a = this.mmu.readByteAt(this._r.sp++);
+    this._m += 3;
   }
 
   /**
