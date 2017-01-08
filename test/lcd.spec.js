@@ -377,18 +377,18 @@ describe('LCD', () => {
 
     it('should compute grid', () => {
 
-      assert.equal(lcd.getGrid(0, 0), 0);
-      assert.equal(lcd.getGrid(0, 1), 0);
-      assert.equal(lcd.getGrid(0, 7), 0);
-      assert.equal(lcd.getGrid(0, 8), 1);
-      assert.equal(lcd.getGrid(0, 16), 2);
+      assert.equal(lcd.getVerticalGrid(0, 0), 0);
+      assert.equal(lcd.getVerticalGrid(0, 1), 0);
+      assert.equal(lcd.getVerticalGrid(0, 7), 0);
+      assert.equal(lcd.getVerticalGrid(0, 8), 1);
+      assert.equal(lcd.getVerticalGrid(0, 16), 2);
 
-      assert.equal(lcd.getGrid(8, 0), 1);
-      assert.equal(lcd.getGrid(8, 8), 2);
+      assert.equal(lcd.getVerticalGrid(8, 0), 1);
+      assert.equal(lcd.getVerticalGrid(8, 8), 2);
 
-      assert.equal(lcd.getGrid(255, 0), 31);
-      assert.equal(lcd.getGrid(255, 1), 0);
-      assert.equal(lcd.getGrid(255, 9), 1);
+      assert.equal(lcd.getVerticalGrid(255, 0), 31);
+      assert.equal(lcd.getVerticalGrid(255, 1), 0);
+      assert.equal(lcd.getVerticalGrid(255, 9), 1);
     });
 
   });

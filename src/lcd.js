@@ -136,22 +136,31 @@ export default class LCD {
       max = this._HW_WIDTH;
     }
     for(let x = 0; x < max; x += this.TILE_WIDTH){
-      const tileNumber = this._mmu.getCharCode(this.getGrid(x, scx), this.getGrid(line, scy));
+      const tileNumber = this._mmu.getCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line, scy));
       this._drawTileLine({
         tileNumber: tileNumber,
-        x: x,
+        x: (x + this._OUT_WIDTH - scx) % this._OUT_WIDTH,
         y: line
       }, line);
     }
   }
 
   /**
-   * @param coord
-   * @param coordOffset
-   * @returns {number}
+   * @param {number} coord 0..143
+   * @param {number} coordOffset 0..255
+   * @returns {number} 0..31
    */
-  getGrid(coord, coordOffset){
+  getVerticalGrid(coord, coordOffset){
     return Math.floor(((coord + coordOffset) % this._OUT_HEIGHT)/this._TILE_HEIGHT);
+  }
+
+  /**
+   * @param {number} coord 0..255
+   * @returns {number} 0..31
+   * @private
+   */
+  _getHorizontalGrid(coord){
+    return Math.floor(coord/this._TILE_HEIGHT);
   }
 
   /**
@@ -181,7 +190,7 @@ export default class LCD {
 
     for(let i = 0; i < intensityVector.length; i++){
       this.drawPixel({
-        x: (x - this._mmu.scx() + i) % this._OUT_WIDTH,
+        x: (x + i) % this._OUT_WIDTH,
         y: line,
         level: intensityVector[i]},
         palette, imageData);
