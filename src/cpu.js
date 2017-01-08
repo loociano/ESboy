@@ -1084,10 +1084,6 @@ export default class CPU {
    */
   _handleVBlankInterrupt(){
 
-    for(let line = this.lcd._HW_HEIGHT; line < this.lcd._OUT_HEIGHT; line++) {
-      this.lcd.drawLine(line);
-    }
-
     this._resetVBlank();
     this._halt = false;
 

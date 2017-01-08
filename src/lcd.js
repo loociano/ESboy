@@ -105,7 +105,7 @@ export default class LCD {
    * @param {number} line
    */
   drawLine(line=0){
-    if (line < 0) {
+    if (line < 0 || line > this._HW_HEIGHT) {
       Logger.warn(`Cannot draw line ${line}`);
       return;
     }
