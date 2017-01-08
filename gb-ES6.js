@@ -3281,10 +3281,6 @@ var CPU = function () {
     key: '_handleVBlankInterrupt',
     value: function _handleVBlankInterrupt() {
 
-      for (var line = this.lcd._HW_HEIGHT; line < this.lcd._OUT_HEIGHT; line++) {
-        this.lcd.drawLine(line);
-      }
-
       this._resetVBlank();
       this._halt = false;
 
@@ -8143,7 +8139,7 @@ var LCD = function () {
     value: function drawLine() {
       var line = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 
-      if (line < 0) {
+      if (line < 0 || line > this._HW_HEIGHT) {
         _logger2.default.warn('Cannot draw line ' + line);
         return;
       }
@@ -8177,25 +8173,37 @@ var LCD = function () {
         max = this._HW_WIDTH;
       }
       for (var x = 0; x < max; x += this.TILE_WIDTH) {
-        var tileNumber = this._mmu.getCharCode(this.getGrid(x, scx), this.getGrid(line, scy));
+        var tileNumber = this._mmu.getCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line, scy));
         this._drawTileLine({
           tileNumber: tileNumber,
-          x: x,
+          x: (x + this._OUT_WIDTH - scx) % this._OUT_WIDTH,
           y: line
         }, line);
       }
     }
 
     /**
-     * @param coord
-     * @param coordOffset
-     * @returns {number}
+     * @param {number} coord 0..143
+     * @param {number} coordOffset 0..255
+     * @returns {number} 0..31
      */
 
   }, {
-    key: 'getGrid',
-    value: function getGrid(coord, coordOffset) {
+    key: 'getVerticalGrid',
+    value: function getVerticalGrid(coord, coordOffset) {
       return Math.floor((coord + coordOffset) % this._OUT_HEIGHT / this._TILE_HEIGHT);
+    }
+
+    /**
+     * @param {number} coord 0..255
+     * @returns {number} 0..31
+     * @private
+     */
+
+  }, {
+    key: '_getHorizontalGrid',
+    value: function _getHorizontalGrid(coord) {
+      return Math.floor(coord / this._TILE_HEIGHT);
     }
 
     /**
@@ -8234,7 +8242,7 @@ var LCD = function () {
 
       for (var i = 0; i < intensityVector.length; i++) {
         this.drawPixel({
-          x: (x - this._mmu.scx() + i) % this._OUT_WIDTH,
+          x: (x + i) % this._OUT_WIDTH,
           y: line,
           level: intensityVector[i] }, palette, imageData);
       }
