@@ -1092,6 +1092,9 @@ export default class CPU {
       this.di();
       this._rst_40();
     }
+  }
+
+  paint(){
     this.lcd.paint();
   }
 

@@ -69,6 +69,7 @@ function frame(){
     // http://codetheory.in/controlling-the-frame-rate-with-requestanimationframe
     then = now - (delta % interval);
     cpu.start();
+    cpu.paint();
   }
 }
 
