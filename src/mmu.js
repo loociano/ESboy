@@ -35,8 +35,8 @@ export default class MMU {
     this.BG_CHAR_DATA_8000 = 0x8000;
     this.BG_CHAR_DATA_8800 = 0x8800;
     this.BG_CHAR_DATA_9000 = 0x9000;
-    this.BG_DISPLAY_DATA_1 = 0x9800;
-    this.BG_DISPLAY_DATA_2 = 0x9c00;
+    this.ADDR_DISPLAY_DATA_1 = 0x9800;
+    this.ADDR_DISPLAY_DATA_2 = 0x9c00;
     this.ADDR_VRAM_END = 0x9fff;
 
     // Working RAM
@@ -65,6 +65,8 @@ export default class MMU {
     this.ADDR_BGP = 0xff47;
     this.ADDR_OBG0 = 0xff48;
     this.ADDR_OBG1 = 0xff49;
+    this.ADDR_WY = 0xff4a;
+    this.ADDR_WX = 0xff4b;
     this.ADDR_KEY1 = 0xff4d;
     this.ADDR_VBK = 0xff4f;
     this.ADDR_SVBK = 0xff70;
@@ -94,6 +96,7 @@ export default class MMU {
     // LCDC masks
     this.MASK_BG_CHAR_DATA = 0x10;
     this.MASK_WINDOW_ON = 0x20;
+    this.MASK_WINDOW_OFF = 0xdf;
     this.MASK_OBJ_ON = 0x02;
     this.MASK_OBJ_OFF = 0xfd;
     this.MASK_OBJ_8x16 = 0x04;
@@ -104,6 +107,8 @@ export default class MMU {
     this.MASK_BG_CHAR_DATA_8800 = 0xef;
     this.MASK_BG_CODE_AREA_1 = 0xf7;
     this.MASK_BG_CODE_AREA_2 = 0x08;
+    this.MASK_WINDOW_CODE_AREA_0 = 0xbf;
+    this.MASK_WINDOW_CODE_AREA_1 = 0x40;
 
     // STAT masks
     this.MASK_STAT_MODE = 0x03;
@@ -450,15 +455,36 @@ export default class MMU {
 
   /**
    * Returns the char code given the x,y lcd coordinates
+   * @param {number} gridX
+   * @param {number} gridY
+   * @returns {number} 0..1024
+   */
+  getBgCharCode(gridX, gridY){
+    return this._getCharCode(this._getBgDisplayDataStartAddr(), gridX, gridY);
+  }
+
+  /**
+   * Returns the Char codegiven the x,y lcd coordinates
+   * @param {number} gridX
+   * @param {number} gridY
+   * @returns {number} 0..1024
+   */
+  getWindowCharCode(gridX, gridY){
+    return this._getCharCode(this._getWindowCodeAreaStartAddr(), gridX, gridY);
+  }
+
+  /**
+   * @param {number} startAddr
    * @param {number} x between 0 and 31
    * @param {number} y between 0 and 31
-   * @returns {number}
+   * @returns {number} 0..1024
+   * @private
    */
-  getCharCode(grid_x, grid_y){
-    if (grid_x < 0 || grid_x > 0x1f || grid_y < 0 || grid_y > 0x1f){
-      throw new Error(`Cannot read tile at coord ${grid_x}, ${grid_y}`);
+  _getCharCode(startAddr, gridX, gridY){
+    if (gridX < 0 || gridX > 0x1f || gridY < 0 || gridY > 0x1f){
+      throw new Error(`Cannot read tile at coord ${gridX}, ${gridY}`);
     }
-    const addr = this._getBgDisplayDataStartAddr() + grid_x + (grid_y * this.CHARS_PER_LINE);
+    const addr = startAddr + gridX + (gridY * this.CHARS_PER_LINE);
     return this.readByteAt(addr);
   }
 
@@ -468,9 +494,21 @@ export default class MMU {
    */
   _getBgDisplayDataStartAddr(){
     if((this.lcdc() & this.MASK_BG_CODE_AREA_2) === 0){
-      return this.BG_DISPLAY_DATA_1;
+      return this.ADDR_DISPLAY_DATA_1;
     } else {
-      return this.BG_DISPLAY_DATA_2;
+      return this.ADDR_DISPLAY_DATA_2;
+    }
+  }
+
+  /**
+   * @returns {number} start address of the Window Code Area
+   * @private
+   */
+  _getWindowCodeAreaStartAddr(){
+    if((this.lcdc() & this.MASK_WINDOW_CODE_AREA_1) === this.MASK_WINDOW_CODE_AREA_1){
+      return this.ADDR_DISPLAY_DATA_2;
+    } else {
+      return this.ADDR_DISPLAY_DATA_1;
     }
   }
 
@@ -590,7 +628,7 @@ export default class MMU {
    * @private
    */
   _isBgCodeArea(addr){
-    return addr >= this.BG_DISPLAY_DATA_1 && addr <= this.ADDR_VRAM_END;
+    return addr >= this.ADDR_DISPLAY_DATA_1 && addr <= this.ADDR_VRAM_END;
   }
 
   /**
@@ -706,12 +744,6 @@ export default class MMU {
       case 0:
         this._handle_lcd_off();
         break;
-    }
-    switch(n & this.LCDC_WINDOW){
-      case 0:
-        break;
-      default:
-        throw new Error('Windowing unsupported');
     }
     switch(n & this.MASK_OBJ_8x16){
       case 0:
@@ -1134,5 +1166,26 @@ export default class MMU {
 
   scy(){
     return this.readByteAt(this.ADDR_SCY);
+  }
+
+  /**
+   * @returns {boolean} true if Window should be displayed
+   */
+  isWindowOn(){
+    return (this.lcdc() & this.MASK_WINDOW_ON) === this.MASK_WINDOW_ON;
+  }
+
+  /**
+   * @returns {number} Window Y-coord register
+   */
+  wy(){
+    return this.readByteAt(this.ADDR_WY);
+  }
+
+  /**
+   * @returns {number} Window X-coord register
+   */
+  wx(){
+    return this.readByteAt(this.ADDR_WX);
   }
 }

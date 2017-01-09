@@ -136,7 +136,7 @@ export default class LCD {
       max = this._HW_WIDTH;
     }
     for(let x = 0; x < max; x += this.TILE_WIDTH){
-      const tileNumber = this._mmu.getCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line, scy));
+      const tileNumber = this._mmu.getBgCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line, scy));
       this._drawTileLine({
         tileNumber: tileNumber,
         x: (x + this._OUT_WIDTH - scx) % this._OUT_WIDTH,
@@ -283,7 +283,7 @@ export default class LCD {
   _handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, x, y){
     if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_PRIORITY) === this._mmu.MASK_OBJ_ATTR_PRIORITY){
 
-      const tileNumber = this._mmu.getCharCode(x/this.TILE_WIDTH, y/this._TILE_HEIGHT);
+      const tileNumber = this._mmu.getBgCharCode(x/this.TILE_WIDTH, y/this._TILE_HEIGHT);
       const bgIntensityVector = this._getIntensityVector(tileNumber, tileLine, false);
 
       // Exception: OBJ with priority flag are displayed only in the underneath BG is lightest

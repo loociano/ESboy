@@ -119,7 +119,7 @@ describe('LCD', () => {
           return new Buffer('0000', 'hex');
         }
       };
-      mmu.getCharCode = (gridX) => {
+      mmu.getBgCharCode = (gridX) => {
         if (gridX === 0) {
           return 0;
         } else {
@@ -150,7 +150,7 @@ describe('LCD', () => {
           return new Buffer('0000', 'hex'); // odd lines are light
         }
       };
-      mmu.getCharCode = (any) => 0;
+      mmu.getBgCharCode = (any) => 0;
 
       const expectedDarkLine = new Uint8ClampedArray(lineRgbaLength);
       const expectedLightLine = new Uint8ClampedArray(lineRgbaLength);
@@ -174,7 +174,7 @@ describe('LCD', () => {
     it('should cache tiles and clear cache when VRAM is updated', () => {
       const mmu = lcd.getMMU();
       let calculated = 0;
-      mmu.getCharCode = (any) => 0;
+      mmu.getBgCharCode = (any) => 0;
       mmu.writeByteAt = (addr, n) => {
         mmu._VRAMRefreshed = true;
       };
@@ -215,7 +215,7 @@ describe('LCD', () => {
           return new Buffer('0000', 'hex');
         }
       };
-      mmu.getCharCode = (gridX, gridY) => {
+      mmu.getBgCharCode = (gridX, gridY) => {
         if (gridX === 0 && gridY === 0) {
           return 0; // top-left most tile
         } else if (gridX === 19 && gridY === 17){
@@ -247,7 +247,7 @@ describe('LCD', () => {
               return new Buffer('0000', 'hex');
           }
         };
-        mmu.getCharCode = (gridX) => {
+        mmu.getBgCharCode = (gridX) => {
           if (gridX === 12 || gridX === 0) return 1;
           if (gridX === 31) return 2;
           return 0;
@@ -305,7 +305,7 @@ describe('LCD', () => {
               return new Buffer('0000', 'hex');
           }
         };
-        mmu.getCharCode = (gridX, gridY) => {
+        mmu.getBgCharCode = (gridX, gridY) => {
           if (gridX === 0 && gridY === 12) return 1;
           if (gridX === 0 && gridY === 31) return 2;
           if (gridX === 0 && gridY === 0)  return 3;
@@ -354,7 +354,7 @@ describe('LCD', () => {
               }
           }
         };
-        mmu.getCharCode = (gridX, gridY) => {
+        mmu.getBgCharCode = (gridX, gridY) => {
           if (gridX === 20 && gridY === 18) return 2;
           if (gridX !== 0 || gridY !== 0) return 1;
           return 0;
@@ -396,7 +396,7 @@ describe('LCD', () => {
   describe('OBJ (Sprites)', () => {
     it('should draw OBJs if they are enabled on MMU', () => {
       const mmu = lcd.getMMU();
-      mmu.getCharCode = (any) =>  0;
+      mmu.getBgCharCode = (any) =>  0;
       mmu.readBGData = (any) => new Buffer('0000', 'hex');
       mmu.readOBJData = (any) => new Buffer('ffff', 'hex');
       mmu.areOBJOn = () => true;
@@ -414,7 +414,7 @@ describe('LCD', () => {
 
     it('should draw OBJs in any line', () => {
       const mmu = lcd.getMMU();
-      mmu.getCharCode = (any) =>  0;
+      mmu.getBgCharCode = (any) =>  0;
       mmu.readBGData = (any) => new Buffer('0000', 'hex');
       mmu.readOBJData = (tileNumber, tileLine) => {
         if (tileLine % 2 === 0){
@@ -454,7 +454,7 @@ describe('LCD', () => {
           return {y: 0, x: 0, chrCode: 0x00, attr: 0x00}; // Empty OBJ, should not paint
         }
       };
-      mmu.getCharCode = (any) => { return 0x00; };
+      mmu.getBgCharCode = (any) => { return 0x00; };
       mmu._VRAMRefreshed = true;
 
       lcd.drawTiles();
@@ -475,7 +475,7 @@ describe('LCD', () => {
       mmu.readBGData = () => { return new Buffer('ffff', 'hex'); };
       mmu.readOBJData = () => { return new Buffer('0000', 'hex'); };
       mmu.getOBJ = () => { return {y: 16, x: 8, chrCode: 0x00, attr: 0x00}; };
-      mmu.getCharCode = () => { return 0x00; };
+      mmu.getBgCharCode = () => { return 0x00; };
       mmu.obg0 = () => { return 0b11100100; };
 
       lcd.drawTiles();
@@ -489,7 +489,7 @@ describe('LCD', () => {
       mmu.readBGData = () => { return new Buffer('ffff', 'hex'); };
       mmu.readOBJData = () => { return new Buffer('0000', 'hex'); };
       mmu.getOBJ = () => { return {y: 16, x: 8, chrCode: 0x00, attr: 0x00}; };
-      mmu.getCharCode = () => { return 0x00; };
+      mmu.getBgCharCode = () => { return 0x00; };
       mmu.obg0 = () => { return 0b11111111; }; // force lightest level bit0,1 to darkest
 
       lcd.drawTiles();
@@ -508,7 +508,7 @@ describe('LCD', () => {
       const mmu = lcd.getMMU();
       mmu.readBGData = () => { return new Buffer('0000', 'hex'); };
       mmu.readOBJData = () => { return new Buffer('ff00', 'hex'); };
-      mmu.getCharCode = () => { return 0x00; };
+      mmu.getBgCharCode = () => { return 0x00; };
       mmu.getOBJ = () => { return {y: 16, x: 8, chrCode: 0x00, attr: 0x00}; };
       mmu.obg0 = () => { return 0b00000000; };
 
@@ -539,7 +539,7 @@ describe('LCD', () => {
 
     it('should flip OBJ horizontally', () => {
       const mmu = lcd.getMMU();
-      mmu.getCharCode = (any) => { return 0; };
+      mmu.getBgCharCode = (any) => { return 0; };
       mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b00100000/* hor flip flag */ }; };
       mmu.readBGData = (any) => { return new Buffer('0000', 'hex'); };
       mmu.readOBJData = (any) => {
@@ -563,7 +563,7 @@ describe('LCD', () => {
 
     it('should flip OBJ vertically', () => {
       const mmu = lcd.getMMU();
-      mmu.getCharCode = (any) => { return 0; };
+      mmu.getBgCharCode = (any) => { return 0; };
       mmu.readBGData = (any) => { return new Buffer('0000', 'hex'); };
       mmu.getOBJ = (n) => {
         if ( n === 0 ){
@@ -597,7 +597,7 @@ describe('LCD', () => {
 
     it('should flip OBJ horizontally and vertically', () => {
       const mmu = lcd.getMMU();
-      mmu.getCharCode = (any) => { return 0; };
+      mmu.getBgCharCode = (any) => { return 0; };
       mmu.getOBJ = (number) => {
         if (number === 0){
           return {y: 16, x: 8, chrCode: 0, attr: 0b01100000};
@@ -632,7 +632,7 @@ describe('LCD', () => {
       const mmu = lcd.getMMU();
       mmu.readBGData = (any) => { return new Buffer('ffff', 'hex'); };
       mmu.readOBJData = (tileNumber, tileLine) => { return new Buffer('ff00', 'hex'); };
-      mmu.getCharCode = (any) => { return 0; };
+      mmu.getBgCharCode = (any) => { return 0; };
       mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b00000000}; };
       mmu.obg0 = () => { return 0b11100100; };
 
@@ -652,7 +652,7 @@ describe('LCD', () => {
       const mmu = lcd.getMMU();
       mmu.readBGData = (any) => { return new Buffer('00000000000000000000000000000000', 'hex'); };
       mmu.readOBJData = (any) => { return new Buffer('ff00ff00ff00ff00ff00ff00ff00ff00', 'hex'); };
-      mmu.getCharCode = (any) => { return 0x00; };
+      mmu.getBgCharCode = (any) => { return 0x00; };
       mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b10000000}; };
       mmu.obg0 = () => { return 0b11100100; };
 

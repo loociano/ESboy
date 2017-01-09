@@ -58,7 +58,7 @@ export default class MMUMock {
     // do nothing
   }
 
-  getCharCode(){
+  getBgCharCode(){
     return 0;
   }
 }

@@ -143,9 +143,9 @@ describe('MMU', () => {
 
   });
 
-  describe('LCD Control Register', () => {
+  describe('LCD Control Register LCDC', () => {
 
-    it('should read/write lcdc', () => {
+    it('should read/write LCDC', () => {
       mmu.writeByteAt(mmu.ADDR_LCDC, 0x80);
       assert.equal(mmu.lcdc(), 0x80, 'LCD on');
     });
@@ -158,10 +158,74 @@ describe('MMU', () => {
       assert.equal(mmu.getLCDMode(), 0, 'Reset LCD mode');
     });
 
-    it('should ignore window as it is unsupported', () => {
-      assert.throws( () => {
-        mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_WINDOW_ON);
-      }, Error, 'Window unsupported');
+    it('should turn on/off background based on LCDC bit 7', () => {
+      const chrData = new Uint8Array([0xab,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xcd]);
+      mmu.writeBuffer(chrData, 0x8000);
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_ON | mmu.MASK_BG_CHAR_DATA_8000);
+
+      assert.deepEqual([
+        ...mmu.readBGData(0,0),
+        ...mmu.readBGData(0,1),
+        ...mmu.readBGData(0,2),
+        ...mmu.readBGData(0,3),
+        ...mmu.readBGData(0,4),
+        ...mmu.readBGData(0,5),
+        ...mmu.readBGData(0,6),
+        ...mmu.readBGData(0,7)], chrData, 'Character data matches');
+
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_OFF);
+
+      assert.deepEqual([
+        ...mmu.readBGData(0,0),
+        ...mmu.readBGData(0,1),
+        ...mmu.readBGData(0,2),
+        ...mmu.readBGData(0,3),
+        ...mmu.readBGData(0,4),
+        ...mmu.readBGData(0,5),
+        ...mmu.readBGData(0,6),
+        ...mmu.readBGData(0,7)], new Uint8Array([0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]), 'Transparent');
+    });
+
+    it('should select Window Code Area based on LCDC bit 6', () => {
+      mmu.writeByteAt(0x9800, 0xaa);
+      mmu.writeByteAt(0x9bff, 0xbb);
+
+      mmu.writeByteAt(0x9c00, 0xcc);
+      mmu.writeByteAt(0x9fff, 0xdd);
+
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_WINDOW_CODE_AREA_0);
+
+      assert.equal(mmu.getWindowCharCode(0, 0), 0xaa);
+      assert.equal(mmu.getWindowCharCode(31, 31), 0xbb);
+
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_WINDOW_CODE_AREA_1);
+
+      assert.equal(mmu.getWindowCharCode(0, 0), 0xcc);
+      assert.equal(mmu.getWindowCharCode(31, 31), 0xdd);
+    });
+
+    it('should display the Window based on LCDC bit 5', () => {
+      assert.equal(mmu.isWindowOn(), false);
+
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_WINDOW_ON);
+      assert.equal(mmu.isWindowOn(), true);
+
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_WINDOW_OFF);
+      assert.equal(mmu.isWindowOn(), false);
+    });
+
+    it('should return tile address for BG data based on LCDC bit 4', () => {
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_CHAR_DATA_8000);
+      assert.equal(mmu.getBgCharDataStartAddr(0x00), 0x8000);
+      assert.equal(mmu.getBgCharDataStartAddr(0x7f), 0x87f0);
+      assert.equal(mmu.getBgCharDataStartAddr(0x80), 0x8800);
+      assert.equal(mmu.getBgCharDataStartAddr(0xff), 0x8ff0);
+
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_CHAR_DATA_8800);
+      assert.equal(mmu.getBgCharDataStartAddr(0x00), 0x9000);
+      assert.equal(mmu.getBgCharDataStartAddr(0x7f), 0x97f0);
+      assert.equal(mmu.getBgCharDataStartAddr(0x80), 0x8800);
+      assert.equal(mmu.getBgCharDataStartAddr(0xff), 0x8ff0);
     });
 
     it('should read character data 0x8000-0x8fff based on LCDC bit 4', () => {
@@ -191,20 +255,6 @@ describe('MMU', () => {
         ...mmu.readBGData(0xff, 5),
         ...mmu.readBGData(0xff, 6),
         ...mmu.readBGData(0xff, 7)], BGData_ff);
-    });
-
-    it('should return tile address for BG data', () => {
-      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_CHAR_DATA_8000);
-      assert.equal(mmu.getBgCharDataStartAddr(0x00), 0x8000);
-      assert.equal(mmu.getBgCharDataStartAddr(0x7f), 0x87f0);
-      assert.equal(mmu.getBgCharDataStartAddr(0x80), 0x8800);
-      assert.equal(mmu.getBgCharDataStartAddr(0xff), 0x8ff0);
-
-      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_CHAR_DATA_8800);
-      assert.equal(mmu.getBgCharDataStartAddr(0x00), 0x9000);
-      assert.equal(mmu.getBgCharDataStartAddr(0x7f), 0x97f0);
-      assert.equal(mmu.getBgCharDataStartAddr(0x80), 0x8800);
-      assert.equal(mmu.getBgCharDataStartAddr(0xff), 0x8ff0);
     });
 
     it('should read character data 0x8800-0x97ff based on LCDC bit 4', () => {
@@ -263,8 +313,8 @@ describe('MMU', () => {
       mmu.writeByteAt(0x9bff, 0xcd);
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_CODE_AREA_1);
 
-      assert.equal(mmu.getCharCode(0, 0), 0xab, 'Block 0');
-      assert.equal(mmu.getCharCode(31, 31), 0xcd, 'Block 1023');
+      assert.equal(mmu.getBgCharCode(0, 0), 0xab, 'Block 0');
+      assert.equal(mmu.getBgCharCode(31, 31), 0xcd, 'Block 1023');
     });
 
     it('should read character code from 0x9c00 based on LCDC bit 3', () => {
@@ -272,11 +322,11 @@ describe('MMU', () => {
       mmu.writeByteAt(0x9fff, 0xcd);
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_CODE_AREA_2);
 
-      assert.equal(mmu.getCharCode(0, 0), 0xab, 'Block 0');
-      assert.equal(mmu.getCharCode(31, 31), 0xcd, 'Block 1023');
+      assert.equal(mmu.getBgCharCode(0, 0), 0xab, 'Block 0');
+      assert.equal(mmu.getBgCharCode(31, 31), 0xcd, 'Block 1023');
     });
 
-    it('should detect OBJ 8x16 as unsupported', () => {
+    it('should detect OBJ 8x16 as unsupported based on LCDC bit 2', () => {
       assert.throws( () => mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_OBJ_8x16), Error, '8x16 OBJ unsupported');
     });
 
@@ -285,34 +335,6 @@ describe('MMU', () => {
       assert(mmu.areOBJOn());
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_OBJ_OFF);
       assert(!mmu.areOBJOn());
-    });
-
-    it('should turn on/off background', () => {
-      const chrData = new Uint8Array([0xab,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xcd]);
-      mmu.writeBuffer(chrData, 0x8000);
-      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_ON | mmu.MASK_BG_CHAR_DATA_8000);
-
-      assert.deepEqual([
-        ...mmu.readBGData(0,0),
-        ...mmu.readBGData(0,1),
-        ...mmu.readBGData(0,2),
-        ...mmu.readBGData(0,3),
-        ...mmu.readBGData(0,4),
-        ...mmu.readBGData(0,5),
-        ...mmu.readBGData(0,6),
-        ...mmu.readBGData(0,7)], chrData, 'Character data matches');
-
-      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_OFF);
-
-      assert.deepEqual([
-        ...mmu.readBGData(0,0),
-        ...mmu.readBGData(0,1),
-        ...mmu.readBGData(0,2),
-        ...mmu.readBGData(0,3),
-        ...mmu.readBGData(0,4),
-        ...mmu.readBGData(0,5),
-        ...mmu.readBGData(0,6),
-        ...mmu.readBGData(0,7)], new Uint8Array([0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]), 'Transparent');
     });
 
   });
@@ -359,6 +381,19 @@ describe('MMU', () => {
       assert.equal(mmu.If(), 0b00000010, 'CPU will reset IF when interrupt is handled');
     });
 
+  });
+
+  describe('Window', () => {
+    it('should read/write windows registers', () => {
+      mmu.writeByteAt(mmu.ADDR_WX, 0x20);
+      assert.equal(mmu.wx(), 0x20);
+
+      mmu.writeByteAt(mmu.ADDR_WY, 0x30);
+      assert.equal(mmu.wy(), 0x30);
+
+      mmu.writeByteAt(mmu.ADDR_WY, 0xff); // lcd will not accept wy > 143
+      assert.equal(mmu.wy(), 0xff);
+    });
   });
 
   describe('OBJ (Sprites)', () => {

@@ -57,8 +57,8 @@ describe('BIOS execution', function() {
   });
 
   it('should write the map to tiles', function() {
-    assert.equal(cpu.mmu.getCharCode(0x04, 0x08), 0x01, 'Tile 1 at 0x04,0x08');
-    assert.equal(cpu.mmu.getCharCode(0x10, 0x08), 0x19, 'Tile 19 at 0x10,0x08');
+    assert.equal(cpu.mmu.getBgCharCode(0x04, 0x08), 0x01, 'Tile 1 at 0x04,0x08');
+    assert.equal(cpu.mmu.getBgCharCode(0x10, 0x08), 0x19, 'Tile 19 at 0x10,0x08');
   });
 
   it('should init IO registers', function() {
@@ -114,7 +114,7 @@ describe('BIOS execution', function() {
       ...lcd.SHADES[lcd._bgp[0]],
       ...lcd.SHADES[lcd._bgp[0]]];
 
-    assert.equal(cpu.mmu.getCharCode(4, 8), 0x01, 'Tile 1 at 0x04,0x08');
+    assert.equal(cpu.mmu.getBgCharCode(4, 8), 0x01, 'Tile 1 at 0x04,0x08');
     assert.deepEqual(Array.from(lcd.getBGTileLineData(4, 8)), tile1Line0Data);
   });
 
