@@ -25,6 +25,8 @@ export default class LCD {
     this._OUT_HEIGHT = 256;
     this._HW_WIDTH = 160;
     this._HW_HEIGHT = 144;
+    this._MIN_WINDOW_X = this.TILE_WIDTH - 1;
+    this._MAX_WINDOW_X = this._HW_WIDTH + this._MIN_WINDOW_X - 1;
     this._TILE_HEIGHT = this.TILE_WIDTH;
     this._MAX_TILE_HEIGHT = 2 * this._TILE_HEIGHT;
     this._H_TILES = this._HW_WIDTH / this.TILE_WIDTH;
@@ -70,13 +72,13 @@ export default class LCD {
   }
 
   /**
-   * @param {ImageData} imageData
-   * @param {CanvasRenderingContext2D} ctx
-   * NOTE: EXPENSIVE
+   * Outputs the imageDatas into the actual HTML canvas
+   * NOTE: EXPENSIVE, should be called once per frame (not per line)
    */
   paint(){
     this._ctxBG.putImageData(this._imageDataBG, 0, 0);
     this._ctxOBJ.putImageData(this._imageDataOBJ, 0, 0);
+    this._ctxOBJ.putImageData(this._imageDataWindow, 0, 0);
   }
 
   /** 
@@ -163,11 +165,16 @@ export default class LCD {
    * @private
    */
   _drawLineWindow(line){
+    const wy = this._mmu.wy();
+    const wx = this._mmu.wx();
+
+    if ( (line - wy < 0) || wx > this._MAX_WINDOW_X || wx < this._MIN_WINDOW_X) return;
+
     for(let x = 0; x < this._HW_WIDTH; x += this.TILE_WIDTH){
-      const tileNumber = this._mmu.getWindowCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line, 0));
+      const tileNumber = this._mmu.getWindowCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line - wy, 0));
       this._drawTileLine({
         tileNumber: tileNumber,
-        x: x,
+        x: x + wx - this._MIN_WINDOW_X,
         y: line
       }, line, this._imageDataWindow);
     }

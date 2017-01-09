@@ -705,18 +705,10 @@ describe('LCD', () => {
           return new Buffer('0000', 'hex');
         }
       };
-      mmu.getWindowCharCode = () => {
-        return 0;
-      };
+      mmu.getWindowCharCode = () => 0;
       mmu.isWindowOn = () => true;
-      mmu.readByteAt = (addr) => {
-        if (addr === mmu.ADDR_WY){
-          return 0;
-        }
-        if (addr === mmu.ADDR_WX){
-          return 7; // min wx
-        }
-      };
+      mmu.wy = () => 0;
+      mmu.wx = () => 7;
 
       const expectedData = new Uint8ClampedArray(lineRgbaLength);
       for(let p = 0; p < expectedData.length; p++) {
@@ -732,6 +724,56 @@ describe('LCD', () => {
       lcd.drawLine(0);
 
       assert.deepEqual(Array.from(lcd.getWindowLineData(0)), new Uint8ClampedArray(lineRgbaLength));
+    });
+
+    it('should draw a Window line when WY > 0', () => {
+      const mmu = lcd.getMMU();
+      mmu.readBGData = (tileNumber) => {
+        if (tileNumber === 0) {
+          return new Buffer('ff00', 'hex');
+        } else {
+          return new Buffer('0000', 'hex');
+        }
+      };
+      mmu.getWindowCharCode = () => 0;
+      mmu.isWindowOn = () => true;
+      mmu.wy = () => 10; // Move window 10px down
+      mmu.wx = () => 7;
+
+      const expectedData = new Uint8ClampedArray(lineRgbaLength);
+      for(let p = 0; p < expectedData.length; p++) {
+        expectedData[p] = lcd.SHADES[lcd._bgp[1]][p % 4];
+      }
+
+      lcd.drawLine(0);
+      lcd.drawLine(10);
+
+      assert.deepEqual(Array.from(lcd.getWindowLineData(0)), new Uint8ClampedArray(lineRgbaLength));
+      assert.deepEqual(Array.from(lcd.getWindowLineData(10)), Array.from(expectedData));
+    });
+
+    it('should draw a Window line when WX > 7', () => {
+      const mmu = lcd.getMMU();
+      mmu.readBGData = (tileNumber) => {
+        if (tileNumber === 0) {
+          return new Buffer('ff00', 'hex');
+        } else {
+          return new Buffer('0000', 'hex');
+        }
+      };
+      mmu.getWindowCharCode = () => 0;
+      mmu.isWindowOn = () => true;
+      mmu.wy = () => 0;
+      mmu.wx = () => 17; // move right 10px
+
+      const expectedData = new Uint8ClampedArray(lineRgbaLength);
+      for(let p = 0; p < expectedData.length; p++) {
+        if (p >= 10*4) expectedData[p] = lcd.SHADES[lcd._bgp[1]][p % 4];
+      }
+
+      lcd.drawLine(0);
+
+      assert.deepEqual(Array.from(lcd.getWindowLineData(0)), Array.from(expectedData));
     });
   });
 
