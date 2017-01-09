@@ -130,6 +130,7 @@ export default class LCD {
       this._drawLineOBJ(line);
     }
 
+    this._clearLine(line, this._imageDataWindow);
     if (this._mmu.isWindowOn()){
       this._drawLineWindow(line);
     }

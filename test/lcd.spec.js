@@ -726,6 +726,12 @@ describe('LCD', () => {
       lcd.drawLine(0);
 
       assert.deepEqual(Array.from(lcd.getWindowLineData(0)), Array.from(expectedData));
+
+      mmu.isWindowOn = () => false;
+
+      lcd.drawLine(0);
+
+      assert.deepEqual(Array.from(lcd.getWindowLineData(0)), new Uint8ClampedArray(lineRgbaLength));
     });
   });
 
