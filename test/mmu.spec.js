@@ -560,7 +560,6 @@ describe('MMU', () => {
   describe('Bank Registers (CGB only)', () => {
     it('should detect bank register', () => {
       assert.throws(() => mmu.readByteAt(mmu.ADDR_SVBK), Error, 'SVBK register unsupported');
-      assert.throws(() => mmu.readByteAt(mmu.ADDR_KEY1), Error, 'KEY1 unsupported');
     });
 
     it('should not write VBK in DMG mode', () => {

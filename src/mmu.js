@@ -311,11 +311,11 @@ export default class MMU {
       case this.ADDR_TMA:
       case this.ADDR_TAC:
       case this.ADDR_SVBK:
-      case this.ADDR_KEY1:
         throw new Error(`Unsupported register ${Utils.hex4(addr)}`);
 
+      case this.ADDR_KEY1:
       case this.ADDR_SC:
-        Logger.info('Serial Control unsupported');
+        Logger.info(`Unsupported register ${Utils.hex4(addr)}`);
         break;
 
       case this.ADDR_P1:
