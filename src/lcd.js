@@ -51,14 +51,6 @@ export default class LCD {
     this.paint();
   }
 
-  /**
-   * Only for testing
-   * @returns {MMU}
-   */
-  getMMU(){
-    return this._mmu;
-  }
-
   getImageDataBG(){
     return this._imageDataBG;
   }
@@ -72,6 +64,43 @@ export default class LCD {
   }
 
   /**
+   * @param {number} line 0..143
+   */
+  drawLine(line){
+    if (line < 0 || line > this._HW_HEIGHT) {
+      Logger.warn(`Cannot draw line ${line}`);
+      return;
+    }
+    this._readPalettes();
+
+    if (this._mmu._VRAMRefreshed) {
+      this._cache = {};
+      this._mmu._VRAMRefreshed = false;
+    }
+
+    this._drawLineBG(line);
+
+    this._clearLine(line, this._imageDataOBJ);
+    if (this._mmu.areOBJOn()) {
+      this._drawLineOBJ(line);
+    }
+
+    this._clearLine(line, this._imageDataWindow);
+    if (this._mmu.isWindowOn()){
+      this._drawLineWindow(line);
+    }
+  }
+
+  /**
+   * @param {number} coord 0..143
+   * @param {number} coordOffset 0..255
+   * @returns {number} 0..31
+   */
+  getVerticalGrid(coord, coordOffset){
+    return Math.floor(((coord + coordOffset) % this._OUT_HEIGHT)/this._TILE_HEIGHT);
+  }
+
+  /**
    * Outputs the imageDatas into the actual HTML canvas
    * NOTE: EXPENSIVE, should be called once per frame (not per line)
    */
@@ -79,6 +108,32 @@ export default class LCD {
     this._ctxBG.putImageData(this._imageDataBG, 0, 0);
     this._ctxOBJ.putImageData(this._imageDataOBJ, 0, 0);
     this._ctxOBJ.putImageData(this._imageDataWindow, 0, 0);
+  }
+
+  /**
+   * Draws pixel in image data, given its coords and grey level
+   *
+   * @param {number} x
+   * @param {number} y
+   * @param {number} level
+   * @param {Array} palette
+   * @param {ImageData} imageData
+   */
+  drawPixel({x, y, level}, palette=this._bgp, imageData=this._imageDataBG) {
+
+    if (level < 0 || level > 3){
+      Logger.error(`Unrecognized level gray level ${level}`);
+      return;
+    }
+
+    if (x < 0 || y < 0 || x >= this._HW_WIDTH || y >= this._HW_HEIGHT) return;
+
+    if ((palette === this._obg0 || palette === this._obg1) && level === 0) {
+      return; // Transparent
+    }
+
+    const start = (x + y * this._HW_WIDTH) * 4;
+    imageData.data.set(this.SHADES[palette[level]], start);
   }
 
   /** 
@@ -107,34 +162,6 @@ export default class LCD {
 
     for(let p = start; p < end; p++){
       imageData.data[p] = 0;
-    }
-  }
-
-  /**
-   * @param {number} line 0..143
-   */
-  drawLine(line){
-    if (line < 0 || line > this._HW_HEIGHT) {
-      Logger.warn(`Cannot draw line ${line}`);
-      return;
-    }
-    this._readPalettes();
-
-    if (this._mmu._VRAMRefreshed) {
-      this._cache = {};
-      this._mmu._VRAMRefreshed = false;
-    }
-
-    this._drawLineBG(line);
-
-    this._clearLine(line, this._imageDataOBJ);
-    if (this._mmu.areOBJOn()) {
-      this._drawLineOBJ(line);
-    }
-
-    this._clearLine(line, this._imageDataWindow);
-    if (this._mmu.isWindowOn()){
-      this._drawLineWindow(line);
     }
   }
 
@@ -178,15 +205,6 @@ export default class LCD {
         y: line
       }, line, this._imageDataWindow);
     }
-  }
-
-  /**
-   * @param {number} coord 0..143
-   * @param {number} coordOffset 0..255
-   * @returns {number} 0..31
-   */
-  getVerticalGrid(coord, coordOffset){
-    return Math.floor(((coord + coordOffset) % this._OUT_HEIGHT)/this._TILE_HEIGHT);
   }
 
   /**
@@ -272,15 +290,6 @@ export default class LCD {
   }
 
   /**
-   * @param {Object} OBJ
-   * @returns {boolean}
-   * @private
-   */
-  static _isValidOBJ(OBJ){
-    return OBJ.x !== 0 || OBJ.y !== 0 || OBJ.chrCode !== 0 || OBJ.attr !== 0;
-  }
-
-  /**
    * @param {number} OBJAttr
    * @returns {Array}
    * @private
@@ -292,19 +301,6 @@ export default class LCD {
       return this._obg1;
     }
   }
-
-  /**
-   * @param byte, example: 11100100
-   * @returns {Array} example: [0,1,2,3]
-   */
-  static paletteToArray(byte){
-    const array = [];
-    [0, 2, 4, 6].map( (shift) => {
-      array.push((byte >> shift) & 0x03);
-    });
-    return array;
-  }
-
 
   /**
    * @param {Array} intensityVector
@@ -340,24 +336,12 @@ export default class LCD {
   }
 
   /**
-   * @param line
+   * @param tileLine
    * @returns {number}
    * @private
    */
   _getVerticalMirrorLine(tileLine){
     return Math.abs(this._TILE_HEIGHT-1 - tileLine);
-  }
-
-  /**
-   * @param {Array} vector
-   * @returns {boolean} true if the vector is the lightest possible
-   * @private
-   */
-  static _isLightestVector(vector){
-    for(let intensity of vector){
-      if (intensity > 0) return false;
-    }
-    return true;
   }
 
   /**
@@ -427,28 +411,35 @@ export default class LCD {
   }
 
   /**
-   * Draws pixel in image data, given its coords and grey level
-   * 
-   * @param x
-   * @param y
-   * @param level
-   * @param {Map} palette
-   * @param {ImageData} imageData
+   * @param {Object} OBJ
+   * @returns {boolean}
+   * @private
    */
-  drawPixel({x, y, level}, palette=this._bgp, imageData=this._imageDataBG) {
-    
-    if (level < 0 || level > 3){
-      Logger.error(`Unrecognized level gray level ${level}`); 
-      return;
+  static _isValidOBJ(OBJ){
+    return OBJ.x !== 0 || OBJ.y !== 0 || OBJ.chrCode !== 0 || OBJ.attr !== 0;
+  }
+
+  /**
+   * @param byte, example: 11100100
+   * @returns {Array} example: [0,1,2,3]
+   */
+  static paletteToArray(byte){
+    const array = [];
+    [0, 2, 4, 6].map( (shift) => {
+      array.push((byte >> shift) & 0x03);
+    });
+    return array;
+  }
+
+  /**
+   * @param {Array} vector
+   * @returns {boolean} true if the vector is the lightest possible
+   * @private
+   */
+  static _isLightestVector(vector){
+    for(let intensity of vector){
+      if (intensity > 0) return false;
     }
-
-    if (x < 0 || y < 0 || x >= this._HW_WIDTH || y >= this._HW_HEIGHT) return;
-
-    if ((palette === this._obg0 || palette === this._obg1) && level === 0) {
-      return; // Transparent
-    }
-
-    const start = (x + y * this._HW_WIDTH) * 4;
-    imageData.data.set(this.SHADES[palette[level]], start);
+    return true;
   }
 }

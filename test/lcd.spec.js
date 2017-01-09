@@ -11,6 +11,13 @@ describe('LCD', () => {
 
   beforeEach(function() {
     lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock(), new ContextMock());
+
+    /**
+     * @returns {MMU}
+     */
+    lcd.getMMU = function(){
+      return this._mmu;
+    };
     /**
      * @param {number} line
      * @returns {Uint8ClampedArray}
