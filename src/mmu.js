@@ -76,7 +76,6 @@ export default class MMU {
     // LCDC
     this.LCDC_ON = 0x80;
     this.LCDC_WINDOW = 0x20;
-    this.LCDC_OBJ = 0x02;
     this.LCDC_BG = 0x01;
     this.LCDC_LINE_VBLANK = 0x90; // 114
 
@@ -126,8 +125,6 @@ export default class MMU {
 
     // Character Data
     this.CHAR_LINE_SIZE = 2;
-    this.CHAR_HEIGHT = 8;
-    this.CHAR_SIZE = 0x10; // 0x00 to 0x0f
 
     // LCD
     this.NUM_LINES = 153;
@@ -203,7 +200,6 @@ export default class MMU {
     this._isDMA = false;
     this._buttons = 0x0f; // Buttons unpressed, on HIGH
     this._VRAMRefreshed = true;
-    this._LCDCUpdated = false;
     this._div = 0x0000; // Internal divider, register DIV is msb
     this._hasMBC1 = false;
     this._selectedBankNb = 1; // default is bank 1
@@ -754,7 +750,6 @@ export default class MMU {
     if ((n & this.MASK_BG_CODE_AREA_2) !== (this.lcdc() & this.MASK_BG_CODE_AREA_2)){
       this._resetDrawnTileLines();
     }
-    this._LCDCUpdated = true;
   }
 
   /**
