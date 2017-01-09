@@ -10,13 +10,20 @@ describe('LCD', () => {
   const lineRgbaLength = 160*4;
 
   beforeEach(function() {
-    lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock());
+    lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock(), new ContextMock());
     /**
      * @param {number} line
      * @returns {Uint8ClampedArray}
      */
     lcd.getBGLineData = function(line){
       return this.getImageDataBG().data.subarray(line*lineRgbaLength, (line+1)*lineRgbaLength);
+    };
+    /**
+     * @param {number} line
+     * @returns {Uint8ClampedArray}
+     */
+    lcd.getWindowLineData = function(line){
+      return this.getImageDataWindow().data.subarray(line*lineRgbaLength, (line+1)*lineRgbaLength);
     };
     /**
      * For testing purposes, LCD HW will always draw line by line
@@ -79,25 +86,25 @@ describe('LCD', () => {
 
   });
 
-  describe('Tile reading', () => {
+  describe('Tile reading and transformation to palette', () => {
 
-    it('should transform a Nintendo tile buffer into a matrix', () => {
+    it('should transform a tile buffer into a intensity vector', () => {
       assert.deepEqual(LCD.tileToIntensityVector(new Buffer('3c00', 'hex')), [0,0,1,1,1,1,0,0]);
       assert.deepEqual(LCD.tileToIntensityVector(new Buffer('4200', 'hex')), [0,1,0,0,0,0,1,0]);
       assert.deepEqual(LCD.tileToIntensityVector(new Buffer('b900', 'hex')), [1,0,1,1,1,0,0,1]);
       assert.deepEqual(LCD.tileToIntensityVector(new Buffer('a500', 'hex')), [1,0,1,0,0,1,0,1]);
     });
 
-    it('should transform a tile buffer into levels of gray matrix', () => {
+    it('should transform a tile buffer into a gradient intensity vector', () => {
       assert.deepEqual(LCD.tileToIntensityVector(new Buffer('5533', 'hex')), [0,1,2,3,0,1,2,3]);
       assert.deepEqual(LCD.tileToIntensityVector(new Buffer('aacc', 'hex')), [3,2,1,0,3,2,1,0]);
     });
 
-    it('should transform a tile buffer into a the lightest matrix', () => {
+    it('should transform a tile buffer into the lightest intensity vector', () => {
       assert.deepEqual(LCD.tileToIntensityVector(new Buffer('0000', 'hex')), [0,0,0,0,0,0,0,0]);
     });
 
-    it('should transform a tile buffer into a darkest matrix', () => {
+    it('should transform a tile buffer into the darkest intensity vector', () => {
       assert.deepEqual(LCD.tileToIntensityVector(new Buffer('ffff', 'hex')), [3,3,3,3,3,3,3,3]);
     });
   });
@@ -401,7 +408,7 @@ describe('LCD', () => {
       });
     });
 
-    it('should compute grid', () => {
+    it('should compute grid coordinates with boundaries', () => {
 
       assert.equal(lcd.getVerticalGrid(0, 0), 0);
       assert.equal(lcd.getVerticalGrid(0, 1), 0);
@@ -685,6 +692,40 @@ describe('LCD', () => {
       lcd.drawTiles();
 
       lcd.assertTile(0, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
+    });
+  });
+
+  describe('Window', () => {
+    it('should draw a Window line', () => {
+      const mmu = lcd.getMMU();
+      mmu.readBGData = (tileNumber) => {
+        if (tileNumber === 0) {
+          return new Buffer('ff00', 'hex');
+        } else {
+          return new Buffer('0000', 'hex');
+        }
+      };
+      mmu.getWindowCharCode = () => {
+        return 0;
+      };
+      mmu.isWindowOn = () => true;
+      mmu.readByteAt = (addr) => {
+        if (addr === mmu.ADDR_WY){
+          return 0;
+        }
+        if (addr === mmu.ADDR_WX){
+          return 7; // min wx
+        }
+      };
+
+      const expectedData = new Uint8ClampedArray(lineRgbaLength);
+      for(let p = 0; p < expectedData.length; p++) {
+        expectedData[p] = lcd.SHADES[lcd._bgp[1]][p % 4];
+      }
+
+      lcd.drawLine(0);
+
+      assert.deepEqual(Array.from(lcd.getWindowLineData(0)), Array.from(expectedData));
     });
   });
 

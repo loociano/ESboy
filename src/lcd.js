@@ -7,8 +7,9 @@ export default class LCD {
    * @param {MMU} mmu
    * @param {CanvasRenderingContext2D} ctxBG
    * @param {CanvasRenderingContext2D} ctxOBJ
+   * @param {CanvasRenderingContext2D} ctxWindow
    */
-  constructor(mmu, ctxBG, ctxOBJ){
+  constructor(mmu, ctxBG, ctxOBJ, ctxWindow){
 
     // Public constants
     this.TILE_WIDTH = 8;
@@ -32,12 +33,14 @@ export default class LCD {
     this._mmu = mmu;
     this._ctxBG = ctxBG;
     this._ctxOBJ = ctxOBJ;
+    this._ctxWindow = ctxWindow;
     this._cache = {};
     this._bgp = null;
     this._obg0 = null;
     this._obg1 = null;
     this._imageDataBG = this._ctxBG.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
     this._imageDataOBJ = this._ctxOBJ.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
+    this._imageDataWindow = this._ctxWindow.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
 
     this._clear();
     this._clear(this._imageDataOBJ, this._ctxOBJ);
@@ -60,6 +63,10 @@ export default class LCD {
 
   getImageDataOBJ(){
     return this._imageDataOBJ;
+  }
+
+  getImageDataWindow(){
+    return this._imageDataWindow;
   }
 
   /**
@@ -102,9 +109,9 @@ export default class LCD {
   }
 
   /**
-   * @param {number} line
+   * @param {number} line 0..143
    */
-  drawLine(line=0){
+  drawLine(line){
     if (line < 0 || line > this._HW_HEIGHT) {
       Logger.warn(`Cannot draw line ${line}`);
       return;
@@ -122,6 +129,10 @@ export default class LCD {
     if (this._mmu.areOBJOn()) {
       this._drawLineOBJ(line);
     }
+
+    if (this._mmu.isWindowOn()){
+      this._drawLineWindow(line);
+    }
   }
 
   /**
@@ -135,6 +146,7 @@ export default class LCD {
     if (scx === 0){
       max = this._HW_WIDTH;
     }
+
     for(let x = 0; x < max; x += this.TILE_WIDTH){
       const tileNumber = this._mmu.getBgCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line, scy));
       this._drawTileLine({
@@ -142,6 +154,21 @@ export default class LCD {
         x: (x + this._OUT_WIDTH - scx) % this._OUT_WIDTH,
         y: line
       }, line);
+    }
+  }
+
+  /**
+   * @param {number} line
+   * @private
+   */
+  _drawLineWindow(line){
+    for(let x = 0; x < this._HW_WIDTH; x += this.TILE_WIDTH){
+      const tileNumber = this._mmu.getWindowCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line, 0));
+      this._drawTileLine({
+        tileNumber: tileNumber,
+        x: x,
+        y: line
+      }, line, this._imageDataWindow);
     }
   }
 

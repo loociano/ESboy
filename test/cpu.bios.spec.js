@@ -16,7 +16,7 @@ describe('BIOS execution', function() {
 
   const loader = new Loader('./roms/blargg_cpu_instrs.gb');
   const mmu = new MMU(loader.asUint8Array());
-  const lcd = new LCD(mmu, new ContextMock(), new ContextMock());
+  const lcd = new LCD(mmu, new ContextMock(), new ContextMock(), new ContextMock());
   const cpu = new CPU(mmu, lcd);
 
   lcd.getBGTileLineData = function(grid_x, grid_y){

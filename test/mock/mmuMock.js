@@ -61,4 +61,8 @@ export default class MMUMock {
   getBgCharCode(){
     return 0;
   }
+
+  isWindowOn(){
+    return false;
+  }
 }

@@ -8,6 +8,7 @@ const $cartridge = document.getElementById('cartridge');
 const $body = document.querySelector('body');
 const ctxBG = document.getElementById('bg').getContext('2d');
 const ctxOBJ = document.getElementById('obj').getContext('2d');
+const ctxWindow = document.getElementById('window').getContext('2d');
 let cpu;
 
 const MAX_FPS = 60;
@@ -48,7 +49,7 @@ function handleFileSelect(evt) {
  */
 function init(rom){
   const mmu = new MMU(rom);
-  const lcd = new LCD(mmu, ctxBG, ctxOBJ);
+  const lcd = new LCD(mmu, ctxBG, ctxOBJ, ctxWindow);
 
   cpu = new CPU(mmu, lcd);
   new InputHandler(cpu, $body);
