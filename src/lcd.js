@@ -107,7 +107,7 @@ export default class LCD {
   paint(){
     this._ctxBG.putImageData(this._imageDataBG, 0, 0);
     this._ctxOBJ.putImageData(this._imageDataOBJ, 0, 0);
-    this._ctxOBJ.putImageData(this._imageDataWindow, 0, 0);
+    this._ctxWindow.putImageData(this._imageDataWindow, 0, 0);
   }
 
   /**
