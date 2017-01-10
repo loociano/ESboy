@@ -67,7 +67,7 @@ export default class LCD {
    * @param {number} line 0..143
    */
   drawLine(line){
-    if (line < 0 || line > this._HW_HEIGHT) {
+    if (line < 0 || line >= this._HW_HEIGHT) {
       Logger.warn(`Cannot draw line ${line}`);
       return;
     }
@@ -183,9 +183,39 @@ export default class LCD {
       this._drawTileLine({
         tileNumber: tileNumber,
         tileLine: tileLine,
-        x: (x + this._OUT_WIDTH - scx) % this._OUT_WIDTH,
+        startX: this._getScrolledX(x, scx),
         y: line
       }, line);
+    }
+  }
+
+  /**
+   * @param x
+   * @param scx
+   * @returns {number}
+   * @private
+   */
+  _getScrolledX(x, scx){
+    return (x + this._OUT_WIDTH - scx) % this._OUT_WIDTH;
+  }
+
+  /**
+   * @param {number} line
+   * @private
+   */
+  _drawLineOBJ(line){
+    for(let n = 0; n < this._mmu.MAX_OBJ; n++){
+      const OBJ = this._mmu.getOBJ(n);
+      if (LCD._isValidOBJ(OBJ) && this._isOBJInLine(line, OBJ.y)){
+        const y = OBJ.y - this._MAX_TILE_HEIGHT; /* tiles can be 8x16 pixels */
+        this._drawTileLine({
+          tileNumber: OBJ.chrCode,
+          tileLine: line - y,
+          startX: OBJ.x - this.TILE_WIDTH,
+          y: y,
+          OBJAttr: OBJ.attr,
+        }, line, this._imageDataOBJ);
+      }
     }
   }
 
@@ -204,7 +234,7 @@ export default class LCD {
       this._drawTileLine({
         tileNumber: tileNumber,
         tileLine: (line - wy) % this._TILE_HEIGHT,
-        x: x + wx - this._MIN_WINDOW_X,
+        startX: x + wx - this._MIN_WINDOW_X,
         y: line
       }, line, this._imageDataWindow);
     }
@@ -222,26 +252,26 @@ export default class LCD {
   /**
    * @param tileNumber
    * @param tileLine
-   * @param x
+   * @param startX
    * @param y
    * @param OBJAttr
    * @param line
    * @param imageData
    */
-  _drawTileLine({tileNumber, tileLine, x, y, OBJAttr}, line, imageData=this._imageDataBG){
+  _drawTileLine({tileNumber, tileLine, startX, y, OBJAttr}, line, imageData=this._imageDataBG){
 
     const isOBJ = OBJAttr !== undefined;
     let intensityVector = this._getIntensityVector(tileNumber, tileLine, isOBJ);
     let palette = this._bgp;
 
     if(isOBJ){
-      intensityVector = this._handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, x, y);
+      intensityVector = this._handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, startX, y);
       palette = this._getOBJPalette(OBJAttr);
     }
 
     for(let i = 0; i < intensityVector.length; i++){
       this.drawPixel({
-        x: (x + i) % this._OUT_WIDTH,
+        x: (startX + i) % this._OUT_WIDTH,
         y: line,
         level: intensityVector[i]},
         palette, imageData);
@@ -256,26 +286,6 @@ export default class LCD {
     this._bgp = LCD.paletteToArray(this._mmu.bgp());
     this._obg0 = LCD.paletteToArray(this._mmu.obg0());
     this._obg1 = LCD.paletteToArray(this._mmu.obg1());
-  }
-
-  /**
-   * @param {number} line
-   * @private
-   */
-  _drawLineOBJ(line){
-    for(let n = 0; n < this._mmu.MAX_OBJ; n++){
-      const OBJ = this._mmu.getOBJ(n);
-      if (LCD._isValidOBJ(OBJ) && this._isOBJInLine(line, OBJ.y)){
-        const y = OBJ.y - this._MAX_TILE_HEIGHT; /* tiles can be 8x16 pixels */
-        this._drawTileLine({
-          tileNumber: OBJ.chrCode,
-          tileLine: line - y,
-          x: OBJ.x - this.TILE_WIDTH,
-          y: y,
-          OBJAttr: OBJ.attr,
-        }, line, this._imageDataOBJ);
-      }
-    }
   }
 
   /**
@@ -314,11 +324,12 @@ export default class LCD {
   _handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, x, y){
     if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_PRIORITY) === this._mmu.MASK_OBJ_ATTR_PRIORITY){
 
-      const tileNumber = this._mmu.getBgCharCode(x/this.TILE_WIDTH, y/this._TILE_HEIGHT);
+      const tileNumber = this._getCharCodeByPx(x, y);
       const bgIntensityVector = this._getIntensityVector(tileNumber, tileLine, false);
 
-      // Exception: OBJ with priority flag are displayed only in the underneath BG is lightest
-      if (!LCD._isLightestVector(bgIntensityVector)){
+      if (LCD._isLightestVector(bgIntensityVector)){
+        // Exception: OBJ with priority flag are displayed only in the underneath BG is lightest
+      } else {
         return new Array(this.TILE_WIDTH).fill(0);
       }
     }
@@ -333,6 +344,13 @@ export default class LCD {
       intensityVector = copy;
     }
     return intensityVector;
+  }
+
+  _getCharCodeByPx(x, y){
+    return this._mmu.getBgCharCode(
+      this._getHorizontalGrid(this._getScrolledX(x, this._mmu.scx())),
+      this.getVerticalGrid(y, this._mmu.scy())
+    );
   }
 
   /**
@@ -352,7 +370,7 @@ export default class LCD {
    * @private
    */
   _getIntensityVector(tileNumber, tileLine, isOBJ){
-    let key = `BG_${tileNumber}_${tileLine}`;
+    let key = `BG_${tileNumber}_${tileLine}_${this._mmu.scx()}_${this._mmu.scy()}`;
 
     if (isOBJ){
       key = `OBJ_${tileNumber}_${tileLine}`;

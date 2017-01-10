@@ -38,7 +38,7 @@ describe('LCD', () => {
     lcd.drawTiles = function() {
       this._clear();
       this._clear(this._imageDataOBJ, this._ctxOBJ);
-      for(let l = 0; l < 256; l++){
+      for(let l = 0; l < 144; l++){
         lcd.drawLine(l);
       }
     };
@@ -211,7 +211,7 @@ describe('LCD', () => {
       }
     });
 
-    it('should cache tiles and clear cache when VRAM is updated', () => {
+    it('should cache tiles and clear cache when VRAM is updated or background is scrolled', () => {
       const mmu = lcd.getMMU();
       let calculated = 0;
       mmu.getBgCharCode = (any) => 0;
@@ -231,8 +231,24 @@ describe('LCD', () => {
       mmu.writeByteAt(mmu.ADDR_VRAM_START, 0x01);
 
       lcd.drawLine(0);
+      lcd.drawLine(0);
 
-      assert.equal(calculated, 2, 'calculated again');
+      assert.equal(calculated, 2, 'calculated again, once');
+
+      mmu.scx = () => 1;
+
+      lcd.drawLine(0);
+      lcd.drawLine(0);
+
+      assert.equal(calculated, 3, 'calculated again, once');
+
+      mmu.scy = () => 1;
+
+      lcd.drawLine(0);
+      lcd.drawLine(0);
+
+      assert.equal(calculated, 4, 'calculated again, once');
+
     });
 
     it('should not draw lines outside screen', () => {
@@ -410,7 +426,7 @@ describe('LCD', () => {
 
         lcd.drawTiles();
 
-        assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageDataBG())), lcd.SHADES[3], 'shifted from 0,0 to 1,1');
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageDataBG())), lcd.SHADES[3], 'shifted from 1,1 to 0,0');
         assert.deepEqual(Array.from(lcd.getPixelData(159, 143, lcd.getImageDataBG())), lcd.SHADES[3], 'shifted from 160,144 to 159,143');
       });
     });
@@ -690,14 +706,62 @@ describe('LCD', () => {
 
     it('should display an OBJ with a priority flag only if the BG behind is zero', () => {
       const mmu = lcd.getMMU();
-      mmu.readBGData = (any) => { return new Buffer('00000000000000000000000000000000', 'hex'); };
-      mmu.readOBJData = (any) => { return new Buffer('ff00ff00ff00ff00ff00ff00ff00ff00', 'hex'); };
-      mmu.getBgCharCode = (any) => { return 0x00; };
-      mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b10000000}; };
-      mmu.obg0 = () => { return 0b11100100; };
+      mmu.readBGData = (any) => new Buffer('0000', 'hex'); // lightest background
+      mmu.readOBJData = (any) => new Buffer('ff00', 'hex');
+      mmu.getBgCharCode = () => 0;
+      mmu.getOBJ = (n) => {
+        if (n === 0) {
+          return {y: 16, x: 8, chrCode: 0x00, attr: 0b10000000};
+        } else {
+          return {y: 0, x: 0};
+        }
+      };
+      mmu.obg0 = () => 0b11100100;
 
       lcd.drawTiles();
 
+      lcd.assertTile(0, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
+
+      // Test now if the background has been shifted with SCX, SCY
+      // 1 dark pixel at x=0 y=0
+      mmu._VRAMRefreshed = true;
+      mmu.readBGData = (tileNumber, tileLine) => {
+        switch(tileNumber){
+          case 0:
+            if (tileLine === 0){
+              return new Buffer('8080', 'hex');
+            } else {
+              return new Buffer('0000', 'hex');
+            }
+          case 1:
+            return new Buffer('0000', 'hex');
+        }
+      };
+      mmu.getBgCharCode = (gridX, gridY) => {
+        if (gridX === 0 && gridY === 0) return 0;
+        return 1;
+      };
+
+      lcd.drawTiles();
+
+      // OBJ lines should not be painted when background is not the lightest
+      lcd.assertLinePixels(0, 0, [0, 0, 0, 0], lcd.getImageDataOBJ());
+      lcd.assertLinePixels(1, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
+      lcd.assertLinePixels(2, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
+      lcd.assertLinePixels(3, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
+      lcd.assertLinePixels(4, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
+      lcd.assertLinePixels(5, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
+      lcd.assertLinePixels(6, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
+      lcd.assertLinePixels(7, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
+
+      mmu.scx = () => 1;
+      mmu.scy = () => 1;
+
+      lcd.drawTiles();
+
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageDataBG())), lcd.SHADES[0], 'pixel is not visible');
+
+      // OBJ should be painted
       lcd.assertTile(0, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
     });
   });
