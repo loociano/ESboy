@@ -554,6 +554,7 @@ export default class CPU {
       0xe5: {fn: this.push_hl, paramBytes: 0},
       0xe6: {fn: this.and_n, paramBytes: 1},
       0xe7: {fn: this.rst_20, paramBytes: 0},
+      0xe8: {fn: this.add_sp_e, paramBytes: 1},
       0xe9: {fn: this.jp_hl, paramBytes: 0},
       0xea: {fn: this.ld_0xnn_a, paramBytes: 2},
       0xeb: {fn: this._noSuchOpcode, paramBytes: 0},
@@ -3650,6 +3651,27 @@ export default class CPU {
 
     this.setN(0);
     this._m += 2;
+  }
+
+  /**
+   * @param {number} signed byte
+   */
+  add_sp_e(signed){
+    this.setN(0); this.setZ(0); this.setH(0); this.setC(0);
+
+    const newValue = this._r.sp + Utils.uint8ToInt8(signed);
+
+    if (newValue > 0xffff){
+      this.setC(1); this.setH(1);
+      this._r.sp -= 0x10000;
+    }
+    if (newValue < 0){
+      this._r.sp =+ 0x10000;
+    }
+
+    this._r.sp += Utils.uint8ToInt8(signed);
+
+    this._m += 4;
   }
 
   /**

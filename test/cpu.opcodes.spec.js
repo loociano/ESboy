@@ -1514,6 +1514,41 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.C(), 1, 'Carry bit 15');
         assert.equal(cpu.m(), m + 2, 'ADD hl, hl machine cycles');
       });
+
+      it('should add a signed byte to the Stack Pointer', () => {
+        cpu.ld_sp_nn(0xff00);
+        const m = cpu.m();
+
+        cpu.add_sp_e(0x01);
+        assert.equal(cpu.sp(), 0xff01, 'SP + 1');
+        assert.equal(cpu.f(), 0b0000); // ZNHC
+        assert.equal(cpu.m() - m, 4, 'Machine cycles');
+
+        cpu.ld_sp_nn(0xff00);
+        cpu.add_sp_e(0x7f); // maximum offset +127
+        assert.equal(cpu.sp(), 0xff7f, 'SP + 127');
+        assert.equal(cpu.f(), 0b0000); // ZNHC
+
+        cpu.ld_sp_nn(0xff00);
+        cpu.add_sp_e(0x80); // minimum offset -128
+        assert.equal(cpu.sp(), 0xfe80, 'SP - 128');
+        assert.equal(cpu.f(), 0b0000); // ZNHC
+
+        cpu.ld_sp_nn(0xff00);
+        cpu.add_sp_e(0xfe); // -2
+        assert.equal(cpu.sp(), 0xfefe, 'SP - 2');
+        assert.equal(cpu.f(), 0b0000); // ZNHC
+
+        cpu.ld_sp_nn(0xffff);
+        cpu.add_sp_e(0x01);
+        assert.equal(cpu.sp(), 0x0000, 'loop forward');
+        assert.equal(cpu.f(), 0b0011); // ZNHC
+
+        cpu.ld_sp_nn(0x0000);
+        cpu.add_sp_e(0xff); // -1
+        assert.equal(cpu.sp(), 0xffff, 'loop backwards');
+        assert.equal(cpu.f(), 0b0000); // ZNHC
+      });
     });
 
     describe('DEC', () => {
