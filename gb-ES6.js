@@ -8091,7 +8091,7 @@ var LCD = function () {
   }, {
     key: 'drawLine',
     value: function drawLine(line) {
-      if (line < 0 || line > this._HW_HEIGHT) {
+      if (line < 0 || line >= this._HW_HEIGHT) {
         _logger2.default.warn('Cannot draw line ' + line);
         return;
       }
@@ -8236,9 +8236,45 @@ var LCD = function () {
         this._drawTileLine({
           tileNumber: tileNumber,
           tileLine: tileLine,
-          x: (x + this._OUT_WIDTH - scx) % this._OUT_WIDTH,
+          startX: this._getScrolledX(x, scx),
           y: line
         }, line);
+      }
+    }
+
+    /**
+     * @param x
+     * @param scx
+     * @returns {number}
+     * @private
+     */
+
+  }, {
+    key: '_getScrolledX',
+    value: function _getScrolledX(x, scx) {
+      return (x + this._OUT_WIDTH - scx) % this._OUT_WIDTH;
+    }
+
+    /**
+     * @param {number} line
+     * @private
+     */
+
+  }, {
+    key: '_drawLineOBJ',
+    value: function _drawLineOBJ(line) {
+      for (var n = 0; n < this._mmu.MAX_OBJ; n++) {
+        var OBJ = this._mmu.getOBJ(n);
+        if (LCD._isValidOBJ(OBJ) && this._isOBJInLine(line, OBJ.y)) {
+          var y = OBJ.y - this._MAX_TILE_HEIGHT; /* tiles can be 8x16 pixels */
+          this._drawTileLine({
+            tileNumber: OBJ.chrCode,
+            tileLine: line - y,
+            startX: OBJ.x - this.TILE_WIDTH,
+            y: y,
+            OBJAttr: OBJ.attr
+          }, line, this._imageDataOBJ);
+        }
       }
     }
 
@@ -8260,7 +8296,7 @@ var LCD = function () {
         this._drawTileLine({
           tileNumber: tileNumber,
           tileLine: (line - wy) % this._TILE_HEIGHT,
-          x: x + wx - this._MIN_WINDOW_X,
+          startX: x + wx - this._MIN_WINDOW_X,
           y: line
         }, line, this._imageDataWindow);
       }
@@ -8281,7 +8317,7 @@ var LCD = function () {
     /**
      * @param tileNumber
      * @param tileLine
-     * @param x
+     * @param startX
      * @param y
      * @param OBJAttr
      * @param line
@@ -8293,7 +8329,7 @@ var LCD = function () {
     value: function _drawTileLine(_ref2, line) {
       var tileNumber = _ref2.tileNumber,
           tileLine = _ref2.tileLine,
-          x = _ref2.x,
+          startX = _ref2.startX,
           y = _ref2.y,
           OBJAttr = _ref2.OBJAttr;
       var imageData = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this._imageDataBG;
@@ -8304,13 +8340,13 @@ var LCD = function () {
       var palette = this._bgp;
 
       if (isOBJ) {
-        intensityVector = this._handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, x, y);
+        intensityVector = this._handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, startX, y);
         palette = this._getOBJPalette(OBJAttr);
       }
 
       for (var i = 0; i < intensityVector.length; i++) {
         this.drawPixel({
-          x: (x + i) % this._OUT_WIDTH,
+          x: (startX + i) % this._OUT_WIDTH,
           y: line,
           level: intensityVector[i] }, palette, imageData);
       }
@@ -8327,29 +8363,6 @@ var LCD = function () {
       this._bgp = LCD.paletteToArray(this._mmu.bgp());
       this._obg0 = LCD.paletteToArray(this._mmu.obg0());
       this._obg1 = LCD.paletteToArray(this._mmu.obg1());
-    }
-
-    /**
-     * @param {number} line
-     * @private
-     */
-
-  }, {
-    key: '_drawLineOBJ',
-    value: function _drawLineOBJ(line) {
-      for (var n = 0; n < this._mmu.MAX_OBJ; n++) {
-        var OBJ = this._mmu.getOBJ(n);
-        if (LCD._isValidOBJ(OBJ) && this._isOBJInLine(line, OBJ.y)) {
-          var y = OBJ.y - this._MAX_TILE_HEIGHT; /* tiles can be 8x16 pixels */
-          this._drawTileLine({
-            tileNumber: OBJ.chrCode,
-            tileLine: line - y,
-            x: OBJ.x - this.TILE_WIDTH,
-            y: y,
-            OBJAttr: OBJ.attr
-          }, line, this._imageDataOBJ);
-        }
-      }
     }
 
     /**
@@ -8397,11 +8410,12 @@ var LCD = function () {
     value: function _handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, x, y) {
       if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_PRIORITY) === this._mmu.MASK_OBJ_ATTR_PRIORITY) {
 
-        var _tileNumber = this._mmu.getBgCharCode(x / this.TILE_WIDTH, y / this._TILE_HEIGHT);
+        var _tileNumber = this._getCharCodeByPx(x, y);
         var bgIntensityVector = this._getIntensityVector(_tileNumber, tileLine, false);
 
-        // Exception: OBJ with priority flag are displayed only in the underneath BG is lightest
-        if (!LCD._isLightestVector(bgIntensityVector)) {
+        if (LCD._isLightestVector(bgIntensityVector)) {
+          // Exception: OBJ with priority flag are displayed only in the underneath BG is lightest
+        } else {
           return new Array(this.TILE_WIDTH).fill(0);
         }
       }
@@ -8416,6 +8430,11 @@ var LCD = function () {
         intensityVector = copy;
       }
       return intensityVector;
+    }
+  }, {
+    key: '_getCharCodeByPx',
+    value: function _getCharCodeByPx(x, y) {
+      return this._mmu.getBgCharCode(this._getHorizontalGrid(this._getScrolledX(x, this._mmu.scx())), this.getVerticalGrid(y, this._mmu.scy()));
     }
 
     /**
@@ -8441,7 +8460,7 @@ var LCD = function () {
   }, {
     key: '_getIntensityVector',
     value: function _getIntensityVector(tileNumber, tileLine, isOBJ) {
-      var key = 'BG_' + tileNumber + '_' + tileLine;
+      var key = 'BG_' + tileNumber + '_' + tileLine + '_' + this._mmu.scx() + '_' + this._mmu.scy();
 
       if (isOBJ) {
         key = 'OBJ_' + tileNumber + '_' + tileLine;
