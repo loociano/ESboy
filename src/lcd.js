@@ -176,11 +176,13 @@ export default class LCD {
     if (scx === 0){
       max = this._HW_WIDTH;
     }
+    const tileLine = ((line + scy) % this._OUT_HEIGHT) % this._TILE_HEIGHT;
 
     for(let x = 0; x < max; x += this.TILE_WIDTH){
       const tileNumber = this._mmu.getBgCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line, scy));
       this._drawTileLine({
         tileNumber: tileNumber,
+        tileLine: tileLine,
         x: (x + this._OUT_WIDTH - scx) % this._OUT_WIDTH,
         y: line
       }, line);
@@ -201,6 +203,7 @@ export default class LCD {
       const tileNumber = this._mmu.getWindowCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line - wy, 0));
       this._drawTileLine({
         tileNumber: tileNumber,
+        tileLine: (line - wy) % this._TILE_HEIGHT,
         x: x + wx - this._MIN_WINDOW_X,
         y: line
       }, line, this._imageDataWindow);
@@ -218,21 +221,16 @@ export default class LCD {
 
   /**
    * @param tileNumber
+   * @param tileLine
    * @param x
    * @param y
    * @param OBJAttr
    * @param line
    * @param imageData
    */
-  _drawTileLine({tileNumber, x, y, OBJAttr}, line, imageData=this._imageDataBG){
+  _drawTileLine({tileNumber, tileLine, x, y, OBJAttr}, line, imageData=this._imageDataBG){
 
     const isOBJ = OBJAttr !== undefined;
-    let tileLine = ((line + this._mmu.scy()) % this._OUT_HEIGHT) % this._TILE_HEIGHT;
-
-    if (isOBJ){
-      tileLine = line - y;
-    }
-
     let intensityVector = this._getIntensityVector(tileNumber, tileLine, isOBJ);
     let palette = this._bgp;
 
@@ -268,10 +266,12 @@ export default class LCD {
     for(let n = 0; n < this._mmu.MAX_OBJ; n++){
       const OBJ = this._mmu.getOBJ(n);
       if (LCD._isValidOBJ(OBJ) && this._isOBJInLine(line, OBJ.y)){
+        const y = OBJ.y - this._MAX_TILE_HEIGHT; /* tiles can be 8x16 pixels */
         this._drawTileLine({
           tileNumber: OBJ.chrCode,
+          tileLine: line - y,
           x: OBJ.x - this.TILE_WIDTH,
-          y: OBJ.y - this._MAX_TILE_HEIGHT, /* tiles can be 8x16 pixels */
+          y: y,
           OBJAttr: OBJ.attr,
         }, line, this._imageDataOBJ);
       }
