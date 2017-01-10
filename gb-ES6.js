@@ -8229,11 +8229,13 @@ var LCD = function () {
       if (scx === 0) {
         max = this._HW_WIDTH;
       }
+      var tileLine = (line + scy) % this._OUT_HEIGHT % this._TILE_HEIGHT;
 
       for (var x = 0; x < max; x += this.TILE_WIDTH) {
         var tileNumber = this._mmu.getBgCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line, scy));
         this._drawTileLine({
           tileNumber: tileNumber,
+          tileLine: tileLine,
           x: (x + this._OUT_WIDTH - scx) % this._OUT_WIDTH,
           y: line
         }, line);
@@ -8257,6 +8259,7 @@ var LCD = function () {
         var tileNumber = this._mmu.getWindowCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line - wy, 0));
         this._drawTileLine({
           tileNumber: tileNumber,
+          tileLine: (line - wy) % this._TILE_HEIGHT,
           x: x + wx - this._MIN_WINDOW_X,
           y: line
         }, line, this._imageDataWindow);
@@ -8277,6 +8280,7 @@ var LCD = function () {
 
     /**
      * @param tileNumber
+     * @param tileLine
      * @param x
      * @param y
      * @param OBJAttr
@@ -8288,6 +8292,7 @@ var LCD = function () {
     key: '_drawTileLine',
     value: function _drawTileLine(_ref2, line) {
       var tileNumber = _ref2.tileNumber,
+          tileLine = _ref2.tileLine,
           x = _ref2.x,
           y = _ref2.y,
           OBJAttr = _ref2.OBJAttr;
@@ -8295,12 +8300,6 @@ var LCD = function () {
 
 
       var isOBJ = OBJAttr !== undefined;
-      var tileLine = (line + this._mmu.scy()) % this._OUT_HEIGHT % this._TILE_HEIGHT;
-
-      if (isOBJ) {
-        tileLine = line - y;
-      }
-
       var intensityVector = this._getIntensityVector(tileNumber, tileLine, isOBJ);
       var palette = this._bgp;
 
@@ -8341,10 +8340,12 @@ var LCD = function () {
       for (var n = 0; n < this._mmu.MAX_OBJ; n++) {
         var OBJ = this._mmu.getOBJ(n);
         if (LCD._isValidOBJ(OBJ) && this._isOBJInLine(line, OBJ.y)) {
+          var y = OBJ.y - this._MAX_TILE_HEIGHT; /* tiles can be 8x16 pixels */
           this._drawTileLine({
             tileNumber: OBJ.chrCode,
+            tileLine: line - y,
             x: OBJ.x - this.TILE_WIDTH,
-            y: OBJ.y - this._MAX_TILE_HEIGHT, /* tiles can be 8x16 pixels */
+            y: y,
             OBJAttr: OBJ.attr
           }, line, this._imageDataOBJ);
         }
