@@ -1,12 +1,11 @@
 import Utils from './utils';
 import Logger from './logger';
-import config from './config';
 
 export default class CPU {
 
   /**
-   * @param {Object} mmu
-   * @param {Object} ctx
+   * @param {MMU} mmu
+   * @param {LCD} lcd
    */
   constructor(mmu, lcd) {
 
@@ -39,7 +38,7 @@ export default class CPU {
     this.M_CYCLES_PER_LINE = 114;
     this.M_CYCLES_STOP_MODE_0 = 4;
     this.M_CYCLES_STOP_MODE_2 = 20;
-    this.M_CYCLES_STOP_MODE_3 = 40; // Naive
+    this.M_CYCLES_STOP_MODE_3 = 22; // Naive
     this.M_CYCLES_DMA = 40;
 
     // Masks
