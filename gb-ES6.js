@@ -2033,10 +2033,6 @@ var _logger = require('./logger');
 
 var _logger2 = _interopRequireDefault(_logger);
 
-var _config = require('./config');
-
-var _config2 = _interopRequireDefault(_config);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -2044,8 +2040,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var CPU = function () {
 
   /**
-   * @param {Object} mmu
-   * @param {Object} ctx
+   * @param {MMU} mmu
+   * @param {LCD} lcd
    */
   function CPU(mmu, lcd) {
     _classCallCheck(this, CPU);
@@ -2079,7 +2075,7 @@ var CPU = function () {
     this.M_CYCLES_PER_LINE = 114;
     this.M_CYCLES_STOP_MODE_0 = 4;
     this.M_CYCLES_STOP_MODE_2 = 20;
-    this.M_CYCLES_STOP_MODE_3 = 40; // Naive
+    this.M_CYCLES_STOP_MODE_3 = 22; // Naive
     this.M_CYCLES_DMA = 40;
 
     // Masks
@@ -2594,6 +2590,7 @@ var CPU = function () {
       0xe5: { fn: this.push_hl, paramBytes: 0 },
       0xe6: { fn: this.and_n, paramBytes: 1 },
       0xe7: { fn: this.rst_20, paramBytes: 0 },
+      0xe8: { fn: this.add_sp_e, paramBytes: 1 },
       0xe9: { fn: this.jp_hl, paramBytes: 0 },
       0xea: { fn: this.ld_0xnn_a, paramBytes: 2 },
       0xeb: { fn: this._noSuchOpcode, paramBytes: 0 },
@@ -6733,6 +6730,30 @@ var CPU = function () {
     }
 
     /**
+     * @param {number} signed byte
+     */
+
+  }, {
+    key: 'add_sp_e',
+    value: function add_sp_e(signed) {
+      this.setN(0);this.setZ(0);this.setH(0);this.setC(0);
+
+      var newValue = this._r.sp + _utils2.default.uint8ToInt8(signed);
+
+      if (newValue > 0xffff) {
+        this.setC(1);this.setH(1);
+        this._r.sp -= 0x10000;
+      }
+      if (newValue < 0) {
+        this._r.sp = +0x10000;
+      }
+
+      this._r.sp += _utils2.default.uint8ToInt8(signed);
+
+      this._m += 4;
+    }
+
+    /**
      * Loads register b into memory location hl
      */
 
@@ -7850,7 +7871,7 @@ var CPU = function () {
 
 exports.default = CPU;
 
-},{"./config":6,"./logger":10,"./utils":13}],8:[function(require,module,exports){
+},{"./logger":10,"./utils":13}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -8622,11 +8643,27 @@ var Logger = function () {
 
   _createClass(Logger, null, [{
     key: 'state',
+
+
+    /**
+     * Logs the current instruction and state of registers
+     * @param cpu
+     * @param fn
+     * @param paramLength
+     * @param param
+     */
     value: function state(cpu, fn, paramLength, param) {
       if (_config2.default.DEBUG && Logger._logBIOS(cpu)) {
         console.info('[' + _utils2.default.hex4(cpu.pc() - paramLength - 1) + '] ' + _utils2.default.str20(fn.name + ' ' + _utils2.default.hexStr(param)) + ' 0b' + cpu.Z() + cpu.N() + cpu.H() + cpu.C() + '  a:' + _utils2.default.hex2(cpu.a()) + ' bc:' + _utils2.default.hex4(cpu.bc()) + ' de:' + _utils2.default.hex4(cpu.de()) + ' hl:' + _utils2.default.hex4(cpu.hl()) + ' sp:' + _utils2.default.hex4(cpu.sp()) + ' pc:' + _utils2.default.hex4(cpu.pc()) + ' if:' + _utils2.default.hex2(cpu.If()) + ' ie:' + _utils2.default.hex2(cpu.ie()) + ' ly:' + _utils2.default.hex2(cpu.mmu.ly()) + ' lcdc:' + _utils2.default.hex2(cpu.lcdc()) + ' stat:' + _utils2.default.hex2(cpu.stat()));
       }
     }
+
+    /**
+     * @param cpu
+     * @returns {boolean} true if should log instructions during start-up
+     * @private
+     */
+
   }, {
     key: '_logBIOS',
     value: function _logBIOS(cpu) {
@@ -8647,21 +8684,21 @@ var Logger = function () {
     key: 'warn',
     value: function warn(msg) {
       if (!_config2.default.TEST) {
-        console.info('<warn> ' + msg);
+        console.warn('' + msg);
       }
     }
   }, {
     key: 'info',
     value: function info(msg) {
       if (_config2.default.DEBUG && !_config2.default.TEST) {
-        console.info('<info> ' + msg);
+        console.info('' + msg);
       }
     }
   }, {
     key: 'error',
     value: function error(msg) {
       if (!_config2.default.TEST) {
-        console.error('<error> ' + msg);
+        console.error('' + msg);
       }
     }
   }]);
@@ -9304,10 +9341,16 @@ var MMU = function () {
         throw new Error('Cannot write value ' + n + ' in memory');
       }
       if (this._isOAMAddr(addr)) {
-        if (!this._canAccessOAM()) throw new Error('Cannot write OAM');
+        if (!this._canAccessOAM()) {
+          _logger2.default.info('Cannot write OAM now');
+          return;
+        }
       }
       if (this._isVRAMAddr(addr)) {
-        if (!this._canAccessVRAM()) throw new Error('Cannot write on VRAM');
+        if (!this._canAccessVRAM()) {
+          _logger2.default.info('Cannot write on VRAM now');
+          return;
+        }
         this._VRAMRefreshed = true;
         if (this._isBgCodeArea(addr)) {
           this._clearDrawnTileLines(addr);
