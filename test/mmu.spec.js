@@ -351,15 +351,22 @@ describe('MMU', () => {
 
     it('should handle VRAM and OAM restrictions', () => {
 
+      mmu.writeByteAt(mmu.ADDR_OAM_START, 0xab);
+      mmu.writeByteAt(mmu.ADDR_VRAM_START, 0xbc);
+
       mmu.setLCDMode(2);
-      assert.throws( () => mmu.writeByteAt(mmu.ADDR_OAM_START, 0x00), Error, 'Cannot write OAM on mode 2');
+
+      // Cannot read/write OAM on mode 2
+      mmu.writeByteAt(mmu.ADDR_OAM_START, 0x00);
       assert.equal(mmu.readByteAt(mmu.ADDR_OAM_START), 0xff, 'Cannot read OAM on mode 2');
 
       mmu.setLCDMode(3);
-      assert.throws( () => mmu.writeByteAt(mmu.ADDR_OAM_START, 0x00), Error, 'Cannot write OAM on mode 3');
-      assert.equal(mmu.readByteAt(mmu.ADDR_OAM_START), 0xff, 'Cannot read OAM on mode 3');
-      assert.throws( () => mmu.writeByteAt(mmu.ADDR_VRAM_START, 0x00), Error, 'Cannot write VRAM on mode 3');
-      assert.equal(mmu.readByteAt(mmu.ADDR_VRAM_START), 0xff, 'Cannot read VRAM on mode 3');
+
+      // Cannot read/write OAM/VRAM on mode 3
+      mmu.writeByteAt(mmu.ADDR_OAM_START, 0x01);
+      mmu.writeByteAt(mmu.ADDR_VRAM_START, 0x01);
+      assert.equal(mmu.readByteAt(mmu.ADDR_OAM_START), 0xff);
+      assert.equal(mmu.readByteAt(mmu.ADDR_VRAM_START), 0xff);
     });
 
     it('should update STAT.2 when LY equals LYC', () => {

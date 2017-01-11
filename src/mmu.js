@@ -538,10 +538,16 @@ export default class MMU {
       throw new Error(`Cannot write value ${n} in memory`);
     }
     if (this._isOAMAddr(addr)){
-      if (!this._canAccessOAM()) throw new Error('Cannot write OAM');
+      if (!this._canAccessOAM()) {
+        Logger.info('Cannot write OAM now');
+        return;
+      }
     }
     if (this._isVRAMAddr(addr)){
-      if (!this._canAccessVRAM()) throw new Error('Cannot write on VRAM');
+      if (!this._canAccessVRAM()) {
+        Logger.info('Cannot write on VRAM now');
+        return;
+      }
       this._VRAMRefreshed = true;
       if (this._isBgCodeArea(addr)){
         this._clearDrawnTileLines(addr);
