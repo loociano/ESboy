@@ -2,7 +2,10 @@ export default class GameRequester {
 
   constructor(){
     this._games = {
-      'load-game': 'roms/load-game.gb'
+      'load-game': 'roms/load-game.gb',
+      'fonts': 'roms/gbdk/fonts.gb',
+      'rand': 'roms/gbdk/rand.gb',
+      'colorbar': 'roms/gbdk/colorbar.gb'
     };
   }
 
