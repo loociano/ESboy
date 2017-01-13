@@ -2,6 +2,7 @@ import CPU from './cpu';
 import MMU from './mmu';
 import LCD from './lcd';
 import InputHandler from './inputHandler';
+import GameRequester from './gameRequester';
 
 // Cache DOM references
 const $cartridge = document.getElementById('cartridge');
@@ -11,15 +12,17 @@ const $ctxOBJ = document.getElementById('obj').getContext('2d');
 const $ctxWindow = document.getElementById('window').getContext('2d');
 const $title = document.querySelector('title');
 
-let cpu;
-
+// Constants
 const MAX_FPS = 60;
+const INTERVAL = 1000/MAX_FPS;
+
 let now;
 let then = Date.now();
-let interval = 1000/MAX_FPS;
 let delta;
 let frames = 0;
 let ref = then;
+let cpu;
+const gameRequester = new GameRequester();
 
 /**
  * Handles file selection
@@ -36,10 +39,7 @@ function handleFileSelect(evt) {
   reader.onload = function(event){
 
     $cartridge.blur();
-
-    const readOnlyBuffer = event.target.result;
-    const rom = new Uint8Array(readOnlyBuffer);
-    init(rom);
+    init(event.target.result);
   };
 
   if (file) {
@@ -49,10 +49,10 @@ function handleFileSelect(evt) {
 }
 
 /**
- * @param {Uint8Array} rom
+ * @param {ArrayBuffer} arrayBuffer
  */
-function init(rom){
-  const mmu = new MMU(rom);
+function init(arrayBuffer){
+  const mmu = new MMU(new Uint8Array(arrayBuffer));
   const lcd = new LCD(mmu, $ctxBG, $ctxOBJ, $ctxWindow);
 
   cpu = new CPU(mmu, lcd);
@@ -69,10 +69,10 @@ function frame(){
   now = Date.now();
   delta = now - then;
 
-  if (delta > interval) {
+  if (delta > INTERVAL) {
     // fps limitation logic, Kindly borrowed from Rishabh
     // http://codetheory.in/controlling-the-frame-rate-with-requestanimationframe
-    then = now - (delta % interval);
+    then = now - (delta % INTERVAL);
     if (++frames > MAX_FPS){
       updateTitle(Math.floor(frames*1000/(new Date() - ref)/60*100));
       frames = 0;
@@ -91,3 +91,5 @@ $cartridge.addEventListener('change', handleFileSelect, false);
 $cartridge.addEventListener('click', function(evt){
   this.value = null;
 }, false);
+
+gameRequester.request('load-game', init);
