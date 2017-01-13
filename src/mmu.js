@@ -199,7 +199,6 @@ export default class MMU {
     this._inBIOS = true;
     this._isDMA = false;
     this._buttons = 0x0f; // Buttons unpressed, on HIGH
-    this._VRAMRefreshed = true;
     this._div = 0x0000; // Internal divider, register DIV is msb
     this._hasMBC1 = false;
     this._selectedBankNb = 1; // default is bank 1
@@ -548,7 +547,6 @@ export default class MMU {
         Logger.info('Cannot write on VRAM now');
         return;
       }
-      this._VRAMRefreshed = true;
       if (this._isBgCodeArea(addr)){
         this._clearDrawnTileLines(addr);
       }

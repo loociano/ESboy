@@ -211,46 +211,6 @@ describe('LCD', () => {
       }
     });
 
-    it('should cache tiles and clear cache when VRAM is updated or background is scrolled', () => {
-      const mmu = lcd.getMMU();
-      let calculated = 0;
-      mmu.getBgCharCode = (any) => 0;
-      mmu.writeByteAt = (addr, n) => {
-        mmu._VRAMRefreshed = true;
-      };
-      lcd._calculateIntensityVector = () => {
-        calculated++;
-        return [1,1,1,1,1,1,1,1];
-      };
-
-      lcd.drawLine(0);
-      lcd.drawLine(0);
-
-      assert.equal(calculated, 1, 'only calculated once');
-
-      mmu.writeByteAt(mmu.ADDR_VRAM_START, 0x01);
-
-      lcd.drawLine(0);
-      lcd.drawLine(0);
-
-      assert.equal(calculated, 2, 'calculated again, once');
-
-      mmu.scx = () => 1;
-
-      lcd.drawLine(0);
-      lcd.drawLine(0);
-
-      assert.equal(calculated, 3, 'calculated again, once');
-
-      mmu.scy = () => 1;
-
-      lcd.drawLine(0);
-      lcd.drawLine(0);
-
-      assert.equal(calculated, 4, 'calculated again, once');
-
-    });
-
     it('should not draw lines outside screen', () => {
       const bg = lcd.getImageDataBG();
       const mmu = lcd.getMMU();
@@ -511,7 +471,6 @@ describe('LCD', () => {
         }
       };
       mmu.getBgCharCode = (any) => { return 0x00; };
-      mmu._VRAMRefreshed = true;
 
       lcd.drawTiles();
 
@@ -724,7 +683,6 @@ describe('LCD', () => {
 
       // Test now if the background has been shifted with SCX, SCY
       // 1 dark pixel at x=0 y=0
-      mmu._VRAMRefreshed = true;
       mmu.readBGData = (tileNumber, tileLine) => {
         switch(tileNumber){
           case 0:

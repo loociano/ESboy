@@ -36,7 +36,6 @@ export default class LCD {
     this._ctxBG = ctxBG;
     this._ctxOBJ = ctxOBJ;
     this._ctxWindow = ctxWindow;
-    this._cache = {};
     this._bgp = null;
     this._obg0 = null;
     this._obg1 = null;
@@ -72,11 +71,6 @@ export default class LCD {
       return;
     }
     this._readPalettes();
-
-    if (this._mmu._VRAMRefreshed) {
-      this._cache = {};
-      this._mmu._VRAMRefreshed = false;
-    }
 
     this._drawLineBG(line);
 
@@ -363,30 +357,6 @@ export default class LCD {
   }
 
   /**
-   * @param {number} tileNumber
-   * @param {number} tileLine
-   * @param {boolean} isOBJ
-   * @returns {Array} palette matrix from cache, recalculated whenever VRAM is updated.
-   * @private
-   */
-  _getIntensityVector(tileNumber, tileLine, isOBJ){
-    let key = `BG_${tileNumber}_${tileLine}_${this._mmu.scx()}_${this._mmu.scy()}`;
-
-    if (isOBJ){
-      key = `OBJ_${tileNumber}_${tileLine}`;
-    }
-
-    const cached = this._cache[key];
-    if (cached){
-      return cached;
-    } else {
-      const intensityVector = this._calculateIntensityVector(tileNumber, tileLine, isOBJ);
-      this._cache[key] = intensityVector;
-      return this._cache[key];
-    }
-  }
-
-  /**
    * Calculates palette matrix given a tile number.
    * Expensive operation.
    * @param {number} tileNumber
@@ -395,7 +365,7 @@ export default class LCD {
    * @returns {Array}
    * @private
    */
-  _calculateIntensityVector(tileNumber, tileLine, isOBJ){
+  _getIntensityVector(tileNumber, tileLine, isOBJ){
     let tileLineData;
     if (isOBJ) {
       tileLineData = this._mmu.readOBJData(tileNumber, tileLine);
