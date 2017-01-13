@@ -7887,8 +7887,10 @@ var GameRequester = function () {
     _classCallCheck(this, GameRequester);
 
     this._games = {
+      'load-game': 'roms/load-game.gb',
       'fonts': 'roms/gbdk/fonts.gb',
-      'load-game': 'roms/load-game.gb'
+      'rand': 'roms/gbdk/rand.gb',
+      'colorbar': 'roms/gbdk/colorbar.gb'
     };
   }
 
@@ -10269,6 +10271,7 @@ var $ctxBG = document.getElementById('bg').getContext('2d');
 var $ctxOBJ = document.getElementById('obj').getContext('2d');
 var $ctxWindow = document.getElementById('window').getContext('2d');
 var $title = document.querySelector('title');
+var $games = document.querySelectorAll('#games > li');
 
 // Constants
 var MAX_FPS = 60;
@@ -10345,10 +10348,45 @@ function updateTitle(speed) {
   $title.innerText = 'gb-ES6 ' + speed + '%';
 }
 
-$cartridge.addEventListener('change', handleFileSelect, false);
-$cartridge.addEventListener('click', function (evt) {
-  this.value = null;
-}, false);
+function attachListeners() {
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    var _loop = function _loop() {
+      var $game = _step.value;
+
+      $game.addEventListener('click', function (evt) {
+        gameRequester.request($game.innerText, init);
+      });
+    };
+
+    for (var _iterator = $games[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      _loop();
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  $cartridge.addEventListener('change', handleFileSelect, false);
+  $cartridge.addEventListener('click', function (evt) {
+    this.value = null;
+  }, false);
+}
+
+attachListeners();
 
 gameRequester.request('load-game', init);
 
