@@ -7871,7 +7871,59 @@ var CPU = function () {
 
 exports.default = CPU;
 
-},{"./logger":10,"./utils":13}],8:[function(require,module,exports){
+},{"./logger":11,"./utils":14}],8:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var GameRequester = function () {
+  function GameRequester() {
+    _classCallCheck(this, GameRequester);
+
+    this._games = {
+      'fonts': 'roms/gbdk/fonts.gb',
+      'load-game': 'roms/load-game.gb'
+    };
+  }
+
+  /**
+   * @param {string} gameName
+   * @param {Function} callback
+   */
+
+
+  _createClass(GameRequester, [{
+    key: 'request',
+    value: function request(gameName, callback) {
+
+      var file = this._games[gameName];
+
+      if (file) {
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function () {
+          if (this.readyState == 4 && this.status == 200) {
+            callback.call(this, this.response);
+          }
+        };
+        request.open('GET', file, true);
+        request.responseType = 'arraybuffer';
+        request.send();
+      }
+    }
+  }]);
+
+  return GameRequester;
+}();
+
+exports.default = GameRequester;
+
+},{}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -8017,7 +8069,7 @@ var InputHandler = function () {
 
 exports.default = InputHandler;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -8615,7 +8667,7 @@ var LCD = function () {
 
 exports.default = LCD;
 
-},{"./logger":10,"./utils":13}],10:[function(require,module,exports){
+},{"./logger":11,"./utils":14}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -8708,7 +8760,7 @@ var Logger = function () {
 
 exports.default = Logger;
 
-},{"./config":6,"./utils":13}],11:[function(require,module,exports){
+},{"./config":6,"./utils":14}],12:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 
@@ -10185,7 +10237,7 @@ var MMU = function () {
 exports.default = MMU;
 
 }).call(this,require("buffer").Buffer)
-},{"./logger":10,"./utils":13,"buffer":3,"fs":2}],12:[function(require,module,exports){
+},{"./logger":11,"./utils":14,"buffer":3,"fs":2}],13:[function(require,module,exports){
 'use strict';
 
 var _cpu = require('./cpu');
@@ -10204,6 +10256,10 @@ var _inputHandler = require('./inputHandler');
 
 var _inputHandler2 = _interopRequireDefault(_inputHandler);
 
+var _gameRequester = require('./gameRequester');
+
+var _gameRequester2 = _interopRequireDefault(_gameRequester);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Cache DOM references
@@ -10214,15 +10270,17 @@ var $ctxOBJ = document.getElementById('obj').getContext('2d');
 var $ctxWindow = document.getElementById('window').getContext('2d');
 var $title = document.querySelector('title');
 
-var cpu = void 0;
-
+// Constants
 var MAX_FPS = 60;
+var INTERVAL = 1000 / MAX_FPS;
+
 var now = void 0;
 var then = Date.now();
-var interval = 1000 / MAX_FPS;
 var delta = void 0;
 var frames = 0;
 var ref = then;
+var cpu = void 0;
+var gameRequester = new _gameRequester2.default();
 
 /**
  * Handles file selection
@@ -10239,10 +10297,7 @@ function handleFileSelect(evt) {
   reader.onload = function (event) {
 
     $cartridge.blur();
-
-    var readOnlyBuffer = event.target.result;
-    var rom = new Uint8Array(readOnlyBuffer);
-    init(rom);
+    init(event.target.result);
   };
 
   if (file) {
@@ -10252,10 +10307,10 @@ function handleFileSelect(evt) {
 }
 
 /**
- * @param {Uint8Array} rom
+ * @param {ArrayBuffer} arrayBuffer
  */
-function init(rom) {
-  var mmu = new _mmu2.default(rom);
+function init(arrayBuffer) {
+  var mmu = new _mmu2.default(new Uint8Array(arrayBuffer));
   var lcd = new _lcd2.default(mmu, $ctxBG, $ctxOBJ, $ctxWindow);
 
   cpu = new _cpu2.default(mmu, lcd);
@@ -10272,10 +10327,10 @@ function frame() {
   now = Date.now();
   delta = now - then;
 
-  if (delta > interval) {
+  if (delta > INTERVAL) {
     // fps limitation logic, Kindly borrowed from Rishabh
     // http://codetheory.in/controlling-the-frame-rate-with-requestanimationframe
-    then = now - delta % interval;
+    then = now - delta % INTERVAL;
     if (++frames > MAX_FPS) {
       updateTitle(Math.floor(frames * 1000 / (new Date() - ref) / 60 * 100));
       frames = 0;
@@ -10295,7 +10350,9 @@ $cartridge.addEventListener('click', function (evt) {
   this.value = null;
 }, false);
 
-},{"./cpu":7,"./inputHandler":8,"./lcd":9,"./mmu":11}],13:[function(require,module,exports){
+gameRequester.request('load-game', init);
+
+},{"./cpu":7,"./gameRequester":8,"./inputHandler":9,"./lcd":10,"./mmu":12}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10480,4 +10537,4 @@ var Utils = function () {
 
 exports.default = Utils;
 
-},{}]},{},[12]);
+},{}]},{},[13]);
