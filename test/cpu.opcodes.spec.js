@@ -57,13 +57,13 @@ describe('CPU Instruction Set', function() {
     });
   });
 
-  it('should understand prefix cb instructions', () => {
-    const start = 0xc000; // internal RAM
-    cpu.mmu.writeByteAt(start, 0xcb);
-    cpu.mmu.writeByteAt(start+1, 0x7c);
-    cpu.jp(start);
+  it('should understand prefix 0xcb instructions', () => {
+    const pc = cpu.pc();
+    cpu.mockInstruction(0xcb, 0x7c);
+
     cpu.execute();
-    assert.equal(cpu.pc(), start+2);
+
+    assert.equal(cpu.pc() - pc, 2, 'advance pc accordingly');
   });
 
   describe('Flags', () => {
@@ -132,11 +132,29 @@ describe('CPU Instruction Set', function() {
     
     it('should jump JP to address', () => {
       const m = cpu.m();
+      const pc = cpu.pc();
+      cpu.mockInstruction(0xc3/* jp */, 0x23, 0x01);
 
-      cpu.jp(0x123);
+      cpu.execute();
 
       assert.equal(cpu.pc(), 0x123);
-      assert.equal(cpu.m(), m+4, 'JP runs in 4 machine cycles');
+      assert.equal(cpu.m() - m, 4, 'JP runs in 4 machine cycles');
+    });
+
+    it('should jump to the minimum possible address', () => {
+      cpu.mockInstruction(0xc3/* jp */, 0x00, 0x00);
+
+      cpu.execute();
+
+      assert.equal(cpu.pc(), 0);
+    });
+
+    it('should jump to the maximum possible address', () => {
+      cpu.mockInstruction(0xc3/* jp */, 0xff, 0xff);
+
+      cpu.execute();
+
+      assert.equal(cpu.pc(), 0xffff);
     });
 
     it('should jump to address contained in hl', () => {

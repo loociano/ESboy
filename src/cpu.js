@@ -261,7 +261,7 @@ export default class CPU {
       0xc0: {fn: this.ret_nz, paramBytes: 0},
       0xc1: {fn: this.pop_bc, paramBytes: 0},
       0xc2: {fn: this.jp_nz_nn, paramBytes: 2},
-      0xc3: {fn: this.jp, paramBytes: 2},
+      0xc3: {fn: this._jp, paramBytes: 2},
       0xc4: {fn: this.call_nz, paramBytes: 2},
       0xc5: {fn: this.push_bc, paramBytes: 0},
       0xc6: {fn: this.add_n, paramBytes: 1},
@@ -1220,7 +1220,7 @@ export default class CPU {
    * Jumps to address
    * @param {number} nn 16 bits
    */
-  jp(nn){
+  _jp(nn){
     this._r.pc = nn;
     this._m += 4;
   }
@@ -2088,7 +2088,7 @@ export default class CPU {
    */
   _jp_flag_nn(flag, valueToJump, nn){
     if (flag === valueToJump){
-      this.jp(nn);
+      this._jp(nn);
     } else {
       this._m += 3;
     }
@@ -3246,7 +3246,7 @@ export default class CPU {
    * Pops two bytes from stack and jumps to that address
    */
   ret(){
-    this.jp(this._pop_nn());
+    this._jp(this._pop_nn());
   }
 
   /**
@@ -3254,7 +3254,7 @@ export default class CPU {
    */
   ret_nz(){
     if (this.Z() === 0){
-      this.jp(this._pop_nn());
+      this._jp(this._pop_nn());
       this._m++;
     } else {
       this._m += 2;
@@ -3266,7 +3266,7 @@ export default class CPU {
    */
   ret_z(){
     if (this.Z() === 1){
-      this.jp(this._pop_nn());
+      this._jp(this._pop_nn());
       this._m++;
     } else {
       this._m += 2;
@@ -3278,7 +3278,7 @@ export default class CPU {
    */
   ret_nc(){
     if (this.C() === 0){
-      this.jp(this._pop_nn());
+      this._jp(this._pop_nn());
       this._m++;
     } else {
       this._m += 2;
@@ -3290,7 +3290,7 @@ export default class CPU {
    */
   ret_c(){
     if (this.C() === 1){
-      this.jp(this._pop_nn());
+      this._jp(this._pop_nn());
       this._m++;
     } else {
       this._m += 2;
@@ -3301,7 +3301,7 @@ export default class CPU {
    * Returns from interruption routine
    */
   reti(){
-    this.jp(this._pop_nn());
+    this._jp(this._pop_nn());
     this._r.ime = 1;
   }
 
@@ -3889,7 +3889,7 @@ export default class CPU {
    */
   _rst_n(n){
     this._push_pc();
-    this.jp(n);
+    this._jp(n);
   }
 
   /**
