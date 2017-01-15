@@ -587,7 +587,7 @@ export default class MMU {
   _updateStatLyc(){
     if (this.ly() === this.lyc()){
       this.writeByteAt(this.ADDR_STAT, this.stat() | this.MASK_STAT_LYC_ON);
-      this.setIf(this.If() | this.IF_STAT_ON);
+      this._setIf(this._If() | this.IF_STAT_ON);
     } else {
       this.writeByteAt(this.ADDR_STAT, this.stat() & this.MASK_STAT_LYC_OFF);
     }
@@ -766,35 +766,19 @@ export default class MMU {
   }
 
   /**
-   * Sets value on Interrupt Enable Register
-   * @param value
-   */
-  setIe(value){
-    this._memory[this.ADDR_IE] = value;
-  }
-
-  /**
-   * Reads the interrupt enable register
-   * @returns {number}
-   */
-  ie(){
-    return this.readByteAt(this.ADDR_IE);
-  }
-
-  /**
    * Sets value on interrupt request register
    * @param value
    */
-  setIf(value){
+  _setIf(value){
     this._memory[this.ADDR_IF] = value;
   }
 
   /**
-   * Reads the interrupt request register
-   * @returns {number}
+   * @returns {number} IF register
+   * @private
    */
-  If(){
-    return this.readByteAt(this.ADDR_IF);
+  _If(){
+    return this._memory[this.ADDR_IF];
   }
 
   /**

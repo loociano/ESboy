@@ -790,24 +790,31 @@ export default class CPU {
    * @returns {number} interrupt enable register
    */
   ie(){
-    return this.mmu.ie();
+    return this.mmu.readByteAt(this.mmu.ADDR_IE);
   }
 
   /**
-   * @returns {*|number} interrupt flags
-   * @constructor
+   * Sets value on Interrupt Enable Register
+   * @param value
+   */
+  setIe(value){
+    this.mmu.writeByteAt(this.mmu.ADDR_IE, value);
+  }
+
+  /**
+   * Reads the interrupt request register
+   * @returns {number}
    */
   If(){
-    return this.mmu.If();
+    return this.mmu.readByteAt(this.mmu.ADDR_IF);
   }
 
   /**
    * Sets Interrupt flags
    * @param value
-   * @returns {*}
    */
-  setIf(value){
-    this.mmu.setIf(value);
+  _setIf(value){
+    this.mmu.writeByteAt(this.mmu.ADDR_IF, value);
   }
 
   /**
@@ -945,7 +952,7 @@ export default class CPU {
    * @private
    */
   _isLYCInterrupt(){
-    return ( (this.mmu.ie() & this.mmu.If() & this.mmu.IF_STAT_ON) >> 1) === 1;
+    return ( (this.ie() & this.If() & this.mmu.IF_STAT_ON) >> 1) === 1;
   }
 
   /**
@@ -955,7 +962,7 @@ export default class CPU {
     if (this._r.ime === 0){
       return false;
     }
-    this.setIf(this.If() & this.mmu.IF_STAT_OFF);
+    this._setIf(this.If() & this.mmu.IF_STAT_OFF);
     this._rst_48();
   }
 
@@ -1062,7 +1069,7 @@ export default class CPU {
    */
   _afterBIOS(){
     this.mmu.setRunningBIOS(false);
-    this.mmu.setIe(0x00);
+    this.setIe(0x00);
     this.mmu.setLy(0x00);
     this._r.c = 0x13; // there's a bug somewhere that leaves c=0x14
   }
@@ -1102,7 +1109,7 @@ export default class CPU {
    * @returns {boolean} true if vblank
    */
   isVBlank(){
-    if (this._r.ime === 1 && (this.mmu.ie() & this.mmu.If() & this.IF_VBLANK_ON) === 1){
+    if (this._r.ime === 1 && (this.ie() & this.If() & this.IF_VBLANK_ON) === 1){
       if (this._lastInstrWasEI){
         this._lastInstrWasEI = false;
         return false; // wait one instruction more
@@ -1118,7 +1125,7 @@ export default class CPU {
    * @private
    */
   _triggerVBlank(){
-    this.mmu.setIf(this.If() | this.IF_VBLANK_ON);
+    this._setIf(this.If() | this.IF_VBLANK_ON);
   }
 
   /**
@@ -1126,7 +1133,7 @@ export default class CPU {
    * @private
    */
   _resetVBlank(){
-    this.mmu.setIf(this.If() & this.IF_VBLANK_OFF);
+    this._setIf(this.If() & this.IF_VBLANK_OFF);
   }
 
   /**

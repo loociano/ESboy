@@ -1,10 +1,5 @@
-export default class lcdMock {
+export default class LCDMock {
 
-  drawLine(line){
-    // Do nothing
-  }
-
-  paint(){
-    // Do nothing
-  }
+  drawLine(line){}
+  paint(){}
 }

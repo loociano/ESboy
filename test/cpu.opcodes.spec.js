@@ -5,7 +5,8 @@ import assert from 'assert';
 import config from '../src/config';
 import {describe, beforeEach, it} from 'mocha';
 import Utils from '../src/utils';
-import lcdMock from './mock/lcdMock';
+import LCDMock from './mock/lcdMock';
+import MMUMock from './mock/mmuMock';
 
 describe('CPU Instruction Set', function() {
 
@@ -14,11 +15,11 @@ describe('CPU Instruction Set', function() {
   let cpu;
 
   beforeEach( () => {
-    const loader = new Loader('./roms/blargg_cpu_instrs.gb');
-    cpu = new CPU(new MMU(loader.asUint8Array()), new lcdMock());
-
+    cpu = new CPU(new MMUMock(), new LCDMock());
+    /**
+     * @param {number} pc
+     */
     cpu.setPC = function(pc){
-      this.mmu.setRunningBIOS(false);
       this._r.pc = pc;
     };
   });
@@ -455,7 +456,7 @@ describe('CPU Instruction Set', function() {
       it('should AND a with memory location hl', () => {
         cpu.ld_a_n(0x11);
         cpu.ld_hl_nn(0xc000);
-        cpu.mmu.writeByteAt(0xc000, 0x33);
+        cpu.ld_0xhl_n(0x33);
 
         const m = cpu.m();
         cpu.and_0xhl();
@@ -3005,6 +3006,7 @@ describe('CPU Instruction Set', function() {
     it('should indicate to the MMU that DMA is done', () => {
 
       cpu.mmu.writeByteAt(cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
+      cpu.setIe(1); // enable vblank
       cpu.mmu.setDMA(true);
 
       cpu._execute = () => cpu.nop();

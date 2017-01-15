@@ -15,11 +15,33 @@ describe('Interruptions', () => {
   beforeEach(function() {
     const loader = new Loader('./roms/blargg_cpu_instrs.gb');
     this.cpu = new CPU(new MMU(loader.asUint8Array()), new lcdMock());
-
+    /**
+     * @param {number} pc
+     */
     this.cpu.setPC = function(pc){
       this.mmu.setRunningBIOS(false);
-      this._r.pc = pc; // for testing!
+      this._r.pc = pc;
     };
+    /**
+     * @param {number} If
+     */
+    this.cpu.setIf = function(If){
+      this._setIf(If);
+    };
+
+  });
+
+  describe('Interruptions', () => {
+
+    it('should read/write the interrupt enable register', function() {
+      this.cpu.setIe(0x01);
+      assert.equal(this.cpu.ie(), 0x01);
+    });
+
+    it('should read/write the interrupt request register', function() {
+      this.cpu.setIf(0x01);
+      assert.equal(this.cpu.If(), 0x01);
+    });
   });
 
   describe('LCD modes', () => {
@@ -61,10 +83,10 @@ describe('Interruptions', () => {
       this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
       this.cpu.mmu.setLy(0);
       this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_STAT, 0b01000000); // LYC=LY interrupt on 
-      this.cpu.mmu.setIe(0b00000011); // Allow STAT, VBL interrupt
+      this.cpu.setIe(0b00000011); // Allow STAT, VBL interrupt
       this.cpu._execute = () => this.cpu.nop();
       this.cpu._handleLYCInterrupt = () => {
-        this.cpu.mmu.setIf(this.cpu.mmu.If() & this.cpu.mmu.IF_STAT_OFF);
+        this.cpu.setIf(this.cpu.If() & this.cpu.mmu.IF_STAT_OFF);
         called++;
       };
 

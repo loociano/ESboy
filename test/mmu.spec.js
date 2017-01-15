@@ -25,6 +25,9 @@ describe('MMU', () => {
         mmu.setTileLineDrawn(mmu.getTileLinePos(posX, posY) + i*20);
       }
     };
+    mmu.If = function(){
+      return this.readByteAt(mmu.ADDR_IF);
+    };
   });
 
   describe('Initialization', () => {
@@ -58,10 +61,12 @@ describe('MMU', () => {
       mmu.writeByteAt(0xc000, 0xab);
       assert.equal(mmu.readByteAt(0xc000), 0xab, 'write 0xab in memory address 0xc000');
     });
-    it('should write in Interrupt Enable register', () => {
+
+    it('should write without restrictions in the last memory address', () => {
       mmu.writeByteAt(0xffff, 0x0f);
-      assert.equal(mmu.ie(), 0x0f, 'should write on 0xffff');
+      assert.equal(mmu.readByteAt(0xffff), 0x0f, 'should write on 0xffff');
     });
+
     it('should not write bytes in ROM', () => {
 
       let addr = 0x0000;
@@ -549,19 +554,6 @@ describe('MMU', () => {
     it('should reset', () => {
       mmu.writeByteAt(mmu.ADDR_P1, 0x30);
       assert.equal(mmu.p1(), 0xff, 'Default');
-    });
-  });
-
-  describe('Interruptions', () => {
-
-    it('should read/write the interrupt enable register', () => {
-      mmu.setIe(0x01);
-      assert.equal(mmu.ie(), 0x01);
-    });
-
-    it('should read/write the interrupt request register', () => {
-      mmu.setIf(0x01);
-      assert.equal(mmu.If(), 0x01);
     });
   });
 
