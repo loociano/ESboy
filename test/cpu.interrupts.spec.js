@@ -59,7 +59,7 @@ describe('Interruptions', () => {
 
       this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
 
-      this.cpu._execute = () => {
+      this.cpu.execute = () => {
         this.cpu.nop();
         fail();
       };
@@ -84,7 +84,7 @@ describe('Interruptions', () => {
       this.cpu.mmu.setLy(0);
       this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_STAT, 0b01000000); // LYC=LY interrupt on 
       this.cpu.setIe(0b00000011); // Allow STAT, VBL interrupt
-      this.cpu._execute = () => this.cpu.nop();
+      this.cpu.execute = () => this.cpu.nop();
       this.cpu._handleLYCInterrupt = () => {
         this.cpu.setIf(this.cpu.If() & this.cpu.mmu.IF_STAT_OFF);
         called++;
@@ -119,7 +119,7 @@ describe('Interruptions', () => {
 
       this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
 
-      this.cpu._execute = () => this.cpu.nop();
+      this.cpu.execute = () => this.cpu.nop();
       this.cpu.frame();
 
       assert.equal(this.cpu.ly(), 144, `LY increased to 144`);

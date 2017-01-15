@@ -4,8 +4,8 @@ import Logger from './logger';
 export default class CPU {
 
   /**
-   * @param {MMU} mmu
-   * @param {LCD} lcd
+   * @param {MMU|MMUMock} mmu
+   * @param {LCD|LCDMock} lcd
    */
   constructor(mmu, lcd) {
 
@@ -925,7 +925,7 @@ export default class CPU {
       const m = this._m;
 
       if (!this.isHalted()) {
-        this._execute();
+        this.execute();
       } else {
         this._m++;
       }
@@ -1147,10 +1147,9 @@ export default class CPU {
   }
 
   /**
-   * Executes the next instruction and increases the pc.
-   * @private
+   * Executes the next instruction and increases the program counter.
    */
-  _execute() {
+  execute() {
 
     let opcode = this._nextOpcode();
 

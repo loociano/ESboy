@@ -37,7 +37,7 @@ describe('CPU Instruction Set', function() {
     cpu.mmu.writeByteAt(start, 0xcb);
     cpu.mmu.writeByteAt(start+1, 0x7c);
     cpu.jp(start);
-    cpu._execute();
+    cpu.execute();
     assert.equal(cpu.pc(), start+2);
   });
 
@@ -3007,7 +3007,7 @@ describe('CPU Instruction Set', function() {
       cpu.setIe(1); // enable vblank
       cpu.mmu.setDMA(true);
 
-      cpu._execute = () => cpu.nop();
+      cpu.execute = () => cpu.nop();
       cpu.frame();
 
       assert(!cpu.mmu.isDMA());
