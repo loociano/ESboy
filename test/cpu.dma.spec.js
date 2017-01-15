@@ -16,9 +16,7 @@ describe('DMA', () => {
     /**
      * NOP
      */
-    cpu.nop = function(){
-      this._m++;
-    };
+    cpu.nop = () => cpu._m++;
   });
 
   it('should indicate to the MMU that DMA is done', () => {

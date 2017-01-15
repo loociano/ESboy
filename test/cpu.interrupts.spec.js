@@ -28,7 +28,12 @@ describe('Interruptions', () => {
     this.cpu.setIf = function(If){
       this._setIf(If);
     };
-
+    /**
+     * NOP
+     */
+    this.cpu.nop = function(){
+      this._m++;
+    };
   });
 
   describe('Interruptions', () => {
@@ -58,12 +63,7 @@ describe('Interruptions', () => {
     it('should stop executing instructions on HALT mode', function() {
 
       this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
-
-      this.cpu.execute = () => {
-        this.cpu.nop();
-        fail();
-      };
-
+      this.cpu.execute = () => fail();
       this.cpu.halt();
 
       this.cpu.frame();

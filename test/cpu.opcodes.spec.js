@@ -35,8 +35,8 @@ describe('CPU Instruction Set', function() {
 
     /**
      * @param {number} opcode
-     * @param {number} param1 (optional)
-     * @param {number} param2 (optional)
+     * @param {number|undefined} param1 (optional)
+     * @param {number|undefined} param2 (optional)
      */
     cpu.mockInstruction = function(opcode, param1, param2){
       if (opcode !== undefined) cpu.mmu.writeByteAt(cpu.pc(), opcode);
@@ -118,8 +118,13 @@ describe('CPU Instruction Set', function() {
   describe('NOP', () => {
     it('should run NOP in 1 machine cycle', () => {
       const m = cpu.m();
-      cpu.nop();
-      assert.equal(cpu.m(), m+1, 'NOP runs in 1 machine cycle.');
+      const pc = cpu.pc();
+      cpu.mockInstruction(0x00/* nop */);
+
+      cpu.execute();
+
+      assert.equal(cpu.m() - m, 1, 'NOP runs in 1 machine cycle.');
+      assert.equal(cpu.pc() - pc, 1, '1-byte instruction');
     });
   });
 

@@ -66,7 +66,7 @@ export default class CPU {
     this._attach_bit_functions();
 
     this._instructions = {
-      0x00: {fn: this.nop, paramBytes: 0},
+      0x00: {fn: this._nop, paramBytes: 0},
       0x01: {fn: this.ld_bc_nn, paramBytes: 2},
       0x02: {fn: this.ld_0xbc_a, paramBytes: 0},
       0x03: {fn: this.inc_bc, paramBytes: 0},
@@ -1251,7 +1251,7 @@ export default class CPU {
   /**
    * No operation.
    */
-  nop(){
+  _nop(){
     this._m++;
   }
 

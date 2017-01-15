@@ -16,7 +16,11 @@ describe('Dividers', () => {
     const loader = new Loader('./roms/blargg_cpu_instrs.gb');
     cpu = new CPU(new MMU(loader.asUint8Array()), new lcdMock());
     cpu._handle_lcd = () => {};
-    cpu._execute = () => cpu.nop();
+    cpu.execute = () => cpu.nop();
+    /**
+     * NOP
+     */
+    cpu.nop = () => cpu._m++;
   });
 
   it('should increase first bit of divider', () => {

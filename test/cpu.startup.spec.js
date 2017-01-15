@@ -13,6 +13,10 @@ describe('Start BIOS', () => {
     const loader = new Loader('./roms/blargg_cpu_instrs.gb');
     lcd = new lcdMock();
     cpu = new CPU(new MMU(loader.asUint8Array()), lcd);
+    /**
+     * NOP
+     */
+    cpu.nop = () => this._m++;
   });
 
   it('BIOS should reset VRAM', () => {
