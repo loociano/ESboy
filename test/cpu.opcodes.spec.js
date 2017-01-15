@@ -1,6 +1,4 @@
 import CPU from '../src/cpu';
-import MMU from '../src/mmu';
-import Loader from '../src/loader';
 import assert from 'assert';
 import config from '../src/config';
 import {describe, beforeEach, it} from 'mocha';
