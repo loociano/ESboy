@@ -26,10 +26,10 @@ describe('CPU Instruction Set', function() {
       setFn.call(cpu, 0);
       assert.equal(getFn.call(cpu), 0, 'Flag=0');
     };
-    cpu.resetAllFlags = function(){
+    cpu.resetFlags = function(){
       cpu._r._f &= 0x0f;
     };
-    cpu.setAllFlags = function(){
+    cpu.setFlags = function(){
       cpu._r._f |= 0xf0;
     };
 
@@ -69,7 +69,7 @@ describe('CPU Instruction Set', function() {
   describe('Flags', () => {
 
     it('should set carry flag', () => {
-      cpu.resetAllFlags();
+      cpu.resetFlags();
       const m = cpu.m();
       const pc = cpu.pc();
       cpu.mockInstruction(0x37/* sfc */);
@@ -80,7 +80,7 @@ describe('CPU Instruction Set', function() {
       assert.equal(cpu.pc() - pc, 1, '1-byte instruction');
       assert.equal(cpu.m() - m, 1, 'Machine cycles');
 
-      cpu.setAllFlags();
+      cpu.setFlags();
 
       cpu.setPC(pc);
       cpu.execute();
@@ -89,17 +89,28 @@ describe('CPU Instruction Set', function() {
     });
 
     it('should complement carry flag', () => {
-      cpu._setC(0);
-      cpu._setZ(0);
+      cpu.resetFlags();
       const m = cpu.m();
+      const pc = cpu.pc();
+      cpu.mockInstruction(0x3f/* ccf */);
 
-      cpu.ccf();
+      cpu.execute();
 
-      assert.equal(cpu.f(), 0b0001);
+      assert.equal(cpu.f(), 0b0001, '...C');
+      assert.equal(cpu.pc() - pc, 1, '1-byte instruction');
       assert.equal(cpu.m() - m, 1, 'Machine cycles');
 
-      cpu.ccf();
-      assert.equal(cpu.f(), 0b0000);
+      cpu.setPC(pc);
+      cpu.execute();
+
+      assert.equal(cpu.f(), 0b0000, '....');
+
+      cpu.setFlags();
+
+      cpu.setPC(pc);
+      cpu.execute();
+
+      assert.equal(cpu.f(), 0b1000, 'Z... zero flag value is kept');
     });
 
   });

@@ -129,7 +129,7 @@ export default class CPU {
       0x3c: {fn: this.inc_a, paramBytes: 0},
       0x3d: {fn: this.dec_a, paramBytes: 0},
       0x3e: {fn: this.ld_a_n, paramBytes: 1},
-      0x3f: {fn: this.ccf, paramBytes: 0},
+      0x3f: {fn: this._ccf, paramBytes: 0},
       0x40: {fn: this.ld_b_b, paramBytes: 0},
       0x41: {fn: this.ld_b_c, paramBytes: 0},
       0x42: {fn: this.ld_b_d, paramBytes: 0},
@@ -1593,7 +1593,7 @@ export default class CPU {
   /**
    * Complements carry flag
    */
-  ccf(){
+  _ccf(){
     if (this.C() === 0)
       this._setC(1);
     else
