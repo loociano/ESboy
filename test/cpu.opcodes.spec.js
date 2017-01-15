@@ -3029,21 +3029,6 @@ describe('CPU Instruction Set', function() {
 
   });
 
-  describe('DMA', () => {
-
-    it('should indicate to the MMU that DMA is done', () => {
-
-      cpu.mmu.writeByteAt(cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
-      cpu.setIe(1); // enable vblank
-      cpu.mmu.setDMA(true);
-
-      cpu.execute = () => cpu.nop();
-      cpu.frame();
-
-      assert(!cpu.mmu.isDMA());
-    });
-  });
-
   describe('CPU Control instructions', () => {
     it('should HALT', () => {
       const m = cpu.m();
