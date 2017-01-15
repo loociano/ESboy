@@ -160,11 +160,12 @@ describe('CPU Instruction Set', function() {
     it('should jump to address contained in hl', () => {
       cpu.ld_hl_nn(0xc000);
       const m = cpu.m();
+      cpu.mockInstruction(0xe9/* jp (hl) */);
 
-      cpu.jp_hl();
+      cpu.execute();
 
       assert.equal(cpu.pc(), 0xc000);
-      assert.equal(cpu.m(), m+1, 'JP (HL) runs in 1 machine cycle');
+      assert.equal(cpu.m() - m, 1, 'JP (HL) runs in 1 machine cycle');
     });
 
     describe('Jump with signed integer', () => {

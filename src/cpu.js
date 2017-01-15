@@ -554,7 +554,7 @@ export default class CPU {
       0xe6: {fn: this.and_n, paramBytes: 1},
       0xe7: {fn: this.rst_20, paramBytes: 0},
       0xe8: {fn: this.add_sp_e, paramBytes: 1},
-      0xe9: {fn: this.jp_hl, paramBytes: 0},
+      0xe9: {fn: this._jp_hl, paramBytes: 0},
       0xea: {fn: this.ld_0xnn_a, paramBytes: 2},
       0xeb: {fn: this._noSuchOpcode, paramBytes: 0},
       0xec: {fn: this._noSuchOpcode, paramBytes: 0},
@@ -1219,6 +1219,7 @@ export default class CPU {
   /**
    * Jumps to address
    * @param {number} nn 16 bits
+   * @private
    */
   _jp(nn){
     this._r.pc = nn;
@@ -1242,14 +1243,16 @@ export default class CPU {
 
   /**
    * Jumps to address contained in hl.
+   * @private
    */
-  jp_hl(){
+  _jp_hl(){
     this._r.pc = this.hl();
     this._m++;
   }
 
   /**
    * No operation.
+   * @private
    */
   _nop(){
     this._m++;
@@ -1582,6 +1585,7 @@ export default class CPU {
 
   /**
    * Sets carry flag
+   * @private
    */
   _scf(){
     this._setC(1);
@@ -1592,6 +1596,7 @@ export default class CPU {
 
   /**
    * Complements carry flag
+   * @private
    */
   _ccf(){
     if (this.C() === 0)
