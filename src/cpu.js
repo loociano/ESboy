@@ -121,7 +121,7 @@ export default class CPU {
       0x34: {fn: this.inc_0xhl, paramBytes: 0},
       0x35: {fn: this.dec_0xhl, paramBytes: 0},
       0x36: {fn: this.ld_0xhl_n, paramBytes: 1},
-      0x37: {fn: this.scf, paramBytes: 0},
+      0x37: {fn: this._scf, paramBytes: 0},
       0x38: {fn: this.jr_c_n, paramBytes: 1},
       0x39: {fn: this.add_hl_sp, paramBytes: 0},
       0x3a: {fn: this.ldd_a_0xhl, paramBytes: 0},
@@ -1327,11 +1327,11 @@ export default class CPU {
    */
   _and_n(n){
     if (this._r.a &= n){
-      this.setZ(0);
+      this._setZ(0);
     } else {
-      this.setZ(1);
+      this._setZ(1);
     }
-    this.setN(0); this.setH(1); this.setC(0);
+    this._setN(0); this._setH(1); this._setC(0);
     this._m++;
   }
 
@@ -1407,11 +1407,11 @@ export default class CPU {
    */
   _or_n(n){
     if (this._r.a |= n){
-      this.setZ(0);
+      this._setZ(0);
     } else {
-      this.setZ(1);
+      this._setZ(1);
     }
-    this.setN(0); this.setH(0); this.setC(0);
+    this._setN(0); this._setH(0); this._setC(0);
     this._m++;
   }
 
@@ -1488,7 +1488,7 @@ export default class CPU {
     this._r.a ^= n;
     this._resetAllFlags();
     if (this._r.a === 0){
-      this.setZ(1);
+      this._setZ(1);
     }
     this._m++;
   }
@@ -1510,7 +1510,7 @@ export default class CPU {
   /**
    * @param {number} value Z
    */
-  setZ(value){
+  _setZ(value){
     if (value === 1){
       this._r._f |= 0x80;
     } else if (value === 0) {
@@ -1530,7 +1530,7 @@ export default class CPU {
   /**
    * @param {number} value of flag N
    */
-  setN(value){
+  _setN(value){
     if (value === 1){
       this._r._f |= 0x40;
     } else if (value === 0) {
@@ -1550,7 +1550,7 @@ export default class CPU {
   /**
    * @param {number} value of flag H
    */
-  setH(value) {
+  _setH(value) {
     if (value === 1){
       this._r._f |= 0x20;
     } else if (value === 0) {
@@ -1570,7 +1570,7 @@ export default class CPU {
   /**
    * @param {number} value of flag C
    */
-  setC(value) {
+  _setC(value) {
     if (value === 1){
       this._r._f |= 0x10;
     } else if (value === 0){
@@ -1583,10 +1583,10 @@ export default class CPU {
   /**
    * Sets carry flag
    */
-  scf(){
-    this.setC(1);
-    this.setN(0);
-    this.setH(0);
+  _scf(){
+    this._setC(1);
+    this._setN(0);
+    this._setH(0);
     this._m++;
   }
 
@@ -1595,11 +1595,11 @@ export default class CPU {
    */
   ccf(){
     if (this.C() === 0)
-      this.setC(1);
+      this._setC(1);
     else
-      this.setC(0);
-    this.setN(0);
-    this.setH(0);
+      this._setC(0);
+    this._setN(0);
+    this._setH(0);
     this._m++;
   }
 
@@ -1956,12 +1956,12 @@ export default class CPU {
    */
   _dec_r(r){
 
-    this.setN(1); // subtracting
+    this._setN(1); // subtracting
 
     if ((this._r[r] & 0x0f) === 0){
-      this.setH(1); // half carry
+      this._setH(1); // half carry
     } else {
-      this.setH(0);
+      this._setH(0);
     }
 
     if (this._r[r] === 0){
@@ -1971,9 +1971,9 @@ export default class CPU {
     }
 
     if (this._r[r] === 0){
-      this.setZ(1); // result is zero
+      this._setZ(1); // result is zero
     } else {
-      this.setZ(0);
+      this._setZ(0);
     }
     this._m++;
   }
@@ -1983,12 +1983,12 @@ export default class CPU {
    */
   dec_0xhl(){
     let value = this._0xhl();
-    this.setN(1); // subtracting
+    this._setN(1); // subtracting
 
     if ((value & 0x0f) === 0){
-      this.setH(1); // half carry
+      this._setH(1); // half carry
     } else {
-      this.setH(0);
+      this._setH(0);
     }
 
     if (value === 0){
@@ -1998,9 +1998,9 @@ export default class CPU {
     }
 
     if (value === 0){
-      this.setZ(1); // result is zero
+      this._setZ(1); // result is zero
     } else {
-      this.setZ(0);
+      this._setZ(0);
     }
     this.mmu.writeByteAt(this.hl(), value);
     this._m += 2;
@@ -2264,13 +2264,13 @@ export default class CPU {
    */
   _cp_n(n){
     
-    this.setN(1); this.setZ(0); this.setC(0);
+    this._setN(1); this._setZ(0); this._setC(0);
     const diff = this._r.a - n;
     
     if (diff === 0){
-      this.setZ(1);
+      this._setZ(1);
     } else if (diff < 0){
-       this.setC(1);
+       this._setC(1);
     }
     this._m++;
   }
@@ -2283,11 +2283,11 @@ export default class CPU {
    */
   _bit_b_r(b, value) {
     if ((value & (1 << b)) >> b) {
-      this.setZ(0);
+      this._setZ(0);
     } else {
-      this.setZ(1);
+      this._setZ(1);
     }
-    this.setN(0); this.setH(1);
+    this._setN(0); this._setH(1);
     this._m += 2;
   }
 
@@ -2495,18 +2495,18 @@ export default class CPU {
 
     if (value === 0xff){
       this.mmu.writeByteAt(this.hl(), 0x00);
-      this.setZ(1);
+      this._setZ(1);
     } else {
       this.mmu.writeByteAt(this.hl(), ++value);
-      this.setZ(0);
+      this._setZ(0);
     }
 
     if (value === 0x10){
-      this.setH(1);
+      this._setH(1);
     } else {
-      this.setH(0);
+      this._setH(0);
     }
-    this.setN(0);
+    this._setN(0);
     this._m += 2;
   }
 
@@ -2518,17 +2518,17 @@ export default class CPU {
   _inc_r(r){
     if (this._r[r] === 0xff){
       this._r[r] = 0x00;
-      this.setZ(1);
+      this._setZ(1);
     } else {
       this._r[r]++;
-      this.setZ(0);
+      this._setZ(0);
     }
     if (this._r[r] === 0x10){
-      this.setH(1);
+      this._setH(1);
     } else {
-      this.setH(0);
+      this._setH(0);
     }
-    this.setN(0);
+    this._setN(0);
     this._m++;
   }
 
@@ -3127,16 +3127,16 @@ export default class CPU {
     value = rotated & 0xff;
     setter.call(this, value);
 
-    this.setC((rotated & 0x100) >> 8);
+    this._setC((rotated & 0x100) >> 8);
 
     if (value === 0){
-      this.setZ(1);
+      this._setZ(1);
     } else {
-      this.setZ(0);
+      this._setZ(0);
     }
 
-    this.setN(0);
-    this.setH(0);
+    this._setN(0);
+    this._setH(0);
     this._m++;
   }
 
@@ -3213,18 +3213,18 @@ export default class CPU {
   _rr_r(setter, getter, carried=this.C()){
 
     let value = getter.call(this);
-    this.setC(value & 0x01);
+    this._setC(value & 0x01);
     value = (value >> 1) + (carried << 7);
     setter.call(this, value);
 
     if (value === 0){
-      this.setZ(1);
+      this._setZ(1);
     } else {
-      this.setZ(0);
+      this._setZ(0);
     }
 
-    this.setN(0);
-    this.setH(0);
+    this._setN(0);
+    this._setH(0);
     this._m++;
   }
 
@@ -3396,7 +3396,7 @@ export default class CPU {
    */
   _sub_n(value, carry=0){
 
-    this.setN(1);
+    this._setN(1);
 
     let subtract = value + carry;
     const diff = this._r.a - subtract;
@@ -3405,23 +3405,23 @@ export default class CPU {
     if (diff < 0) {
       this._r.a += 0x100;
       nybble_a = 0xf0;
-      this.setC(1);
+      this._setC(1);
     } else {
-      this.setC(0);
+      this._setC(0);
     }
 
     this._r.a -= subtract;
       
     if (this._r.a === 0){
-      this.setZ(1);
+      this._setZ(1);
     } else {
-      this.setZ(0);
+      this._setZ(0);
     }
 
     if ((this._r.a & 0xf0) < nybble_a){
-      this.setH(1);
+      this._setH(1);
     } else {
-      this.setH(0);
+      this._setH(0);
     }
 
     this._m++;
@@ -3573,14 +3573,14 @@ export default class CPU {
    */
   _add_r(value, carry=0){
 
-    this.setN(0);
+    this._setN(0);
     const add = value + carry;
 
     // Half carry
     if (add > (0x0f - (this._r.a & 0x0f))){
-      this.setH(1);
+      this._setH(1);
     } else {
-      this.setH(0);
+      this._setH(0);
     }
 
     this._r.a = this._r.a + add;
@@ -3588,15 +3588,15 @@ export default class CPU {
     // Carry
     if ((this._r.a & 0x100) > 0){
       this._r.a -= 0x100;
-      this.setC(1);
+      this._setC(1);
     } else {
-      this.setC(0);
+      this._setC(0);
     }
 
     if (this._r.a === 0){
-      this.setZ(1);
+      this._setZ(1);
     } else {
-      this.setZ(0);
+      this._setZ(0);
     }
     this._m++;
   }
@@ -3640,21 +3640,21 @@ export default class CPU {
     let value = hl + nn;
 
     if ((value & 0xf000) > (hl & 0xf000)){
-      this.setH(1);
+      this._setH(1);
     } else {
-      this.setH(0);
+      this._setH(0);
     }
 
     if ((value & 0x10000) > 0){
       value -= 0x10000;
-      this.setC(1);
+      this._setC(1);
     } else {
-      this.setC(0);
+      this._setC(0);
     }
 
     this._set_hl(value);
 
-    this.setN(0);
+    this._setN(0);
     this._m += 2;
   }
 
@@ -3662,12 +3662,12 @@ export default class CPU {
    * @param {number} signed byte
    */
   add_sp_e(signed){
-    this.setN(0); this.setZ(0); this.setH(0); this.setC(0);
+    this._setN(0); this._setZ(0); this._setH(0); this._setC(0);
 
     const newValue = this._r.sp + Utils.uint8ToInt8(signed);
 
     if (newValue > 0xffff){
-      this.setC(1); this.setH(1);
+      this._setC(1); this._setH(1);
       this._r.sp -= 0x10000;
     }
     if (newValue < 0){
@@ -3726,7 +3726,7 @@ export default class CPU {
    */
   cpl() {
     this._r.a = Utils.cplBin8(this._r.a);
-    this.setN(1); this.setH(1);
+    this._setN(1); this._setH(1);
     this._m++;
   }
 
@@ -3786,12 +3786,12 @@ export default class CPU {
     const swapped = Utils.swapNybbles(this._0xhl());
 
     if (swapped){
-      this.setZ(0);
+      this._setZ(0);
     } else {
-      this.setZ(1);
+      this._setZ(1);
     }
     this._ld_0xhl_n(swapped);
-    this.setN(0); this.setH(0); this.setC(0);
+    this._setN(0); this._setH(0); this._setC(0);
     this._m++;
   }
 
@@ -3802,11 +3802,11 @@ export default class CPU {
    */
   _swap_n(r){
     if (this._r[r] = Utils.swapNybbles(this._r[r])){
-      this.setZ(0);
+      this._setZ(0);
     } else {
-      this.setZ(1);
+      this._setZ(1);
     }
-    this.setN(0); this.setH(0); this.setC(0);
+    this._setN(0); this._setH(0); this._setC(0);
     this._m += 2;
   }
 
@@ -4182,16 +4182,16 @@ export default class CPU {
     value = (rotated & 0xff) + carry;
     setter.call(this, value);
 
-    this.setC(carry);
+    this._setC(carry);
 
     if (value === 0){
-      this.setZ(1);
+      this._setZ(1);
     } else {
-      this.setZ(0);
+      this._setZ(0);
     }
 
-    this.setN(0);
-    this.setH(0);
+    this._setN(0);
+    this._setH(0);
     this._m++;
   }
 
@@ -4208,16 +4208,16 @@ export default class CPU {
     const rotated = (value >> 1) + (carried << 7);
     setter.call(this, rotated);
 
-    this.setC(carried);
+    this._setC(carried);
 
     if (value === 0){
-      this.setZ(1);
+      this._setZ(1);
     } else {
-      this.setZ(0);
+      this._setZ(0);
     }
 
-    this.setN(0);
-    this.setH(0);
+    this._setN(0);
+    this._setH(0);
     this._m++;
   }
 
@@ -4382,18 +4382,18 @@ export default class CPU {
       } else {
         this._r.a += 0x60;
       }
-      this.setC(1);
+      this._setC(1);
     } else {
-      this.setC(0);
+      this._setC(0);
     }
     this._r.a &= 0xff;
 
     if (this._r.a === 0){
-      this.setZ(1);
+      this._setZ(1);
     } else {
-      this.setZ(0);
+      this._setZ(0);
     }
-    this.setH(0);
+    this._setH(0);
     this._m++;
   }
 
@@ -4444,17 +4444,17 @@ export default class CPU {
   ldhl_sp_n(n){
     let value = this.sp() + Utils.uint8ToInt8(n);
 
-    this.setZ(0);
-    this.setN(0);
+    this._setZ(0);
+    this._setN(0);
     if (Math.abs((this.sp() & 0xf000) - (value & 0xf000)) > 0x0fff){
-      this.setH(1);
+      this._setH(1);
     } else {
-      this.setH(0);
+      this._setH(0);
     }
     if (value > 0xffff){
-      this.setC(1);
+      this._setC(1);
     } else {
-      this.setC(0);
+      this._setC(0);
     }
     this.ld_hl_nn(value & 0xffff);
   }

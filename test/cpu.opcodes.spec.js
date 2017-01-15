@@ -66,38 +66,31 @@ describe('CPU Instruction Set', function() {
     assert.equal(cpu.pc(), start+2);
   });
 
-  describe('Flags setters and getters', () => {
-
-    it('should set Flag Z', () => {
-      testSetGetFlag(cpu, cpu.setZ, cpu.Z);
-    });
-
-    it('should set Flag N', () => {
-      testSetGetFlag(cpu, cpu.setN, cpu.N);
-    });
-
-    it('should set Flag h', () => {
-      testSetGetFlag(cpu, cpu.setH, cpu.H);
-    });
-
-    it('should set Flag c', () => {
-      testSetGetFlag(cpu, cpu.setC, cpu.C);
-    });
+  describe('Flags', () => {
 
     it('should set carry flag', () => {
-      cpu.setC(0);
-      cpu.setZ(0);
+      cpu.resetAllFlags();
       const m = cpu.m();
+      const pc = cpu.pc();
+      cpu.mockInstruction(0x37/* sfc */);
 
-      cpu.scf();
+      cpu.execute();
 
-      assert.equal(cpu.f(), 0b0001);
+      assert.equal(cpu.f(), 0b0001, '...C');
+      assert.equal(cpu.pc() - pc, 1, '1-byte instruction');
       assert.equal(cpu.m() - m, 1, 'Machine cycles');
+
+      cpu.setAllFlags();
+
+      cpu.setPC(pc);
+      cpu.execute();
+
+      assert.equal(cpu.f(), 0b1001, 'Z..C zero flag value is kept');
     });
 
     it('should complement carry flag', () => {
-      cpu.setC(0);
-      cpu.setZ(0);
+      cpu._setC(0);
+      cpu._setZ(0);
       const m = cpu.m();
 
       cpu.ccf();
@@ -143,18 +136,19 @@ describe('CPU Instruction Set', function() {
     describe('Jump with signed integer', () => {
 
       it('should jump around lowest address memory', () => {
-        const max = 0x7f;
-        const min = 0x80;
-        const instr_length = 2;
-        cpu.setPC(cpu.pc() + instr_length);
+        const maxJump = 0x7f;
+        const minJump = 0x80;
+        const instrLength = 2;
+        const pc = cpu.pc();
+        cpu.setPC(pc + instrLength);
       
-        cpu.jr_e(max);
+        cpu.jr_e(maxJump);
 
-        assert.equal(cpu.pc(), 0x0081);
+        assert.equal(cpu.pc() - pc, maxJump + instrLength);
 
-        cpu.setPC(0 + instr_length);
+        cpu.setPC(0 + instrLength);
 
-        cpu.jr_e(min);
+        cpu.jr_e(minJump);
 
         assert.equal(cpu.pc(), 0xff82);
       });
@@ -188,7 +182,7 @@ describe('CPU Instruction Set', function() {
 
     describe('Jump NZ with address', () => {
       it('should jump to address if Z is reset', () => {
-        cpu.setZ(0);
+        cpu._setZ(0);
         const m = cpu.m();
 
         cpu.jp_nz_nn(0xc000);
@@ -198,7 +192,7 @@ describe('CPU Instruction Set', function() {
       });
 
       it('should not jump to address if Z is set', () => {
-        cpu.setZ(1);
+        cpu._setZ(1);
         const pc = cpu.pc();
         const m = cpu.m();
 
@@ -228,7 +222,7 @@ describe('CPU Instruction Set', function() {
 
     describe('Jump NZ with signed byte', () => {
       it('should jump forward if Z is reset', () => {
-        cpu.setZ(0);
+        cpu._setZ(0);
         const pc = cpu.pc();
         const m = cpu.m();
 
@@ -240,7 +234,7 @@ describe('CPU Instruction Set', function() {
 
       it('should jump backwards if Z is reset', () => {
         cpu.setPC(0x100);
-        cpu.setZ(0);
+        cpu._setZ(0);
         const pc = cpu.pc();
         const m = cpu.m();
 
@@ -251,7 +245,7 @@ describe('CPU Instruction Set', function() {
       });
 
       it('should not jump if Z is set', () => {
-        cpu.setZ(1);
+        cpu._setZ(1);
         const pc = cpu.pc();
         const m = cpu.m();
 
@@ -264,7 +258,7 @@ describe('CPU Instruction Set', function() {
 
     describe('Jump Z with address', () => {
       it('should jump to address if Z is set', () => {
-        cpu.setZ(1);
+        cpu._setZ(1);
         const m = cpu.m();
 
         cpu.jp_z_nn(0xc000);
@@ -274,7 +268,7 @@ describe('CPU Instruction Set', function() {
       });
 
       it('should not jump to address if Z is reset', () => {
-        cpu.setZ(0);
+        cpu._setZ(0);
         const pc = cpu.pc();
         const m = cpu.m();
 
@@ -287,7 +281,7 @@ describe('CPU Instruction Set', function() {
 
     describe('Jump Z with signed byte', () => {
       it('should jump forward if Z is set', () => {
-        cpu.setZ(1);
+        cpu._setZ(1);
         const pc = cpu.pc();
         const m = cpu.m();
 
@@ -299,7 +293,7 @@ describe('CPU Instruction Set', function() {
 
       it('should jump backwards if Z is set', () => {
         cpu.setPC(0x100);
-        cpu.setZ(1);
+        cpu._setZ(1);
         const pc = cpu.pc();
         const m = cpu.m();
 
@@ -310,7 +304,7 @@ describe('CPU Instruction Set', function() {
       });
 
       it('should not jump if Z is reset', () => {
-        cpu.setZ(0);
+        cpu._setZ(0);
         const pc = cpu.pc();
         const m = cpu.m();
 
@@ -323,7 +317,7 @@ describe('CPU Instruction Set', function() {
 
     describe('Jump NC with address', () => {
       it('should jump to address if Carry is reset', () => {
-        cpu.setC(0);
+        cpu._setC(0);
         const m = cpu.m();
 
         cpu.jp_nc_nn(0xc000);
@@ -333,7 +327,7 @@ describe('CPU Instruction Set', function() {
       });
 
       it('should not jump to address if Carry is set', () => {
-        cpu.setC(1);
+        cpu._setC(1);
         const pc = cpu.pc();
         const m = cpu.m();
 
@@ -346,7 +340,7 @@ describe('CPU Instruction Set', function() {
 
     describe('Jump NC with signed byte', () => {
       it('should jump forward if C is reset', () => {
-        cpu.setC(0);
+        cpu._setC(0);
         const pc = cpu.pc();
         const m = cpu.m();
 
@@ -358,7 +352,7 @@ describe('CPU Instruction Set', function() {
 
       it('should jump backwards if C is reset', () => {
         cpu.setPC(0x100);
-        cpu.setC(0);
+        cpu._setC(0);
         const pc = cpu.pc();
         const m = cpu.m();
 
@@ -369,7 +363,7 @@ describe('CPU Instruction Set', function() {
       });
 
       it('should not jump if C is set', () => {
-        cpu.setC(1);
+        cpu._setC(1);
         const pc = cpu.pc();
         const m = cpu.m();
 
@@ -382,7 +376,7 @@ describe('CPU Instruction Set', function() {
 
     describe('Jump C with address', () => {
       it('should jump to address if Carry is set', () => {
-        cpu.setC(1);
+        cpu._setC(1);
         const m = cpu.m();
 
         cpu.jp_c_nn(0xc000);
@@ -392,7 +386,7 @@ describe('CPU Instruction Set', function() {
       });
 
       it('should not jump to address if Carry is reset', () => {
-        cpu.setC(0);
+        cpu._setC(0);
         const pc = cpu.pc();
         const m = cpu.m();
 
@@ -405,7 +399,7 @@ describe('CPU Instruction Set', function() {
 
     describe('Jump C with signed byte', () => {
       it('should jump forward if C is set', () => {
-        cpu.setC(1);
+        cpu._setC(1);
         const pc = cpu.pc();
         const m = cpu.m();
 
@@ -417,7 +411,7 @@ describe('CPU Instruction Set', function() {
 
       it('should jump backwards if C is set', () => {
         cpu.setPC(0x100);
-        cpu.setC(1);
+        cpu._setC(1);
         const pc = cpu.pc();
         const m = cpu.m();
 
@@ -428,7 +422,7 @@ describe('CPU Instruction Set', function() {
       });
 
       it('should not jump if C is reset', () => {
-        cpu.setC(0);
+        cpu._setC(0);
         const pc = cpu.pc();
         const m = cpu.m();
 
@@ -695,7 +689,7 @@ describe('CPU Instruction Set', function() {
       // TODO decrement with 0x01 to assert flag Z
 
       it('should decrement a value at a memory location', () => {
-        cpu.setC(0);
+        cpu._setC(0);
         cpu.ld_hl_nn(0xc000);
         cpu.ld_0xhl_n(0xab);
 
@@ -1060,7 +1054,7 @@ describe('CPU Instruction Set', function() {
           {ld: cpu.ld_h_n, sbc: cpu.sbc_h},
           {ld: cpu.ld_l_n, sbc: cpu.sbc_l}].map(({ld, sbc}) => {
 
-          cpu.setC(1);
+          cpu._setC(1);
           cpu.ld_a_n(0x10);
           ld.call(cpu, 0x01);
           const m = cpu.m();
@@ -1072,7 +1066,7 @@ describe('CPU Instruction Set', function() {
           assert.equal(cpu.m() - m, 1, 'Machine cycles');
 
           ld.call(cpu, 0x0d);
-          cpu.setC(1);
+          cpu._setC(1);
 
           sbc.call(cpu);
 
@@ -1081,7 +1075,7 @@ describe('CPU Instruction Set', function() {
 
           cpu.ld_a_n(0x3b);
           ld.call(cpu, 0x4f);
-          cpu.setC(1);
+          cpu._setC(1);
 
           sbc.call(cpu);
 
@@ -1091,7 +1085,7 @@ describe('CPU Instruction Set', function() {
       });
 
       it('should subtract a to a minus carry', () => {
-        cpu.setC(1);
+        cpu._setC(1);
         cpu.ld_a_n(0xaa);
         const m = cpu.m();
 
@@ -1102,7 +1096,7 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.m() - m, 1, 'Machine cycles');
 
         cpu.ld_a_n(0xaa);
-        cpu.setC(0);
+        cpu._setC(0);
 
         cpu.sbc_a();
 
@@ -1111,7 +1105,7 @@ describe('CPU Instruction Set', function() {
       });
 
       it('should subtract n minus carry to a', () => {
-        cpu.setC(1);
+        cpu._setC(1);
         cpu.ld_a_n(0x09);
         const m = cpu.m();
 
@@ -1127,7 +1121,7 @@ describe('CPU Instruction Set', function() {
 
         cpu.ld_a_n(0x12);
         cpu.ld_0xhl_n(0x01);
-        cpu.setC(1);
+        cpu._setC(1);
         const m = cpu.m();
 
         cpu.sbc_0xhl(); // Result is positive
@@ -1138,7 +1132,7 @@ describe('CPU Instruction Set', function() {
 
         cpu.ld_a_n(0x11);
         cpu.ld_0xhl_n(0x01);
-        cpu.setC(1);
+        cpu._setC(1);
 
         cpu.sbc_0xhl(); // Test carry from bit 3
 
@@ -1147,7 +1141,7 @@ describe('CPU Instruction Set', function() {
 
         cpu.ld_a_n(0x10);
         cpu.ld_0xhl_n(0x0f);
-        cpu.setC(1);
+        cpu._setC(1);
 
         cpu.sbc_0xhl(); // Test a result zero
 
@@ -1156,7 +1150,7 @@ describe('CPU Instruction Set', function() {
 
         cpu.ld_a_n(0x00);
         cpu.ld_0xhl_n(0x10);
-        cpu.setC(1);
+        cpu._setC(1);
 
         cpu.sbc_0xhl(); // Result underflows from positive number in a
 
@@ -1165,7 +1159,7 @@ describe('CPU Instruction Set', function() {
 
         cpu.ld_a_n(0x02);
         cpu.ld_0xhl_n(0xff);
-        cpu.setC(1);
+        cpu._setC(1);
 
         cpu.sbc_0xhl(); // Test max addition
 
@@ -1333,7 +1327,7 @@ describe('CPU Instruction Set', function() {
           {ld: cpu.ld_h_n, adc: cpu.adc_h},
           {ld: cpu.ld_l_n, adc: cpu.adc_l}].map(({ld, adc}) => {
 
-          cpu.setC(1);
+          cpu._setC(1);
           cpu.ld_a_n(0x00);
           ld.call(cpu, 0x0f);
           const m = cpu.m();
@@ -1345,7 +1339,7 @@ describe('CPU Instruction Set', function() {
           assert.equal(cpu.m() - m, 1, 'Machine cycles');
 
           ld.call(cpu, 0xef);
-          cpu.setC(1);
+          cpu._setC(1);
 
           adc.call(cpu);
 
@@ -1353,7 +1347,7 @@ describe('CPU Instruction Set', function() {
           assert.equal(cpu.f(), 0b1011, 'Zero with half- and carry');
 
           ld.call(cpu, 0x00);
-          cpu.setC(1);
+          cpu._setC(1);
 
           adc.call(cpu);
 
@@ -1363,7 +1357,7 @@ describe('CPU Instruction Set', function() {
       });
 
       it('should add a to a (double a) plus carry', () => {
-        cpu.setC(1);
+        cpu._setC(1);
         cpu.ld_a_n(0x00);
         const m = cpu.m();
 
@@ -1374,7 +1368,7 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.m() - m, 1, 'Machine cycles');
 
         cpu.ld_a_n(0x0f);
-        cpu.setC(1);
+        cpu._setC(1);
 
         cpu.adc_a();
 
@@ -1382,7 +1376,7 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.f(), 0b0010, 'Half carry');
 
         cpu.ld_a_n(0x00);
-        cpu.setC(0);
+        cpu._setC(0);
 
         cpu.adc_a();
 
@@ -1391,7 +1385,7 @@ describe('CPU Instruction Set', function() {
       });
 
       it('should add n plus carry to a', () => {
-        cpu.setC(1);
+        cpu._setC(1);
         cpu.ld_a_n(0x09);
         const m = cpu.m();
 
@@ -1403,7 +1397,7 @@ describe('CPU Instruction Set', function() {
       });
 
       it('should add value at memory location hl plus carry to a', () => {
-        cpu.setC(1);
+        cpu._setC(1);
         cpu.ld_hl_nn(0xc000);
         cpu.ld_a_n(0x12);
         cpu.ld_0xhl_n(0x02);
@@ -1415,7 +1409,7 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.f(), 0b0000, 'Positive without carries');
         assert.equal(cpu.m() - m, 2, 'ADD (HL) machine cycles');
 
-        cpu.setC(1);
+        cpu._setC(1);
         cpu.ld_a_n(0x0e);
         cpu.ld_0xhl_n(0x01);
 
@@ -1424,7 +1418,7 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.a(), 0x10, 'a + (hl) + C');
         assert.equal(cpu.f(), 0b0010, 'Half carry');
 
-        cpu.setC(1);
+        cpu._setC(1);
         cpu.ld_a_n(0xf0);
         cpu.ld_0xhl_n(0x0f);
 
@@ -1433,7 +1427,7 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.a(), 0x00, 'a + (hl) + C');
         assert.equal(cpu.f(), 0b1011, 'Zero with carries');
 
-        cpu.setC(1);
+        cpu._setC(1);
         cpu.ld_a_n(0xf0);
         cpu.ld_0xhl_n(0x11);
 
@@ -1442,7 +1436,7 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.a(), 0x02, 'a 0xf0 + 0x11 + 1 overflows to 0x02');
         assert.equal(cpu.f(), 0b0011, 'Positive with carries');
 
-        cpu.setC(1);
+        cpu._setC(1);
         cpu.ld_a_n(0x02);
         cpu.ld_0xhl_n(0xff);
 
@@ -1651,7 +1645,7 @@ describe('CPU Instruction Set', function() {
       assert.equal(cpu.m() - m, 1, 'Machine cycles');
 
       cpu.ld_a_n(0x98);
-      cpu.setC(1);
+      cpu._setC(1);
 
       cpu.daa();
 
@@ -1659,7 +1653,7 @@ describe('CPU Instruction Set', function() {
       assert.equal(cpu.f(), 0b0001, 'Flags');
 
       cpu.ld_a_n(0x9f);
-      cpu.setC(1);
+      cpu._setC(1);
 
       cpu.daa();
 
@@ -1698,8 +1692,8 @@ describe('CPU Instruction Set', function() {
 
     it('should adjust with half-carry', () => {
       cpu.ld_a_n(0x26);
-      cpu.setH(1);
-      cpu.setC(0);
+      cpu._setH(1);
+      cpu._setC(0);
 
       cpu.daa();
 
@@ -1709,9 +1703,9 @@ describe('CPU Instruction Set', function() {
 
     it('should do nothing on zero', () => {
       cpu.ld_a_n(0x00);
-      cpu.setZ(1);
-      cpu.setH(0);
-      cpu.setC(0);
+      cpu._setZ(1);
+      cpu._setH(0);
+      cpu._setC(0);
 
       cpu.daa();
 
@@ -2199,7 +2193,7 @@ describe('CPU Instruction Set', function() {
   describe('Bit operations', () => {
 
     it('should test bits', () => {
-      cpu.setC(0);
+      cpu._setC(0);
       ['a', 'b', 'c', 'd', 'e', 'h', 'l'].map( (r) => {
 
         cpu[`ld_${r}_n`].call(cpu, 0b01010101);
@@ -2223,7 +2217,7 @@ describe('CPU Instruction Set', function() {
     it('should test bits at memory location hl', () => {
       cpu.ld_hl_nn(0xc000);
       cpu.ld_0xhl_n(0xff);
-      cpu.setC(0);
+      cpu._setC(0);
 
       for(let b = 0; b < 8; b++){
         const m = cpu.m();
@@ -2369,7 +2363,7 @@ describe('CPU Instruction Set', function() {
         const pc = cpu.pc();
         const sp = cpu.sp();
         const addr = 0x1234;
-        cpu.setZ(1);
+        cpu._setZ(1);
         let m = cpu.m();
 
         cpu.call_nz(addr);
@@ -2377,7 +2371,7 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.m() - m, 3, 'Machine cycles when not calling');
         assert.equal(cpu.pc(), pc, 'Does not call');
 
-        cpu.setZ(0);
+        cpu._setZ(0);
         m = cpu.m();
 
         cpu.call_nz(addr);
@@ -2393,7 +2387,7 @@ describe('CPU Instruction Set', function() {
         const pc = cpu.pc();
         const sp = cpu.sp();
         const addr = 0x1234;
-        cpu.setZ(0);
+        cpu._setZ(0);
         let m = cpu.m();
 
         cpu.call_z(addr);
@@ -2401,7 +2395,7 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.m() - m, 3, 'Machine cycles when not calling');
         assert.equal(cpu.pc(), pc, 'Does not call');
 
-        cpu.setZ(1);
+        cpu._setZ(1);
         m = cpu.m();
 
         cpu.call_z(addr);
@@ -2417,7 +2411,7 @@ describe('CPU Instruction Set', function() {
         const pc = cpu.pc();
         const sp = cpu.sp();
         const addr = 0x1234;
-        cpu.setC(1);
+        cpu._setC(1);
         let m = cpu.m();
 
         cpu.call_nc(addr);
@@ -2425,7 +2419,7 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.m() - m, 3, 'Machine cycles when not calling');
         assert.equal(cpu.pc(), pc, 'Does not call');
 
-        cpu.setC(0);
+        cpu._setC(0);
         m = cpu.m();
 
         cpu.call_nc(addr);
@@ -2441,7 +2435,7 @@ describe('CPU Instruction Set', function() {
         const pc = cpu.pc();
         const sp = cpu.sp();
         const addr = 0x1234;
-        cpu.setC(0);
+        cpu._setC(0);
         let m = cpu.m();
 
         cpu.call_c(addr);
@@ -2449,7 +2443,7 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.m() - m, 3, 'Machine cycles when not calling');
         assert.equal(cpu.pc(), pc, 'Does not call');
 
-        cpu.setC(1);
+        cpu._setC(1);
         m = cpu.m();
 
         cpu.call_c(addr);
@@ -2486,7 +2480,7 @@ describe('CPU Instruction Set', function() {
               let cycles = 2;
               if (rl === cpu.rla) cycles = 1;
               if (rl === cpu.rl_0xhl) cycles = 4;
-              cpu.setC(0);
+              cpu._setC(0);
               ld.call(cpu, 0b10000000);
               const m = cpu.m();
 
@@ -2521,7 +2515,7 @@ describe('CPU Instruction Set', function() {
             let cycles = 2;
             if (rlc === cpu.rlca) cycles = 1;
             if (rlc === cpu.rlc_0xhl) cycles = 4;
-            cpu.setC(0);
+            cpu._setC(0);
             ld.call(cpu, 0b10000101);
             const m = cpu.m();
 
@@ -2563,7 +2557,7 @@ describe('CPU Instruction Set', function() {
             let cycles = 2;
             if (rr === cpu.rra) cycles = 1;
             if (rr === cpu.rr_0xhl) cycles = 4;
-            cpu.setC(0);
+            cpu._setC(0);
             ld.call(cpu, 0x01);
             const m = cpu.m();
 
@@ -2598,7 +2592,7 @@ describe('CPU Instruction Set', function() {
             let cycles = 2;
             if (rrc === cpu.rrca) cycles = 1;
             if (rrc === cpu.rrc_0xhl) cycles = 4;
-            cpu.setC(0);
+            cpu._setC(0);
             ld.call(cpu, 0b10000101);
             const m = cpu.m();
 
@@ -2683,7 +2677,7 @@ describe('CPU Instruction Set', function() {
             cpu.ld_hl_nn(cpu.mmu.ADDR_WRAM_START);
             let cycles = 2;
             if (srl === cpu.srl_0xhl) cycles = 4;
-            cpu.setC(0);
+            cpu._setC(0);
             ld.call(cpu, 0b00000110);
             const m = cpu.m();
 
@@ -2726,7 +2720,7 @@ describe('CPU Instruction Set', function() {
             cpu.ld_hl_nn(cpu.mmu.ADDR_WRAM_START);
             let cycles = 2;
             if (sra === cpu.sra_0xhl) cycles = 4;
-            cpu.setC(0);
+            cpu._setC(0);
             ld.call(cpu, 0b00000110);
             const m = cpu.m();
 
@@ -2753,7 +2747,7 @@ describe('CPU Instruction Set', function() {
 
             // Test when bit 7 is set
             ld.call(cpu, 0b10000110);
-            cpu.setC(0);
+            cpu._setC(0);
 
             sra.call(cpu);
 
@@ -2844,7 +2838,7 @@ describe('CPU Instruction Set', function() {
       const pc = cpu.pc();
       cpu.ld_hl_nn(addr);
       cpu.push_hl();
-      cpu.setZ(1);
+      cpu._setZ(1);
       let m = cpu.m();
 
       cpu.ret_nz();
@@ -2852,7 +2846,7 @@ describe('CPU Instruction Set', function() {
       assert.equal(cpu.pc(), pc, 'Does not jump');
       assert.equal(cpu.m() - m, 2, 'RET NZ without jump');
 
-      cpu.setZ(0);
+      cpu._setZ(0);
       m = cpu.m();
 
       cpu.ret_nz();
@@ -2868,7 +2862,7 @@ describe('CPU Instruction Set', function() {
       const pc = cpu.pc();
       cpu.ld_hl_nn(addr);
       cpu.push_hl();
-      cpu.setZ(0);
+      cpu._setZ(0);
       let m = cpu.m();
 
       cpu.ret_z();
@@ -2876,7 +2870,7 @@ describe('CPU Instruction Set', function() {
       assert.equal(cpu.pc(), pc, 'Does not jump');
       assert.equal(cpu.m() - m, 2, 'RET Z without jump');
 
-      cpu.setZ(1);
+      cpu._setZ(1);
       m = cpu.m();
 
       cpu.ret_z();
@@ -2892,7 +2886,7 @@ describe('CPU Instruction Set', function() {
       const pc = cpu.pc();
       cpu.ld_hl_nn(addr);
       cpu.push_hl();
-      cpu.setC(1);
+      cpu._setC(1);
       let m = cpu.m();
 
       cpu.ret_nc();
@@ -2900,7 +2894,7 @@ describe('CPU Instruction Set', function() {
       assert.equal(cpu.pc(), pc, 'Does not jump');
       assert.equal(cpu.m() - m, 2, 'RET NC without jump');
 
-      cpu.setC(0);
+      cpu._setC(0);
       m = cpu.m();
 
       cpu.ret_nc();
@@ -2916,7 +2910,7 @@ describe('CPU Instruction Set', function() {
       const pc = cpu.pc();
       cpu.ld_hl_nn(addr);
       cpu.push_hl();
-      cpu.setC(0);
+      cpu._setC(0);
       let m = cpu.m();
 
       cpu.ret_c();
@@ -2924,7 +2918,7 @@ describe('CPU Instruction Set', function() {
       assert.equal(cpu.pc(), pc, 'Does not jump');
       assert.equal(cpu.m() - m, 2, 'RET C without jump');
 
-      cpu.setC(1);
+      cpu._setC(1);
       m = cpu.m();
 
       cpu.ret_c();
