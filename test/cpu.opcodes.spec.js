@@ -20,6 +20,31 @@ describe('CPU Instruction Set', function() {
     cpu.setPC = function(pc){
       this._r.pc = pc;
     };
+    cpu.testSetGetFlag = function(setFn, getFn){
+      setFn.call(cpu, 1);
+      assert.equal(getFn.call(cpu), 1, 'Flag=1');
+      setFn.call(cpu, 0);
+      assert.equal(getFn.call(cpu), 0, 'Flag=0');
+    };
+    cpu.resetAllFlags = function(){
+      cpu._r._f &= 0x0f;
+    };
+    cpu.setAllFlags = function(){
+      cpu._r._f |= 0xf0;
+    };
+
+    /**
+     * @param {number} opcode
+     * @param {number} param1 (optional)
+     * @param {number} param2 (optional)
+     */
+    cpu.mockInstruction = function(opcode, param1, param2){
+      if (opcode !== undefined) cpu.mmu.writeByteAt(cpu.pc(), opcode);
+      if (param1 !== undefined) cpu.mmu.writeByteAt(cpu.pc()+1, param1);
+      if (param2 !== undefined) cpu.mmu.writeByteAt(cpu.pc()+2, param2);
+    };
+
+    cpu.setPC(0x100);
   });
 
   describe('ROM file loading', () => {
@@ -28,7 +53,7 @@ describe('CPU Instruction Set', function() {
     });
 
     it('should handle missing lcd', () => {
-      assert.throws( () => new CPU(new MMU(), null), Error, 'Missing lcd');
+      assert.throws( () => new CPU(new MMUMock(), null), Error, 'Missing lcd');
     });
   });
 
@@ -3059,13 +3084,6 @@ function assertDecrementRegister(cpu, registerFn, decFn){
   decFn.call(cpu);
 
   assert.equal(registerFn.call(cpu), expected, `decrement ${registerFn.name}`);
-}
-
-function testSetGetFlag(cpu, setFn, getFn){
-  setFn.call(cpu, 1);
-  assert.equal(getFn.call(cpu), 1, 'Flag=1');
-  setFn.call(cpu, 0);
-  assert.equal(getFn.call(cpu), 0, 'Flag=0');
 }
 
 function assertFlagsCompareGreaterValue(cpu){
