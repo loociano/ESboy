@@ -198,17 +198,33 @@ export default class LCD {
    * @private
    */
   _drawLineOBJ(line){
+    const doubleOBJ = this._mmu.areOBJDouble();
+
     for(let n = 0; n < this._mmu.MAX_OBJ; n++){
       const OBJ = this._mmu.getOBJ(n);
-      if (LCD._isValidOBJ(OBJ) && this._isOBJInLine(line, OBJ.y)){
-        const y = OBJ.y - this._MAX_TILE_HEIGHT; /* tiles can be 8x16 pixels */
-        this._drawTileLine({
-          tileNumber: OBJ.chrCode,
-          tileLine: line - y,
-          startX: OBJ.x - this.TILE_WIDTH,
-          y: y,
-          OBJAttr: OBJ.attr,
-        }, line, this._imageDataOBJ);
+      if (LCD._isValidOBJ(OBJ)){
+        if (this._isOBJInLine(line, OBJ.y)){
+          const y = OBJ.y - this._MAX_TILE_HEIGHT; /* tiles can be 8x16 pixels */
+          this._drawTileLine({
+            tileNumber: OBJ.chrCode,
+            tileLine: line - y,
+            startX: OBJ.x - this.TILE_WIDTH,
+            y: y,
+            OBJAttr: OBJ.attr,
+          }, line, this._imageDataOBJ);
+        }
+        if (doubleOBJ){
+          if (this._isOBJInLine(line, OBJ.y + this._TILE_HEIGHT)){
+            const y = OBJ.y + this._TILE_HEIGHT - this._MAX_TILE_HEIGHT;
+            this._drawTileLine({
+              tileNumber: OBJ.chrCode + 1,
+              tileLine: line - y,
+              startX: OBJ.x - this.TILE_WIDTH,
+              y: y,
+              OBJAttr: OBJ.attr,
+            }, line, this._imageDataOBJ);
+          }
+        }
       }
     }
   }
@@ -404,6 +420,7 @@ export default class LCD {
    * @private
    */
   static _isValidOBJ(OBJ){
+    if (OBJ == null) return false;
     return OBJ.x !== 0 || OBJ.y !== 0 || OBJ.chrCode !== 0 || OBJ.attr !== 0;
   }
 
