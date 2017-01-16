@@ -243,23 +243,6 @@ describe('CPU Instruction Set', function() {
       });
     });
 
-    describe('JR', () => {
-      it('should jump an offset', () => {
-        cpu.setPC(0x100);
-        const m = cpu.m();
-
-        cpu._jr_e(0x01);
-
-        assert.equal(cpu.pc(), 0x100 + 1, 'jump forward');
-        assert.equal(cpu.m() - m, 3, 'JR machine cycles');
-
-        cpu._jr_e(0xfc); // -4
-
-        assert.equal(cpu.pc(), 0x101 - 4, 'jump backward');
-      });
-
-    });
-
     describe('Jump NZ with signed byte', () => {
       it('should jump forward if Z is reset', () => {
         cpu._setZ(0);
