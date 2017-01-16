@@ -226,14 +226,14 @@ export default class CPU {
       0x9d: {fn: this.sbc_l, paramBytes: 0},
       0x9e: {fn: this.sbc_0xhl, paramBytes: 0},
       0x9f: {fn: this.sbc_a, paramBytes: 0},
-      0xa0: {fn: this.and_b, paramBytes: 0},
-      0xa1: {fn: this.and_c, paramBytes: 0},
-      0xa2: {fn: this.and_d, paramBytes: 0},
-      0xa3: {fn: this.and_e, paramBytes: 0},
-      0xa4: {fn: this.and_h, paramBytes: 0},
-      0xa5: {fn: this.and_l, paramBytes: 0},
-      0xa6: {fn: this.and_0xhl, paramBytes: 0},
-      0xa7: {fn: this.and_a, paramBytes: 0},
+      0xa0: {fn: this._and_b, paramBytes: 0},
+      0xa1: {fn: this._and_c, paramBytes: 0},
+      0xa2: {fn: this._and_d, paramBytes: 0},
+      0xa3: {fn: this._and_e, paramBytes: 0},
+      0xa4: {fn: this._and_h, paramBytes: 0},
+      0xa5: {fn: this._and_l, paramBytes: 0},
+      0xa6: {fn: this._and_0xhl, paramBytes: 0},
+      0xa7: {fn: this._and_a, paramBytes: 0},
       0xa8: {fn: this.xor_b, paramBytes: 0},
       0xa9: {fn: this.xor_c, paramBytes: 0},
       0xaa: {fn: this.xor_d, paramBytes: 0},
@@ -551,7 +551,7 @@ export default class CPU {
       0xe3: {fn: this._noSuchOpcode, paramBytes: 0},
       0xe4: {fn: this._noSuchOpcode, paramBytes: 0},
       0xe5: {fn: this.push_hl, paramBytes: 0},
-      0xe6: {fn: this.and_n, paramBytes: 1},
+      0xe6: {fn: this._and_n, paramBytes: 1},
       0xe7: {fn: this.rst_20, paramBytes: 0},
       0xe8: {fn: this.add_sp_e, paramBytes: 1},
       0xe9: {fn: this._jp_hl, paramBytes: 0},
@@ -1261,65 +1261,65 @@ export default class CPU {
   /**
    * Register a AND a
    */
-  and_a(){
-    this._and_n(this._r.a);
+  _and_a(){
+    this.__and_n(this._r.a);
   }
 
   /**
    * Register a AND b
    */
-  and_b(){
-    this._and_n(this._r.b);
+  _and_b(){
+    this.__and_n(this._r.b);
   }
 
   /**
    * Register a AND c
    */
-  and_c(){
-    this._and_n(this._r.c);
+  _and_c(){
+    this.__and_n(this._r.c);
   }
 
   /**
    * Register a AND d
    */
-  and_d(){
-    this._and_n(this._r.d);
+  _and_d(){
+    this.__and_n(this._r.d);
   }
 
   /**
    * Register a AND e
    */
-  and_e(){
-    this._and_n(this._r.e);
+  _and_e(){
+    this.__and_n(this._r.e);
   }
 
   /**
    * Register a AND h
    */
-  and_h(){
-    this._and_n(this._r.h);
+  _and_h(){
+    this.__and_n(this._r.h);
   }
 
   /**
    * Register a AND l
    */
-  and_l(){
-    this._and_n(this._r.l);
+  _and_l(){
+    this.__and_n(this._r.l);
   }
 
   /**
    * Register a AND value at memory location hl
    */
-  and_0xhl(){
-    this._and_n(this._0xhl());
+  _and_0xhl(){
+    this.__and_n(this._0xhl());
   }
 
   /**
    * Register a AND n
    * @param n
    */
-  and_n(n){
-    this._and_n(n);
+  _and_n(n){
+    this.__and_n(n);
     this._m++;
   }
 
@@ -1328,7 +1328,7 @@ export default class CPU {
    * @param n
    * @private
    */
-  _and_n(n){
+  __and_n(n){
     if (this._r.a &= n){
       this._setZ(0);
     } else {

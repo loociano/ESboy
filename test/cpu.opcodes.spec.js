@@ -499,64 +499,80 @@ describe('CPU Instruction Set', function() {
     describe('AND', () => {
 
       it('should AND register a with itself', () => {
+        cpu.resetFlags();
         cpu.ld_a_n(0x11);
-
         const m = cpu.m();
-        cpu.and_a();
+        const pc = cpu.pc();
+        cpu.mockInstruction(0xa7);
+
+        cpu.execute();
         
         assert.equal(cpu.a(), cpu.a(), 'a AND a does not change a');
-        assert.equal(cpu.f(), 0b0010, 'AND a with positive result sets only H');
-        assert.equal(cpu.m(), m+1, 'ADD A,A runs in 1 machine cycle.');
+        assert.equal(cpu.f(), 0b0010 /*ZNHC*/, 'AND a with positive result sets only H');
+        assert.equal(cpu.m() - m, 1, 'ADD A,A runs in 1 machine cycle.');
+        assert.equal(cpu.pc() - pc, 1, 'Instruction length');
       });
 
       it('should AND register a with register r', () => {
 
-        [ {ld: cpu.ld_b_n, and: cpu.and_b},
-          {ld: cpu.ld_c_n, and: cpu.and_c},
-          {ld: cpu.ld_d_n, and: cpu.and_d},
-          {ld: cpu.ld_e_n, and: cpu.and_e},
-          {ld: cpu.ld_h_n, and: cpu.and_h},
-          {ld: cpu.ld_l_n, and: cpu.and_l} ].map( ({ld, and}) => {
+        [ {ld: cpu.ld_b_n, opcode: 0xa0},
+          {ld: cpu.ld_c_n, opcode: 0xa1},
+          {ld: cpu.ld_d_n, opcode: 0xa2},
+          {ld: cpu.ld_e_n, opcode: 0xa3},
+          {ld: cpu.ld_h_n, opcode: 0xa4},
+          {ld: cpu.ld_l_n, opcode: 0xa5} ].map( ({ld, opcode}) => {
+
             cpu.ld_a_n(0x11);
             ld.call(cpu, 0x33);
-
             const m = cpu.m();
-            and.call(cpu);
+            const pc = cpu.pc();
+            cpu.mockInstruction(opcode);
 
-            assert.equal(cpu.a(), 0x11 & 0x33, `a ${and.name}`);
-            assert.equal(cpu.f(), 0b0010, `${and.name} with positive result sets only H`);
-            assert.equal(cpu.m(), m+1, 'AND A,r runs in 1 machine cycle.');
+            cpu.execute();
+
+            assert.equal(cpu.a(), 0x11 & 0x33);
+            assert.equal(cpu.f(), 0b0010, `opcode ${opcode} with positive result sets only H`);
+            assert.equal(cpu.m() - m, 1, '1 machine cycle.');
+            assert.equal(cpu.pc() - pc, 1, 'Instruction length');
         });
       });
 
       it('should AND a with memory location hl', () => {
-        cpu.ld_a_n(0x11);
-        cpu.ld_hl_nn(0xc000);
-        cpu.ld_0xhl_n(0x33);
-
+        cpu._r.a = 0x11;
+        cpu._r.h = 0xc0;
+        cpu._r.l = 0x00;
+        cpu.mmu.writeByteAt(0xc000, 0x33);
+        const pc = cpu.pc();
         const m = cpu.m();
-        cpu.and_0xhl();
+        cpu.mockInstruction(0xa6 /* AND (hl) */);
+
+        cpu.execute();
 
         assert.equal(cpu.a(), 0x11 & 0x33, 'a AND (hl)');
         assert.equal(cpu.f(), 0b0010, 'OR (hl) with positive result sets only H');
-        assert.equal(cpu.m(), m+2, 'AND A,(HL) runs in 2 machine cycle.');
+        assert.equal(cpu.m() - m, 2, 'AND A,(HL) runs in 2 machine cycle.');
+        assert.equal(cpu.pc() - pc, 1, 'Instruction length');
       });
 
       it('should AND a with byte n', () => {
-        cpu.ld_a_n(0x11);
-
+        cpu._r.a = 0x11;
+        const pc = cpu.pc();
         const m = cpu.m();
-        cpu.and_n(0x33);
+        cpu.mockInstruction(0xe6/* AND,n */, 0x33);
+
+        cpu.execute();
 
         assert.equal(cpu.a(), 0x11 & 0x33, 'a AND n');
         assert.equal(cpu.f(), 0b0010, 'AND n with positive result sets only H');
-        assert.equal(cpu.m(), m+2, 'AND A,n runs in 2 machine cycle.');
+        assert.equal(cpu.m() - m, 2, 'AND A,n runs in 2 machine cycle.');
+        assert.equal(cpu.pc() - pc, 2, 'Instruction length');
       });
 
       it('should set flag Z if AND result is zero', () => {
-        cpu.ld_a_n(0x0f);
+        cpu._r.a = 0x0f;
+        cpu.mockInstruction(0xe6/* AND,n */, 0xf0);
         
-        cpu.and_n(0xf0);
+        cpu.execute();
 
         assert.equal(cpu.a(), 0x00, 'a AND n');
         assert.equal(cpu.f(), 0b1010, 'AND n with zero result sets Z and H');
