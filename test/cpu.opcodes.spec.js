@@ -38,7 +38,7 @@ describe('CPU Instruction Set', function() {
      * @param {number|undefined} param1 (optional)
      * @param {number|undefined} param2 (optional)
      */
-    cpu.mockInstruction = function(opcode, param1, param2){
+    cpu.mockInstruction = function(opcode, param1=undefined, param2=undefined){
       if (opcode !== undefined) cpu.mmu.writeByteAt(cpu.pc(), opcode);
       if (param1 !== undefined) cpu.mmu.writeByteAt(cpu.pc()+1, param1);
       if (param2 !== undefined) cpu.mmu.writeByteAt(cpu.pc()+2, param2);
@@ -132,7 +132,6 @@ describe('CPU Instruction Set', function() {
     
     it('should jump JP to address', () => {
       const m = cpu.m();
-      const pc = cpu.pc();
       cpu.mockInstruction(0xc3/* jp */, 0x23, 0x01);
 
       cpu.execute();
@@ -2954,7 +2953,6 @@ describe('CPU Instruction Set', function() {
     it('should return from interruption', () => {
       const addr = 0xabcd;
       const sp = cpu.sp();
-      const pc = cpu.pc();
       cpu.ld_hl_nn(addr);
       cpu.push_hl();
       assert.equal(cpu.sp(), sp - 2, 'sp decreased');
@@ -3070,23 +3068,6 @@ describe('CPU Instruction Set', function() {
     });
   });
 });
-
-/**
- * Asserts that a register is decremented.
- * @param cpu
- * @param registerFn
- * @param decFn
- */
-function assertDecrementRegister(cpu, registerFn, decFn){
-  const value = registerFn.call(cpu);
-  const m = cpu.m();
-  let expected = value - 1;
-  if (value === 0) expected = 0xff;
-
-  decFn.call(cpu);
-
-  assert.equal(registerFn.call(cpu), expected, `decrement ${registerFn.name}`);
-}
 
 function assertFlagsCompareGreaterValue(cpu){
   assert.equal(cpu.Z(), 0, 'Z reset as a < n');
