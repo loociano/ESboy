@@ -171,47 +171,52 @@ describe('CPU Instruction Set', function() {
     describe('Jump with signed integer', () => {
 
       it('should jump around lowest address memory', () => {
-        const maxJump = 0x7f;
-        const minJump = 0x80;
+        const maxJump = 0x7f; // +127
+        const minJump = 0x80; // -128
         const instrLength = 2;
         const pc = cpu.pc();
-        cpu.setPC(pc + instrLength);
+        const m = cpu.m();
+        cpu.mockInstruction(0x18/* jr e */, maxJump);
       
-        cpu.jr_e(maxJump);
+        cpu.execute();
 
         assert.equal(cpu.pc() - pc, maxJump + instrLength);
+        assert.equal(cpu.m() - m, 3, 'JR e runs in 3 machine cycles');
 
-        cpu.setPC(0 + instrLength);
+        cpu.setPC(pc);
+        cpu.mockInstruction(0x18/* jr e */, minJump);
 
-        cpu.jr_e(minJump);
+        cpu.execute();
 
-        assert.equal(cpu.pc(), 0xff82);
+        assert.equal(cpu.pc() - pc, Utils.uint8ToInt8(minJump) + instrLength); // ok as long as pc >= 126
       });
 
       it('should jump around highest address memory', () => {
-        const max = 0x7f;
-        cpu.setPC(0xffff); // 0xfffd + 2
+        const maxJump = 0x7f;
+        cpu.setPC(0xfffe);
+        cpu.mockInstruction(0x18/* jr e */, maxJump);
       
-        cpu.jr_e(max);
+        cpu.execute();
 
-        assert.equal(cpu.pc(), 0x007e); // 0xfffd + 0x7f
+        assert.equal(cpu.pc(), 0x007f); // 0xfffe + 2 + 0x7f
 
-        const min = 0x80;
-        cpu.setPC(0xffff); // 0xfffd + 2
+        const minJump = 0x80;
+        cpu.setPC(0xfffe);
+        cpu.mockInstruction(0x18/* jr e */, minJump);
 
-        cpu.jr_e(min);
+        cpu.execute();
 
-        assert.equal(cpu.pc(), 0xff7f); // 0xfffd - 0x80
+        assert.equal(cpu.pc(), 0xff80);
       });
 
       it('should jump to same address', () => {
-        const addr = 0xc000;
-        const s_int = 0xfe; // -2
-        cpu.setPC(addr + 2);
+        const jump = 0xfe; // -2
+        const pc = cpu.pc();
+        cpu.mockInstruction(0x18/* jr e */, jump);
 
-        cpu.jr_e(s_int);
+        cpu.execute();
 
-        assert.equal(cpu.pc(), addr);
+        assert.equal(cpu.pc() - pc, 0);
       });
     });
 
@@ -243,12 +248,12 @@ describe('CPU Instruction Set', function() {
         cpu.setPC(0x100);
         const m = cpu.m();
 
-        cpu.jr_e(0x01);
+        cpu._jr_e(0x01);
 
         assert.equal(cpu.pc(), 0x100 + 1, 'jump forward');
         assert.equal(cpu.m() - m, 3, 'JR machine cycles');
 
-        cpu.jr_e(0xfc); // -4
+        cpu._jr_e(0xfc); // -4
 
         assert.equal(cpu.pc(), 0x101 - 4, 'jump backward');
       });
