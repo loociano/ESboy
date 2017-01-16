@@ -753,12 +753,6 @@ export default class MMU {
         this._handle_lcd_off();
         break;
     }
-    switch(n & this.MASK_OBJ_8x16){
-      case 0:
-        break;
-      default:
-        throw new Error('OBJ 8x16 unsupported');
-    }
     if ((n & this.MASK_BG_CODE_AREA_2) !== (this.lcdc() & this.MASK_BG_CODE_AREA_2)){
       this._resetDrawnTileLines();
     }
