@@ -2040,8 +2040,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var CPU = function () {
 
   /**
-   * @param {MMU} mmu
-   * @param {LCD} lcd
+   * @param {MMU|MMUMock} mmu
+   * @param {LCD|LCDMock} lcd
    */
   function CPU(mmu, lcd) {
     _classCallCheck(this, CPU);
@@ -2103,7 +2103,7 @@ var CPU = function () {
     this._attach_bit_functions();
 
     this._instructions = {
-      0x00: { fn: this.nop, paramBytes: 0 },
+      0x00: { fn: this._nop, paramBytes: 0 },
       0x01: { fn: this.ld_bc_nn, paramBytes: 2 },
       0x02: { fn: this.ld_0xbc_a, paramBytes: 0 },
       0x03: { fn: this.inc_bc, paramBytes: 0 },
@@ -2127,7 +2127,7 @@ var CPU = function () {
       0x15: { fn: this.dec_d, paramBytes: 0 },
       0x16: { fn: this.ld_d_n, paramBytes: 1 },
       0x17: { fn: this.rla, paramBytes: 0 },
-      0x18: { fn: this.jr_e, paramBytes: 1 },
+      0x18: { fn: this._jr_e, paramBytes: 1 },
       0x19: { fn: this.add_hl_de, paramBytes: 0 },
       0x1a: { fn: this.ld_a_0xde, paramBytes: 0 },
       0x1b: { fn: this.dec_de, paramBytes: 0 },
@@ -2135,7 +2135,7 @@ var CPU = function () {
       0x1d: { fn: this.dec_e, paramBytes: 0 },
       0x1e: { fn: this.ld_e_n, paramBytes: 1 },
       0x1f: { fn: this.rra, paramBytes: 0 },
-      0x20: { fn: this.jr_nz_n, paramBytes: 1 },
+      0x20: { fn: this._jr_nz_n, paramBytes: 1 },
       0x21: { fn: this.ld_hl_nn, paramBytes: 2 },
       0x22: { fn: this.ldi_0xhl_a, paramBytes: 0 },
       0x23: { fn: this.inc_hl, paramBytes: 0 },
@@ -2143,7 +2143,7 @@ var CPU = function () {
       0x25: { fn: this.dec_h, paramBytes: 0 },
       0x26: { fn: this.ld_h_n, paramBytes: 1 },
       0x27: { fn: this.daa, paramBytes: 0 },
-      0x28: { fn: this.jr_z_n, paramBytes: 1 },
+      0x28: { fn: this._jr_z_n, paramBytes: 1 },
       0x29: { fn: this.add_hl_hl, paramBytes: 0 },
       0x2a: { fn: this.ldi_a_0xhl, paramBytes: 0 },
       0x2b: { fn: this.dec_hl, paramBytes: 0 },
@@ -2151,22 +2151,22 @@ var CPU = function () {
       0x2d: { fn: this.dec_l, paramBytes: 0 },
       0x2e: { fn: this.ld_l_n, paramBytes: 1 },
       0x2f: { fn: this.cpl, paramBytes: 0 },
-      0x30: { fn: this.jr_nc_n, paramBytes: 1 },
+      0x30: { fn: this._jr_nc_n, paramBytes: 1 },
       0x31: { fn: this.ld_sp_nn, paramBytes: 2 },
       0x32: { fn: this.ldd_0xhl_a, paramBytes: 0 },
       0x33: { fn: this.inc_sp, paramBytes: 0 },
       0x34: { fn: this.inc_0xhl, paramBytes: 0 },
       0x35: { fn: this.dec_0xhl, paramBytes: 0 },
       0x36: { fn: this.ld_0xhl_n, paramBytes: 1 },
-      0x37: { fn: this.scf, paramBytes: 0 },
-      0x38: { fn: this.jr_c_n, paramBytes: 1 },
+      0x37: { fn: this._scf, paramBytes: 0 },
+      0x38: { fn: this._jr_c_n, paramBytes: 1 },
       0x39: { fn: this.add_hl_sp, paramBytes: 0 },
       0x3a: { fn: this.ldd_a_0xhl, paramBytes: 0 },
       0x3b: { fn: this.dec_sp, paramBytes: 0 },
       0x3c: { fn: this.inc_a, paramBytes: 0 },
       0x3d: { fn: this.dec_a, paramBytes: 0 },
       0x3e: { fn: this.ld_a_n, paramBytes: 1 },
-      0x3f: { fn: this.ccf, paramBytes: 0 },
+      0x3f: { fn: this._ccf, paramBytes: 0 },
       0x40: { fn: this.ld_b_b, paramBytes: 0 },
       0x41: { fn: this.ld_b_c, paramBytes: 0 },
       0x42: { fn: this.ld_b_d, paramBytes: 0 },
@@ -2263,14 +2263,14 @@ var CPU = function () {
       0x9d: { fn: this.sbc_l, paramBytes: 0 },
       0x9e: { fn: this.sbc_0xhl, paramBytes: 0 },
       0x9f: { fn: this.sbc_a, paramBytes: 0 },
-      0xa0: { fn: this.and_b, paramBytes: 0 },
-      0xa1: { fn: this.and_c, paramBytes: 0 },
-      0xa2: { fn: this.and_d, paramBytes: 0 },
-      0xa3: { fn: this.and_e, paramBytes: 0 },
-      0xa4: { fn: this.and_h, paramBytes: 0 },
-      0xa5: { fn: this.and_l, paramBytes: 0 },
-      0xa6: { fn: this.and_0xhl, paramBytes: 0 },
-      0xa7: { fn: this.and_a, paramBytes: 0 },
+      0xa0: { fn: this._and_b, paramBytes: 0 },
+      0xa1: { fn: this._and_c, paramBytes: 0 },
+      0xa2: { fn: this._and_d, paramBytes: 0 },
+      0xa3: { fn: this._and_e, paramBytes: 0 },
+      0xa4: { fn: this._and_h, paramBytes: 0 },
+      0xa5: { fn: this._and_l, paramBytes: 0 },
+      0xa6: { fn: this._and_0xhl, paramBytes: 0 },
+      0xa7: { fn: this._and_a, paramBytes: 0 },
       0xa8: { fn: this.xor_b, paramBytes: 0 },
       0xa9: { fn: this.xor_c, paramBytes: 0 },
       0xaa: { fn: this.xor_d, paramBytes: 0 },
@@ -2297,15 +2297,15 @@ var CPU = function () {
       0xbf: { fn: this.cp_a, paramBytes: 0 },
       0xc0: { fn: this.ret_nz, paramBytes: 0 },
       0xc1: { fn: this.pop_bc, paramBytes: 0 },
-      0xc2: { fn: this.jp_nz_nn, paramBytes: 2 },
-      0xc3: { fn: this.jp, paramBytes: 2 },
+      0xc2: { fn: this._jp_nz_nn, paramBytes: 2 },
+      0xc3: { fn: this._jp, paramBytes: 2 },
       0xc4: { fn: this.call_nz, paramBytes: 2 },
       0xc5: { fn: this.push_bc, paramBytes: 0 },
       0xc6: { fn: this.add_n, paramBytes: 1 },
       0xc7: { fn: this.rst_00, paramBytes: 0 },
       0xc8: { fn: this.ret_z, paramBytes: 0 },
       0xc9: { fn: this.ret, paramBytes: 0 },
-      0xca: { fn: this.jp_z_nn, paramBytes: 2 },
+      0xca: { fn: this._jp_z_nn, paramBytes: 2 },
       0xcb00: { fn: this.rlc_b, paramBytes: 0 },
       0xcb01: { fn: this.rlc_c, paramBytes: 0 },
       0xcb02: { fn: this.rlc_d, paramBytes: 0 },
@@ -2568,7 +2568,7 @@ var CPU = function () {
       0xcf: { fn: this.rst_08, paramBytes: 0 },
       0xd0: { fn: this.ret_nc, paramBytes: 0 },
       0xd1: { fn: this.pop_de, paramBytes: 0 },
-      0xd2: { fn: this.jp_nc_nn, paramBytes: 2 },
+      0xd2: { fn: this._jp_nc_nn, paramBytes: 2 },
       0xd3: { fn: this._noSuchOpcode, paramBytes: 0 },
       0xd4: { fn: this.call_nc, paramBytes: 2 },
       0xd5: { fn: this.push_de, paramBytes: 0 },
@@ -2576,7 +2576,7 @@ var CPU = function () {
       0xd7: { fn: this.rst_10, paramBytes: 0 },
       0xd8: { fn: this.ret_c, paramBytes: 0 },
       0xd9: { fn: this.reti, paramBytes: 0 },
-      0xda: { fn: this.jp_c_nn, paramBytes: 2 },
+      0xda: { fn: this._jp_c_nn, paramBytes: 2 },
       0xdb: { fn: this._noSuchOpcode, paramBytes: 0 },
       0xdc: { fn: this.call_c, paramBytes: 2 },
       0xdd: { fn: this._noSuchOpcode, paramBytes: 0 },
@@ -2588,10 +2588,10 @@ var CPU = function () {
       0xe3: { fn: this._noSuchOpcode, paramBytes: 0 },
       0xe4: { fn: this._noSuchOpcode, paramBytes: 0 },
       0xe5: { fn: this.push_hl, paramBytes: 0 },
-      0xe6: { fn: this.and_n, paramBytes: 1 },
+      0xe6: { fn: this._and_n, paramBytes: 1 },
       0xe7: { fn: this.rst_20, paramBytes: 0 },
       0xe8: { fn: this.add_sp_e, paramBytes: 1 },
-      0xe9: { fn: this.jp_hl, paramBytes: 0 },
+      0xe9: { fn: this._jp_hl, paramBytes: 0 },
       0xea: { fn: this.ld_0xnn_a, paramBytes: 2 },
       0xeb: { fn: this._noSuchOpcode, paramBytes: 0 },
       0xec: { fn: this._noSuchOpcode, paramBytes: 0 },
@@ -2914,30 +2914,40 @@ var CPU = function () {
   }, {
     key: 'ie',
     value: function ie() {
-      return this.mmu.ie();
+      return this.mmu.readByteAt(this.mmu.ADDR_IE);
     }
 
     /**
-     * @returns {*|number} interrupt flags
-     * @constructor
+     * Sets value on Interrupt Enable Register
+     * @param value
+     */
+
+  }, {
+    key: 'setIe',
+    value: function setIe(value) {
+      this.mmu.writeByteAt(this.mmu.ADDR_IE, value);
+    }
+
+    /**
+     * Reads the interrupt request register
+     * @returns {number}
      */
 
   }, {
     key: 'If',
     value: function If() {
-      return this.mmu.If();
+      return this.mmu.readByteAt(this.mmu.ADDR_IF);
     }
 
     /**
      * Sets Interrupt flags
      * @param value
-     * @returns {*}
      */
 
   }, {
-    key: 'setIf',
-    value: function setIf(value) {
-      this.mmu.setIf(value);
+    key: '_setIf',
+    value: function _setIf(value) {
+      this.mmu.writeByteAt(this.mmu.ADDR_IF, value);
     }
 
     /**
@@ -3081,7 +3091,7 @@ var CPU = function () {
         var m = this._m;
 
         if (!this.isHalted()) {
-          this._execute();
+          this.execute();
         } else {
           this._m++;
         }
@@ -3110,7 +3120,7 @@ var CPU = function () {
   }, {
     key: '_isLYCInterrupt',
     value: function _isLYCInterrupt() {
-      return (this.mmu.ie() & this.mmu.If() & this.mmu.IF_STAT_ON) >> 1 === 1;
+      return (this.ie() & this.If() & this.mmu.IF_STAT_ON) >> 1 === 1;
     }
 
     /**
@@ -3123,7 +3133,7 @@ var CPU = function () {
       if (this._r.ime === 0) {
         return false;
       }
-      this.setIf(this.If() & this.mmu.IF_STAT_OFF);
+      this._setIf(this.If() & this.mmu.IF_STAT_OFF);
       this._rst_48();
     }
 
@@ -3250,7 +3260,7 @@ var CPU = function () {
     key: '_afterBIOS',
     value: function _afterBIOS() {
       this.mmu.setRunningBIOS(false);
-      this.mmu.setIe(0x00);
+      this.setIe(0x00);
       this.mmu.setLy(0x00);
       this._r.c = 0x13; // there's a bug somewhere that leaves c=0x14
     }
@@ -3300,7 +3310,7 @@ var CPU = function () {
   }, {
     key: 'isVBlank',
     value: function isVBlank() {
-      if (this._r.ime === 1 && (this.mmu.ie() & this.mmu.If() & this.IF_VBLANK_ON) === 1) {
+      if (this._r.ime === 1 && (this.ie() & this.If() & this.IF_VBLANK_ON) === 1) {
         if (this._lastInstrWasEI) {
           this._lastInstrWasEI = false;
           return false; // wait one instruction more
@@ -3319,7 +3329,7 @@ var CPU = function () {
   }, {
     key: '_triggerVBlank',
     value: function _triggerVBlank() {
-      this.mmu.setIf(this.If() | this.IF_VBLANK_ON);
+      this._setIf(this.If() | this.IF_VBLANK_ON);
     }
 
     /**
@@ -3330,7 +3340,7 @@ var CPU = function () {
   }, {
     key: '_resetVBlank',
     value: function _resetVBlank() {
-      this.mmu.setIf(this.If() & this.IF_VBLANK_OFF);
+      this._setIf(this.If() & this.IF_VBLANK_OFF);
     }
 
     /**
@@ -3347,13 +3357,12 @@ var CPU = function () {
     }
 
     /**
-     * Executes the next instruction and increases the pc.
-     * @private
+     * Executes the next instruction and increases the program counter.
      */
 
   }, {
-    key: '_execute',
-    value: function _execute() {
+    key: 'execute',
+    value: function execute() {
 
       var opcode = this._nextOpcode();
 
@@ -3438,11 +3447,12 @@ var CPU = function () {
     /**
      * Jumps to address
      * @param {number} nn 16 bits
+     * @private
      */
 
   }, {
-    key: 'jp',
-    value: function jp(nn) {
+    key: '_jp',
+    value: function _jp(nn) {
       this._r.pc = nn;
       this._m += 4;
     }
@@ -3453,8 +3463,8 @@ var CPU = function () {
      */
 
   }, {
-    key: 'jr_e',
-    value: function jr_e(signed) {
+    key: '_jr_e',
+    value: function _jr_e(signed) {
       var nextAddress = this._r.pc + _utils2.default.uint8ToInt8(signed);
       if (nextAddress < 0) {
         nextAddress += 0x10000;
@@ -3467,22 +3477,24 @@ var CPU = function () {
 
     /**
      * Jumps to address contained in hl.
+     * @private
      */
 
   }, {
-    key: 'jp_hl',
-    value: function jp_hl() {
+    key: '_jp_hl',
+    value: function _jp_hl() {
       this._r.pc = this.hl();
       this._m++;
     }
 
     /**
      * No operation.
+     * @private
      */
 
   }, {
-    key: 'nop',
-    value: function nop() {
+    key: '_nop',
+    value: function _nop() {
       this._m++;
     }
 
@@ -3491,9 +3503,9 @@ var CPU = function () {
      */
 
   }, {
-    key: 'and_a',
-    value: function and_a() {
-      this._and_n(this._r.a);
+    key: '_and_a',
+    value: function _and_a() {
+      this.__and_n(this._r.a);
     }
 
     /**
@@ -3501,9 +3513,9 @@ var CPU = function () {
      */
 
   }, {
-    key: 'and_b',
-    value: function and_b() {
-      this._and_n(this._r.b);
+    key: '_and_b',
+    value: function _and_b() {
+      this.__and_n(this._r.b);
     }
 
     /**
@@ -3511,9 +3523,9 @@ var CPU = function () {
      */
 
   }, {
-    key: 'and_c',
-    value: function and_c() {
-      this._and_n(this._r.c);
+    key: '_and_c',
+    value: function _and_c() {
+      this.__and_n(this._r.c);
     }
 
     /**
@@ -3521,9 +3533,9 @@ var CPU = function () {
      */
 
   }, {
-    key: 'and_d',
-    value: function and_d() {
-      this._and_n(this._r.d);
+    key: '_and_d',
+    value: function _and_d() {
+      this.__and_n(this._r.d);
     }
 
     /**
@@ -3531,9 +3543,9 @@ var CPU = function () {
      */
 
   }, {
-    key: 'and_e',
-    value: function and_e() {
-      this._and_n(this._r.e);
+    key: '_and_e',
+    value: function _and_e() {
+      this.__and_n(this._r.e);
     }
 
     /**
@@ -3541,9 +3553,9 @@ var CPU = function () {
      */
 
   }, {
-    key: 'and_h',
-    value: function and_h() {
-      this._and_n(this._r.h);
+    key: '_and_h',
+    value: function _and_h() {
+      this.__and_n(this._r.h);
     }
 
     /**
@@ -3551,9 +3563,9 @@ var CPU = function () {
      */
 
   }, {
-    key: 'and_l',
-    value: function and_l() {
-      this._and_n(this._r.l);
+    key: '_and_l',
+    value: function _and_l() {
+      this.__and_n(this._r.l);
     }
 
     /**
@@ -3561,9 +3573,9 @@ var CPU = function () {
      */
 
   }, {
-    key: 'and_0xhl',
-    value: function and_0xhl() {
-      this._and_n(this._0xhl());
+    key: '_and_0xhl',
+    value: function _and_0xhl() {
+      this.__and_n(this._0xhl());
     }
 
     /**
@@ -3572,9 +3584,9 @@ var CPU = function () {
      */
 
   }, {
-    key: 'and_n',
-    value: function and_n(n) {
-      this._and_n(n);
+    key: '_and_n',
+    value: function _and_n(n) {
+      this.__and_n(n);
       this._m++;
     }
 
@@ -3585,14 +3597,14 @@ var CPU = function () {
      */
 
   }, {
-    key: '_and_n',
-    value: function _and_n(n) {
+    key: '__and_n',
+    value: function __and_n(n) {
       if (this._r.a &= n) {
-        this.setZ(0);
+        this._setZ(0);
       } else {
-        this.setZ(1);
+        this._setZ(1);
       }
-      this.setN(0);this.setH(1);this.setC(0);
+      this._setN(0);this._setH(1);this._setC(0);
       this._m++;
     }
 
@@ -3698,11 +3710,11 @@ var CPU = function () {
     key: '_or_n',
     value: function _or_n(n) {
       if (this._r.a |= n) {
-        this.setZ(0);
+        this._setZ(0);
       } else {
-        this.setZ(1);
+        this._setZ(1);
       }
-      this.setN(0);this.setH(0);this.setC(0);
+      this._setN(0);this._setH(0);this._setC(0);
       this._m++;
     }
 
@@ -3809,7 +3821,7 @@ var CPU = function () {
       this._r.a ^= n;
       this._resetAllFlags();
       if (this._r.a === 0) {
-        this.setZ(1);
+        this._setZ(1);
       }
       this._m++;
     }
@@ -3839,8 +3851,8 @@ var CPU = function () {
      */
 
   }, {
-    key: 'setZ',
-    value: function setZ(value) {
+    key: '_setZ',
+    value: function _setZ(value) {
       if (value === 1) {
         this._r._f |= 0x80;
       } else if (value === 0) {
@@ -3865,8 +3877,8 @@ var CPU = function () {
      */
 
   }, {
-    key: 'setN',
-    value: function setN(value) {
+    key: '_setN',
+    value: function _setN(value) {
       if (value === 1) {
         this._r._f |= 0x40;
       } else if (value === 0) {
@@ -3891,8 +3903,8 @@ var CPU = function () {
      */
 
   }, {
-    key: 'setH',
-    value: function setH(value) {
+    key: '_setH',
+    value: function _setH(value) {
       if (value === 1) {
         this._r._f |= 0x20;
       } else if (value === 0) {
@@ -3917,8 +3929,8 @@ var CPU = function () {
      */
 
   }, {
-    key: 'setC',
-    value: function setC(value) {
+    key: '_setC',
+    value: function _setC(value) {
       if (value === 1) {
         this._r._f |= 0x10;
       } else if (value === 0) {
@@ -3930,27 +3942,29 @@ var CPU = function () {
 
     /**
      * Sets carry flag
+     * @private
      */
 
   }, {
-    key: 'scf',
-    value: function scf() {
-      this.setC(1);
-      this.setN(0);
-      this.setH(0);
+    key: '_scf',
+    value: function _scf() {
+      this._setC(1);
+      this._setN(0);
+      this._setH(0);
       this._m++;
     }
 
     /**
      * Complements carry flag
+     * @private
      */
 
   }, {
-    key: 'ccf',
-    value: function ccf() {
-      if (this.C() === 0) this.setC(1);else this.setC(0);
-      this.setN(0);
-      this.setH(0);
+    key: '_ccf',
+    value: function _ccf() {
+      if (this.C() === 0) this._setC(1);else this._setC(0);
+      this._setN(0);
+      this._setH(0);
       this._m++;
     }
 
@@ -4442,12 +4456,12 @@ var CPU = function () {
     key: '_dec_r',
     value: function _dec_r(r) {
 
-      this.setN(1); // subtracting
+      this._setN(1); // subtracting
 
       if ((this._r[r] & 0x0f) === 0) {
-        this.setH(1); // half carry
+        this._setH(1); // half carry
       } else {
-        this.setH(0);
+        this._setH(0);
       }
 
       if (this._r[r] === 0) {
@@ -4457,9 +4471,9 @@ var CPU = function () {
       }
 
       if (this._r[r] === 0) {
-        this.setZ(1); // result is zero
+        this._setZ(1); // result is zero
       } else {
-        this.setZ(0);
+        this._setZ(0);
       }
       this._m++;
     }
@@ -4472,12 +4486,12 @@ var CPU = function () {
     key: 'dec_0xhl',
     value: function dec_0xhl() {
       var value = this._0xhl();
-      this.setN(1); // subtracting
+      this._setN(1); // subtracting
 
       if ((value & 0x0f) === 0) {
-        this.setH(1); // half carry
+        this._setH(1); // half carry
       } else {
-        this.setH(0);
+        this._setH(0);
       }
 
       if (value === 0) {
@@ -4487,9 +4501,9 @@ var CPU = function () {
       }
 
       if (value === 0) {
-        this.setZ(1); // result is zero
+        this._setZ(1); // result is zero
       } else {
-        this.setZ(0);
+        this._setZ(0);
       }
       this.mmu.writeByteAt(this.hl(), value);
       this._m += 2;
@@ -4572,12 +4586,12 @@ var CPU = function () {
 
     /**
      * Jumps to address nn if last operation was not zero.
-     * @param nn
+     * @param {number} nn 2bytes
      */
 
   }, {
-    key: 'jp_nz_nn',
-    value: function jp_nz_nn(nn) {
+    key: '_jp_nz_nn',
+    value: function _jp_nz_nn(nn) {
       this._jp_flag_nn(this.Z(), 0, nn);
     }
 
@@ -4587,8 +4601,8 @@ var CPU = function () {
      */
 
   }, {
-    key: 'jp_z_nn',
-    value: function jp_z_nn(nn) {
+    key: '_jp_z_nn',
+    value: function _jp_z_nn(nn) {
       this._jp_flag_nn(this.Z(), 1, nn);
     }
 
@@ -4604,7 +4618,7 @@ var CPU = function () {
     key: '_jp_flag_nn',
     value: function _jp_flag_nn(flag, valueToJump, nn) {
       if (flag === valueToJump) {
-        this.jp(nn);
+        this._jp(nn);
       } else {
         this._m += 3;
       }
@@ -4616,8 +4630,8 @@ var CPU = function () {
      */
 
   }, {
-    key: 'jp_nc_nn',
-    value: function jp_nc_nn(nn) {
+    key: '_jp_nc_nn',
+    value: function _jp_nc_nn(nn) {
       this._jp_flag_nn(this.C(), 0, nn);
     }
 
@@ -4627,8 +4641,8 @@ var CPU = function () {
      */
 
   }, {
-    key: 'jp_c_nn',
-    value: function jp_c_nn(nn) {
+    key: '_jp_c_nn',
+    value: function _jp_c_nn(nn) {
       this._jp_flag_nn(this.C(), 1, nn);
     }
 
@@ -4638,8 +4652,8 @@ var CPU = function () {
      */
 
   }, {
-    key: 'jr_nz_n',
-    value: function jr_nz_n(n) {
+    key: '_jr_nz_n',
+    value: function _jr_nz_n(n) {
       this._jr_flag_n(this.Z(), 0, n);
     }
 
@@ -4649,8 +4663,8 @@ var CPU = function () {
      */
 
   }, {
-    key: 'jr_z_n',
-    value: function jr_z_n(n) {
+    key: '_jr_z_n',
+    value: function _jr_z_n(n) {
       this._jr_flag_n(this.Z(), 1, n);
     }
 
@@ -4666,7 +4680,7 @@ var CPU = function () {
     key: '_jr_flag_n',
     value: function _jr_flag_n(flag, valueToJump, n) {
       if (flag === valueToJump) {
-        this.jr_e(n);
+        this._jr_e(n);
       } else {
         this._m += 2;
       }
@@ -4678,8 +4692,8 @@ var CPU = function () {
      */
 
   }, {
-    key: 'jr_nc_n',
-    value: function jr_nc_n(n) {
+    key: '_jr_nc_n',
+    value: function _jr_nc_n(n) {
       this._jr_flag_n(this.C(), 0, n);
     }
 
@@ -4689,8 +4703,8 @@ var CPU = function () {
      */
 
   }, {
-    key: 'jr_c_n',
-    value: function jr_c_n(n) {
+    key: '_jr_c_n',
+    value: function _jr_c_n(n) {
       this._jr_flag_n(this.C(), 1, n);
     }
 
@@ -4843,13 +4857,13 @@ var CPU = function () {
     key: '_cp_n',
     value: function _cp_n(n) {
 
-      this.setN(1);this.setZ(0);this.setC(0);
+      this._setN(1);this._setZ(0);this._setC(0);
       var diff = this._r.a - n;
 
       if (diff === 0) {
-        this.setZ(1);
+        this._setZ(1);
       } else if (diff < 0) {
-        this.setC(1);
+        this._setC(1);
       }
       this._m++;
     }
@@ -4865,11 +4879,11 @@ var CPU = function () {
     key: '_bit_b_r',
     value: function _bit_b_r(b, value) {
       if ((value & 1 << b) >> b) {
-        this.setZ(0);
+        this._setZ(0);
       } else {
-        this.setZ(1);
+        this._setZ(1);
       }
-      this.setN(0);this.setH(1);
+      this._setN(0);this._setH(1);
       this._m += 2;
     }
 
@@ -5161,18 +5175,18 @@ var CPU = function () {
 
       if (value === 0xff) {
         this.mmu.writeByteAt(this.hl(), 0x00);
-        this.setZ(1);
+        this._setZ(1);
       } else {
         this.mmu.writeByteAt(this.hl(), ++value);
-        this.setZ(0);
+        this._setZ(0);
       }
 
       if (value === 0x10) {
-        this.setH(1);
+        this._setH(1);
       } else {
-        this.setH(0);
+        this._setH(0);
       }
-      this.setN(0);
+      this._setN(0);
       this._m += 2;
     }
 
@@ -5187,17 +5201,17 @@ var CPU = function () {
     value: function _inc_r(r) {
       if (this._r[r] === 0xff) {
         this._r[r] = 0x00;
-        this.setZ(1);
+        this._setZ(1);
       } else {
         this._r[r]++;
-        this.setZ(0);
+        this._setZ(0);
       }
       if (this._r[r] === 0x10) {
-        this.setH(1);
+        this._setH(1);
       } else {
-        this.setH(0);
+        this._setH(0);
       }
-      this.setN(0);
+      this._setN(0);
       this._m++;
     }
 
@@ -6026,16 +6040,16 @@ var CPU = function () {
       value = rotated & 0xff;
       setter.call(this, value);
 
-      this.setC((rotated & 0x100) >> 8);
+      this._setC((rotated & 0x100) >> 8);
 
       if (value === 0) {
-        this.setZ(1);
+        this._setZ(1);
       } else {
-        this.setZ(0);
+        this._setZ(0);
       }
 
-      this.setN(0);
-      this.setH(0);
+      this._setN(0);
+      this._setH(0);
       this._m++;
     }
 
@@ -6141,18 +6155,18 @@ var CPU = function () {
 
 
       var value = getter.call(this);
-      this.setC(value & 0x01);
+      this._setC(value & 0x01);
       value = (value >> 1) + (carried << 7);
       setter.call(this, value);
 
       if (value === 0) {
-        this.setZ(1);
+        this._setZ(1);
       } else {
-        this.setZ(0);
+        this._setZ(0);
       }
 
-      this.setN(0);
-      this.setH(0);
+      this._setN(0);
+      this._setH(0);
       this._m++;
     }
 
@@ -6187,7 +6201,7 @@ var CPU = function () {
   }, {
     key: 'ret',
     value: function ret() {
-      this.jp(this._pop_nn());
+      this._jp(this._pop_nn());
     }
 
     /**
@@ -6198,7 +6212,7 @@ var CPU = function () {
     key: 'ret_nz',
     value: function ret_nz() {
       if (this.Z() === 0) {
-        this.jp(this._pop_nn());
+        this._jp(this._pop_nn());
         this._m++;
       } else {
         this._m += 2;
@@ -6213,7 +6227,7 @@ var CPU = function () {
     key: 'ret_z',
     value: function ret_z() {
       if (this.Z() === 1) {
-        this.jp(this._pop_nn());
+        this._jp(this._pop_nn());
         this._m++;
       } else {
         this._m += 2;
@@ -6228,7 +6242,7 @@ var CPU = function () {
     key: 'ret_nc',
     value: function ret_nc() {
       if (this.C() === 0) {
-        this.jp(this._pop_nn());
+        this._jp(this._pop_nn());
         this._m++;
       } else {
         this._m += 2;
@@ -6243,7 +6257,7 @@ var CPU = function () {
     key: 'ret_c',
     value: function ret_c() {
       if (this.C() === 1) {
-        this.jp(this._pop_nn());
+        this._jp(this._pop_nn());
         this._m++;
       } else {
         this._m += 2;
@@ -6257,7 +6271,7 @@ var CPU = function () {
   }, {
     key: 'reti',
     value: function reti() {
-      this.jp(this._pop_nn());
+      this._jp(this._pop_nn());
       this._r.ime = 1;
     }
 
@@ -6390,7 +6404,7 @@ var CPU = function () {
       var carry = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
 
 
-      this.setN(1);
+      this._setN(1);
 
       var subtract = value + carry;
       var diff = this._r.a - subtract;
@@ -6399,23 +6413,23 @@ var CPU = function () {
       if (diff < 0) {
         this._r.a += 0x100;
         nybble_a = 0xf0;
-        this.setC(1);
+        this._setC(1);
       } else {
-        this.setC(0);
+        this._setC(0);
       }
 
       this._r.a -= subtract;
 
       if (this._r.a === 0) {
-        this.setZ(1);
+        this._setZ(1);
       } else {
-        this.setZ(0);
+        this._setZ(0);
       }
 
       if ((this._r.a & 0xf0) < nybble_a) {
-        this.setH(1);
+        this._setH(1);
       } else {
-        this.setH(0);
+        this._setH(0);
       }
 
       this._m++;
@@ -6629,14 +6643,14 @@ var CPU = function () {
       var carry = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
 
 
-      this.setN(0);
+      this._setN(0);
       var add = value + carry;
 
       // Half carry
       if (add > 0x0f - (this._r.a & 0x0f)) {
-        this.setH(1);
+        this._setH(1);
       } else {
-        this.setH(0);
+        this._setH(0);
       }
 
       this._r.a = this._r.a + add;
@@ -6644,15 +6658,15 @@ var CPU = function () {
       // Carry
       if ((this._r.a & 0x100) > 0) {
         this._r.a -= 0x100;
-        this.setC(1);
+        this._setC(1);
       } else {
-        this.setC(0);
+        this._setC(0);
       }
 
       if (this._r.a === 0) {
-        this.setZ(1);
+        this._setZ(1);
       } else {
-        this.setZ(0);
+        this._setZ(0);
       }
       this._m++;
     }
@@ -6711,21 +6725,21 @@ var CPU = function () {
       var value = hl + nn;
 
       if ((value & 0xf000) > (hl & 0xf000)) {
-        this.setH(1);
+        this._setH(1);
       } else {
-        this.setH(0);
+        this._setH(0);
       }
 
       if ((value & 0x10000) > 0) {
         value -= 0x10000;
-        this.setC(1);
+        this._setC(1);
       } else {
-        this.setC(0);
+        this._setC(0);
       }
 
       this._set_hl(value);
 
-      this.setN(0);
+      this._setN(0);
       this._m += 2;
     }
 
@@ -6736,12 +6750,12 @@ var CPU = function () {
   }, {
     key: 'add_sp_e',
     value: function add_sp_e(signed) {
-      this.setN(0);this.setZ(0);this.setH(0);this.setC(0);
+      this._setN(0);this._setZ(0);this._setH(0);this._setC(0);
 
       var newValue = this._r.sp + _utils2.default.uint8ToInt8(signed);
 
       if (newValue > 0xffff) {
-        this.setC(1);this.setH(1);
+        this._setC(1);this._setH(1);
         this._r.sp -= 0x10000;
       }
       if (newValue < 0) {
@@ -6821,7 +6835,7 @@ var CPU = function () {
     key: 'cpl',
     value: function cpl() {
       this._r.a = _utils2.default.cplBin8(this._r.a);
-      this.setN(1);this.setH(1);
+      this._setN(1);this._setH(1);
       this._m++;
     }
 
@@ -6905,12 +6919,12 @@ var CPU = function () {
       var swapped = _utils2.default.swapNybbles(this._0xhl());
 
       if (swapped) {
-        this.setZ(0);
+        this._setZ(0);
       } else {
-        this.setZ(1);
+        this._setZ(1);
       }
       this._ld_0xhl_n(swapped);
-      this.setN(0);this.setH(0);this.setC(0);
+      this._setN(0);this._setH(0);this._setC(0);
       this._m++;
     }
 
@@ -6924,11 +6938,11 @@ var CPU = function () {
     key: '_swap_n',
     value: function _swap_n(r) {
       if (this._r[r] = _utils2.default.swapNybbles(this._r[r])) {
-        this.setZ(0);
+        this._setZ(0);
       } else {
-        this.setZ(1);
+        this._setZ(1);
       }
-      this.setN(0);this.setH(0);this.setC(0);
+      this._setN(0);this._setH(0);this._setC(0);
       this._m += 2;
     }
 
@@ -7044,7 +7058,7 @@ var CPU = function () {
     key: '_rst_n',
     value: function _rst_n(n) {
       this._push_pc();
-      this.jp(n);
+      this._jp(n);
     }
 
     /**
@@ -7448,16 +7462,16 @@ var CPU = function () {
       value = (rotated & 0xff) + carry;
       setter.call(this, value);
 
-      this.setC(carry);
+      this._setC(carry);
 
       if (value === 0) {
-        this.setZ(1);
+        this._setZ(1);
       } else {
-        this.setZ(0);
+        this._setZ(0);
       }
 
-      this.setN(0);
-      this.setH(0);
+      this._setN(0);
+      this._setH(0);
       this._m++;
     }
 
@@ -7477,16 +7491,16 @@ var CPU = function () {
       var rotated = (value >> 1) + (carried << 7);
       setter.call(this, rotated);
 
-      this.setC(carried);
+      this._setC(carried);
 
       if (value === 0) {
-        this.setZ(1);
+        this._setZ(1);
       } else {
-        this.setZ(0);
+        this._setZ(0);
       }
 
-      this.setN(0);
-      this.setH(0);
+      this._setN(0);
+      this._setH(0);
       this._m++;
     }
 
@@ -7711,18 +7725,18 @@ var CPU = function () {
         } else {
           this._r.a += 0x60;
         }
-        this.setC(1);
+        this._setC(1);
       } else {
-        this.setC(0);
+        this._setC(0);
       }
       this._r.a &= 0xff;
 
       if (this._r.a === 0) {
-        this.setZ(1);
+        this._setZ(1);
       } else {
-        this.setZ(0);
+        this._setZ(0);
       }
-      this.setH(0);
+      this._setH(0);
       this._m++;
     }
 
@@ -7791,17 +7805,17 @@ var CPU = function () {
     value: function ldhl_sp_n(n) {
       var value = this.sp() + _utils2.default.uint8ToInt8(n);
 
-      this.setZ(0);
-      this.setN(0);
+      this._setZ(0);
+      this._setN(0);
       if (Math.abs((this.sp() & 0xf000) - (value & 0xf000)) > 0x0fff) {
-        this.setH(1);
+        this._setH(1);
       } else {
-        this.setH(0);
+        this._setH(0);
       }
       if (value > 0xffff) {
-        this.setC(1);
+        this._setC(1);
       } else {
-        this.setC(0);
+        this._setC(0);
       }
       this.ld_hl_nn(value & 0xffff);
     }
@@ -8128,7 +8142,6 @@ var LCD = function () {
     this._ctxBG = ctxBG;
     this._ctxOBJ = ctxOBJ;
     this._ctxWindow = ctxWindow;
-    this._cache = {};
     this._bgp = null;
     this._obg0 = null;
     this._obg1 = null;
@@ -8171,11 +8184,6 @@ var LCD = function () {
         return;
       }
       this._readPalettes();
-
-      if (this._mmu._VRAMRefreshed) {
-        this._cache = {};
-        this._mmu._VRAMRefreshed = false;
-      }
 
       this._drawLineBG(line);
 
@@ -8338,17 +8346,39 @@ var LCD = function () {
   }, {
     key: '_drawLineOBJ',
     value: function _drawLineOBJ(line) {
+      var doubleOBJ = this._mmu.areOBJDouble();
+
       for (var n = 0; n < this._mmu.MAX_OBJ; n++) {
         var OBJ = this._mmu.getOBJ(n);
-        if (LCD._isValidOBJ(OBJ) && this._isOBJInLine(line, OBJ.y)) {
-          var y = OBJ.y - this._MAX_TILE_HEIGHT; /* tiles can be 8x16 pixels */
-          this._drawTileLine({
-            tileNumber: OBJ.chrCode,
-            tileLine: line - y,
-            startX: OBJ.x - this.TILE_WIDTH,
-            y: y,
-            OBJAttr: OBJ.attr
-          }, line, this._imageDataOBJ);
+        if (LCD._isValidOBJ(OBJ)) {
+
+          var chrCode = OBJ.chrCode;
+          if (doubleOBJ && chrCode % 2 !== 0) {
+            chrCode -= 1; // nearest even down
+          }
+
+          if (this._isOBJInLine(line, OBJ.y)) {
+            var y = OBJ.y - this._MAX_TILE_HEIGHT; /* tiles can be 8x16 pixels */
+            this._drawTileLine({
+              tileNumber: chrCode,
+              tileLine: line - y,
+              startX: OBJ.x - this.TILE_WIDTH,
+              y: y,
+              OBJAttr: OBJ.attr
+            }, line, this._imageDataOBJ);
+          }
+          if (doubleOBJ) {
+            if (this._isOBJInLine(line, OBJ.y + this._TILE_HEIGHT)) {
+              var _y = OBJ.y + this._TILE_HEIGHT - this._MAX_TILE_HEIGHT;
+              this._drawTileLine({
+                tileNumber: chrCode + 1,
+                tileLine: line - _y,
+                startX: OBJ.x - this.TILE_WIDTH,
+                y: _y,
+                OBJAttr: OBJ.attr
+              }, line, this._imageDataOBJ);
+            }
+          }
         }
       }
     }
@@ -8525,33 +8555,6 @@ var LCD = function () {
     }
 
     /**
-     * @param {number} tileNumber
-     * @param {number} tileLine
-     * @param {boolean} isOBJ
-     * @returns {Array} palette matrix from cache, recalculated whenever VRAM is updated.
-     * @private
-     */
-
-  }, {
-    key: '_getIntensityVector',
-    value: function _getIntensityVector(tileNumber, tileLine, isOBJ) {
-      var key = 'BG_' + tileNumber + '_' + tileLine + '_' + this._mmu.scx() + '_' + this._mmu.scy();
-
-      if (isOBJ) {
-        key = 'OBJ_' + tileNumber + '_' + tileLine;
-      }
-
-      var cached = this._cache[key];
-      if (cached) {
-        return cached;
-      } else {
-        var intensityVector = this._calculateIntensityVector(tileNumber, tileLine, isOBJ);
-        this._cache[key] = intensityVector;
-        return this._cache[key];
-      }
-    }
-
-    /**
      * Calculates palette matrix given a tile number.
      * Expensive operation.
      * @param {number} tileNumber
@@ -8562,8 +8565,8 @@ var LCD = function () {
      */
 
   }, {
-    key: '_calculateIntensityVector',
-    value: function _calculateIntensityVector(tileNumber, tileLine, isOBJ) {
+    key: '_getIntensityVector',
+    value: function _getIntensityVector(tileNumber, tileLine, isOBJ) {
       var tileLineData = void 0;
       if (isOBJ) {
         tileLineData = this._mmu.readOBJData(tileNumber, tileLine);
@@ -8608,6 +8611,7 @@ var LCD = function () {
   }, {
     key: '_isValidOBJ',
     value: function _isValidOBJ(OBJ) {
+      if (OBJ == null) return false;
       return OBJ.x !== 0 || OBJ.y !== 0 || OBJ.chrCode !== 0 || OBJ.attr !== 0;
     }
 
@@ -8885,7 +8889,8 @@ var MMU = function () {
     this.MASK_WINDOW_OFF = 0xdf;
     this.MASK_OBJ_ON = 0x02;
     this.MASK_OBJ_OFF = 0xfd;
-    this.MASK_OBJ_8x16 = 0x04;
+    this.MASK_OBJ_8x16_ON = 0x04;
+    this.MASK_OBJ_8x16_OFF = 0xfb;
     this.MASK_BG_ON = 0x01;
     this.MASK_BG_OFF = 0xfe;
 
@@ -8986,7 +8991,6 @@ var MMU = function () {
     this._inBIOS = true;
     this._isDMA = false;
     this._buttons = 0x0f; // Buttons unpressed, on HIGH
-    this._VRAMRefreshed = true;
     this._div = 0x0000; // Internal divider, register DIV is msb
     this._hasMBC1 = false;
     this._selectedBankNb = 1; // default is bank 1
@@ -9370,6 +9374,16 @@ var MMU = function () {
     }
 
     /**
+     * @returns {boolean} true if OBJ are double (8x16 pixels), false if 8x8 pixels.
+     */
+
+  }, {
+    key: 'areOBJDouble',
+    value: function areOBJDouble() {
+      return (this.lcdc() & this.MASK_OBJ_8x16_ON) === this.MASK_OBJ_8x16_ON;
+    }
+
+    /**
      * Writes a byte n into address
      * @param {number} 16 bit address
      * @param {number} byte
@@ -9405,7 +9419,6 @@ var MMU = function () {
           _logger2.default.info('Cannot write on VRAM now');
           return;
         }
-        this._VRAMRefreshed = true;
         if (this._isBgCodeArea(addr)) {
           this._clearDrawnTileLines(addr);
         }
@@ -9447,7 +9460,7 @@ var MMU = function () {
     value: function _updateStatLyc() {
       if (this.ly() === this.lyc()) {
         this.writeByteAt(this.ADDR_STAT, this.stat() | this.MASK_STAT_LYC_ON);
-        this.setIf(this.If() | this.IF_STAT_ON);
+        this._setIf(this._If() | this.IF_STAT_ON);
       } else {
         this.writeByteAt(this.ADDR_STAT, this.stat() & this.MASK_STAT_LYC_OFF);
       }
@@ -9648,12 +9661,6 @@ var MMU = function () {
           this._handle_lcd_off();
           break;
       }
-      switch (n & this.MASK_OBJ_8x16) {
-        case 0:
-          break;
-        default:
-          throw new Error('OBJ 8x16 unsupported');
-      }
       if ((n & this.MASK_BG_CODE_AREA_2) !== (this.lcdc() & this.MASK_BG_CODE_AREA_2)) {
         this._resetDrawnTileLines();
       }
@@ -9672,47 +9679,25 @@ var MMU = function () {
     }
 
     /**
-     * Sets value on Interrupt Enable Register
-     * @param value
-     */
-
-  }, {
-    key: 'setIe',
-    value: function setIe(value) {
-      this._memory[this.ADDR_IE] = value;
-    }
-
-    /**
-     * Reads the interrupt enable register
-     * @returns {number}
-     */
-
-  }, {
-    key: 'ie',
-    value: function ie() {
-      return this.readByteAt(this.ADDR_IE);
-    }
-
-    /**
      * Sets value on interrupt request register
      * @param value
      */
 
   }, {
-    key: 'setIf',
-    value: function setIf(value) {
+    key: '_setIf',
+    value: function _setIf(value) {
       this._memory[this.ADDR_IF] = value;
     }
 
     /**
-     * Reads the interrupt request register
-     * @returns {number}
+     * @returns {number} IF register
+     * @private
      */
 
   }, {
-    key: 'If',
-    value: function If() {
-      return this.readByteAt(this.ADDR_IF);
+    key: '_If',
+    value: function _If() {
+      return this._memory[this.ADDR_IF];
     }
 
     /**
@@ -10124,7 +10109,7 @@ var MMU = function () {
   }, {
     key: 'getOBJ',
     value: function getOBJ(number) {
-      if (number < 0 || number > 39) throw new Error('OBJ number out of range');
+      if (number < 0 || number > this.MAX_OBJ - 1) throw new Error('OBJ number out of range');
 
       var addr = this.ADDR_OAM_START + 4 * number;
       return {
