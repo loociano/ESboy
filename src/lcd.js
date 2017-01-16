@@ -203,10 +203,16 @@ export default class LCD {
     for(let n = 0; n < this._mmu.MAX_OBJ; n++){
       const OBJ = this._mmu.getOBJ(n);
       if (LCD._isValidOBJ(OBJ)){
+
+        let chrCode = OBJ.chrCode;
+        if (doubleOBJ && (chrCode % 2 !== 0)){
+          chrCode -= 1; // nearest even down
+        }
+
         if (this._isOBJInLine(line, OBJ.y)){
           const y = OBJ.y - this._MAX_TILE_HEIGHT; /* tiles can be 8x16 pixels */
           this._drawTileLine({
-            tileNumber: OBJ.chrCode,
+            tileNumber: chrCode,
             tileLine: line - y,
             startX: OBJ.x - this.TILE_WIDTH,
             y: y,
@@ -217,7 +223,7 @@ export default class LCD {
           if (this._isOBJInLine(line, OBJ.y + this._TILE_HEIGHT)){
             const y = OBJ.y + this._TILE_HEIGHT - this._MAX_TILE_HEIGHT;
             this._drawTileLine({
-              tileNumber: OBJ.chrCode + 1,
+              tileNumber: chrCode + 1,
               tileLine: line - y,
               startX: OBJ.x - this.TILE_WIDTH,
               y: y,

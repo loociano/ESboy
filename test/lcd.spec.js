@@ -487,6 +487,38 @@ describe('LCD', () => {
       }
     });
 
+    it('should draw 8x16 OBJs with odd CHAR codes', () => {
+      const mmu = lcd.getMMU();
+      mmu.areOBJDouble = () => true;
+      mmu.areOBJOn = () => true;
+      mmu.readOBJData = (tileNumber) => {
+        if (tileNumber === 2) {
+          return new Buffer('ff00', 'hex');
+        }
+        if (tileNumber === 3) {
+          return new Buffer('00ff', 'hex'); /* with double objs, non even tile numbers are picked consequently */
+        }
+        return new Buffer('0000', 'hex');
+      };
+      mmu.getOBJ = function(obj_number) {
+        if (obj_number === 0) {
+          // Chrcode 0x03 not valid, LCD will assume 0x02
+          return {y: 17, x: 16, chrCode: 0x03, attr: 0x00}; /* top: 1px, left: 8px */
+        }
+      };
+      mmu.readBGData = (any) => new Buffer('0000', 'hex');
+      mmu.getBgCharCode = (any) => 0x00;
+
+      lcd.drawTiles();
+
+      for(let l = 1; l < 17; l++){
+        if (l < 9)
+          lcd.assertLinePixels(l, 1, lcd.SHADES[1], lcd.getImageDataOBJ());
+        else
+          lcd.assertLinePixels(l, 1, lcd.SHADES[2], lcd.getImageDataOBJ());
+      }
+    });
+
     it('should write OBJ on top of BG', () => {
       const mmu = lcd.getMMU();
       mmu.readBGData = (any) => { return new Buffer('0000', 'hex'); };
