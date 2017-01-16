@@ -1886,7 +1886,7 @@ describe('CPU Instruction Set', function() {
         cpu.ldhl_sp_n(0x08);
 
         assert.equal(cpu.hl(), 0x0000);
-        assert.equal(cpu.f(), 0b0011, 'Half- and carry'); // TODO: Z flag?
+        assert.equal(cpu.f(), 0b0011, 'Half- and carry');
 
         cpu.ld_sp_nn(0xefff);
         cpu.ldhl_sp_n(0x01);
