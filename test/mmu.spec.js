@@ -332,7 +332,11 @@ describe('MMU', () => {
     });
 
     it('should detect OBJ 8x16 as unsupported based on LCDC bit 2', () => {
-      assert.throws( () => mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_OBJ_8x16), Error, '8x16 OBJ unsupported');
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_OBJ_8x16_ON);
+      assert.equal(mmu.areOBJDouble(), true);
+
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_OBJ_8x16_OFF);
+      assert.equal(mmu.areOBJDouble(), false);
     });
 
     it('should enable OBJ based on LCDC bit 1', () => {

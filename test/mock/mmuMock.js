@@ -119,4 +119,8 @@ export default class MMUMock {
   pressDown(){}
   pressLeft(){}
   pressRight(){}
+
+  areOBJDouble(){
+    return false;
+  }
 }

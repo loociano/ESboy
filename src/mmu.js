@@ -98,7 +98,8 @@ export default class MMU {
     this.MASK_WINDOW_OFF = 0xdf;
     this.MASK_OBJ_ON = 0x02;
     this.MASK_OBJ_OFF = 0xfd;
-    this.MASK_OBJ_8x16 = 0x04;
+    this.MASK_OBJ_8x16_ON = 0x04;
+    this.MASK_OBJ_8x16_OFF = 0xfb;
     this.MASK_BG_ON = 0x01;
     this.MASK_BG_OFF = 0xfe;
 
@@ -512,6 +513,13 @@ export default class MMU {
    */
   areOBJOn(){
     return (this.lcdc() & this.MASK_OBJ_ON) === this.MASK_OBJ_ON;
+  }
+
+  /**
+   * @returns {boolean} true if OBJ are double (8x16 pixels), false if 8x8 pixels.
+   */
+  areOBJDouble(){
+    return (this.lcdc() & this.MASK_OBJ_8x16_ON) === this.MASK_OBJ_8x16_ON;
   }
 
   /**
@@ -1091,7 +1099,7 @@ export default class MMU {
    * @returns {{y: number, x: number, chrCode: number, attr: number}}
    */
   getOBJ(number){
-    if (number < 0 || number > 39) throw new Error('OBJ number out of range');
+    if (number < 0 || number > this.MAX_OBJ-1) throw new Error('OBJ number out of range');
 
     const addr = this.ADDR_OAM_START + (4 * number);
     return {
