@@ -761,7 +761,16 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.H(), 1, 'Half carry');
       });
 
-      // TODO decrement with 0x01 to assert flag Z
+      it('should set flags when result is zero', () => {
+        cpu.resetFlags();
+        cpu._r.a = 0x01;
+        cpu.mockInstruction(0x3d/* DEC a */);
+
+        cpu.execute();
+
+        assert.equal(cpu.a(), 0x00);
+        assert.equal(cpu.f(), 0b1100, 'ZN..');
+      });
 
       it('should decrement a value at a memory location', () => {
         cpu.setC(0);
