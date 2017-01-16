@@ -98,7 +98,7 @@ export default class CPU {
       0x1d: {fn: this.dec_e, paramBytes: 0},
       0x1e: {fn: this.ld_e_n, paramBytes: 1},
       0x1f: {fn: this.rra, paramBytes: 0},
-      0x20: {fn: this.jr_nz_n, paramBytes: 1},
+      0x20: {fn: this._jr_nz_n, paramBytes: 1},
       0x21: {fn: this.ld_hl_nn, paramBytes: 2},
       0x22: {fn: this.ldi_0xhl_a, paramBytes: 0},
       0x23: {fn: this.inc_hl, paramBytes: 0},
@@ -260,7 +260,7 @@ export default class CPU {
       0xbf: {fn: this.cp_a, paramBytes: 0},
       0xc0: {fn: this.ret_nz, paramBytes: 0},
       0xc1: {fn: this.pop_bc, paramBytes: 0},
-      0xc2: {fn: this.jp_nz_nn, paramBytes: 2},
+      0xc2: {fn: this._jp_nz_nn, paramBytes: 2},
       0xc3: {fn: this._jp, paramBytes: 2},
       0xc4: {fn: this.call_nz, paramBytes: 2},
       0xc5: {fn: this.push_bc, paramBytes: 0},
@@ -2070,9 +2070,9 @@ export default class CPU {
 
   /**
    * Jumps to address nn if last operation was not zero.
-   * @param nn
+   * @param {number} nn 2bytes
    */
-  jp_nz_nn(nn){
+  _jp_nz_nn(nn){
     this._jp_flag_nn(this.Z(), 0, nn);
   }
 
@@ -2119,7 +2119,7 @@ export default class CPU {
    * Jumps to current address + n if last operation was not zero.
    * @param {number} n, signed integer
    */
-  jr_nz_n(n){
+  _jr_nz_n(n){
     this._jr_flag_n(this.Z(), 0, n);
   }
 
