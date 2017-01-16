@@ -292,58 +292,67 @@ describe('CPU Instruction Set', function() {
       it('should jump to address if Z is set', () => {
         cpu.setZ(1);
         const m = cpu.m();
+        cpu.mockInstruction(0xca/* JR Z,nn */, 0x00, 0xc0);
 
-        cpu.jp_z_nn(0xc000);
+        cpu.execute();
 
         assert.equal(cpu.pc(), 0xc000, 'jump to address');
-        assert.equal(cpu.m(), m+4, 'JP Z nn runs in 4 machine cycles if jumps');
+        assert.equal(cpu.m() - m, 4, 'JP Z nn runs in 4 machine cycles if jumps');
       });
 
       it('should not jump to address if Z is reset', () => {
         cpu.setZ(0);
+        const instrLength = 3;
         const pc = cpu.pc();
         const m = cpu.m();
+        cpu.mockInstruction(0xca/* JR Z,nn */, 0x00, 0xc0);
 
-        cpu.jp_z_nn(0xc000);
+        cpu.execute();
 
-        assert.equal(cpu.pc(), pc, 'do not jump to address');
-        assert.equal(cpu.m(), m+3, 'JP Z runs in 3 machine cycles if does not jump');
+        assert.equal(cpu.pc() - pc, instrLength, 'do not jump to address');
+        assert.equal(cpu.m() - m, 3, 'JP Z runs in 3 machine cycles if does not jump');
       });
     });
 
     describe('Jump Z with signed byte', () => {
       it('should jump forward if Z is set', () => {
         cpu.setZ(1);
+        const instrLength = 2;
         const pc = cpu.pc();
         const m = cpu.m();
+        cpu.mockInstruction(0x28/* JR Z,e */, 0x05);
 
-        cpu.jr_z_n(0x05);
+        cpu.execute();
 
-        assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0x05), 'jump forward');
-        assert.equal(cpu.m(), m+3, 'JR Z e runs in 3 machine cycles if jumps');
+        assert.equal(cpu.pc() - pc, Utils.uint8ToInt8(0x05) + instrLength, 'jump forward');
+        assert.equal(cpu.m() - m, 3, 'JR Z e runs in 3 machine cycles if jumps');
       });
 
       it('should jump backwards if Z is set', () => {
         cpu.setPC(0x100);
         cpu.setZ(1);
+        const instrLength = 2;
         const pc = cpu.pc();
         const m = cpu.m();
+        cpu.mockInstruction(0x28/* JR Z,e */, 0xfc/* -4 */);
 
-        cpu.jr_z_n(0xfc); // -4
+        cpu.execute();
 
-        assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0xfc), 'jump backward');
-        assert.equal(cpu.m(), m+3, 'JR Z e runs in 3 machine cycles if jumps');
+        assert.equal(cpu.pc() - pc, Utils.uint8ToInt8(0xfc) + instrLength, 'jump backward');
+        assert.equal(cpu.m() - m, 3, 'JR Z e runs in 3 machine cycles if jumps');
       });
 
       it('should not jump if Z is reset', () => {
         cpu.setZ(0);
+        const instrLength = 2;
         const pc = cpu.pc();
         const m = cpu.m();
+        cpu.mockInstruction(0x28/* JR Z,e */, 0xfc/* -4 */);
 
-        cpu.jr_z_n(0xfc);
+        cpu.execute()
 
-        assert.equal(cpu.pc(), pc, 'do not jump, move to the next instruction');
-        assert.equal(cpu.m(), m+2, 'JR Z e runs in 2 machine cycles if jumps');
+        assert.equal(cpu.pc() - pc, instrLength, 'do not jump, move to the next instruction');
+        assert.equal(cpu.m() - m, 2, 'JR Z e runs in 2 machine cycles if jumps');
       });
     });
 
@@ -351,58 +360,67 @@ describe('CPU Instruction Set', function() {
       it('should jump to address if Carry is reset', () => {
         cpu.setC(0);
         const m = cpu.m();
+        cpu.mockInstruction(0xd2/* JR NC,nn */, 0x00, 0xc0);
 
-        cpu.jp_nc_nn(0xc000);
+        cpu.execute();
 
         assert.equal(cpu.pc(), 0xc000, 'jump to address');
-        assert.equal(cpu.m(), m+4, 'Runs in 4 machine cycles if jumps');
+        assert.equal(cpu.m() - m, 4, 'Runs in 4 machine cycles if jumps');
       });
 
       it('should not jump to address if Carry is set', () => {
         cpu.setC(1);
+        const instrLength = 3;
         const pc = cpu.pc();
         const m = cpu.m();
+        cpu.mockInstruction(0xd2/* JR NC,nn */, 0x00, 0xc0);
 
-        cpu.jp_nc_nn(0xc000);
+        cpu.execute();
 
-        assert.equal(cpu.pc(), pc, 'do not jump to address');
-        assert.equal(cpu.m(), m+3, 'Runs in 3 machine cycles if does not jump');
+        assert.equal(cpu.pc() - pc, instrLength, 'do not jump to address');
+        assert.equal(cpu.m() - m, 3, 'Runs in 3 machine cycles if does not jump');
       });
     });
 
     describe('Jump NC with signed byte', () => {
       it('should jump forward if C is reset', () => {
         cpu.setC(0);
+        const instrLength = 2;
         const pc = cpu.pc();
         const m = cpu.m();
+        cpu.mockInstruction(0x30/* JR NC,e */, 0x05);
 
-        cpu.jr_nc_n(0x05);
+        cpu.execute();
 
-        assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0x05), 'jump forward');
-        assert.equal(cpu.m(), m+3, 'Runs in 3 machine cycles if jumps');
+        assert.equal(cpu.pc() - pc, Utils.uint8ToInt8(0x05) + instrLength, 'jump forward');
+        assert.equal(cpu.m() - m, 3, 'Runs in 3 machine cycles if jumps');
       });
 
       it('should jump backwards if C is reset', () => {
         cpu.setPC(0x100);
         cpu.setC(0);
+        const instrLength = 2;
         const pc = cpu.pc();
         const m = cpu.m();
+        cpu.mockInstruction(0x30/* JR NC,e */, 0xfc/* - 4 */);
 
-        cpu.jr_nc_n(0xfc); // -4
+        cpu.execute();
 
-        assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0xfc), 'jump backward');
-        assert.equal(cpu.m(), m+3, 'Runs in 3 machine cycles if jumps');
+        assert.equal(cpu.pc() - pc, Utils.uint8ToInt8(0xfc) + instrLength, 'jump backward');
+        assert.equal(cpu.m() - m, 3, 'Runs in 3 machine cycles if jumps');
       });
 
       it('should not jump if C is set', () => {
         cpu.setC(1);
+        const instrLength = 2;
         const pc = cpu.pc();
         const m = cpu.m();
+        cpu.mockInstruction(0x30/* JR NC,e */, 0xfc/* - 4 */);
 
-        cpu.jr_nc_n(0xfc);
+        cpu.execute();
 
-        assert.equal(cpu.pc(), pc, 'do not jump, move to the next instruction');
-        assert.equal(cpu.m(), m+2, 'Runs in 2 machine cycles if does not jump');
+        assert.equal(cpu.pc() - pc, instrLength, 'do not jump, move to the next instruction');
+        assert.equal(cpu.m() - m, 2, 'Runs in 2 machine cycles if does not jump');
       });
     });
 
@@ -410,58 +428,67 @@ describe('CPU Instruction Set', function() {
       it('should jump to address if Carry is set', () => {
         cpu.setC(1);
         const m = cpu.m();
+        cpu.mockInstruction(0xda/* JR C,nn */, 0x00, 0xc0);
 
-        cpu.jp_c_nn(0xc000);
+        cpu.execute();
 
         assert.equal(cpu.pc(), 0xc000, 'jump to address');
-        assert.equal(cpu.m(), m+4, 'Runs in 4 machine cycles if jumps');
+        assert.equal(cpu.m() - m, 4, 'Runs in 4 machine cycles if jumps');
       });
 
       it('should not jump to address if Carry is reset', () => {
         cpu.setC(0);
+        const instrLength = 3;
         const pc = cpu.pc();
         const m = cpu.m();
+        cpu.mockInstruction(0xda/* JR C,nn */, 0x00, 0xc0);
 
-        cpu.jp_c_nn(0xc000);
+        cpu.execute();
 
-        assert.equal(cpu.pc(), pc, 'do not jump to address');
-        assert.equal(cpu.m(), m+3, 'Runs in 3 machine cycles if does not jump');
+        assert.equal(cpu.pc() - pc, instrLength, 'do not jump to address');
+        assert.equal(cpu.m() - m, 3, 'Runs in 3 machine cycles if does not jump');
       });
     });
 
     describe('Jump C with signed byte', () => {
       it('should jump forward if C is set', () => {
         cpu.setC(1);
+        const instrLength = 2;
         const pc = cpu.pc();
         const m = cpu.m();
+        cpu.mockInstruction(0x38/* JR C,e */, 0x05);
 
-        cpu.jr_c_n(0x05);
+        cpu.execute();
 
-        assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0x05), 'jump forward');
-        assert.equal(cpu.m(), m+3, 'Runs in 3 machine cycles if jumps');
+        assert.equal(cpu.pc() - pc, Utils.uint8ToInt8(0x05) + instrLength, 'jump forward');
+        assert.equal(cpu.m() - m, 3, 'Runs in 3 machine cycles if jumps');
       });
 
       it('should jump backwards if C is set', () => {
         cpu.setPC(0x100);
         cpu.setC(1);
+        const instrLength = 2;
         const pc = cpu.pc();
         const m = cpu.m();
+        cpu.mockInstruction(0x38/* JR C,e */, 0xfc/* - 4 */);
 
-        cpu.jr_c_n(0xfc);
+        cpu.execute();
 
-        assert.equal(cpu.pc(), pc + Utils.uint8ToInt8(0xfc), 'jump backward');
-        assert.equal(cpu.m(), m+3, 'Runs in 3 machine cycles if jumps');
+        assert.equal(cpu.pc() - pc, Utils.uint8ToInt8(0xfc) + instrLength, 'jump backward');
+        assert.equal(cpu.m() - m, 3, 'Runs in 3 machine cycles if jumps');
       });
 
       it('should not jump if C is reset', () => {
         cpu.setC(0);
+        const instrLength = 2;
         const pc = cpu.pc();
         const m = cpu.m();
+        cpu.mockInstruction(0x38/* JR C,e */, 0xfc/* - 4 */);
 
-        cpu.jr_c_n(0xfc);
+        cpu.execute();
 
-        assert.equal(cpu.pc(), pc, 'do not jump, move to the next instruction');
-        assert.equal(cpu.m(), m+2, 'Runs in 2 machine cycles if does not jump');
+        assert.equal(cpu.pc() - pc, instrLength, 'do not jump, move to the next instruction');
+        assert.equal(cpu.m() - m, 2, 'Runs in 2 machine cycles if does not jump');
       });
     });
 

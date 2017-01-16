@@ -106,7 +106,7 @@ export default class CPU {
       0x25: {fn: this.dec_h, paramBytes: 0},
       0x26: {fn: this.ld_h_n, paramBytes: 1},
       0x27: {fn: this.daa, paramBytes: 0},
-      0x28: {fn: this.jr_z_n, paramBytes: 1},
+      0x28: {fn: this._jr_z_n, paramBytes: 1},
       0x29: {fn: this.add_hl_hl, paramBytes: 0},
       0x2a: {fn: this.ldi_a_0xhl, paramBytes: 0},
       0x2b: {fn: this.dec_hl, paramBytes: 0},
@@ -114,7 +114,7 @@ export default class CPU {
       0x2d: {fn: this.dec_l, paramBytes: 0},
       0x2e: {fn: this.ld_l_n, paramBytes: 1},
       0x2f: {fn: this.cpl, paramBytes: 0},
-      0x30: {fn: this.jr_nc_n, paramBytes: 1},
+      0x30: {fn: this._jr_nc_n, paramBytes: 1},
       0x31: {fn: this.ld_sp_nn, paramBytes: 2},
       0x32: {fn: this.ldd_0xhl_a, paramBytes: 0},
       0x33: {fn: this.inc_sp, paramBytes: 0},
@@ -122,7 +122,7 @@ export default class CPU {
       0x35: {fn: this.dec_0xhl, paramBytes: 0},
       0x36: {fn: this.ld_0xhl_n, paramBytes: 1},
       0x37: {fn: this._scf, paramBytes: 0},
-      0x38: {fn: this.jr_c_n, paramBytes: 1},
+      0x38: {fn: this._jr_c_n, paramBytes: 1},
       0x39: {fn: this.add_hl_sp, paramBytes: 0},
       0x3a: {fn: this.ldd_a_0xhl, paramBytes: 0},
       0x3b: {fn: this.dec_sp, paramBytes: 0},
@@ -268,7 +268,7 @@ export default class CPU {
       0xc7: {fn: this.rst_00, paramBytes: 0},
       0xc8: {fn: this.ret_z, paramBytes: 0},
       0xc9: {fn: this.ret, paramBytes: 0},
-      0xca: {fn: this.jp_z_nn, paramBytes: 2},
+      0xca: {fn: this._jp_z_nn, paramBytes: 2},
       0xcb00: {fn: this.rlc_b, paramBytes: 0},
       0xcb01: {fn: this.rlc_c, paramBytes: 0},
       0xcb02: {fn: this.rlc_d, paramBytes: 0},
@@ -531,7 +531,7 @@ export default class CPU {
       0xcf: {fn: this.rst_08, paramBytes: 0},
       0xd0: {fn: this.ret_nc, paramBytes: 0},
       0xd1: {fn: this.pop_de, paramBytes: 0},
-      0xd2: {fn: this.jp_nc_nn, paramBytes: 2},
+      0xd2: {fn: this._jp_nc_nn, paramBytes: 2},
       0xd3: {fn: this._noSuchOpcode, paramBytes: 0},
       0xd4: {fn: this.call_nc, paramBytes: 2},
       0xd5: {fn: this.push_de, paramBytes: 0},
@@ -539,7 +539,7 @@ export default class CPU {
       0xd7: {fn: this.rst_10, paramBytes: 0},
       0xd8: {fn: this.ret_c, paramBytes: 0},
       0xd9: {fn: this.reti, paramBytes: 0},
-      0xda: {fn: this.jp_c_nn, paramBytes: 2},
+      0xda: {fn: this._jp_c_nn, paramBytes: 2},
       0xdb: {fn: this._noSuchOpcode, paramBytes: 0},
       0xdc: {fn: this.call_c, paramBytes: 2},
       0xdd: {fn: this._noSuchOpcode, paramBytes: 0},
@@ -2080,7 +2080,7 @@ export default class CPU {
    * Jumps to address nn if last operation was zero.
    * @param nn
    */
-  jp_z_nn(nn){
+  _jp_z_nn(nn){
     this._jp_flag_nn(this.Z(), 1, nn);
   }
 
@@ -2103,7 +2103,7 @@ export default class CPU {
    * Jumps to address nn if last operation did not carry a bit.
    * @param nn
    */
-  jp_nc_nn(nn){
+  _jp_nc_nn(nn){
     this._jp_flag_nn(this.C(), 0, nn);
   }
 
@@ -2111,7 +2111,7 @@ export default class CPU {
    * Jumps to address nn if last operation carried a bit.
    * @param nn
    */
-  jp_c_nn(nn){
+  _jp_c_nn(nn){
     this._jp_flag_nn(this.C(), 1, nn);
   }
 
@@ -2127,7 +2127,7 @@ export default class CPU {
    * Jumps to current address + n if last operation was zero.
    * @param {number} n, signed integer
    */
-  jr_z_n(n){
+  _jr_z_n(n){
     this._jr_flag_n(this.Z(), 1, n);
   }
 
@@ -2150,7 +2150,7 @@ export default class CPU {
    * Jumps to current address + n if last operation did not carry 1 bit.
    * @param {number} n, signed integer
    */
-  jr_nc_n(n){
+  _jr_nc_n(n){
     this._jr_flag_n(this.C(), 0, n);
   }
 
@@ -2158,7 +2158,7 @@ export default class CPU {
    * Jumps to current address + n if last operation carried 1 bit
    * @param {number} n signed integer
    */
-  jr_c_n(n){
+  _jr_c_n(n){
     this._jr_flag_n(this.C(), 1, n);
   }
 
