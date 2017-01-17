@@ -43,6 +43,19 @@ describe('MBC1', () => {
 
   it('should switch ROM banks', () => {
     cpu.ld_hl_nn(0x2000);
+
+    cpu.ld_a_n(0);
+    cpu.ld_0xhl_a();
+
+    assert.equal(mmu.getSelectedBankNb(), 1);
+    assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
+
+    cpu.ld_a_n(1);
+    cpu.ld_0xhl_a();
+
+    assert.equal(mmu.getSelectedBankNb(), 1);
+    assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
+
     cpu.ld_a_n(2);
     cpu.ld_0xhl_a();
 
