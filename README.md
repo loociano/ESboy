@@ -1,6 +1,6 @@
 # Game Boy emulator in ECMAScript 6 [![Build Status](https://travis-ci.org/loociano/gb-ES6.svg?branch=master)](https://travis-ci.org/loociano/gb-ES6)
 
-GAME BOY&trade; running in your browser. [Compatibility List](https://github.com/loociano/gb-ES6/wiki/Compatibility-List)
+GAME BOY&trade; running in your browser. [Compatibility List](https://docs.google.com/spreadsheets/d/1CgXEuxLsH0WPpqzlgMZeTv59cBfNzp4G4MW6Z1QpTD0)
 
 Goal of this project is to write the GAME BOY&trade; CPU and rest of controllers (memory, gpu, timers, i/o etc) from scratch using ECMAScript 6, [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) and [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API).
 
