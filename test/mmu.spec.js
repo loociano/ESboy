@@ -653,7 +653,7 @@ describe('MMU', () => {
       });
 
       it('should get selected bank number', () => {
-        assert.equal(mmu.getSelectedBankNb(), 1, 'default is bank 1');
+        assert.equal(mmu.getSelectedROMBankNb(), 1, 'default is bank 1');
       });
     });
   });

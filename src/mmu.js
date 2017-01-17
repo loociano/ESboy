@@ -1167,7 +1167,7 @@ export default class MMU {
     return this._rom.length / this.ROM_BANK_SIZE;
   }
 
-  getSelectedBankNb(){
+  getSelectedROMBankNb(){
     return this._selectedBankNb;
   }
 

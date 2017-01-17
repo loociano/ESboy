@@ -28,7 +28,7 @@ describe('MBC1', () => {
     assert.equal(mmu.getRomSize(), '64KB');
     assert.equal(mmu.getNbBanks(), 4);
 
-    assert.equal(mmu.getSelectedBankNb(), 1);
+    assert.equal(mmu.getSelectedROMBankNb(), 1);
     assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
   });
 
@@ -47,44 +47,44 @@ describe('MBC1', () => {
     cpu.ld_a_n(0);
     cpu.ld_0xhl_a();
 
-    assert.equal(mmu.getSelectedBankNb(), 1);
+    assert.equal(mmu.getSelectedROMBankNb(), 1);
     assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
 
     cpu.ld_a_n(1);
     cpu.ld_0xhl_a();
 
-    assert.equal(mmu.getSelectedBankNb(), 1);
+    assert.equal(mmu.getSelectedROMBankNb(), 1);
     assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
 
     cpu.ld_a_n(2);
     cpu.ld_0xhl_a();
 
-    assert.equal(mmu.getSelectedBankNb(), 2);
+    assert.equal(mmu.getSelectedROMBankNb(), 2);
     assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 2]);
 
     cpu.ld_a_n(3);
     cpu.ld_0xhl_a();
 
-    assert.equal(mmu.getSelectedBankNb(), 3);
+    assert.equal(mmu.getSelectedROMBankNb(), 3);
     assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 3]);
 
     cpu.ld_a_n(4); // 4 mod 4 = 0
     cpu.ld_0xhl_a();
 
-    assert.equal(mmu.getSelectedBankNb(), 0);
+    assert.equal(mmu.getSelectedROMBankNb(), 0);
     assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[0]);
 
     cpu.ld_a_n(5); // 5 mod 4 = 1
     cpu.ld_0xhl_a();
 
-    assert.equal(mmu.getSelectedBankNb(), 1);
+    assert.equal(mmu.getSelectedROMBankNb(), 1);
     assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
 
     // Max bank number
     cpu.ld_a_n(0x1f); // 0x1f mod 4 = 3
     cpu.ld_0xhl_a();
 
-    assert.equal(mmu.getSelectedBankNb(), 3);
+    assert.equal(mmu.getSelectedROMBankNb(), 3);
     assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 3]);
   });
 
@@ -93,7 +93,7 @@ describe('MBC1', () => {
     cpu.ld_a_n(2);
     cpu.ld_0xhl_a();
 
-    assert.equal(mmu.getSelectedBankNb(), 2);
+    assert.equal(mmu.getSelectedROMBankNb(), 2);
     assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 2]);
   });
 
@@ -102,13 +102,13 @@ describe('MBC1', () => {
     cpu.ld_a_n(0); // bank < 0
     cpu.ld_0xhl_a();
 
-    assert.equal(mmu.getSelectedBankNb(), 1);
+    assert.equal(mmu.getSelectedROMBankNb(), 1);
     assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
 
     cpu.ld_a_n(0x20); // bank > 0x1f
     cpu.ld_0xhl_a();
 
-    assert.equal(mmu.getSelectedBankNb(), 1);
+    assert.equal(mmu.getSelectedROMBankNb(), 1);
     assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
   });
 });
