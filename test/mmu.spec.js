@@ -67,26 +67,6 @@ describe('MMU', () => {
       assert.equal(mmu.readByteAt(0xffff), 0x0f, 'should write on 0xffff');
     });
 
-    it('should not write bytes in ROM', () => {
-
-      let addr = 0x0000;
-
-      assert.doesNotThrow( () => {
-        mmu.writeByteAt(addr, 0xab);
-      }, Error, `should not write on ${addr}`);
-
-      addr = 0x7fff;
-
-      assert.doesNotThrow( () => {
-        mmu.writeByteAt(addr, 0xab);
-      }, Error, `should not write on ${addr}`);
-
-      addr = 0x8000;
-
-      mmu.writeByteAt(addr, 0xab);
-
-      assert.equal(mmu.readByteAt(addr), 0xab, `can write on ${addr}`);
-    });
   });
 
   describe('BIOS', () => {

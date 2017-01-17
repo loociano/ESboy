@@ -1,9 +1,8 @@
 import CPU from '../src/cpu';
 import MMU from '../src/mmu';
-import Loader from '../src/loader';
 import assert from 'assert';
 import {describe, before, it} from 'mocha';
-import lcdMock from './mock/lcdMock';
+import LCDMock from './mock/lcdMock';
 
 let cpu, mmu, rom;
 
@@ -21,7 +20,7 @@ describe('MBC1', () => {
     rom[mmu.ADDR_ROM_BANK_START * 3] = 0xd;
 
     mmu = new MMU(rom); // reload
-    cpu = new CPU(mmu, new lcdMock());
+    cpu = new CPU(mmu, new LCDMock());
   });
 
   it('should detect MBC1 with defaults', () => {
@@ -31,6 +30,15 @@ describe('MBC1', () => {
 
     assert.equal(mmu.getSelectedBankNb(), 1);
     assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
+  });
+
+  it('should detect unsupported 4Mb/32KB mode', () => {
+    cpu.ld_hl_nn(0x6000);
+    cpu.ld_a_n(1);
+    assert.throws( () => cpu.ld_0xhl_a(), Error, 'Unsupported 4Mb/32KB mode');
+
+    cpu.ld_hl_nn(0x7fff);
+    assert.throws( () => cpu.ld_0xhl_a(), Error, 'Unsupported 4Mb/32KB mode');
   });
 
   it('should switch ROM banks', () => {
@@ -65,6 +73,15 @@ describe('MBC1', () => {
 
     assert.equal(mmu.getSelectedBankNb(), 3);
     assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 3]);
+  });
+
+  it('should switch ROM banks writing anywhere from 0x2000 to 0x3fff', () => {
+    cpu.ld_hl_nn(0x3fff);
+    cpu.ld_a_n(2);
+    cpu.ld_0xhl_a();
+
+    assert.equal(mmu.getSelectedBankNb(), 2);
+    assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 2]);
   });
 
   it('should select bank 1 on invalid bank number', () => {

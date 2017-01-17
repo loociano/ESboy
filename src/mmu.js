@@ -25,7 +25,10 @@ export default class MMU {
     this.ADDR_DESTINATION_CODE = 0x14a;
     this.ADDR_COMPLEMENT_CHECK = 0x14d;
 
+    this.ADDR_MBC1_REG1_START = 0x2000;
     this.ADDR_ROM_BANK_START = 0x4000;
+    this.ADDR_MBC1_REG3_START = 0x6000;
+    this.ADDR_MBC1_REG3_END = 0x7fff;
     this.ADDR_ROM_BANK_END = 0x7fff;
     this.ADDR_ROM_MAX = this.ADDR_ROM_BANK_END;
 
@@ -523,6 +526,20 @@ export default class MMU {
   }
 
   /**
+   * @param addr
+   * @param n
+   * @private
+   */
+  _handleMBC1(addr, n){
+    if (this._isMBC1Register1Addr(addr)){
+      this._selectROMBank(n);
+    }
+    if (this._isMBC1Register3Addr(addr)){
+      throw new Error('Unsupported 4Mb/32KB mode');
+    }
+  }
+
+  /**
    * Writes a byte n into address
    * @param {number} 16 bit address
    * @param {number} byte
@@ -533,10 +550,10 @@ export default class MMU {
       return;
     }
     if (addr <= this.ADDR_ROM_MAX){
-      if (this._hasMBC1 && this._isMBCAddress(addr)){
-        this._selectROMBank(n);
+      if (this._hasMBC1){
+        this._handleMBC1(addr, n);
       } else {
-        Logger.warn(`Cannot set memory address ${Utils.hexStr(addr)}`);
+        Logger.warn(`Cannot write memory address ${Utils.hexStr(addr)}`);
       }
       return;
     }
@@ -644,8 +661,17 @@ export default class MMU {
    * @returns {boolean}
    * @private
    */
-  _isMBCAddress(addr){
-    return (addr >= 0x2000 && addr < 0x4000);
+  _isMBC1Register1Addr(addr){
+    return addr >= this.ADDR_MBC1_REG1_START && addr < this.ADDR_ROM_BANK_START;
+  }
+
+  /**
+   * @param addr
+   * @returns {boolean}
+   * @private
+   */
+  _isMBC1Register3Addr(addr){
+    return addr >= this.ADDR_MBC1_REG3_START && addr <= this.ADDR_MBC1_REG3_END;
   }
 
   /**
