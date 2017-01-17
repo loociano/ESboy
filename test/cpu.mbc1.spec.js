@@ -4,7 +4,7 @@ import assert from 'assert';
 import {describe, before, it} from 'mocha';
 import LCDMock from './mock/lcdMock';
 
-let cpu, mmu, rom;
+let cpu, mmu, rom, extRAM;
 
 describe('MBC1', () => {
 
@@ -21,6 +21,12 @@ describe('MBC1', () => {
 
     mmu = new MMU(rom); // reload
     cpu = new CPU(mmu, new LCDMock());
+
+    extRAM = mmu.getExtRAM();
+    extRAM[0] = 0x01;
+    extRAM[mmu.MBC1_RAM_BANK_SIZE * 1] = 0x02;
+    extRAM[mmu.MBC1_RAM_BANK_SIZE * 2] = 0x03;
+    extRAM[mmu.MBC1_RAM_BANK_SIZE * 3] = 0x04;
   });
 
   it('should detect MBC1 with defaults', () => {
@@ -41,74 +47,126 @@ describe('MBC1', () => {
     assert.throws( () => cpu.ld_0xhl_a(), Error, 'Unsupported 4Mb/32KB mode');
   });
 
-  it('should switch ROM banks', () => {
-    cpu.ld_hl_nn(0x2000);
+  describe('ROM bank', () => {
 
-    cpu.ld_a_n(0);
-    cpu.ld_0xhl_a();
+    it('should switch ROM banks', () => {
+      cpu.ld_hl_nn(0x2000);
 
-    assert.equal(mmu.getSelectedROMBankNb(), 1);
-    assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
+      cpu.ld_a_n(0);
+      cpu.ld_0xhl_a();
 
-    cpu.ld_a_n(1);
-    cpu.ld_0xhl_a();
+      assert.equal(mmu.getSelectedROMBankNb(), 1);
+      assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
 
-    assert.equal(mmu.getSelectedROMBankNb(), 1);
-    assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
+      cpu.ld_a_n(1);
+      cpu.ld_0xhl_a();
 
-    cpu.ld_a_n(2);
-    cpu.ld_0xhl_a();
+      assert.equal(mmu.getSelectedROMBankNb(), 1);
+      assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
 
-    assert.equal(mmu.getSelectedROMBankNb(), 2);
-    assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 2]);
+      cpu.ld_a_n(2);
+      cpu.ld_0xhl_a();
 
-    cpu.ld_a_n(3);
-    cpu.ld_0xhl_a();
+      assert.equal(mmu.getSelectedROMBankNb(), 2);
+      assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 2]);
 
-    assert.equal(mmu.getSelectedROMBankNb(), 3);
-    assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 3]);
+      cpu.ld_a_n(3);
+      cpu.ld_0xhl_a();
 
-    cpu.ld_a_n(4); // 4 mod 4 = 0
-    cpu.ld_0xhl_a();
+      assert.equal(mmu.getSelectedROMBankNb(), 3);
+      assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 3]);
 
-    assert.equal(mmu.getSelectedROMBankNb(), 0);
-    assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[0]);
+      cpu.ld_a_n(4); // 4 mod 4 = 0
+      cpu.ld_0xhl_a();
 
-    cpu.ld_a_n(5); // 5 mod 4 = 1
-    cpu.ld_0xhl_a();
+      assert.equal(mmu.getSelectedROMBankNb(), 0);
+      assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[0]);
 
-    assert.equal(mmu.getSelectedROMBankNb(), 1);
-    assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
+      cpu.ld_a_n(5); // 5 mod 4 = 1
+      cpu.ld_0xhl_a();
 
-    // Max bank number
-    cpu.ld_a_n(0x1f); // 0x1f mod 4 = 3
-    cpu.ld_0xhl_a();
+      assert.equal(mmu.getSelectedROMBankNb(), 1);
+      assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
 
-    assert.equal(mmu.getSelectedROMBankNb(), 3);
-    assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 3]);
+      // Max bank number
+      cpu.ld_a_n(0x1f); // 0x1f mod 4 = 3
+      cpu.ld_0xhl_a();
+
+      assert.equal(mmu.getSelectedROMBankNb(), 3);
+      assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 3]);
+    });
+
+    it('should switch ROM banks writing anywhere from 0x2000 to 0x3fff', () => {
+      cpu.ld_hl_nn(0x3fff);
+      cpu.ld_a_n(2);
+      cpu.ld_0xhl_a();
+
+      assert.equal(mmu.getSelectedROMBankNb(), 2);
+      assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 2]);
+    });
+
+    it('should select bank 1 on invalid bank number', () => {
+      cpu.ld_hl_nn(0x2000);
+      cpu.ld_a_n(0); // bank < 0
+      cpu.ld_0xhl_a();
+
+      assert.equal(mmu.getSelectedROMBankNb(), 1);
+      assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
+
+      cpu.ld_a_n(0x20); // bank > 0x1f
+      cpu.ld_0xhl_a();
+
+      assert.equal(mmu.getSelectedROMBankNb(), 1);
+      assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
+    });
   });
 
-  it('should switch ROM banks writing anywhere from 0x2000 to 0x3fff', () => {
-    cpu.ld_hl_nn(0x3fff);
-    cpu.ld_a_n(2);
-    cpu.ld_0xhl_a();
+  describe('RAM bank', () => {
+    it('should switch 0-3 RAM banks writing the bank anywhere from 0x4000 to 0x5fff', () => {
+      assert.equal(mmu.getSelectedRAMBankNb(), 0, 'Default');
 
-    assert.equal(mmu.getSelectedROMBankNb(), 2);
-    assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 2]);
-  });
+      cpu.ld_hl_nn(0x4000);
+      cpu.ld_a_n(0);
+      cpu.ld_0xhl_a();
 
-  it('should select bank 1 on invalid bank number', () => {
-    cpu.ld_hl_nn(0x2000);
-    cpu.ld_a_n(0); // bank < 0
-    cpu.ld_0xhl_a();
+      assert.equal(mmu.getSelectedRAMBankNb(), 0);
+      assert.equal(mmu.readByteAt(mmu.ADDR_EXT_RAM_START), extRAM[0]);
 
-    assert.equal(mmu.getSelectedROMBankNb(), 1);
-    assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
+      cpu.ld_a_n(1);
+      cpu.ld_0xhl_a();
 
-    cpu.ld_a_n(0x20); // bank > 0x1f
-    cpu.ld_0xhl_a();
+      assert.equal(mmu.getSelectedRAMBankNb(), 1);
+      assert.equal(mmu.readByteAt(mmu.ADDR_EXT_RAM_START), extRAM[mmu.MBC1_RAM_BANK_SIZE]);
 
-    assert.equal(mmu.getSelectedROMBankNb(), 1);
-    assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);
+      cpu.ld_a_n(2);
+      cpu.ld_0xhl_a();
+
+      assert.equal(mmu.getSelectedRAMBankNb(), 2);
+      assert.equal(mmu.readByteAt(mmu.ADDR_EXT_RAM_START), extRAM[mmu.MBC1_RAM_BANK_SIZE * 2]);
+
+      cpu.ld_a_n(3);
+      cpu.ld_0xhl_a();
+
+      assert.equal(mmu.getSelectedRAMBankNb(), 3);
+      assert.equal(mmu.readByteAt(mmu.ADDR_EXT_RAM_START), extRAM[mmu.MBC1_RAM_BANK_SIZE * 3]);
+
+      cpu.ld_hl_nn(0x5fff);
+
+      cpu.ld_a_n(1);
+      cpu.ld_0xhl_a();
+
+      assert.equal(mmu.getSelectedRAMBankNb(), 1);
+      assert.equal(mmu.readByteAt(mmu.ADDR_EXT_RAM_START), extRAM[mmu.MBC1_RAM_BANK_SIZE]);
+    });
+
+    it('should select banks on invalid bank number', () => {
+      cpu.ld_hl_nn(0x4000);
+
+      cpu.ld_a_n(4); // bank > 3
+      cpu.ld_0xhl_a();
+
+      assert.equal(mmu.getSelectedRAMBankNb(), 0 /* 4 mod 4 */);
+      assert.equal(mmu.readByteAt(mmu.ADDR_EXT_RAM_START), extRAM[0]);
+    });
   });
 });

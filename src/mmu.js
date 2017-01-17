@@ -6,6 +6,7 @@ export default class MMU {
 
   /**
    * @param {Uint8Array} rom
+   * @param {Uint8Array|undefined} extRAM
    */
   constructor(rom){
 
@@ -27,6 +28,7 @@ export default class MMU {
 
     this.ADDR_MBC1_REG1_START = 0x2000;
     this.ADDR_ROM_BANK_START = 0x4000;
+    this.ADDR_MBC1_REG2_START = 0x4000;
     this.ADDR_MBC1_REG3_START = 0x6000;
     this.ADDR_MBC1_REG3_END = 0x7fff;
     this.ADDR_ROM_BANK_END = 0x7fff;
@@ -41,6 +43,9 @@ export default class MMU {
     this.ADDR_DISPLAY_DATA_1 = 0x9800;
     this.ADDR_DISPLAY_DATA_2 = 0x9c00;
     this.ADDR_VRAM_END = 0x9fff;
+
+    // External RAM
+    this.ADDR_EXT_RAM_START = 0xa000;
 
     // Working RAM
     this.ADDR_WRAM_START = 0xc000;
@@ -194,10 +199,14 @@ export default class MMU {
 
     // MBC1
     this.ROM_BANK_SIZE = 0x4000;
+    this.MBC1_RAM_BANK_SIZE = 0x2000;
     this.MAX_BANK_NB = 0x1f; // 0..31
+    this.MBC1_RAM_BANKS = 4;
+    this.MBC1_RAM_SIZE = this.MBC1_RAM_BANK_SIZE * this.MBC1_RAM_BANKS;
 
     // Variables
     this._rom = rom;
+    this._extRAM;
     this._memory = new Uint8Array(this.ADDR_MAX + 1);
     this._bios = this.getBIOS();
     this._inBIOS = true;
@@ -206,11 +215,12 @@ export default class MMU {
     this._div = 0x0000; // Internal divider, register DIV is msb
     this._hasMBC1 = false;
     this._selectedBankNb = 1; // default is bank 1
+    this._selectedRAMBankNb = 0;
     this._resetDrawnTileLines();
 
     this._initMemory();
     this._loadROM();
-    this._setMBC1();
+    this._initMBC1();
   }
 
   _resetDrawnTileLines(){
@@ -239,12 +249,19 @@ export default class MMU {
     return this._isDMA;
   }
 
+  getExtRAM(){
+    return this._extRAM;
+  }
+
   /**
    * @private
    */
-  _setMBC1(){
+  _initMBC1(){
     const type = this.romByteAt(this.ADDR_CARTRIDGE_TYPE);
     this._hasMBC1 = (type === 1 || type === 2 || type === 3);
+    if (this._hasMBC1){
+      this._extRAM = new Uint8Array(this.MBC1_RAM_SIZE);
+    }
   }
 
   /**
@@ -534,6 +551,9 @@ export default class MMU {
     if (this._isMBC1Register1Addr(addr)){
       this._selectROMBank(n);
     }
+    if (this._isMBC1Register2Addr(addr)){
+      this._selectRAMBank(n);
+    }
     if (this._isMBC1Register3Addr(addr)){
       throw new Error('Unsupported 4Mb/32KB mode');
     }
@@ -670,6 +690,15 @@ export default class MMU {
    * @returns {boolean}
    * @private
    */
+  _isMBC1Register2Addr(addr){
+    return addr >= this.ADDR_MBC1_REG2_START && addr < this.ADDR_MBC1_REG3_START;
+  }
+
+  /**
+   * @param addr
+   * @returns {boolean}
+   * @private
+   */
   _isMBC1Register3Addr(addr){
     return addr >= this.ADDR_MBC1_REG3_START && addr <= this.ADDR_MBC1_REG3_END;
   }
@@ -688,6 +717,18 @@ export default class MMU {
     const start = this.ADDR_ROM_BANK_START * this._selectedBankNb;
     const end = start + this.ROM_BANK_SIZE;
     this._memory.set(this._rom.subarray(start, end), this.ADDR_ROM_BANK_START);
+  }
+
+  /**
+   * Selects a RAM bank
+   * @param {number} bankNb [1,3]
+   * @private
+   */
+  _selectRAMBank(bankNb){
+    this._selectedRAMBankNb = bankNb % this.MBC1_RAM_BANKS;
+    const start = this._selectedRAMBankNb * this.MBC1_RAM_BANK_SIZE;
+    const end = start + this.ROM_BANK_SIZE;
+    this._memory.set(this._extRAM.subarray(start, end), this.ADDR_EXT_RAM_START);
   }
 
   /**
@@ -1169,6 +1210,10 @@ export default class MMU {
 
   getSelectedROMBankNb(){
     return this._selectedBankNb;
+  }
+
+  getSelectedRAMBankNb(){
+    return this._selectedRAMBankNb;
   }
 
   scx(){
