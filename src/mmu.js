@@ -198,15 +198,15 @@ export default class MMU {
     this.NON_JAPANESE = 0x1;
 
     // MBC1
-    this.ROM_BANK_SIZE = 0x4000;
+    this.MBC1_ROM_BANK_SIZE = 0x4000;
     this.MBC1_RAM_BANK_SIZE = 0x2000;
-    this.MAX_BANK_NB = 0x1f; // 0..31
+    this.MBC1_MAX_ROM_BANK_NB = 0x1f; // 0..31
     this.MBC1_RAM_BANKS = 4;
     this.MBC1_RAM_SIZE = this.MBC1_RAM_BANK_SIZE * this.MBC1_RAM_BANKS;
 
     // Variables
     this._rom = rom;
-    this._extRAM;
+    this._extRAM; // init only if there is a Memory Bank Controller
     this._memory = new Uint8Array(this.ADDR_MAX + 1);
     this._bios = this.getBIOS();
     this._inBIOS = true;
@@ -214,10 +214,10 @@ export default class MMU {
     this._buttons = 0x0f; // Buttons unpressed, on HIGH
     this._div = 0x0000; // Internal divider, register DIV is msb
     this._hasMBC1 = false;
-    this._selectedBankNb = 1; // default is bank 1
+    this._selectedROMBankNb = 1; // default is bank 1
     this._selectedRAMBankNb = 0;
-    this._resetDrawnTileLines();
 
+    this._resetDrawnTileLines();
     this._initMemory();
     this._loadROM();
     this._initMBC1();
@@ -709,13 +709,13 @@ export default class MMU {
    * @private
    */
   _selectROMBank(n){
-    if(n === 0 || n > this.MAX_BANK_NB){
-      this._selectedBankNb = 1;
+    if(n === 0 || n > this.MBC1_MAX_ROM_BANK_NB){
+      this._selectedROMBankNb = 1;
     } else {
-      this._selectedBankNb = n % this.getNbBanks();
+      this._selectedROMBankNb = n % this.getNbOfROMBanks();
     }
-    const start = this.ADDR_ROM_BANK_START * this._selectedBankNb;
-    const end = start + this.ROM_BANK_SIZE;
+    const start = this.ADDR_ROM_BANK_START * this._selectedROMBankNb;
+    const end = start + this.MBC1_ROM_BANK_SIZE;
     this._memory.set(this._rom.subarray(start, end), this.ADDR_ROM_BANK_START);
   }
 
@@ -727,7 +727,7 @@ export default class MMU {
   _selectRAMBank(bankNb){
     this._selectedRAMBankNb = bankNb % this.MBC1_RAM_BANKS;
     const start = this._selectedRAMBankNb * this.MBC1_RAM_BANK_SIZE;
-    const end = start + this.ROM_BANK_SIZE;
+    const end = start + this.MBC1_ROM_BANK_SIZE;
     this._memory.set(this._extRAM.subarray(start, end), this.ADDR_EXT_RAM_START);
   }
 
@@ -1204,12 +1204,12 @@ export default class MMU {
   /**
    * @returns {number} number of banks (integer)
    */
-  getNbBanks(){
-    return this._rom.length / this.ROM_BANK_SIZE;
+  getNbOfROMBanks(){
+    return this._rom.length / this.MBC1_ROM_BANK_SIZE;
   }
 
   getSelectedROMBankNb(){
-    return this._selectedBankNb;
+    return this._selectedROMBankNb;
   }
 
   getSelectedRAMBankNb(){

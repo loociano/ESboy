@@ -32,7 +32,7 @@ describe('MBC1', () => {
   it('should detect MBC1 with defaults', () => {
     assert.equal(mmu.getMBC1Mode(), 0, 'Mode 0: 2MB ROM, 8KB RAM');
     assert.equal(mmu.getRomSize(), '64KB');
-    assert.equal(mmu.getNbBanks(), 4);
+    assert.equal(mmu.getNbOfROMBanks(), 4);
 
     assert.equal(mmu.getSelectedROMBankNb(), 1);
     assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom[mmu.ADDR_ROM_BANK_START * 1]);

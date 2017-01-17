@@ -649,7 +649,7 @@ describe('MMU', () => {
       })
 
       it('should get number of ROM banks', () => {
-        assert.equal(mmu.getNbBanks(), 4, 'Blargg test rom has 4 banks');
+        assert.equal(mmu.getNbOfROMBanks(), 4, 'Blargg test rom has 4 banks');
       });
 
       it('should get selected bank number', () => {
