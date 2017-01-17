@@ -6,9 +6,9 @@ export default class MMU {
 
   /**
    * @param {Uint8Array} rom
-   * @param {Uint8Array|undefined} extRAM
+   * @param {Storage|StorageMock} storage
    */
-  constructor(rom){
+  constructor(rom, storage){
 
     if (!rom) throw new Error('Missing ROM');
 
@@ -206,6 +206,7 @@ export default class MMU {
 
     // Variables
     this._rom = rom;
+    this._storage = storage;
     this._extRAM; // init only if there is a Memory Bank Controller
     this._memory = new Uint8Array(this.ADDR_MAX + 1);
     this._bios = this.getBIOS();
@@ -251,6 +252,10 @@ export default class MMU {
 
   getExtRAM(){
     return this._extRAM;
+  }
+
+  getSavedRAM(){
+    return this._storage.read();
   }
 
   /**
@@ -627,6 +632,10 @@ export default class MMU {
         this._updateStatLyc();
         break;
     }
+    if (this._isExtRAMAddr(addr)){
+      this._extRAM[this._selectedRAMBankNb * this.MBC1_RAM_BANK_SIZE] = n;
+      this._storage.write(this._extRAM);
+    }
   }
 
   _updateStatLyc(){
@@ -773,6 +782,15 @@ export default class MMU {
    */
   _isVRAMAddr(addr){
     return (addr >= this.ADDR_VRAM_START) && (addr <= this.ADDR_VRAM_END);
+  }
+
+  /**
+   * @param addr
+   * @returns {boolean} true if addr is in External RAM range
+   * @private
+   */
+  _isExtRAMAddr(addr){
+    return addr >= this.ADDR_EXT_RAM_START && addr < this.ADDR_WRAM_START;
   }
 
   /**

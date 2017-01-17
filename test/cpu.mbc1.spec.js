@@ -3,6 +3,7 @@ import MMU from '../src/mmu';
 import assert from 'assert';
 import {describe, before, it} from 'mocha';
 import LCDMock from './mock/lcdMock';
+import StorageMock from './mock/StorageMock';
 
 let cpu, mmu, rom, extRAM;
 
@@ -10,7 +11,7 @@ describe('MBC1', () => {
 
   before( () => {
     rom = new Uint8Array(0x10000);
-    mmu = new MMU(rom);
+    mmu = new MMU(rom, new StorageMock());
 
     rom[0] = 0xa;
     rom[mmu.ADDR_CARTRIDGE_TYPE] = 1; // MBC1
@@ -19,7 +20,7 @@ describe('MBC1', () => {
     rom[mmu.ADDR_ROM_BANK_START * 2] = 0xc;
     rom[mmu.ADDR_ROM_BANK_START * 3] = 0xd;
 
-    mmu = new MMU(rom); // reload
+    mmu = new MMU(rom, new StorageMock()); // reload
     cpu = new CPU(mmu, new LCDMock());
 
     extRAM = mmu.getExtRAM();
@@ -122,7 +123,7 @@ describe('MBC1', () => {
   });
 
   describe('RAM bank', () => {
-    it('should switch 0-3 RAM banks writing the bank anywhere from 0x4000 to 0x5fff', () => {
+    it('should read from 0-3 RAM banks writing the bank anywhere from 0x4000 to 0x5fff', () => {
       assert.equal(mmu.getSelectedRAMBankNb(), 0, 'Default');
 
       cpu.ld_hl_nn(0x4000);
@@ -167,6 +168,46 @@ describe('MBC1', () => {
 
       assert.equal(mmu.getSelectedRAMBankNb(), 0 /* 4 mod 4 */);
       assert.equal(mmu.readByteAt(mmu.ADDR_EXT_RAM_START), extRAM[0]);
+    });
+
+    it('should write in external RAM', () => {
+      // Select bank 1
+      cpu.ld_hl_nn(0x4000);
+      cpu.ld_a_n(1);
+      cpu.ld_0xhl_a();
+
+      // Write something
+      cpu.ld_bc_nn(0xa000);
+      cpu.ld_a_n(0xaa);
+      cpu.ld_0xbc_a();
+
+      assert.equal(extRAM[mmu.MBC1_RAM_BANK_SIZE], 0xaa);
+
+      // Change bank
+      cpu.ld_a_n(2);
+      cpu.ld_0xhl_a();
+
+      // Write something
+      cpu.ld_bc_nn(0xa000);
+      cpu.ld_a_n(0xbb);
+      cpu.ld_0xbc_a();
+
+      assert.equal(extRAM[mmu.MBC1_RAM_BANK_SIZE * 2], 0xbb);
+    });
+  });
+
+  describe('Battery', () => {
+    it('should persist the external RAM', () => {
+      cpu.ld_hl_nn(0x4000);
+      cpu.ld_a_n(0);
+      cpu.ld_0xhl_a();
+
+      cpu.ld_bc_nn(0xa000);
+      cpu.ld_a_n(0xaa);
+      cpu.ld_0xbc_a();
+
+      const savedRAM = mmu.getSavedRAM();
+      assert.equal(savedRAM[0], 0xaa);
     });
   });
 });
