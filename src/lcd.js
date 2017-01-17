@@ -286,11 +286,11 @@ export default class LCD {
     }
 
     for(let i = 0; i < intensityVector.length; i++){
-      this.drawPixel({
-        x: (startX + i) % this._OUT_WIDTH,
-        y: line,
-        level: intensityVector[i]},
-        palette, imageData);
+      let x = startX + i;
+      if (imageData === this._imageDataBG) {
+        x %= this._OUT_WIDTH;
+      }
+      this.drawPixel({x: x, y: line, level: intensityVector[i]}, palette, imageData);
     }
   }
 

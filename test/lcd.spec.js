@@ -867,6 +867,44 @@ describe('LCD', () => {
 
       assert.deepEqual(Array.from(lcd.getWindowLineData(0)), Array.from(expectedData));
     });
+
+    it('should draw a Window line as long as WX < 167', () => {
+      const mmu = lcd.getMMU();
+      mmu.readBGData = (tileNumber) => {
+        if (tileNumber === 0) {
+          return new Buffer('ff00', 'hex');
+        } else {
+          return new Buffer('0000', 'hex');
+        }
+      };
+      mmu.getWindowCharCode = () => 0;
+      mmu.isWindowOn = () => true;
+      mmu.wy = () => 0;
+      mmu.wx = () => 166; // move right 159px, only one visible pixel
+
+      const expectedData = new Uint8ClampedArray(lineRgbaLength);
+      expectedData[lineRgbaLength-4] = lcd.SHADES[lcd._bgp[1]][0];
+      expectedData[lineRgbaLength-3] = lcd.SHADES[lcd._bgp[1]][1];
+      expectedData[lineRgbaLength-2] = lcd.SHADES[lcd._bgp[1]][2];
+      expectedData[lineRgbaLength-1] = lcd.SHADES[lcd._bgp[1]][3];
+
+      lcd.drawLine(0);
+
+      assert.deepEqual(Array.from(lcd.getWindowLineData(0)), Array.from(expectedData));
+    });
+
+    it('should not draw a Window line when WX > 166', () => {
+      const mmu = lcd.getMMU();
+      mmu.readBGData = (tileNumber) => new Buffer('0000', 'hex');
+      mmu.getWindowCharCode = () => 0;
+      mmu.isWindowOn = () => true;
+      mmu.wy = () => 0;
+      mmu.wx = () => 167; // move right 160px, invisible window
+
+      lcd.drawLine(0);
+
+      assert.deepEqual(Array.from(lcd.getWindowLineData(0)), Array.from(new Uint8ClampedArray(lineRgbaLength)));
+    });
   });
 
 });
