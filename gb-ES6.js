@@ -8450,10 +8450,11 @@ var LCD = function () {
       }
 
       for (var i = 0; i < intensityVector.length; i++) {
-        this.drawPixel({
-          x: (startX + i) % this._OUT_WIDTH,
-          y: line,
-          level: intensityVector[i] }, palette, imageData);
+        var x = startX + i;
+        if (imageData === this._imageDataBG) {
+          x %= this._OUT_WIDTH;
+        }
+        this.drawPixel({ x: x, y: line, level: intensityVector[i] }, palette, imageData);
       }
     }
 
@@ -8796,6 +8797,7 @@ var MMU = function () {
 
   /**
    * @param {Uint8Array} rom
+   * @param {Uint8Array|undefined} extRAM
    */
   function MMU(rom) {
     _classCallCheck(this, MMU);
@@ -8816,7 +8818,11 @@ var MMU = function () {
     this.ADDR_DESTINATION_CODE = 0x14a;
     this.ADDR_COMPLEMENT_CHECK = 0x14d;
 
+    this.ADDR_MBC1_REG1_START = 0x2000;
     this.ADDR_ROM_BANK_START = 0x4000;
+    this.ADDR_MBC1_REG2_START = 0x4000;
+    this.ADDR_MBC1_REG3_START = 0x6000;
+    this.ADDR_MBC1_REG3_END = 0x7fff;
     this.ADDR_ROM_BANK_END = 0x7fff;
     this.ADDR_ROM_MAX = this.ADDR_ROM_BANK_END;
 
@@ -8829,6 +8835,9 @@ var MMU = function () {
     this.ADDR_DISPLAY_DATA_1 = 0x9800;
     this.ADDR_DISPLAY_DATA_2 = 0x9c00;
     this.ADDR_VRAM_END = 0x9fff;
+
+    // External RAM
+    this.ADDR_EXT_RAM_START = 0xa000;
 
     // Working RAM
     this.ADDR_WRAM_START = 0xc000;
@@ -8981,11 +8990,15 @@ var MMU = function () {
     this.NON_JAPANESE = 0x1;
 
     // MBC1
-    this.ROM_BANK_SIZE = 0x4000;
-    this.MAX_BANK_NB = 0x1f; // 0..31
+    this.MBC1_ROM_BANK_SIZE = 0x4000;
+    this.MBC1_RAM_BANK_SIZE = 0x2000;
+    this.MBC1_MAX_ROM_BANK_NB = 0x1f; // 0..31
+    this.MBC1_RAM_BANKS = 4;
+    this.MBC1_RAM_SIZE = this.MBC1_RAM_BANK_SIZE * this.MBC1_RAM_BANKS;
 
     // Variables
     this._rom = rom;
+    this._extRAM; // init only if there is a Memory Bank Controller
     this._memory = new Uint8Array(this.ADDR_MAX + 1);
     this._bios = this.getBIOS();
     this._inBIOS = true;
@@ -8993,12 +9006,13 @@ var MMU = function () {
     this._buttons = 0x0f; // Buttons unpressed, on HIGH
     this._div = 0x0000; // Internal divider, register DIV is msb
     this._hasMBC1 = false;
-    this._selectedBankNb = 1; // default is bank 1
-    this._resetDrawnTileLines();
+    this._selectedROMBankNb = 1; // default is bank 1
+    this._selectedRAMBankNb = 0;
 
+    this._resetDrawnTileLines();
     this._initMemory();
     this._loadROM();
-    this._setMBC1();
+    this._initMBC1();
   }
 
   _createClass(MMU, [{
@@ -9036,16 +9050,24 @@ var MMU = function () {
     value: function isDMA() {
       return this._isDMA;
     }
+  }, {
+    key: 'getExtRAM',
+    value: function getExtRAM() {
+      return this._extRAM;
+    }
 
     /**
      * @private
      */
 
   }, {
-    key: '_setMBC1',
-    value: function _setMBC1() {
+    key: '_initMBC1',
+    value: function _initMBC1() {
       var type = this.romByteAt(this.ADDR_CARTRIDGE_TYPE);
       this._hasMBC1 = type === 1 || type === 2 || type === 3;
+      if (this._hasMBC1) {
+        this._extRAM = new Uint8Array(this.MBC1_RAM_SIZE);
+      }
     }
 
     /**
@@ -9384,6 +9406,26 @@ var MMU = function () {
     }
 
     /**
+     * @param addr
+     * @param n
+     * @private
+     */
+
+  }, {
+    key: '_handleMBC1',
+    value: function _handleMBC1(addr, n) {
+      if (this._isMBC1Register1Addr(addr)) {
+        this._selectROMBank(n);
+      }
+      if (this._isMBC1Register2Addr(addr)) {
+        this._selectRAMBank(n);
+      }
+      if (this._isMBC1Register3Addr(addr)) {
+        throw new Error('Unsupported 4Mb/32KB mode');
+      }
+    }
+
+    /**
      * Writes a byte n into address
      * @param {number} 16 bit address
      * @param {number} byte
@@ -9397,10 +9439,10 @@ var MMU = function () {
         return;
       }
       if (addr <= this.ADDR_ROM_MAX) {
-        if (this._hasMBC1 && this._isMBCAddress(addr)) {
-          this._selectROMBank(n);
+        if (this._hasMBC1) {
+          this._handleMBC1(addr, n);
         } else {
-          _logger2.default.warn('Cannot set memory address ' + _utils2.default.hexStr(addr));
+          _logger2.default.warn('Cannot write memory address ' + _utils2.default.hexStr(addr));
         }
         return;
       }
@@ -9521,9 +9563,33 @@ var MMU = function () {
      */
 
   }, {
-    key: '_isMBCAddress',
-    value: function _isMBCAddress(addr) {
-      return addr >= 0x2000 && addr < 0x4000;
+    key: '_isMBC1Register1Addr',
+    value: function _isMBC1Register1Addr(addr) {
+      return addr >= this.ADDR_MBC1_REG1_START && addr < this.ADDR_ROM_BANK_START;
+    }
+
+    /**
+     * @param addr
+     * @returns {boolean}
+     * @private
+     */
+
+  }, {
+    key: '_isMBC1Register2Addr',
+    value: function _isMBC1Register2Addr(addr) {
+      return addr >= this.ADDR_MBC1_REG2_START && addr < this.ADDR_MBC1_REG3_START;
+    }
+
+    /**
+     * @param addr
+     * @returns {boolean}
+     * @private
+     */
+
+  }, {
+    key: '_isMBC1Register3Addr',
+    value: function _isMBC1Register3Addr(addr) {
+      return addr >= this.ADDR_MBC1_REG3_START && addr <= this.ADDR_MBC1_REG3_END;
     }
 
     /**
@@ -9535,14 +9601,29 @@ var MMU = function () {
   }, {
     key: '_selectROMBank',
     value: function _selectROMBank(n) {
-      if (n === 0 || n > this.MAX_BANK_NB) {
-        this._selectedBankNb = 1;
+      if (n === 0 || n > this.MBC1_MAX_ROM_BANK_NB) {
+        this._selectedROMBankNb = 1;
       } else {
-        this._selectedBankNb = n % this.getNbBanks();
+        this._selectedROMBankNb = n % this.getNbOfROMBanks();
       }
-      var start = this.ADDR_ROM_BANK_START * this._selectedBankNb;
-      var end = start + this.ROM_BANK_SIZE;
+      var start = this.ADDR_ROM_BANK_START * this._selectedROMBankNb;
+      var end = start + this.MBC1_ROM_BANK_SIZE;
       this._memory.set(this._rom.subarray(start, end), this.ADDR_ROM_BANK_START);
+    }
+
+    /**
+     * Selects a RAM bank
+     * @param {number} bankNb [1,3]
+     * @private
+     */
+
+  }, {
+    key: '_selectRAMBank',
+    value: function _selectRAMBank(bankNb) {
+      this._selectedRAMBankNb = bankNb % this.MBC1_RAM_BANKS;
+      var start = this._selectedRAMBankNb * this.MBC1_RAM_BANK_SIZE;
+      var end = start + this.MBC1_ROM_BANK_SIZE;
+      this._memory.set(this._extRAM.subarray(start, end), this.ADDR_EXT_RAM_START);
     }
 
     /**
@@ -9794,6 +9875,10 @@ var MMU = function () {
           return 'ROM ONLY';
         case this._ROM_MBC1:
           return 'ROM+MBC1';
+        case this._ROM_MBC1_RAM:
+          return 'ROM+MBC1+RAM';
+        case this._ROM_MBC1_RAM_BATT:
+          return 'ROM+MBC1+RAM+BATTERY';
         // TODO: implement rest of types
         default:
           throw new Error('Cartridge type ' + type + ' unknown');
@@ -10167,14 +10252,19 @@ var MMU = function () {
      */
 
   }, {
-    key: 'getNbBanks',
-    value: function getNbBanks() {
-      return this._rom.length / this.ROM_BANK_SIZE;
+    key: 'getNbOfROMBanks',
+    value: function getNbOfROMBanks() {
+      return this._rom.length / this.MBC1_ROM_BANK_SIZE;
     }
   }, {
-    key: 'getSelectedBankNb',
-    value: function getSelectedBankNb() {
-      return this._selectedBankNb;
+    key: 'getSelectedROMBankNb',
+    value: function getSelectedROMBankNb() {
+      return this._selectedROMBankNb;
+    }
+  }, {
+    key: 'getSelectedRAMBankNb',
+    value: function getSelectedRAMBankNb() {
+      return this._selectedRAMBankNb;
     }
   }, {
     key: 'scx',
