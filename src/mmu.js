@@ -203,6 +203,7 @@ export default class MMU {
     this.MBC1_MAX_ROM_BANK_NB = 0x1f; // 0..31
     this.MBC1_RAM_BANKS = 4;
     this.MBC1_RAM_SIZE = this.MBC1_RAM_BANK_SIZE * this.MBC1_RAM_BANKS;
+    this.MBC1_CSRAM_ON = 0x0a;
 
     // Variables
     this._rom = rom;
@@ -215,6 +216,7 @@ export default class MMU {
     this._buttons = 0x0f; // Buttons unpressed, on HIGH
     this._div = 0x0000; // Internal divider, register DIV is msb
     this._hasMBC1 = false;
+    this._canAccessMBC1RAM = false;
     this._selectedROMBankNb = 1; // default is bank 1
     this._selectedRAMBankNb = 0;
 
@@ -270,6 +272,7 @@ export default class MMU {
         this._extRAM = savedRAM;
       } else {
         this._extRAM = new Uint8Array(this.MBC1_RAM_SIZE);
+        this._storage.write(this.getGameTitle(), this._extRAM);
       }
     }
   }
@@ -362,6 +365,13 @@ export default class MMU {
     if (this._isVRAMAddr(addr) && !this._canAccessVRAM()){
       Logger.info('Cannot read VRAM');
       return 0xff;
+    }
+    if (this._isExtRAMAddr(addr) && this._hasMBC1) {
+      if (!this._canAccessMBC1RAM) {
+        return 0xff;
+      } else {
+        return this._extRAM[this._getMBC1RAMAddr(addr)];
+      }
     }
 
     if (addr <= this.ADDR_ROM_MAX){
@@ -558,6 +568,9 @@ export default class MMU {
    * @private
    */
   _handleMBC1(addr, n){
+    if (this._isMBC1Register0Addr(addr)){
+      this._canAccessMBC1RAM = (n === this.MBC1_CSRAM_ON);
+    }
     if (this._isMBC1Register1Addr(addr)){
       this._selectROMBank(n);
     }
@@ -637,10 +650,22 @@ export default class MMU {
         this._updateStatLyc();
         break;
     }
-    if (this._isExtRAMAddr(addr)){
-      this._extRAM[this._selectedRAMBankNb*this.MBC1_RAM_BANK_SIZE + (addr - this.ADDR_EXT_RAM_START)] = n;
-      this._storage.write(this.getGameTitle(), this._extRAM);
+    if (this._isExtRAMAddr(addr) && this._hasMBC1){
+      if (this._canAccessMBC1RAM){
+        this._extRAM[this._getMBC1RAMAddr(addr)] = n;
+        this._storage.write(this.getGameTitle(), this._extRAM);
+      }
     }
+  }
+
+  /**
+   * @param addr
+   * @returns {number} addr in the MBC1 RAM given a MMU addr.
+   * Example: 0xa000 corresponds to 0 if RAM bank is zero, 0xa000 to 0x2000 is RAM bank is 1.
+   * @private
+   */
+  _getMBC1RAMAddr(addr){
+    return this._selectedRAMBankNb*this.MBC1_RAM_BANK_SIZE + (addr - this.ADDR_EXT_RAM_START);
   }
 
   _updateStatLyc(){
@@ -695,6 +720,15 @@ export default class MMU {
    * @returns {boolean}
    * @private
    */
+  _isMBC1Register0Addr(addr){
+    return addr >= 0 && addr < this.ADDR_MBC1_REG1_START;
+  }
+
+  /**
+   * @param addr
+   * @returns {boolean}
+   * @private
+   */
   _isMBC1Register1Addr(addr){
     return addr >= this.ADDR_MBC1_REG1_START && addr < this.ADDR_ROM_BANK_START;
   }
@@ -735,14 +769,11 @@ export default class MMU {
 
   /**
    * Selects a RAM bank
-   * @param {number} bankNb [1,3]
+   * @param {number} bankNb [0,3]
    * @private
    */
   _selectRAMBank(bankNb){
     this._selectedRAMBankNb = bankNb % this.MBC1_RAM_BANKS;
-    const start = this._selectedRAMBankNb * this.MBC1_RAM_BANK_SIZE;
-    const end = start + this.MBC1_ROM_BANK_SIZE;
-    this._memory.set(this._extRAM.subarray(start, end), this.ADDR_EXT_RAM_START);
   }
 
   /**
