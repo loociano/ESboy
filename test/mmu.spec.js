@@ -3,6 +3,7 @@ import Loader from '../src/loader';
 import assert from 'assert';
 import config from '../src/config';
 import {describe, beforeEach, it} from 'mocha';
+import StorageMock from './mock/storageMock';
 import fs from 'fs';
 
 describe('MMU', () => {
@@ -14,7 +15,7 @@ describe('MMU', () => {
 
   beforeEach( () => {
     const loader = new Loader('./roms/blargg_cpu_instrs.gb');
-    mmu = new MMU(loader.asUint8Array());
+    mmu = new MMU(loader.asUint8Array(), new StorageMock());
     mmu.assertTileLineDrawn = function(posX, posY, expected){
       for(let i = 0; i < 8; i++){
         assert.equal(mmu.isTileLineDrawn(mmu.getTileLinePos(posX, posY) + i*20), expected);

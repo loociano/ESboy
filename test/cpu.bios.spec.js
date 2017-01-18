@@ -5,6 +5,7 @@ import Loader from '../src/loader';
 import assert from 'assert';
 import {describe, beforeEach, it} from 'mocha';
 import ContextMock from './mock/contextMock';
+import StorageMock from './mock/storageMock';
 import config from '../src/config';
 
 describe('BIOS execution', function() {
@@ -15,7 +16,7 @@ describe('BIOS execution', function() {
   const stopAt = 0x0100;
 
   const loader = new Loader('./roms/blargg_cpu_instrs.gb');
-  const mmu = new MMU(loader.asUint8Array());
+  const mmu = new MMU(loader.asUint8Array(), new StorageMock());
   const lcd = new LCD(mmu, new ContextMock(), new ContextMock(), new ContextMock());
   const cpu = new CPU(mmu, lcd);
 

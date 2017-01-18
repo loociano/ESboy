@@ -4,6 +4,7 @@ import Loader from '../src/loader';
 import assert from 'assert';
 import config from '../src/config';
 import lcdMock from './mock/lcdMock';
+import StorageMock from './mock/storageMock';
 import {describe, beforeEach, it} from 'mocha';
 
 describe('Dividers', () => {
@@ -14,7 +15,7 @@ describe('Dividers', () => {
 
   beforeEach( () => {
     const loader = new Loader('./roms/blargg_cpu_instrs.gb');
-    cpu = new CPU(new MMU(loader.asUint8Array()), new lcdMock());
+    cpu = new CPU(new MMU(loader.asUint8Array(), new StorageMock()), new lcdMock());
     cpu._handle_lcd = () => {};
     cpu.execute = () => cpu.nop();
     /**
