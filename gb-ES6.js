@@ -7885,7 +7885,7 @@ var CPU = function () {
 
 exports.default = CPU;
 
-},{"./logger":11,"./utils":14}],8:[function(require,module,exports){
+},{"./logger":11,"./utils":15}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -8674,7 +8674,7 @@ var LCD = function () {
 
 exports.default = LCD;
 
-},{"./logger":11,"./utils":14}],11:[function(require,module,exports){
+},{"./logger":11,"./utils":15}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -8767,7 +8767,7 @@ var Logger = function () {
 
 exports.default = Logger;
 
-},{"./config":6,"./utils":14}],12:[function(require,module,exports){
+},{"./config":6,"./utils":15}],12:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 
@@ -8797,9 +8797,9 @@ var MMU = function () {
 
   /**
    * @param {Uint8Array} rom
-   * @param {Uint8Array|undefined} extRAM
+   * @param {BrowserStorage|StorageMock|undefined} storage
    */
-  function MMU(rom) {
+  function MMU(rom, storage) {
     _classCallCheck(this, MMU);
 
     if (!rom) throw new Error('Missing ROM');
@@ -8995,9 +8995,11 @@ var MMU = function () {
     this.MBC1_MAX_ROM_BANK_NB = 0x1f; // 0..31
     this.MBC1_RAM_BANKS = 4;
     this.MBC1_RAM_SIZE = this.MBC1_RAM_BANK_SIZE * this.MBC1_RAM_BANKS;
+    this.MBC1_CSRAM_ON = 0x0a;
 
     // Variables
     this._rom = rom;
+    this._storage = storage;
     this._extRAM; // init only if there is a Memory Bank Controller
     this._memory = new Uint8Array(this.ADDR_MAX + 1);
     this._bios = this.getBIOS();
@@ -9006,6 +9008,7 @@ var MMU = function () {
     this._buttons = 0x0f; // Buttons unpressed, on HIGH
     this._div = 0x0000; // Internal divider, register DIV is msb
     this._hasMBC1 = false;
+    this._canAccessMBC1RAM = false;
     this._selectedROMBankNb = 1; // default is bank 1
     this._selectedRAMBankNb = 0;
 
@@ -9055,6 +9058,11 @@ var MMU = function () {
     value: function getExtRAM() {
       return this._extRAM;
     }
+  }, {
+    key: 'getSavedRAM',
+    value: function getSavedRAM() {
+      return this._storage.read(this.getGameTitle());
+    }
 
     /**
      * @private
@@ -9066,7 +9074,13 @@ var MMU = function () {
       var type = this.romByteAt(this.ADDR_CARTRIDGE_TYPE);
       this._hasMBC1 = type === 1 || type === 2 || type === 3;
       if (this._hasMBC1) {
-        this._extRAM = new Uint8Array(this.MBC1_RAM_SIZE);
+        var savedRAM = this.getSavedRAM();
+        if (savedRAM != null) {
+          this._extRAM = savedRAM;
+        } else {
+          this._extRAM = new Uint8Array(this.MBC1_RAM_SIZE);
+          this._storage.write(this.getGameTitle(), this._extRAM);
+        }
       }
     }
 
@@ -9169,6 +9183,13 @@ var MMU = function () {
       if (this._isVRAMAddr(addr) && !this._canAccessVRAM()) {
         _logger2.default.info('Cannot read VRAM');
         return 0xff;
+      }
+      if (this._isExtRAMAddr(addr) && this._hasMBC1) {
+        if (!this._canAccessMBC1RAM) {
+          return 0xff;
+        } else {
+          return this._extRAM[this._getMBC1RAMAddr(addr)];
+        }
       }
 
       if (addr <= this.ADDR_ROM_MAX) {
@@ -9414,6 +9435,9 @@ var MMU = function () {
   }, {
     key: '_handleMBC1',
     value: function _handleMBC1(addr, n) {
+      if (this._isMBC1Register0Addr(addr)) {
+        this._canAccessMBC1RAM = n === this.MBC1_CSRAM_ON;
+      }
       if (this._isMBC1Register1Addr(addr)) {
         this._selectROMBank(n);
       }
@@ -9496,6 +9520,25 @@ var MMU = function () {
           this._updateStatLyc();
           break;
       }
+      if (this._isExtRAMAddr(addr) && this._hasMBC1) {
+        if (this._canAccessMBC1RAM) {
+          this._extRAM[this._getMBC1RAMAddr(addr)] = n;
+          this._storage.write(this.getGameTitle(), this._extRAM);
+        }
+      }
+    }
+
+    /**
+     * @param addr
+     * @returns {number} addr in the MBC1 RAM given a MMU addr.
+     * Example: 0xa000 corresponds to 0 if RAM bank is zero, 0xa000 to 0x2000 is RAM bank is 1.
+     * @private
+     */
+
+  }, {
+    key: '_getMBC1RAMAddr',
+    value: function _getMBC1RAMAddr(addr) {
+      return this._selectedRAMBankNb * this.MBC1_RAM_BANK_SIZE + (addr - this.ADDR_EXT_RAM_START);
     }
   }, {
     key: '_updateStatLyc',
@@ -9563,6 +9606,18 @@ var MMU = function () {
      */
 
   }, {
+    key: '_isMBC1Register0Addr',
+    value: function _isMBC1Register0Addr(addr) {
+      return addr >= 0 && addr < this.ADDR_MBC1_REG1_START;
+    }
+
+    /**
+     * @param addr
+     * @returns {boolean}
+     * @private
+     */
+
+  }, {
     key: '_isMBC1Register1Addr',
     value: function _isMBC1Register1Addr(addr) {
       return addr >= this.ADDR_MBC1_REG1_START && addr < this.ADDR_ROM_BANK_START;
@@ -9613,7 +9668,7 @@ var MMU = function () {
 
     /**
      * Selects a RAM bank
-     * @param {number} bankNb [1,3]
+     * @param {number} bankNb [0,3]
      * @private
      */
 
@@ -9621,9 +9676,6 @@ var MMU = function () {
     key: '_selectRAMBank',
     value: function _selectRAMBank(bankNb) {
       this._selectedRAMBankNb = bankNb % this.MBC1_RAM_BANKS;
-      var start = this._selectedRAMBankNb * this.MBC1_RAM_BANK_SIZE;
-      var end = start + this.MBC1_ROM_BANK_SIZE;
-      this._memory.set(this._extRAM.subarray(start, end), this.ADDR_EXT_RAM_START);
     }
 
     /**
@@ -9680,6 +9732,18 @@ var MMU = function () {
     key: '_isVRAMAddr',
     value: function _isVRAMAddr(addr) {
       return addr >= this.ADDR_VRAM_START && addr <= this.ADDR_VRAM_END;
+    }
+
+    /**
+     * @param addr
+     * @returns {boolean} true if addr is in External RAM range
+     * @private
+     */
+
+  }, {
+    key: '_isExtRAMAddr',
+    value: function _isExtRAMAddr(addr) {
+      return addr >= this.ADDR_EXT_RAM_START && addr < this.ADDR_WRAM_START;
     }
 
     /**
@@ -10314,7 +10378,7 @@ var MMU = function () {
 exports.default = MMU;
 
 }).call(this,require("buffer").Buffer)
-},{"./logger":11,"./utils":14,"buffer":3,"fs":2}],13:[function(require,module,exports){
+},{"./logger":11,"./utils":15,"buffer":3,"fs":2}],13:[function(require,module,exports){
 'use strict';
 
 var _cpu = require('./cpu');
@@ -10336,6 +10400,10 @@ var _inputHandler2 = _interopRequireDefault(_inputHandler);
 var _gameRequester = require('./gameRequester');
 
 var _gameRequester2 = _interopRequireDefault(_gameRequester);
+
+var _storage = require('./storage');
+
+var _storage2 = _interopRequireDefault(_storage);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -10388,7 +10456,7 @@ function handleFileSelect(evt) {
  * @param {ArrayBuffer} arrayBuffer
  */
 function init(arrayBuffer) {
-  var mmu = new _mmu2.default(new Uint8Array(arrayBuffer));
+  var mmu = new _mmu2.default(new Uint8Array(arrayBuffer), new _storage2.default());
   var lcd = new _lcd2.default(mmu, $ctxBG, $ctxOBJ, $ctxWindow);
 
   cpu = new _cpu2.default(mmu, lcd);
@@ -10465,7 +10533,42 @@ attachListeners();
 
 gameRequester.request('load-game', init);
 
-},{"./cpu":7,"./gameRequester":8,"./inputHandler":9,"./lcd":10,"./mmu":12}],14:[function(require,module,exports){
+},{"./cpu":7,"./gameRequester":8,"./inputHandler":9,"./lcd":10,"./mmu":12,"./storage":14}],14:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var BrowserStorage = function () {
+  function BrowserStorage() {
+    _classCallCheck(this, BrowserStorage);
+  }
+
+  _createClass(BrowserStorage, [{
+    key: 'read',
+    value: function read(gameTitle) {
+      var stringyfiedMemory = window.localStorage.getItem(gameTitle);
+      if (stringyfiedMemory == null) return null;
+      return new Uint8Array(stringyfiedMemory.split(','));
+    }
+  }, {
+    key: 'write',
+    value: function write(gameTitle, memory) {
+      window.localStorage.setItem(gameTitle, memory);
+    }
+  }]);
+
+  return BrowserStorage;
+}();
+
+exports.default = BrowserStorage;
+
+},{}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
