@@ -17,16 +17,6 @@ describe('MMU', () => {
   beforeEach( () => {
     const loader = new Loader('./roms/blargg_cpu_instrs.gb');
     mmu = new MMU(loader.asUint8Array(), new StorageMock());
-    mmu.assertTileLineDrawn = function(posX, posY, expected){
-      for(let i = 0; i < 8; i++){
-        assert.equal(mmu.isTileLineDrawn(mmu.getTileLinePos(posX, posY) + i*20), expected);
-      }
-    };
-    mmu.setTileDrawn = function(posX, posY){
-      for(let i = 0; i < 8; i++){
-        mmu.setTileLineDrawn(mmu.getTileLinePos(posX, posY) + i*20);
-      }
-    };
     mmu.If = function(){
       return this.readByteAt(mmu.ADDR_IF);
     };

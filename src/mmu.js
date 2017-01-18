@@ -222,14 +222,9 @@ export default class MMU {
     this._selectedROMBankNb = 1; // default is bank 1
     this._selectedRAMBankNb = 0;
 
-    this._resetDrawnTileLines();
     this._initMemory();
     this._loadROM();
     this._initMBC1();
-  }
-
-  _resetDrawnTileLines(){
-    this._drawnTileLines = new Array(this.VISIBLE_CHARS_PER_LINE*18*8).fill(false);
   }
 
   /**
@@ -617,9 +612,6 @@ export default class MMU {
         Logger.info('Cannot write on VRAM now');
         return;
       }
-      if (this._isBgCodeArea(addr)){
-        this._clearDrawnTileLines(addr);
-      }
     }
 
     switch(addr){
@@ -698,26 +690,6 @@ export default class MMU {
    */
   _getCharNb(addr){
     return (addr - this._getBgDisplayDataStartAddr());
-  }
-
-  /**
-   * @param addr
-   * @private
-   */
-  _clearDrawnTileLines(addr){
-    const offset = addr - this._getBgDisplayDataStartAddr();
-    const posX = offset % this.CHARS_PER_LINE;
-    const posY = Math.floor(offset / this.CHARS_PER_LINE);
-    if ((posX >= 0 && posX <= 0x13) && ((posY >= 0 && posY <= 0x11))){
-      for(let i = 0; i < 8; i++){
-        const pos = this.getTileLinePos(posX, posY) + i*this.VISIBLE_CHARS_PER_LINE;
-        this._drawnTileLines[pos] = false;
-      }
-    }
-  }
-
-  getTileLinePos(posX, posY){
-    return posX + 160*posY;
   }
 
   /**
@@ -887,9 +859,6 @@ export default class MMU {
       case 0:
         this._handle_lcd_off();
         break;
-    }
-    if ((n & this.MASK_BG_CODE_AREA_2) !== (this.lcdc() & this.MASK_BG_CODE_AREA_2)){
-      this._resetDrawnTileLines();
     }
   }
 

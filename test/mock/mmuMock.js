@@ -75,12 +75,6 @@ export default class MMUMock {
     return {y: 0, x: 0, chrCode: 0, attr: 0x00};
   }
 
-  isTileLineDrawn(tileLine) {
-    return false;
-  }
-
-  setTileLineDrawn(tileLine){}
-
   getBgCharCode(){
     return 0;
   }
