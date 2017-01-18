@@ -6,7 +6,7 @@ export default class MMU {
 
   /**
    * @param {Uint8Array} rom
-   * @param {Storage|StorageMock} storage
+   * @param {BrowserStorage|StorageMock|undefined} storage
    */
   constructor(rom, storage){
 
@@ -255,7 +255,7 @@ export default class MMU {
   }
 
   getSavedRAM(){
-    return this._storage.read();
+    return this._storage.read(this.getGameTitle());
   }
 
   /**
@@ -265,7 +265,12 @@ export default class MMU {
     const type = this.romByteAt(this.ADDR_CARTRIDGE_TYPE);
     this._hasMBC1 = (type === 1 || type === 2 || type === 3);
     if (this._hasMBC1){
-      this._extRAM = new Uint8Array(this.MBC1_RAM_SIZE);
+      const savedRAM = this.getSavedRAM();
+      if (savedRAM != null){
+        this._extRAM = savedRAM;
+      } else {
+        this._extRAM = new Uint8Array(this.MBC1_RAM_SIZE);
+      }
     }
   }
 
@@ -633,8 +638,8 @@ export default class MMU {
         break;
     }
     if (this._isExtRAMAddr(addr)){
-      this._extRAM[this._selectedRAMBankNb * this.MBC1_RAM_BANK_SIZE] = n;
-      this._storage.write(this._extRAM);
+      this._extRAM[this._selectedRAMBankNb*this.MBC1_RAM_BANK_SIZE + (addr - this.ADDR_EXT_RAM_START)] = n;
+      this._storage.write(this.getGameTitle(), this._extRAM);
     }
   }
 

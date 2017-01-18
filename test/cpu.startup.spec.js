@@ -4,6 +4,7 @@ import Loader from '../src/loader';
 import assert from 'assert';
 import {describe, before, it} from 'mocha';
 import lcdMock from './mock/lcdMock';
+import StorageMock from './mock/storageMock';
 
 let cpu, lcd;
 
@@ -12,7 +13,7 @@ describe('Start BIOS', () => {
   before( () => {
     const loader = new Loader('./roms/blargg_cpu_instrs.gb');
     lcd = new lcdMock();
-    cpu = new CPU(new MMU(loader.asUint8Array()), lcd);
+    cpu = new CPU(new MMU(loader.asUint8Array(), new StorageMock()), lcd);
     /**
      * NOP
      */

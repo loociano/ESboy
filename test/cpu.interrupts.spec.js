@@ -5,6 +5,7 @@ import assert from 'assert';
 import config from '../src/config';
 import Utils from '../src/utils';
 import lcdMock from './mock/lcdMock';
+import StorageMock from './mock/storageMock';
 import {describe, beforeEach, it} from 'mocha';
 
 describe('Interruptions', () => {
@@ -14,7 +15,7 @@ describe('Interruptions', () => {
 
   beforeEach(function() {
     const loader = new Loader('./roms/blargg_cpu_instrs.gb');
-    this.cpu = new CPU(new MMU(loader.asUint8Array()), new lcdMock());
+    this.cpu = new CPU(new MMU(loader.asUint8Array(), new StorageMock()), new lcdMock());
     /**
      * @param {number} pc
      */

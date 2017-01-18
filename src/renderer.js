@@ -3,6 +3,7 @@ import MMU from './mmu';
 import LCD from './lcd';
 import InputHandler from './inputHandler';
 import GameRequester from './gameRequester';
+import BrowserStorage from './storage';
 
 // Cache DOM references
 const $cartridge = document.getElementById('cartridge');
@@ -53,7 +54,7 @@ function handleFileSelect(evt) {
  * @param {ArrayBuffer} arrayBuffer
  */
 function init(arrayBuffer){
-  const mmu = new MMU(new Uint8Array(arrayBuffer));
+  const mmu = new MMU(new Uint8Array(arrayBuffer), new BrowserStorage());
   const lcd = new LCD(mmu, $ctxBG, $ctxOBJ, $ctxWindow);
 
   cpu = new CPU(mmu, lcd);
