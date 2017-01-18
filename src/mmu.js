@@ -993,7 +993,7 @@ export default class MMU {
       case this._ROM_MBC1_RAM_BATT: return 'ROM+MBC1+RAM+BATTERY';
       // TODO: implement rest of types
       default:
-        throw new Error(`Cartridge type ${type} unknown`);
+        Logger.warn(`Cartridge type ${Utils.hex2(type)} unknown`);
     }
   }
 
