@@ -143,6 +143,7 @@ export default class MMU {
 
     // OBJ
     this.MAX_OBJ = 40;
+    this.BYTES_PER_OBJ = 4;
 
     // DMA
     this.DMA_LENGTH = 0xa0;
@@ -1074,19 +1075,6 @@ export default class MMU {
   }
 
   /**
-   * Dumps memory to a file
-   */
-  dumpMemoryToFile(pc){
-    const filename = `${Utils.toFsStamp()}_memory_dump_at_${Utils.hex4(pc)}.bin`;
-    try {
-      fs.writeFileSync(filename, this._memory);
-    } catch(e){
-      console.error('Problem writing memory dump');
-    }
-    return filename;
-  }
-
-  /**
    * Returns the value of LCD Control register
    * @returns {number}
    */
@@ -1123,7 +1111,7 @@ export default class MMU {
    */
   incrementLy(){
     let ly = this.ly();
-    if (ly >= 153){
+    if (ly >= this.NUM_LINES){
       ly = 0;
     } else {
       ly++;
@@ -1225,13 +1213,13 @@ export default class MMU {
   }
 
   /**
-   * @param number
+   * @param objNb
    * @returns {{y: number, x: number, chrCode: number, attr: number}}
    */
-  getOBJ(number){
-    if (number < 0 || number > this.MAX_OBJ-1) throw new Error('OBJ number out of range');
+  getOBJ(objNb){
+    if (objNb < 0 || objNb > this.MAX_OBJ-1) throw new Error('OBJ number out of range');
 
-    const addr = this.ADDR_OAM_START + (4 * number);
+    const addr = this.ADDR_OAM_START + (objNb * this.BYTES_PER_OBJ);
     return {
       y: this.readByteAt(addr),
       x: this.readByteAt(addr + 1),

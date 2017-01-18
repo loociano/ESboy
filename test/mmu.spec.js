@@ -5,6 +5,7 @@ import config from '../src/config';
 import {describe, beforeEach, it} from 'mocha';
 import StorageMock from './mock/storageMock';
 import fs from 'fs';
+import Utils from '../src/utils';
 
 describe('MMU', () => {
 
@@ -645,18 +646,6 @@ describe('MMU', () => {
 
       mmu.writeByteAt(mmu.ADDR_OBG1, 0xcc);
       assert.equal(mmu.obg1(), 0xcc);
-    });
-  });
-
-  describe('Memory dumps', () => {
-
-    it('should dump a memory snapshot', () => {
-      const filename = mmu.dumpMemoryToFile(); // TODO: mock fs in tests
-      assert.doesNotThrow( () => {
-          fs.accessSync(filename);
-      });
-      fs.unlinkSync(filename);
-
     });
   });
 
