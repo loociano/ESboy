@@ -335,8 +335,15 @@ describe('MMU', () => {
       mmu.writeByteAt(mmu.ADDR_STAT, 0x00);
       assert.equal(mmu.stat(), 0x80, 'STAT.7 always set');
 
-      mmu.writeByteAt(mmu.ADDR_STAT, 0xff);
-      assert.equal(mmu.stat(), 0xff, 'STAT set');
+      mmu.writeByteAt(mmu.ADDR_STAT, 0x80);
+      assert.equal(mmu.stat(), 0x80, 'STAT set');
+    });
+
+    it('should detect unsupported Interrupt selection', () => {
+      assert.throws( () => mmu.writeByteAt(mmu.ADDR_STAT, 0b00001000), Error, 'Interrupt Mode 0 unsupported');
+      assert.throws( () => mmu.writeByteAt(mmu.ADDR_STAT, 0b00010000), Error, 'Interrupt Mode 1 unsupported');
+      assert.throws( () => mmu.writeByteAt(mmu.ADDR_STAT, 0b00100000), Error, 'Interrupt Mode 2 unsupported');
+      mmu.writeByteAt(mmu.ADDR_STAT, 0b01000000); // LY=LYC is ok
     });
 
     it('should handle VRAM and OAM restrictions', () => {

@@ -127,6 +127,7 @@ export default class MMU {
     this.MASK_OBJ_ATTR_VFLIP = 0x40;
     this.MASK_OBJ_ATTR_HFLIP = 0x20;
     this.MASK_OBJ_ATTR_OBG = 0x10;
+    this.STAT_INTERRUPT_MODE_UNSUPPORTED = 0x38;
 
     // IF masks
     this.IF_STAT_ON = 0b00010;
@@ -629,6 +630,7 @@ export default class MMU {
         return;
       case this.ADDR_STAT:
         n |= 0x80; // Bit 7 is always set
+        this._handleStatWrite(n);
         break;
       case this.ADDR_LCDC:
         this._handle_lcdc(n);
@@ -655,6 +657,17 @@ export default class MMU {
         this._extRAM[this._getMBC1RAMAddr(addr)] = n;
         this._storage.write(this.getGameTitle(), this._extRAM);
       }
+    }
+  }
+
+  /**
+   * Handles write to STAT register
+   * @param {number} n byte
+   * @private
+   */
+  _handleStatWrite(n){
+    if ((n & this.STAT_INTERRUPT_MODE_UNSUPPORTED) > 0){
+      throw new Error('Unsupported STAT interrupt mode');
     }
   }
 
