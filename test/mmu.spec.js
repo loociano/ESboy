@@ -383,6 +383,16 @@ describe('MMU', () => {
 
       assert.equal(mmu.lyEqualsLyc(), false, 'LYC !== LY');
       assert.equal(mmu.If(), 0b00000010, 'CPU will reset IF when interrupt is handled');
+
+      mmu.writeByteAt(mmu.ADDR_LYC, 3);
+      assert.equal(mmu.lyEqualsLyc(), true, 'LYC === LY');
+
+      mmu.writeByteAt(mmu.ADDR_STAT, 0b01000000); // Reset match flag
+      assert.equal(mmu.lyEqualsLyc(), false, 'LYC !== LY');
+
+      mmu.writeByteAt(mmu.ADDR_LYC, 4);
+      mmu.setLy(4);
+      assert.equal(mmu.lyEqualsLyc(), true, 'LYC === LY');
     });
 
   });
