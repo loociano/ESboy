@@ -255,7 +255,7 @@ export default class MMU {
   }
 
   getSavedRAM(){
-    return this._storage.read();
+    return this._storage.read(this.getGameTitle());
   }
 
   /**
@@ -634,7 +634,7 @@ export default class MMU {
     }
     if (this._isExtRAMAddr(addr)){
       this._extRAM[this._selectedRAMBankNb * this.MBC1_RAM_BANK_SIZE] = n;
-      this._storage.write(this._extRAM);
+      this._storage.write(this.getGameTitle(), this._extRAM);
     }
   }
 

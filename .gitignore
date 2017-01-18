@@ -3,6 +3,7 @@ node_modules
 tools
 roms
 *.bin
+*.iml
 
 # IDEs
 .idea

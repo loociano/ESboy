@@ -3,15 +3,16 @@ import MMU from '../src/mmu';
 import assert from 'assert';
 import {describe, before, it} from 'mocha';
 import LCDMock from './mock/lcdMock';
-import StorageMock from './mock/StorageMock';
+import StorageMock from './mock/storageMock';
 
-let cpu, mmu, rom, extRAM;
+let cpu, mmu, rom, extRAM, storage;
 
 describe('MBC1', () => {
 
   before( () => {
+    storage = new StorageMock();
     rom = new Uint8Array(0x10000);
-    mmu = new MMU(rom, new StorageMock());
+    mmu = new MMU(rom, storage);
 
     rom[0] = 0xa;
     rom[mmu.ADDR_CARTRIDGE_TYPE] = 1; // MBC1
@@ -20,7 +21,7 @@ describe('MBC1', () => {
     rom[mmu.ADDR_ROM_BANK_START * 2] = 0xc;
     rom[mmu.ADDR_ROM_BANK_START * 3] = 0xd;
 
-    mmu = new MMU(rom, new StorageMock()); // reload
+    mmu = new MMU(rom, storage); // reload
     cpu = new CPU(mmu, new LCDMock());
 
     extRAM = mmu.getExtRAM();
