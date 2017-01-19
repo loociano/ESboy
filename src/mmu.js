@@ -927,14 +927,15 @@ export default class MMU {
    * @return {string} game title
    */
   getGameTitle(){
-    const titleArray = this._memory.slice(this.ADDR_TITLE_START, this.ADDR_TITLE_END);
-
-    let title = '';
-    let length = 0;
-    while(titleArray[length] != 0){
-      title += String.fromCharCode(titleArray[length++]);
+    const characters = this._memory.slice(this.ADDR_TITLE_START, this.ADDR_TITLE_END + 1);
+    const title = [];
+    for(let c of characters){
+      if (c >= 0x20 && c < 0x7f) {
+        // Readable ASCII chars
+        title.push(String.fromCharCode(c));
+      }
     }
-    return title;
+    return title.join('');
   }
 
   /**
