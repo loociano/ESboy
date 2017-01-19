@@ -218,6 +218,7 @@ export default class MMU {
     this._buttons = 0x0f; // Buttons unpressed, on HIGH
     this._div = 0x0000; // Internal divider, register DIV is msb
     this._hasMBC1 = false;
+    this._hasMBC1RAM = false;
     this._canAccessMBC1RAM = false;
     this._selectedROMBankNb = 1; // default is bank 1
     this._selectedRAMBankNb = 0;
@@ -263,7 +264,8 @@ export default class MMU {
   _initMBC1(){
     const type = this.romByteAt(this.ADDR_CARTRIDGE_TYPE);
     this._hasMBC1 = (type === 1 || type === 2 || type === 3);
-    if (this._hasMBC1){
+    this._hasMBC1RAM = (type === 2 || type === 3);
+    if (this._hasMBC1RAM){
       const savedRAM = this.getSavedRAM();
       if (savedRAM != null){
         this._extRAM = savedRAM;
@@ -364,7 +366,7 @@ export default class MMU {
       return 0xff;
     }
     if (this._isExtRAMAddr(addr) && this._hasMBC1) {
-      if (!this._canAccessMBC1RAM) {
+      if (!this._hasMBC1RAM || !this._canAccessMBC1RAM) {
         return 0xff;
       } else {
         return this._extRAM[this._getMBC1RAMAddr(addr)];
@@ -565,13 +567,13 @@ export default class MMU {
    * @private
    */
   _handleMBC1(addr, n){
-    if (this._isMBC1Register0Addr(addr)){
+    if (this._isMBC1Register0Addr(addr) && this._hasMBC1RAM){
       this._canAccessMBC1RAM = (n === this.MBC1_CSRAM_ON);
     }
     if (this._isMBC1Register1Addr(addr)){
       this._selectROMBank(n);
     }
-    if (this._isMBC1Register2Addr(addr)){
+    if (this._isMBC1Register2Addr(addr) && this._hasMBC1RAM){
       this._selectRAMBank(n);
     }
     if (this._isMBC1Register3Addr(addr)){
@@ -646,7 +648,7 @@ export default class MMU {
         break;
     }
     if (this._isExtRAMAddr(addr) && this._hasMBC1){
-      if (this._canAccessMBC1RAM){
+      if (this._hasMBC1RAM && this._canAccessMBC1RAM){
         this._extRAM[this._getMBC1RAMAddr(addr)] = n;
         this._storage.write(this.getGameTitle(), this._extRAM);
       }
