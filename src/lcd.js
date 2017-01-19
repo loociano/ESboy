@@ -209,27 +209,33 @@ export default class LCD {
           chrCode -= 1; // nearest even down
         }
 
-        if (this._isOBJInLine(line, OBJ.y)){
-          const y = OBJ.y - this._MAX_TILE_HEIGHT; /* tiles can be 8x16 pixels */
-          this._drawTileLine({
-            tileNumber: chrCode,
-            tileLine: line - y,
-            startX: OBJ.x - this.TILE_WIDTH,
-            y: y,
-            OBJAttr: OBJ.attr,
-          }, line, this._imageDataOBJ);
-        }
+        let topTileY = OBJ.y;
+        let bottomTileY = OBJ.y + this._TILE_HEIGHT;
         if (doubleOBJ){
-          if (this._isOBJInLine(line, OBJ.y + this._TILE_HEIGHT)){
-            const y = OBJ.y + this._TILE_HEIGHT - this._MAX_TILE_HEIGHT;
+          if (this._isFlipY(OBJ.attr)){
+            // Swap
+            topTileY = OBJ.y + this._TILE_HEIGHT;
+            bottomTileY = OBJ.y;
+          }
+          if (this._isOBJInLine(line, bottomTileY)){
             this._drawTileLine({
               tileNumber: chrCode + 1,
-              tileLine: line - y,
+              tileLine: line - (bottomTileY - this._MAX_TILE_HEIGHT),
               startX: OBJ.x - this.TILE_WIDTH,
-              y: y,
+              y: bottomTileY - this._MAX_TILE_HEIGHT,
               OBJAttr: OBJ.attr,
             }, line, this._imageDataOBJ);
           }
+        }
+
+        if (this._isOBJInLine(line, topTileY)){
+          this._drawTileLine({
+            tileNumber: chrCode,
+            tileLine: line - (topTileY - this._MAX_TILE_HEIGHT),
+            startX: OBJ.x - this.TILE_WIDTH,
+            y: topTileY - this._MAX_TILE_HEIGHT,
+            OBJAttr: OBJ.attr,
+          }, line, this._imageDataOBJ);
         }
       }
     }
@@ -352,15 +358,33 @@ export default class LCD {
     }
 
     // Flipping order matters
-    if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_VFLIP) === this._mmu.MASK_OBJ_ATTR_VFLIP){
+    if (this._isFlipY(OBJAttr)){
       intensityVector = this._getIntensityVector(tileNumber, this._getVerticalMirrorLine(tileLine), true);
     }
-    if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_HFLIP) === this._mmu.MASK_OBJ_ATTR_HFLIP){
+    if (this._isFlipX(OBJAttr)){
       const copy = intensityVector.slice();
       copy.reverse();
       intensityVector = copy;
     }
     return intensityVector;
+  }
+
+  /**
+   * @param OBJAttr
+   * @returns {boolean} true if the object should be flipped vertically
+   * @private
+   */
+  _isFlipY(OBJAttr){
+    return (OBJAttr & this._mmu.MASK_OBJ_ATTR_VFLIP) === this._mmu.MASK_OBJ_ATTR_VFLIP;
+  }
+
+  /**
+   * @param OBJAttr
+   * @returns {boolean} true if the object should be flipped horizontally
+   * @private
+   */
+  _isFlipX(OBJAttr){
+    return (OBJAttr & this._mmu.MASK_OBJ_ATTR_HFLIP) === this._mmu.MASK_OBJ_ATTR_HFLIP;
   }
 
   _getCharCodeByPx(x, y){

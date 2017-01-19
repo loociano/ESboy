@@ -645,7 +645,7 @@ describe('LCD', () => {
       mmu.readBGData = (any) => { return new Buffer('0000', 'hex'); };
       mmu.getOBJ = (n) => {
         if ( n === 0 ){
-          return {y: 16, x: 8, chrCode: 0x00, attr: 0b01000000};
+          return {y: 16, x: 8, chrCode: 0x00, attr: 0b01000000 /* vertical flip */};
         } else {
           return {y: 0, x: 0};
         }
@@ -670,7 +670,6 @@ describe('LCD', () => {
           }
         }
       }
-
     });
 
     it('should flip OBJ horizontally and vertically', () => {
@@ -704,6 +703,45 @@ describe('LCD', () => {
         }
       }
 
+    });
+
+    it('should flip double OBJ (8x16) vertically', () => {
+      /* 0   1.......      .......1
+         1   ........      ........
+                      -->
+         15  .......1      1.......
+       */
+      const mmu = lcd.getMMU();
+      mmu.areOBJDouble = () => true;
+      mmu.getBgCharCode = (any) => 0;
+      mmu.readBGData = (any) => new Buffer('0000', 'hex');
+      mmu.getOBJ = (n) => {
+        if ( n === 0 ){
+          return {y: 16, x: 8, chrCode: 0x02, attr: 0b01000000 /* vertical flip */};
+        }
+      };
+      mmu.readOBJData = (tileNumber, tileLine) => {
+        switch(tileNumber) {
+          case 2:
+            if (tileLine === 0) return new Buffer('8000', 'hex'); // top-left pixel
+            return new Buffer('0000', 'hex');
+          case 3:
+            if (tileLine === 7) return new Buffer('0100', 'hex'); // bottom-right pixel
+            return new Buffer('0000', 'hex');
+        }
+      };
+
+      lcd.drawTiles();
+
+      for(let x = 0; x < 8; x++){
+        for(let y = 0; y < 8; y++){
+          if ( (x === 7 && y === 0) || (x === 0 && y === 15)) {
+            assert.deepEqual(lcd.getPixelData(x, y, lcd.getImageDataOBJ()), lcd.SHADES[1]);
+          } else {
+            assert.deepEqual(lcd.getPixelData(x, y, lcd.getImageDataOBJ()), [0,0,0,0]);
+          }
+        }
+      }
     });
 
     it('should detect OBJ priority flag', () => {
