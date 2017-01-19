@@ -842,6 +842,17 @@ describe('LCD', () => {
 
       assert.deepEqual(Array.from(lcd.getWindowLineData(0)), new Uint8ClampedArray(lineRgbaLength));
       assert.deepEqual(Array.from(lcd.getWindowLineData(10)), Array.from(expectedData));
+
+      // Test that WX < 7 (prohibited values) as considered as WX = 7
+      mmu.wx = () => 6;
+      lcd.drawLine(10);
+
+      assert.deepEqual(Array.from(lcd.getWindowLineData(10)), Array.from(expectedData));
+
+      mmu.wx = () => 0;
+      lcd.drawLine(10);
+
+      assert.deepEqual(Array.from(lcd.getWindowLineData(10)), Array.from(expectedData));
     });
 
     it('should draw a Window line when WX > 7', () => {

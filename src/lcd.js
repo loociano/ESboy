@@ -241,9 +241,10 @@ export default class LCD {
    */
   _drawLineWindow(line){
     const wy = this._mmu.wy();
-    const wx = this._mmu.wx();
+    let wx = this._mmu.wx();
+    if (wx < this._MIN_WINDOW_X) wx = this._MIN_WINDOW_X;
 
-    if ( (line - wy < 0) || wx > this._MAX_WINDOW_X || wx < this._MIN_WINDOW_X) return;
+    if ( (line - wy < 0) || wx > this._MAX_WINDOW_X ) return;
 
     for(let x = 0; x < this._HW_WIDTH; x += this.TILE_WIDTH){
       const tileNumber = this._mmu.getWindowCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line - wy, 0));
