@@ -8919,6 +8919,7 @@ var MMU = function () {
     this.MASK_OBJ_ATTR_VFLIP = 0x40;
     this.MASK_OBJ_ATTR_HFLIP = 0x20;
     this.MASK_OBJ_ATTR_OBG = 0x10;
+    this.STAT_INTERRUPT_MODE_UNSUPPORTED = 0x38;
 
     // IF masks
     this.IF_STAT_ON = 2;
@@ -8934,6 +8935,7 @@ var MMU = function () {
 
     // OBJ
     this.MAX_OBJ = 40;
+    this.BYTES_PER_OBJ = 4;
 
     // DMA
     this.DMA_LENGTH = 0xa0;
@@ -9012,23 +9014,17 @@ var MMU = function () {
     this._selectedROMBankNb = 1; // default is bank 1
     this._selectedRAMBankNb = 0;
 
-    this._resetDrawnTileLines();
     this._initMemory();
     this._loadROM();
     this._initMBC1();
   }
 
+  /**
+   * @returns {boolean} true if running BIOS
+   */
+
+
   _createClass(MMU, [{
-    key: '_resetDrawnTileLines',
-    value: function _resetDrawnTileLines() {
-      this._drawnTileLines = new Array(this.VISIBLE_CHARS_PER_LINE * 18 * 8).fill(false);
-    }
-
-    /**
-     * @returns {boolean} true if running BIOS
-     */
-
-  }, {
     key: 'isRunningBIOS',
     value: function isRunningBIOS() {
       return this._inBIOS;
@@ -9485,9 +9481,6 @@ var MMU = function () {
           _logger2.default.info('Cannot write on VRAM now');
           return;
         }
-        if (this._isBgCodeArea(addr)) {
-          this._clearDrawnTileLines(addr);
-        }
       }
 
       switch (addr) {
@@ -9499,6 +9492,7 @@ var MMU = function () {
           return;
         case this.ADDR_STAT:
           n |= 0x80; // Bit 7 is always set
+          this._handleStatWrite(n);
           break;
         case this.ADDR_LCDC:
           this._handle_lcdc(n);
@@ -9525,6 +9519,20 @@ var MMU = function () {
           this._extRAM[this._getMBC1RAMAddr(addr)] = n;
           this._storage.write(this.getGameTitle(), this._extRAM);
         }
+      }
+    }
+
+    /**
+     * Handles write to STAT register
+     * @param {number} n byte
+     * @private
+     */
+
+  }, {
+    key: '_handleStatWrite',
+    value: function _handleStatWrite(n) {
+      if ((n & this.STAT_INTERRUPT_MODE_UNSUPPORTED) > 0) {
+        throw new Error('Unsupported STAT interrupt mode');
       }
     }
 
@@ -9561,30 +9569,6 @@ var MMU = function () {
     key: '_getCharNb',
     value: function _getCharNb(addr) {
       return addr - this._getBgDisplayDataStartAddr();
-    }
-
-    /**
-     * @param addr
-     * @private
-     */
-
-  }, {
-    key: '_clearDrawnTileLines',
-    value: function _clearDrawnTileLines(addr) {
-      var offset = addr - this._getBgDisplayDataStartAddr();
-      var posX = offset % this.CHARS_PER_LINE;
-      var posY = Math.floor(offset / this.CHARS_PER_LINE);
-      if (posX >= 0 && posX <= 0x13 && posY >= 0 && posY <= 0x11) {
-        for (var i = 0; i < 8; i++) {
-          var pos = this.getTileLinePos(posX, posY) + i * this.VISIBLE_CHARS_PER_LINE;
-          this._drawnTileLines[pos] = false;
-        }
-      }
-    }
-  }, {
-    key: 'getTileLinePos',
-    value: function getTileLinePos(posX, posY) {
-      return posX + 160 * posY;
     }
 
     /**
@@ -9806,9 +9790,6 @@ var MMU = function () {
           this._handle_lcd_off();
           break;
       }
-      if ((n & this.MASK_BG_CODE_AREA_2) !== (this.lcdc() & this.MASK_BG_CODE_AREA_2)) {
-        this._resetDrawnTileLines();
-      }
     }
 
     /**
@@ -9896,14 +9877,37 @@ var MMU = function () {
   }, {
     key: 'getGameTitle',
     value: function getGameTitle() {
-      var titleArray = this._memory.slice(this.ADDR_TITLE_START, this.ADDR_TITLE_END);
+      var characters = this._memory.slice(this.ADDR_TITLE_START, this.ADDR_TITLE_END + 1);
+      var title = [];
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
 
-      var title = '';
-      var length = 0;
-      while (titleArray[length] != 0) {
-        title += String.fromCharCode(titleArray[length++]);
+      try {
+        for (var _iterator = characters[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var c = _step.value;
+
+          if (c >= 0x20 && c < 0x7f) {
+            // Readable ASCII chars
+            title.push(String.fromCharCode(c));
+          }
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
       }
-      return title;
+
+      return title.join('');
     }
 
     /**
@@ -9945,7 +9949,7 @@ var MMU = function () {
           return 'ROM+MBC1+RAM+BATTERY';
         // TODO: implement rest of types
         default:
-          throw new Error('Cartridge type ' + type + ' unknown');
+          _logger2.default.warn('Cartridge type ' + _utils2.default.hex2(type) + ' unknown');
       }
     }
 
@@ -10054,22 +10058,6 @@ var MMU = function () {
     }
 
     /**
-     * Dumps memory to a file
-     */
-
-  }, {
-    key: 'dumpMemoryToFile',
-    value: function dumpMemoryToFile(pc) {
-      var filename = _utils2.default.toFsStamp() + '_memory_dump_at_' + _utils2.default.hex4(pc) + '.bin';
-      try {
-        _fs2.default.writeFileSync(filename, this._memory);
-      } catch (e) {
-        console.error('Problem writing memory dump');
-      }
-      return filename;
-    }
-
-    /**
      * Returns the value of LCD Control register
      * @returns {number}
      */
@@ -10121,7 +10109,7 @@ var MMU = function () {
     key: 'incrementLy',
     value: function incrementLy() {
       var ly = this.ly();
-      if (ly >= 153) {
+      if (ly >= this.NUM_LINES) {
         ly = 0;
       } else {
         ly++;
@@ -10251,16 +10239,16 @@ var MMU = function () {
     }
 
     /**
-     * @param number
+     * @param objNb
      * @returns {{y: number, x: number, chrCode: number, attr: number}}
      */
 
   }, {
     key: 'getOBJ',
-    value: function getOBJ(number) {
-      if (number < 0 || number > this.MAX_OBJ - 1) throw new Error('OBJ number out of range');
+    value: function getOBJ(objNb) {
+      if (objNb < 0 || objNb > this.MAX_OBJ - 1) throw new Error('OBJ number out of range');
 
-      var addr = this.ADDR_OAM_START + 4 * number;
+      var addr = this.ADDR_OAM_START + objNb * this.BYTES_PER_OBJ;
       return {
         y: this.readByteAt(addr),
         x: this.readByteAt(addr + 1),
