@@ -8357,27 +8357,33 @@ var LCD = function () {
             chrCode -= 1; // nearest even down
           }
 
-          if (this._isOBJInLine(line, OBJ.y)) {
-            var y = OBJ.y - this._MAX_TILE_HEIGHT; /* tiles can be 8x16 pixels */
-            this._drawTileLine({
-              tileNumber: chrCode,
-              tileLine: line - y,
-              startX: OBJ.x - this.TILE_WIDTH,
-              y: y,
-              OBJAttr: OBJ.attr
-            }, line, this._imageDataOBJ);
-          }
+          var topTileY = OBJ.y;
+          var bottomTileY = OBJ.y + this._TILE_HEIGHT;
           if (doubleOBJ) {
-            if (this._isOBJInLine(line, OBJ.y + this._TILE_HEIGHT)) {
-              var _y = OBJ.y + this._TILE_HEIGHT - this._MAX_TILE_HEIGHT;
+            if (this._isFlipY(OBJ.attr)) {
+              // Swap
+              topTileY = OBJ.y + this._TILE_HEIGHT;
+              bottomTileY = OBJ.y;
+            }
+            if (this._isOBJInLine(line, bottomTileY)) {
               this._drawTileLine({
                 tileNumber: chrCode + 1,
-                tileLine: line - _y,
+                tileLine: line - (bottomTileY - this._MAX_TILE_HEIGHT),
                 startX: OBJ.x - this.TILE_WIDTH,
-                y: _y,
+                y: bottomTileY - this._MAX_TILE_HEIGHT,
                 OBJAttr: OBJ.attr
               }, line, this._imageDataOBJ);
             }
+          }
+
+          if (this._isOBJInLine(line, topTileY)) {
+            this._drawTileLine({
+              tileNumber: chrCode,
+              tileLine: line - (topTileY - this._MAX_TILE_HEIGHT),
+              startX: OBJ.x - this.TILE_WIDTH,
+              y: topTileY - this._MAX_TILE_HEIGHT,
+              OBJAttr: OBJ.attr
+            }, line, this._imageDataOBJ);
           }
         }
       }
@@ -8393,8 +8399,9 @@ var LCD = function () {
     value: function _drawLineWindow(line) {
       var wy = this._mmu.wy();
       var wx = this._mmu.wx();
+      if (wx < this._MIN_WINDOW_X) wx = this._MIN_WINDOW_X;
 
-      if (line - wy < 0 || wx > this._MAX_WINDOW_X || wx < this._MIN_WINDOW_X) return;
+      if (line - wy < 0 || wx > this._MAX_WINDOW_X) return;
 
       for (var x = 0; x < this._HW_WIDTH; x += this.TILE_WIDTH) {
         var tileNumber = this._mmu.getWindowCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line - wy, 0));
@@ -8527,15 +8534,39 @@ var LCD = function () {
       }
 
       // Flipping order matters
-      if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_VFLIP) === this._mmu.MASK_OBJ_ATTR_VFLIP) {
+      if (this._isFlipY(OBJAttr)) {
         intensityVector = this._getIntensityVector(tileNumber, this._getVerticalMirrorLine(tileLine), true);
       }
-      if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_HFLIP) === this._mmu.MASK_OBJ_ATTR_HFLIP) {
+      if (this._isFlipX(OBJAttr)) {
         var copy = intensityVector.slice();
         copy.reverse();
         intensityVector = copy;
       }
       return intensityVector;
+    }
+
+    /**
+     * @param OBJAttr
+     * @returns {boolean} true if the object should be flipped vertically
+     * @private
+     */
+
+  }, {
+    key: '_isFlipY',
+    value: function _isFlipY(OBJAttr) {
+      return (OBJAttr & this._mmu.MASK_OBJ_ATTR_VFLIP) === this._mmu.MASK_OBJ_ATTR_VFLIP;
+    }
+
+    /**
+     * @param OBJAttr
+     * @returns {boolean} true if the object should be flipped horizontally
+     * @private
+     */
+
+  }, {
+    key: '_isFlipX',
+    value: function _isFlipX(OBJAttr) {
+      return (OBJAttr & this._mmu.MASK_OBJ_ATTR_HFLIP) === this._mmu.MASK_OBJ_ATTR_HFLIP;
     }
   }, {
     key: '_getCharCodeByPx',
@@ -9010,6 +9041,7 @@ var MMU = function () {
     this._buttons = 0x0f; // Buttons unpressed, on HIGH
     this._div = 0x0000; // Internal divider, register DIV is msb
     this._hasMBC1 = false;
+    this._hasMBC1RAM = false;
     this._canAccessMBC1RAM = false;
     this._selectedROMBankNb = 1; // default is bank 1
     this._selectedRAMBankNb = 0;
@@ -9069,7 +9101,8 @@ var MMU = function () {
     value: function _initMBC1() {
       var type = this.romByteAt(this.ADDR_CARTRIDGE_TYPE);
       this._hasMBC1 = type === 1 || type === 2 || type === 3;
-      if (this._hasMBC1) {
+      this._hasMBC1RAM = type === 2 || type === 3;
+      if (this._hasMBC1RAM) {
         var savedRAM = this.getSavedRAM();
         if (savedRAM != null) {
           this._extRAM = savedRAM;
@@ -9181,7 +9214,7 @@ var MMU = function () {
         return 0xff;
       }
       if (this._isExtRAMAddr(addr) && this._hasMBC1) {
-        if (!this._canAccessMBC1RAM) {
+        if (!this._hasMBC1RAM || !this._canAccessMBC1RAM) {
           return 0xff;
         } else {
           return this._extRAM[this._getMBC1RAMAddr(addr)];
@@ -9431,13 +9464,13 @@ var MMU = function () {
   }, {
     key: '_handleMBC1',
     value: function _handleMBC1(addr, n) {
-      if (this._isMBC1Register0Addr(addr)) {
+      if (this._isMBC1Register0Addr(addr) && this._hasMBC1RAM) {
         this._canAccessMBC1RAM = n === this.MBC1_CSRAM_ON;
       }
       if (this._isMBC1Register1Addr(addr)) {
         this._selectROMBank(n);
       }
-      if (this._isMBC1Register2Addr(addr)) {
+      if (this._isMBC1Register2Addr(addr) && this._hasMBC1RAM) {
         this._selectRAMBank(n);
       }
       if (this._isMBC1Register3Addr(addr)) {
@@ -9515,7 +9548,7 @@ var MMU = function () {
           break;
       }
       if (this._isExtRAMAddr(addr) && this._hasMBC1) {
-        if (this._canAccessMBC1RAM) {
+        if (this._hasMBC1RAM && this._canAccessMBC1RAM) {
           this._extRAM[this._getMBC1RAMAddr(addr)] = n;
           this._storage.write(this.getGameTitle(), this._extRAM);
         }
