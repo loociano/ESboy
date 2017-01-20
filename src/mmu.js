@@ -237,7 +237,6 @@ export default class MMU {
     this._selectedRAMBankNb = 0;
 
     this._initMemory();
-    this._loadROM();
     this._initMemoryBankController();
   }
 
@@ -295,22 +294,6 @@ export default class MMU {
         this._extRAM = new Uint8Array(this.MBC1_RAM_SIZE); // Same as MBC3
         this._storage.write(this.getGameTitle(), this._extRAM);
       }
-    }
-  }
-
-  /**
-   * @private
-   */
-  _loadROM(){
-    const memory_start = 0;
-    const rom_start = 0;
-    const rom_32kb = 0x7fff;
-
-    try {
-      this._memory.set(this._rom.subarray(rom_start, rom_32kb), memory_start);
-
-    } catch (e){
-      throw new Error('Could not load ROM into memory');
     }
   }
 
@@ -399,7 +382,7 @@ export default class MMU {
       }
     }
 
-    if (addr <= this.ADDR_ROM_MAX){
+    if (addr < this.ADDR_ROM_BANK_START){
       if (addr < this.ADDR_GAME_START && this._inBIOS){
         return this._biosByteAt(addr);
       }
@@ -1031,23 +1014,10 @@ export default class MMU {
   }
 
   /**
-   * @param {number} start
-   * @param {number} end
-   * @returns {any}
-   */
-  romBufferAt(addr_start, addr_end){
-    if (addr_start > this.ADDR_ROM_MAX || addr_start < 0 ||
-      addr_end < addr_start || addr_end > this.ADDR_ROM_MAX){
-      throw new Error(`Cannot read ROM Buffer ${Utils.hexStr(addr_start)} to ${Utils.hexStr(addr_end)}`);
-    }
-    return this._memory.slice(addr_start, addr_end);
-  }
-
-  /**
    * @return {string} game title
    */
   getGameTitle(){
-    const characters = this._memory.slice(this.ADDR_TITLE_START, this.ADDR_TITLE_END + 1);
+    const characters = this._rom.subarray(this.ADDR_TITLE_START, this.ADDR_TITLE_END + 1);
     const title = [];
     for(let c of characters){
       if (c >= 0x20 && c < 0x7f) {
@@ -1138,11 +1108,10 @@ export default class MMU {
   }
 
   /**
-   * @returns {number|any} Buffer with nintendo graphic
+   * @returns {Uint8Array} nintendo graphic logo
    */
   getNintendoGraphicBuffer() {
-    return this.romBufferAt(this.ADDR_NINTENDO_GRAPHIC_START,
-      this.ADDR_NINTENDO_GRAPHIC_END + 1);
+    return this._rom.subarray(this.ADDR_NINTENDO_GRAPHIC_START, this.ADDR_NINTENDO_GRAPHIC_END + 1);
   }
 
   /**
