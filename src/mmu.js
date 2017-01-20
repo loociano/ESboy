@@ -163,6 +163,9 @@ export default class MMU {
     this._ROM_MMM01 = 0xb;
     this._ROM_MMM01_SRAM = 0xc;
     this._ROM_MMM01_SRAM_BATT = 0xd;
+    this._ROM_MBC3_TIMER_BATT = 0xf;
+    this._ROM_MBC3_TIMER_RAM_BATT = 0x10;
+    this._ROM_MBC3 = 0x11;
     this._ROM_MBC3_RAM = 0x12;
     this._ROM_MBC3_RAM_BATT = 0x13;
     this._ROM_MBC5 = 0x19;
@@ -207,6 +210,14 @@ export default class MMU {
     this.MBC1_RAM_SIZE = this.MBC1_RAM_BANK_SIZE * this.MBC1_RAM_BANKS;
     this.MBC1_CSRAM_ON = 0x0a;
 
+    // MBC3
+    this.MBC3_ROM_BANK_SIZE = this.MBC1_ROM_BANK_SIZE;
+    this.MBC3_RAM_BANK_SIZE = this.MBC1_RAM_BANK_SIZE;
+    this.MBC3_MAX_ROM_BANK_NB = 0x7f; // 0..127
+    this.MBC3_RAM_BANKS = this.MBC1_RAM_BANKS;
+    this.MBC3_RAM_SIZE = this.MBC1_RAM_SIZE;
+    this.MBC3_CSRAM_ON = this.MBC1_CSRAM_ON;
+
     // Variables
     this._rom = rom;
     this._storage = storage;
@@ -219,13 +230,15 @@ export default class MMU {
     this._div = 0x0000; // Internal divider, register DIV is msb
     this._hasMBC1 = false;
     this._hasMBC1RAM = false;
+    this._hasMBC3RAM = false;
     this._canAccessMBC1RAM = false;
+    this._canAccessMBC3RAM = false;
     this._selectedROMBankNb = 1; // default is bank 1
     this._selectedRAMBankNb = 0;
 
     this._initMemory();
     this._loadROM();
-    this._initMBC1();
+    this._initMemoryBankController();
   }
 
   /**
@@ -261,16 +274,25 @@ export default class MMU {
   /**
    * @private
    */
-  _initMBC1(){
-    const type = this.romByteAt(this.ADDR_CARTRIDGE_TYPE);
+  _initMemoryBankController(){
+    const type = this._rom[this.ADDR_CARTRIDGE_TYPE];
     this._hasMBC1 = (type === 1 || type === 2 || type === 3);
     this._hasMBC1RAM = (type === 2 || type === 3);
-    if (this._hasMBC1RAM){
+    this._hasMBC3 = (type === 0x11 || type === 0x12 || type === 0x13);
+    this._hasMBC3RAM = (type === 0x12 || type === 0x13);
+    this._initExternalRAM();
+  }
+
+  /**
+   * @private
+   */
+  _initExternalRAM(){
+    if (this._hasMBC1RAM || this._hasMBC3RAM){
       const savedRAM = this.getSavedRAM();
       if (savedRAM != null){
         this._extRAM = savedRAM;
       } else {
-        this._extRAM = new Uint8Array(this.MBC1_RAM_SIZE);
+        this._extRAM = new Uint8Array(this.MBC1_RAM_SIZE); // Same as MBC3
         this._storage.write(this.getGameTitle(), this._extRAM);
       }
     }
@@ -365,11 +387,15 @@ export default class MMU {
       Logger.info('Cannot read VRAM');
       return 0xff;
     }
-    if (this._isExtRAMAddr(addr) && this._hasMBC1) {
-      if (!this._hasMBC1RAM || !this._canAccessMBC1RAM) {
-        return 0xff;
-      } else {
-        return this._extRAM[this._getMBC1RAMAddr(addr)];
+    if ( (this._hasMBC1 || this._hasMBC3) && this._isProgramSwitchAddr(addr)){
+      return this._rom[this._getMBC1ROMAddr(addr)];
+    }
+    if (this._isExtRAMAddr(addr)){
+      if (this._hasMBC1) {
+        return this._readMBC1RAM(addr);
+      }
+      if (this._hasMBC3) {
+        return this._readMBC3RAM(addr);
       }
     }
 
@@ -377,10 +403,36 @@ export default class MMU {
       if (addr < this.ADDR_GAME_START && this._inBIOS){
         return this._biosByteAt(addr);
       }
-      return this.romByteAt(addr);
+      return this._rom[addr];
     }
 
     return this._memory[addr];
+  }
+
+  /**
+   * @param addr
+   * @returns {number}
+   * @private
+   */
+  _readMBC1RAM(addr){
+    if (!this._hasMBC1RAM || !this._canAccessMBC1RAM) {
+      return 0xff;
+    } else {
+      return this._extRAM[this._getMBC1RAMAddr(addr)];
+    }
+  }
+
+  /**
+   * @param addr
+   * @returns {number}
+   * @private
+   */
+  _readMBC3RAM(addr){
+    if (!this._hasMBC3RAM || !this._canAccessMBC3RAM) {
+      return 0xff;
+    } else {
+      return this._extRAM[this._getMBC3RAMAddr(addr)];
+    }
   }
 
   /**
@@ -581,6 +633,21 @@ export default class MMU {
     }
   }
 
+  _handleMBC3(addr, n){
+    if (this._isMBC3Register0Addr(addr) && this._hasMBC3RAM){
+      this._canAccessMBC3RAM = (n === this.MBC3_CSRAM_ON);
+    }
+    if (this._isMBC3Register1Addr(addr)){
+      this._selectROMBank(n);
+    }
+    if (this._isMBC3Register2Addr(addr) && this._hasMBC3RAM){
+      this._selectRAMBank(n);
+    }
+    if (this._isMBC3Register3Addr(addr)){
+      throw new Error('Unsupported 4Mb/32KB mode');
+    }
+  }
+
   /**
    * Writes a byte n into address
    * @param {number} 16 bit address
@@ -592,8 +659,10 @@ export default class MMU {
       return;
     }
     if (addr <= this.ADDR_ROM_MAX){
-      if (this._hasMBC1){
+      if (this._hasMBC1) {
         this._handleMBC1(addr, n);
+      } else if (this._hasMBC3){
+        this._handleMBC3(addr, n);
       } else {
         Logger.warn(`Cannot write memory address ${Utils.hexStr(addr)}`);
       }
@@ -647,11 +716,36 @@ export default class MMU {
         this._updateStatLyc();
         break;
     }
-    if (this._isExtRAMAddr(addr) && this._hasMBC1){
-      if (this._hasMBC1RAM && this._canAccessMBC1RAM){
-        this._extRAM[this._getMBC1RAMAddr(addr)] = n;
-        this._storage.write(this.getGameTitle(), this._extRAM);
+    if (this._isExtRAMAddr(addr)){
+      if (this._hasMBC1) {
+        this._writeMBC1RAM(addr, n);
+      } else if (this._hasMBC3){
+        this._writeMBC3RAM(addr, n);
       }
+    }
+  }
+
+  /**
+   * @param addr
+   * @param n
+   * @private
+   */
+  _writeMBC1RAM(addr, n){
+    if (this._hasMBC1RAM && this._canAccessMBC1RAM){
+      this._extRAM[this._getMBC1RAMAddr(addr)] = n;
+      this._storage.write(this.getGameTitle(), this._extRAM);
+    }
+  }
+
+  /**
+   * @param addr
+   * @param n
+   * @private
+   */
+  _writeMBC3RAM(addr, n){
+    if (this._hasMBC3RAM && this._canAccessMBC3RAM){
+      this._extRAM[this._getMBC3RAMAddr(addr)] = n;
+      this._storage.write(this.getGameTitle(), this._extRAM);
     }
   }
 
@@ -674,6 +768,20 @@ export default class MMU {
    */
   _getMBC1RAMAddr(addr){
     return this._selectedRAMBankNb*this.MBC1_RAM_BANK_SIZE + (addr - this.ADDR_EXT_RAM_START);
+  }
+
+  _getMBC3RAMAddr(addr){
+    return this._getMBC1RAMAddr(addr);
+  }
+
+  /**
+   * @param addr
+   * @returns {number} addr in the MBC1 ROM given a MMU addr.
+   * Example: 0x4000 corresponds to 0x4000 if ROM bank is 1, 0x4000 to 0x8000 is RAM bank is 2, etc
+   * @private
+   */
+  _getMBC1ROMAddr(addr){
+    return this._selectedROMBankNb*this.MBC1_ROM_BANK_SIZE + (addr - this.ADDR_ROM_BANK_START);
   }
 
   _updateStatLyc(){
@@ -712,6 +820,10 @@ export default class MMU {
     return addr >= 0 && addr < this.ADDR_MBC1_REG1_START;
   }
 
+  _isMBC3Register0Addr(addr){
+    return this._isMBC1Register0Addr(addr);
+  }
+
   /**
    * @param addr
    * @returns {boolean}
@@ -719,6 +831,10 @@ export default class MMU {
    */
   _isMBC1Register1Addr(addr){
     return addr >= this.ADDR_MBC1_REG1_START && addr < this.ADDR_ROM_BANK_START;
+  }
+
+  _isMBC3Register1Addr(addr){
+    return this._isMBC1Register1Addr(addr);
   }
 
   /**
@@ -730,6 +846,10 @@ export default class MMU {
     return addr >= this.ADDR_MBC1_REG2_START && addr < this.ADDR_MBC1_REG3_START;
   }
 
+  _isMBC3Register2Addr(addr){
+    return this._isMBC1Register2Addr(addr);
+  }
+
   /**
    * @param addr
    * @returns {boolean}
@@ -739,20 +859,20 @@ export default class MMU {
     return addr >= this.ADDR_MBC1_REG3_START && addr <= this.ADDR_MBC1_REG3_END;
   }
 
+  _isMBC3Register3Addr(addr){
+    return this._isMBC1Register3Addr(addr);
+  }
+
   /**
    * Selects a ROM bank and updates the Program Switching Area
    * @param n byte
    * @private
    */
   _selectROMBank(n){
-    if(n === 0 || n > this.MBC1_MAX_ROM_BANK_NB){
+    this._selectedROMBankNb = n % this.getNbOfROMBanks();
+    if(this._selectedROMBankNb === 0){
       this._selectedROMBankNb = 1;
-    } else {
-      this._selectedROMBankNb = n % this.getNbOfROMBanks();
     }
-    const start = this.ADDR_ROM_BANK_START * this._selectedROMBankNb;
-    const end = start + this.MBC1_ROM_BANK_SIZE;
-    this._memory.set(this._rom.subarray(start, end), this.ADDR_ROM_BANK_START);
   }
 
   /**
@@ -815,6 +935,15 @@ export default class MMU {
    */
   _isExtRAMAddr(addr){
     return addr >= this.ADDR_EXT_RAM_START && addr < this.ADDR_WRAM_START;
+  }
+
+  /**
+   * @param addr
+   * @returns {boolean} true if add is in Program Switching Area (for ROM banking)
+   * @private
+   */
+  _isProgramSwitchAddr(addr){
+    return addr >= this.ADDR_ROM_BANK_START && addr < this.ADDR_VRAM_START;
   }
 
   /**
@@ -890,17 +1019,6 @@ export default class MMU {
   }
 
   /**
-   * @param {number} address
-   * @return {number} byte value
-   */
-  romByteAt(address) {
-    if (address > this.ADDR_ROM_MAX || address < 0){
-      throw new Error(`Cannot read ROM address ${Utils.hexStr(address)}`);
-    }
-    return this._memory[address];
-  }
-
-  /**
    * @param {number} addr
    * @returns {number} byte value
    * @private
@@ -944,21 +1062,21 @@ export default class MMU {
    * @return {boolean} true if game is in color
    */
   isGameInColor() {
-    return this.romByteAt(this.ADDR_IS_GB_COLOR) === this.IS_GB_COLOR;
+    return this._rom[this.ADDR_IS_GB_COLOR] === this.IS_GB_COLOR;
   }
 
   /**
    * @returns {boolean} true if ROM is for Super Game Boy
    */
   isGameSuperGB() {
-    return this.romByteAt(this.ADDR_IS_SGB);
+    return this._rom[this.ADDR_IS_SGB];
   }
 
   /**
    * @returns {string} cartridge type
    */
   getCartridgeType() {
-    const type = this.romByteAt(this.ADDR_CARTRIDGE_TYPE);
+    const type = this._rom[this.ADDR_CARTRIDGE_TYPE];
     switch(type){
       case this._ROM_ONLY: return 'ROM ONLY';
       case this._ROM_MBC1: return 'ROM+MBC1';
@@ -974,7 +1092,7 @@ export default class MMU {
    * @returns {string} ROM size
    */
   getRomSize() {
-    switch(this.romByteAt(this.ADDR_ROM_SIZE)){
+    switch(this._rom[this.ADDR_ROM_SIZE]){
       case this._32KB: return '32KB';
       case this._64KB: return '64KB';
       case this._128KB: return '128KB';
@@ -994,7 +1112,7 @@ export default class MMU {
    * @returns {string} RAM size
    */
   getRAMSize() {
-    switch(this.romByteAt(this.ADDR_RAM_SIZE)){
+    switch(this._rom[this.ADDR_RAM_SIZE]){
       case this.RAM_NONE: return 'None';
       case this.RAM_2KB: return '2KB';
       case this.RAM_8KB: return '8KB';
@@ -1009,9 +1127,9 @@ export default class MMU {
    * @returns {string} destination code
    */
   getDestinationCode() {
-    if (this.romByteAt(this.ADDR_DESTINATION_CODE) === this.JAPANESE){
+    if (this._rom[this.ADDR_DESTINATION_CODE] === this.JAPANESE){
       return 'Japanese';
-    } else if (this.romByteAt(this.ADDR_DESTINATION_CODE) === this.NON_JAPANESE){
+    } else if (this._rom[this.ADDR_DESTINATION_CODE] === this.NON_JAPANESE){
       return 'Non-Japanese';
     } else {
       throw new Error('Destination code unknown');
@@ -1040,7 +1158,7 @@ export default class MMU {
     let addr = this.ADDR_TITLE_START;
     let count = 0;
     while(addr <= this.ADDR_COMPLEMENT_CHECK){
-      count += this.romByteAt(addr);
+      count += this._rom[addr];
       addr++;
     }
     return (count + 25 & 0xff) === 0;
@@ -1234,7 +1352,12 @@ export default class MMU {
    * @returns {number} number of banks (integer)
    */
   getNbOfROMBanks(){
-    return this._rom.length / this.MBC1_ROM_BANK_SIZE;
+    if(this._hasMBC1){
+      return this._rom.length / this.MBC1_ROM_BANK_SIZE;
+    } else if (this._hasMBC3){
+      return this._rom.length / this.MBC3_ROM_BANK_SIZE;
+    }
+    return 0;
   }
 
   getSelectedROMBankNb(){
