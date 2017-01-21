@@ -23,7 +23,7 @@ let then = Date.now();
 let delta;
 let frames = 0;
 let ref = then;
-let cpu;
+let cpu, mmu;
 const gameRequester = new GameRequester();
 
 /**
@@ -54,7 +54,7 @@ function handleFileSelect(evt) {
  * @param {ArrayBuffer} arrayBuffer
  */
 function init(arrayBuffer){
-  const mmu = new MMU(new Uint8Array(arrayBuffer), new BrowserStorage());
+  mmu = new MMU(new Uint8Array(arrayBuffer), new BrowserStorage());
   const lcd = new LCD(mmu, $ctxBG, $ctxOBJ, $ctxWindow);
 
   cpu = new CPU(mmu, lcd);
@@ -89,6 +89,10 @@ function updateTitle(speed){
   $title.innerText = `gb-ES6 ${speed}%`;
 }
 
+function saveGame(){
+  if (mmu) mmu.flushExtRamToStorage();
+}
+
 function attachListeners() {
   for (let $game of $games) {
     $game.addEventListener('click', function (evt) {
@@ -98,8 +102,11 @@ function attachListeners() {
 
   $cartridge.addEventListener('change', handleFileSelect, false);
   $cartridge.addEventListener('click', function(evt){
-    this.value = null;
+    this.value = null; // reset chosen file
+    saveGame();
   }, false);
+
+  window.addEventListener('unload', saveGame); // user closes tab or window
 }
 
 attachListeners();

@@ -271,6 +271,15 @@ export default class MMU {
   }
 
   /**
+   * Flushes the external RAM to permanent storage.
+   * This is a costly operation in browsers (localStorage),
+   * hence, should only be performed when the user stops playing.
+   */
+  flushExtRamToStorage(){
+    this._storage.write(this.getGameTitle(), this._extRAM);
+  }
+
+  /**
    * @private
    */
   _initMemoryBankController(){
@@ -292,7 +301,6 @@ export default class MMU {
         this._extRAM = savedRAM;
       } else {
         this._extRAM = new Uint8Array(this.MBC1_RAM_SIZE); // Same as MBC3
-        this._storage.write(this.getGameTitle(), this._extRAM);
       }
     }
   }
@@ -721,7 +729,6 @@ export default class MMU {
   _writeMBC1RAM(addr, n){
     if (this._hasMBC1RAM && this._canAccessMBC1RAM){
       this._extRAM[this._getMBC1RAMAddr(addr)] = n;
-      this._storage.write(this.getGameTitle(), this._extRAM);
     }
   }
 
@@ -733,7 +740,6 @@ export default class MMU {
   _writeMBC3RAM(addr, n){
     if (this._hasMBC3RAM && this._canAccessMBC3RAM){
       this._extRAM[this._getMBC3RAMAddr(addr)] = n;
-      this._storage.write(this.getGameTitle(), this._extRAM);
     }
   }
 

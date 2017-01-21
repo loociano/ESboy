@@ -162,6 +162,7 @@ describe('Memory Bank Controller 3 ', () => {
 
       mmu = new MMU(rom, storage); // reload
       cpu.mmu = mmu;
+      mmu.flushExtRamToStorage();
 
       extRAM = storage.read('');
       extRAM[0] = 0x01;
