@@ -236,6 +236,7 @@ export default class MMU {
     this._selectedROMBankNb = 1; // default is bank 1
     this._selectedRAMBankNb = 0;
 
+    this.isCartridgeSupported();
     this._initMemory();
     this._initMemoryBankController();
   }
@@ -1054,18 +1055,23 @@ export default class MMU {
   }
 
   /**
-   * @returns {string} cartridge type
+   * @returns {boolean} cartridge is supported
    */
-  getCartridgeType() {
+  isCartridgeSupported() {
     const type = this._rom[this.ADDR_CARTRIDGE_TYPE];
     switch(type){
-      case this._ROM_ONLY: return 'ROM ONLY';
-      case this._ROM_MBC1: return 'ROM+MBC1';
-      case this._ROM_MBC1_RAM: return 'ROM+MBC1+RAM';
-      case this._ROM_MBC1_RAM_BATT: return 'ROM+MBC1+RAM+BATTERY';
-      // TODO: implement rest of types
+      // TODO: support most cartridges
+      case this._ROM_ONLY:
+      case this._ROM_MBC1:
+      case this._ROM_MBC1_RAM:
+      case this._ROM_MBC1_RAM_BATT:
+      case this._ROM_MBC3:
+      case this._ROM_MBC3_RAM:
+      case this._ROM_MBC3_RAM_BATT:
+        return true;
       default:
         Logger.warn(`Cartridge type ${Utils.hex2(type)} unknown`);
+        return false;
     }
   }
 
