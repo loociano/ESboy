@@ -17,16 +17,6 @@ export default class CPU {
       throw new Error('Missing lcd');
     }
 
-    this.mmu = mmu;
-
-    this._checkSupportedROM();
-
-    this.lcd = lcd;
-    this._lastInstrWasEI = false;
-
-    this._m = 0; // machine cycles for lcd
-    this._m_dma = 0; // machine cycles for DMA
-
     // Constants
     this.EXTENDED_PREFIX = 0xcb;
     this.ADDR_VBLANK_INTERRUPT = 0x40;
@@ -45,27 +35,8 @@ export default class CPU {
     this.IF_VBLANK_ON = 0b00001;
     this.IF_VBLANK_OFF = 0b11110;
 
-    this._r = {
-      pc: 0,
-      sp: this.mmu.ADDR_MAX - 1,
-      a: 0x01,
-      b: 0x00,
-      c: 0x13,
-      d: 0x00,
-      e: 0xd8,
-      _f: 0xb0,
-      h: 0x01,
-      l: 0x4d,
-      ime: 1
-    };
-
-    // CPU modes
-    this._halt = false;
-    this._stop = false;
-
     this._attach_bit_functions();
-
-    this._instructions = {
+    this._INSTRUCTIONS = {
       0x00: {fn: this._nop, paramBytes: 0},
       0x01: {fn: this.ld_bc_nn, paramBytes: 2},
       0x02: {fn: this.ld_0xbc_a, paramBytes: 0},
@@ -578,17 +549,31 @@ export default class CPU {
       0xfe: {fn: this.cp_n, paramBytes: 1},
       0xff: {fn: this.rst_38, paramBytes: 0},
     };
-  }
 
-  /**
-   * @private
-   */
-  _checkSupportedROM(){
-    try {
-      this.mmu.getCartridgeType();
-    } catch(e){
-      throw e;
-    }
+    this.mmu = mmu;
+    this.lcd = lcd;
+
+    this._r = {
+      pc: 0,
+      sp: this.mmu.ADDR_MAX - 1,
+      a: 0x01,
+      b: 0x00,
+      c: 0x13,
+      d: 0x00,
+      e: 0xd8,
+      _f: 0xb0,
+      h: 0x01,
+      l: 0x4d,
+      ime: 1
+    };
+
+    this._lastInstrWasEI = false;
+    this._m = 0; // machine cycles for lcd
+    this._m_dma = 0; // machine cycles for DMA
+
+    // CPU modes
+    this._halt = false;
+    this._stop = false;
   }
 
   /**
@@ -1201,8 +1186,8 @@ export default class CPU {
    * @private
    */
   _getInstruction(opcode) {
-    if (this._instructions[opcode] != null) {
-      return this._instructions[opcode];
+    if (this._INSTRUCTIONS[opcode] != null) {
+      return this._INSTRUCTIONS[opcode];
     } else {
       throw new Error(`[${Utils.hex4(this._r.pc - 1)}] ${Utils.hex2(opcode)} opcode not implemented.`);
     }
