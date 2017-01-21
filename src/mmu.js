@@ -632,7 +632,7 @@ export default class MMU {
       this._selectRAMBank(n);
     }
     if (this._isMBC3Register3Addr(addr)){
-      throw new Error('Unsupported 4Mb/32KB mode');
+      throw new Error('Unsupported MBC3 Timers');
     }
   }
 
