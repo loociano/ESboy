@@ -601,7 +601,7 @@ export default class MMU {
    * @param n
    * @private
    */
-  _handleMBC1(addr, n){
+  _writeMBC1Register(addr, n){
     if (this._isMBC1Register0Addr(addr) && this._hasMBC1RAM){
       this._canAccessMBC1RAM = (n === this.MBC1_CSRAM_ON);
     }
@@ -616,7 +616,12 @@ export default class MMU {
     }
   }
 
-  _handleMBC3(addr, n){
+  /**
+   * @param addr
+   * @param n
+   * @private
+   */
+  _writeMBC3Register(addr, n){
     if (this._isMBC3Register0Addr(addr) && this._hasMBC3RAM){
       this._canAccessMBC3RAM = (n === this.MBC3_CSRAM_ON);
     }
@@ -643,9 +648,9 @@ export default class MMU {
     }
     if (addr <= this.ADDR_ROM_MAX){
       if (this._hasMBC1) {
-        this._handleMBC1(addr, n);
+        this._writeMBC1Register(addr, n);
       } else if (this._hasMBC3){
-        this._handleMBC3(addr, n);
+        this._writeMBC3Register(addr, n);
       } else {
         Logger.warn(`Cannot write memory address ${Utils.hexStr(addr)}`);
       }
