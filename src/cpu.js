@@ -9,13 +9,8 @@ export default class CPU {
    */
   constructor(mmu, lcd) {
 
-    if (mmu == null) {
-      throw new Error('Missing mmu');
-    }
-
-    if (lcd == null){
-      throw new Error('Missing lcd');
-    }
+    if (mmu == null) throw new Error('Missing mmu');
+    if (lcd == null) throw new Error('Missing lcd');
 
     // Constants
     this.EXTENDED_PREFIX = 0xcb;
@@ -1189,7 +1184,7 @@ export default class CPU {
     if (this._INSTRUCTIONS[opcode] != null) {
       return this._INSTRUCTIONS[opcode];
     } else {
-      throw new Error(`[${Utils.hex4(this._r.pc - 1)}] ${Utils.hex2(opcode)} opcode not implemented.`);
+      throw new Error(`[${Utils.hex4(this._r.pc - 1)}] Unknown opcode ${Utils.hex2(opcode)}.`);
     }
   }
 
