@@ -528,7 +528,7 @@ export default class MMU {
    * @returns {number} address
    */
   getOBJCharDataStartAddr(tile_number){
-    if (tile_number < 0 || tile_number >> 0xff) throw new Error(`OBJ ${tile_number} out of range`);
+    if (tile_number < 0 || tile_number > 0xff) throw new Error(`OBJ ${tile_number} out of range`);
     return this.ADDR_OBJ_DATA_START + (tile_number << 4);
   }
 
