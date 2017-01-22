@@ -347,8 +347,9 @@ export default class LCD {
   _handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, x, y){
     if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_PRIORITY) === this._mmu.MASK_OBJ_ATTR_PRIORITY){
 
-      const tileNumber = this._getCharCodeByPx(x, y);
-      const bgIntensityVector = this._getIntensityVector(tileNumber, tileLine, false);
+      const bgLine = y + tileLine;
+      const tileNumber = this._getCharCodeByPx(x, bgLine);
+      const bgIntensityVector = this._getIntensityVector(tileNumber, bgLine, false);
 
       if (LCD._isLightestVector(bgIntensityVector)){
         // Exception: OBJ with priority flag are displayed only in the underneath BG is lightest

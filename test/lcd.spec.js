@@ -764,6 +764,39 @@ describe('LCD', () => {
       lcd.assertTransparentTile(0, 0, lcd.getImageDataOBJ());
     });
 
+    it('should support OBJ priority flag when obj are in boundaries', () => {
+      const mmu = lcd.getMMU();
+      mmu.readBGData = (tileNumber, tileLine) => {
+        if (tileLine === 0){
+          return new Buffer('ff00', 'hex');
+        } else {
+          return new Buffer('0000', 'hex');
+        }
+      };
+      mmu.readOBJData = (n) => {
+        if (n === 0)
+          return new Buffer('ff00', 'hex');
+        else
+          return new Buffer('0000', 'hex');
+      };
+      mmu.getBgCharCode = (gridX, gridY) => {
+        if (gridX < 0 || gridX > 0x1f || gridY < 0 || gridY > 0x1f) throw new Error();
+        return 0;
+      };
+      mmu.areOBJOn = () => true;
+      /* only 2 last lines of obj will be shown, rest is out of screen */
+      mmu.getOBJ = (any) => { return {y: 10, x: 8, chrCode: 0, attr: 0b10000000 /* bg priority */}; };
+
+      lcd.drawLine(0);
+      lcd.drawLine(1);
+
+      lcd.assertLinePixels(0, 0, lcd.SHADES[1], lcd.getImageDataBG());
+      lcd.assertLinePixels(0, 0, [0, 0, 0, 0], lcd.getImageDataOBJ()); // BG is not lightest, do not paint OBJ
+
+      lcd.assertLinePixels(1, 0, lcd.SHADES[0], lcd.getImageDataBG());
+      lcd.assertLinePixels(1, 0, lcd.SHADES[1], lcd.getImageDataOBJ()); // BG is lightest, paint OBJ
+    });
+
     it('should display an OBJ with a priority flag only if the BG behind is lightest', () => {
       const mmu = lcd.getMMU();
       mmu.readBGData = (any) => new Buffer('0000', 'hex'); // lightest background
