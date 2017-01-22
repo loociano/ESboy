@@ -584,31 +584,31 @@ describe('LCD', () => {
 
     it('should detect palette on OBJ', () => {
       const mmu = lcd.getMMU();
-      mmu.readBGData = () => { return new Buffer('0000', 'hex'); };
-      mmu.readOBJData = () => { return new Buffer('ff00', 'hex'); };
-      mmu.getBgCharCode = () => { return 0x00; };
+      mmu.readBGData = () => new Buffer('0000', 'hex');
+      mmu.readOBJData = () => new Buffer('ff00', 'hex');
+      mmu.getBgCharCode = () => 0x00;
       mmu.getOBJ = () => { return {y: 16, x: 8, chrCode: 0x00, attr: 0x00}; };
-      mmu.obg0 = () => { return 0b00000000; };
+      mmu.obg0 = () => 0b00000000;
 
       lcd.drawTiles();
 
       lcd.assertTile(0, 0, lcd.SHADES[0], lcd.getImageDataOBJ());
 
       // Use OBG1
-      mmu.getOBJ = () => { return {y: 16, x: 8, chrCode: 0x00, attr: 0x10}; };
-      mmu.obg1 = () => { return 0b00000100; };
+      mmu.getOBJ = () => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b00010000/* obg1 */}; };
+      mmu.obg1 = () => 0b00000100;
 
       lcd.drawTiles();
 
       lcd.assertTile(0, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
 
-      mmu.obg1 = () => { return 0b00001000; };
+      mmu.obg1 = () => 0b00001000;
 
       lcd.drawTiles();
 
       lcd.assertTile(0, 0, lcd.SHADES[2], lcd.getImageDataOBJ());
 
-      mmu.obg1 = () => { return 0b00001100; };
+      mmu.obg1 = () => 0b00001100;
 
       lcd.drawTiles();
 
@@ -744,34 +744,34 @@ describe('LCD', () => {
       }
     });
 
-    it('should detect OBJ priority flag', () => {
+    it('should support OBJ priority flag', () => {
       const mmu = lcd.getMMU();
-      mmu.readBGData = (any) => { return new Buffer('ffff', 'hex'); };
-      mmu.readOBJData = (tileNumber, tileLine) => { return new Buffer('ff00', 'hex'); };
-      mmu.getBgCharCode = (any) => { return 0; };
+      mmu.readBGData = (any) => Buffer('ffff', 'hex');
+      mmu.readOBJData = (any) => new Buffer('ff00', 'hex');
+      mmu.getBgCharCode = (any) => 0;
       mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b00000000}; };
-      mmu.obg0 = () => { return 0b11100100; };
+      mmu.obg0 = () => 0b11100100;
 
       lcd.drawTiles();
 
       lcd.assertTile(0, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
 
       // Priority flag: BG over OBJ
-      mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b10000000}; };
+      mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b10000000/* bg priority */}; };
 
       lcd.drawTiles();
 
       lcd.assertTransparentTile(0, 0, lcd.getImageDataOBJ());
     });
 
-    it('should display an OBJ with a priority flag only if the BG behind is zero', () => {
+    it('should display an OBJ with a priority flag only if the BG behind is lightest', () => {
       const mmu = lcd.getMMU();
       mmu.readBGData = (any) => new Buffer('0000', 'hex'); // lightest background
       mmu.readOBJData = (any) => new Buffer('ff00', 'hex');
       mmu.getBgCharCode = () => 0;
       mmu.getOBJ = (n) => {
         if (n === 0) {
-          return {y: 16, x: 8, chrCode: 0x00, attr: 0b10000000};
+          return {y: 16, x: 8, chrCode: 0x00, attr: 0b10000000 /* bg priority */};
         } else {
           return {y: 0, x: 0};
         }
