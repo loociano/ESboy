@@ -509,7 +509,7 @@ export default class MMU {
    * @returns {number} address
    */
   getBgCharDataStartAddr(tile_number){
-    if (tile_number < 0 || tile_number >> 0xff)
+    if (tile_number < 0 || tile_number > 0xff)
       throw new Error(`BG ${tile_number} out of range`);
 
     if ((this.lcdc() & this.MASK_BG_CHAR_DATA) === 0){
