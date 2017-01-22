@@ -780,7 +780,9 @@ describe('LCD', () => {
           return new Buffer('0000', 'hex');
       };
       mmu.getBgCharCode = (gridX, gridY) => {
-        if (gridX < 0 || gridX > 0x1f || gridY < 0 || gridY > 0x1f) throw new Error();
+        if (gridX < 0 || gridX > 0x1f || gridY < 0 || gridY > 0x1f) {
+          throw new Error();
+        }
         return 0;
       };
       mmu.areOBJOn = () => true;
@@ -836,8 +838,12 @@ describe('LCD', () => {
 
       lcd.drawTiles();
 
-      // OBJ lines should not be painted when background is not the lightest
-      lcd.assertLinePixels(0, 0, [0, 0, 0, 0], lcd.getImageDataOBJ());
+      // OBJ pixels should not be painted when background is not the lightest
+      for (let x = 0; x < 8; x++){
+        let value = lcd.SHADES[1];
+        if (x === 0) value = [0, 0, 0, 0];
+        assert.deepEqual(Array.from(lcd.getPixelData(x, 0, lcd.getImageDataOBJ())), value, `${x},0`);
+      }
       lcd.assertLinePixels(1, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
       lcd.assertLinePixels(2, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
       lcd.assertLinePixels(3, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
@@ -855,6 +861,61 @@ describe('LCD', () => {
 
       // OBJ should be painted
       lcd.assertTile(0, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
+    });
+
+    it('should display an OBJ with a priority flag only if the BG behind is lightest + SCX and SCX', () => {
+      const mmu = lcd.getMMU();
+      mmu.readOBJData = (any) => new Buffer('ff00', 'hex');
+      mmu.getOBJ = (n) => {
+        if (n === 0) {
+          return {y: 16, x: 8, chrCode: 0x00, attr: 0b10000000 /* bg priority */};
+        } else {
+          return {y: 0, x: 0};
+        }
+      };
+      mmu.obg0 = () => 0b11100100;
+      mmu.readBGData = (tileNumber, tileLine) => {
+        switch(tileNumber){
+          case 0:
+            if (tileLine === 0){
+              return new Buffer('8080', 'hex');
+            } else {
+              return new Buffer('0000', 'hex'); // lightest background
+            }
+          case 1:
+            return new Buffer('0000', 'hex');
+        }
+      };
+      mmu.getBgCharCode = (gridX, gridY) => {
+        if (gridX === 0 && gridY === 0) return 0;
+        return 1;
+      };
+
+      // pixel should move from 0,0 to 1,1
+      mmu.scx = () => 0xff;
+      mmu.scy = () => 0xff;
+
+      lcd.drawLine(0);
+      lcd.drawLine(1);
+      lcd.drawLine(2);
+
+      lcd.assertLinePixels(0, 0, lcd.SHADES[0], lcd.getImageDataBG());
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 0, lcd.getImageDataBG())), lcd.SHADES[0]);
+      for (let x = 0; x < 8; x++){
+        let value = lcd.SHADES[0];
+        if (x === 1) value = lcd.SHADES[3];
+        assert.deepEqual(Array.from(lcd.getPixelData(x, 1, lcd.getImageDataBG())), value, `${x},1`);
+      }
+      lcd.assertLinePixels(2, 0, lcd.SHADES[0], lcd.getImageDataBG());
+
+      lcd.assertLinePixels(0, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
+      for (let x = 0; x < 8; x++){
+        if (x === 1)
+          assert.deepEqual(Array.from(lcd.getPixelData(x, 1, lcd.getImageDataOBJ())), [0, 0, 0, 0], `${x},1`);
+        else
+          assert.deepEqual(Array.from(lcd.getPixelData(x, 1, lcd.getImageDataOBJ())), lcd.SHADES[1], `${x},1`);
+      }
+      lcd.assertLinePixels(2, 0, lcd.SHADES[1], lcd.getImageDataOBJ());
     });
   });
 
