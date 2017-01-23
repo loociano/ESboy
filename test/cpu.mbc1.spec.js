@@ -5,7 +5,7 @@ import {describe, beforeEach, it, before} from 'mocha';
 import LCDMock from './mock/lcdMock';
 import StorageMock from './mock/storageMock';
 
-let cpu, mmu, rom64KB, rom512KB, storage, extRAM;
+let cpu, mmu, rom64KB, rom512KB, rom1024KB, storage, extRAM;
 
 describe('Memory Bank Controllers', () => {
 
@@ -13,6 +13,7 @@ describe('Memory Bank Controllers', () => {
     storage = new StorageMock();
     rom64KB = new Uint8Array(0x10000);
     rom512KB = new Uint8Array(0x80000);
+    rom1024KB = new Uint8Array(0x100000);
     mmu = new MMU(rom64KB, storage);
     cpu = new CPU(mmu, new LCDMock());
 
@@ -22,13 +23,21 @@ describe('Memory Bank Controllers', () => {
       cpu.ld_0xhl_a();
     };
 
-    cpu.selectROM = function(ROM){
+    cpu.selectUpperROMBank = function(bankNb){
+      cpu.ld_hl_nn(0x4000);
+      cpu.ld_a_n(bankNb);
+      cpu.ld_0xhl_a();
+    };
+
+    cpu.selectROM = function(){
       cpu.ld_hl_nn(0x6000);
-      if (ROM){
-        cpu.ld_a_n(0);
-      } else {
-        cpu.ld_a_n(1);
-      }
+      cpu.ld_a_n(0);
+      cpu.ld_0xhl_a();
+    };
+
+    cpu.selectRAM = function(){
+      cpu.ld_hl_nn(0x6000);
+      cpu.ld_a_n(1);
       cpu.ld_0xhl_a();
     };
 
@@ -80,15 +89,6 @@ describe('Memory Bank Controllers', () => {
 
       assert.equal(mmu.getSelectedROMBankNb(), 1);
       assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom64KB[mmu.ADDR_ROM_BANK_START * 1]);
-    });
-
-    it('should detect unsupported 4Mb/32KB mode', () => {
-      cpu.ld_hl_nn(0x6000);
-      cpu.ld_a_n(0);
-      assert.throws( () => cpu.ld_0xhl_a(), Error, 'Unsupported 4Mb/32KB mode');
-
-      cpu.ld_hl_nn(0x7fff);
-      assert.throws( () => cpu.ld_0xhl_a(), Error, 'Unsupported 4Mb/32KB mode');
     });
 
     describe('ROM bank', () => {
@@ -167,12 +167,55 @@ describe('Memory Bank Controllers', () => {
         mmu = new MMU(rom512KB, storage); // reload
         cpu.mmu = mmu;
 
+        cpu.selectROMBank(0);
+        assert.equal(mmu.getSelectedROMBankNb(), 1);
+        assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom512KB[mmu.ADDR_ROM_BANK_START]);
+
         for(let b = 1; b < 32; b++){
           cpu.selectROMBank(b);
           assert.equal(mmu.getSelectedROMBankNb(), b, 'selected ROM bank');
           assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom512KB[mmu.ADDR_ROM_BANK_START * b]);
         }
+      });
 
+      it('should select ROM banks on roms larger than 512KB', () => {
+
+        rom1024KB[mmu.ADDR_CARTRIDGE_TYPE] = 1; // MBC1
+        rom1024KB[mmu.ADDR_ROM_SIZE] = 5; // 1024KB, 64 banks
+        // Sample data
+        for(let b = 0; b < 64; b++){
+          rom1024KB[mmu.ADDR_ROM_BANK_START * b] = b; // each bank is tagged with its number (0..0x3f)
+        }
+
+        mmu = new MMU(rom1024KB, storage); // reload
+        cpu.mmu = mmu;
+
+        for(let b = 0; b < 64; b++){
+          if (b === 0 || b === 0x20) continue;
+
+          if (b > 31)
+            cpu.selectUpperROMBank(1);
+          else
+            cpu.selectUpperROMBank(0);
+
+          cpu.selectROMBank(b % 32);
+          assert.equal(mmu.getSelectedROMBankNb(), b % 32, 'selected ROM bank');
+          assert.equal(mmu.getSelectedUpperROMBankNb(), b > 31 ? 1 : 0, `upper ROM bank, b=${b}`);
+          assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom1024KB[mmu.ADDR_ROM_BANK_START * b]);
+        }
+
+        // Special cases
+        cpu.selectUpperROMBank(0);
+        cpu.selectROMBank(0);
+        assert.equal(mmu.getSelectedROMBankNb(), 1, 'selected ROM bank');
+        assert.equal(mmu.getSelectedUpperROMBankNb(), 0, 'selected ROM bank');
+        assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom1024KB[mmu.ADDR_ROM_BANK_START]);
+
+        cpu.selectUpperROMBank(1);
+        cpu.selectROMBank(0);
+        assert.equal(mmu.getSelectedROMBankNb(), 1, 'selected ROM bank');
+        assert.equal(mmu.getSelectedUpperROMBankNb(), 1, 'selected ROM bank');
+        assert.equal(mmu.readByteAt(mmu.ADDR_ROM_BANK_START), rom1024KB[mmu.ADDR_ROM_BANK_START * 0x21]);
       });
     });
 
@@ -225,6 +268,8 @@ describe('Memory Bank Controllers', () => {
       assert.equal(mmu.getSelectedRAMBankNb(), 0, 'Default');
 
       cpu.openRAMGate();
+      cpu.selectRAM();
+
       cpu.selectRAMBank(1);
 
       assert.equal(mmu.getSelectedRAMBankNb(), 1);
@@ -262,7 +307,7 @@ describe('Memory Bank Controllers', () => {
     });
 
     it('should write in external RAM', () => {
-      // Select bank 1
+      cpu.selectRAM();
       cpu.selectRAMBank(1);
 
       cpu.write(0xa000, 0x01);

@@ -234,6 +234,8 @@ export default class MMU {
     this._canAccessMBC1RAM = false;
     this._canAccessMBC3RAM = false;
     this._selectedROMBankNb = 1; // default is bank 1
+    this._selectedUpperROMBankNb = 0; // used only if rom > 512 KB
+    this._isUpperROMBankSelected = true; // false if RAM
     this._selectedRAMBankNb = 0;
 
     this.isCartridgeSupported();
@@ -617,11 +619,15 @@ export default class MMU {
     if (this._isMBC1Register1Addr(addr)){
       this._selectROMBank(n);
     }
-    if (this._isMBC1Register2Addr(addr) && this._hasMBC1RAM){
-      this._selectRAMBank(n);
+    if (this._isMBC1Register2Addr(addr)){
+      if (this._hasMBC1RAM && !this._isUpperROMBankSelected) {
+        this._selectRAMBank(n);
+      } else {
+        this._selectUpperROMBank(n);
+      }
     }
     if (this._isMBC1Register3Addr(addr)){
-      throw new Error('Unsupported 4Mb/32KB mode');
+      this._isUpperROMBankSelected = (n === 0);
     }
   }
 
@@ -776,9 +782,12 @@ export default class MMU {
    * @private
    */
   _getMBC1ROMAddr(addr){
-    return this._selectedROMBankNb*this.MBC1_ROM_BANK_SIZE + (addr - this.ADDR_ROM_BANK_START);
+    return (this._selectedUpperROMBankNb * 0x20 + this._selectedROMBankNb)*this.MBC1_ROM_BANK_SIZE + (addr - this.ADDR_ROM_BANK_START);
   }
 
+  /**
+   * @private
+   */
   _updateStatLyc(){
     if (this.ly() === this.lyc()){
       this.writeByteAt(this.ADDR_STAT, this.stat() | this.MASK_STAT_LYC_ON);
@@ -859,7 +868,7 @@ export default class MMU {
   }
 
   /**
-   * Selects a ROM bank and updates the Program Switching Area
+   * Selects a ROM bank
    * @param n byte
    * @private
    */
@@ -868,6 +877,15 @@ export default class MMU {
     if(this._selectedROMBankNb === 0){
       this._selectedROMBankNb = 1;
     }
+  }
+
+  /**
+   * Selects the upper ROM bank
+   * @param n
+   * @private
+   */
+  _selectUpperROMBank(n){
+    this._selectedUpperROMBankNb = n;
   }
 
   /**
@@ -1348,6 +1366,10 @@ export default class MMU {
 
   getSelectedROMBankNb(){
     return this._selectedROMBankNb;
+  }
+
+  getSelectedUpperROMBankNb(){
+    return this._selectedUpperROMBankNb;
   }
 
   getSelectedRAMBankNb(){
