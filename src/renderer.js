@@ -55,12 +55,16 @@ function handleFileSelect(evt) {
  */
 function init(arrayBuffer){
   mmu = new MMU(new Uint8Array(arrayBuffer), new BrowserStorage());
-  const lcd = new LCD(mmu, $ctxBG, $ctxOBJ, $ctxWindow);
-
-  cpu = new CPU(mmu, lcd);
-  new InputHandler(cpu, $body);
-
-  frame();
+  let bootstrap = true;
+  if (!mmu.isCartridgeSupported()){
+    bootstrap = window.confirm('This game is not supported. Do you want to continue? Your browser may crash.');
+  }
+  if (bootstrap) {
+    const lcd = new LCD(mmu, $ctxBG, $ctxOBJ, $ctxWindow);
+    cpu = new CPU(mmu, lcd);
+    new InputHandler(cpu, $body);
+    frame();
+  }
 }
 
 /**
