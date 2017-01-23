@@ -2046,23 +2046,8 @@ var CPU = function () {
   function CPU(mmu, lcd) {
     _classCallCheck(this, CPU);
 
-    if (mmu == null) {
-      throw new Error('Missing mmu');
-    }
-
-    if (lcd == null) {
-      throw new Error('Missing lcd');
-    }
-
-    this.mmu = mmu;
-
-    this._checkSupportedROM();
-
-    this.lcd = lcd;
-    this._lastInstrWasEI = false;
-
-    this._m = 0; // machine cycles for lcd
-    this._m_dma = 0; // machine cycles for DMA
+    if (mmu == null) throw new Error('Missing mmu');
+    if (lcd == null) throw new Error('Missing lcd');
 
     // Constants
     this.EXTENDED_PREFIX = 0xcb;
@@ -2082,27 +2067,8 @@ var CPU = function () {
     this.IF_VBLANK_ON = 1;
     this.IF_VBLANK_OFF = 30;
 
-    this._r = {
-      pc: 0,
-      sp: this.mmu.ADDR_MAX - 1,
-      a: 0x01,
-      b: 0x00,
-      c: 0x13,
-      d: 0x00,
-      e: 0xd8,
-      _f: 0xb0,
-      h: 0x01,
-      l: 0x4d,
-      ime: 1
-    };
-
-    // CPU modes
-    this._halt = false;
-    this._stop = false;
-
     this._attach_bit_functions();
-
-    this._instructions = {
+    this._INSTRUCTIONS = {
       0x00: { fn: this._nop, paramBytes: 0 },
       0x01: { fn: this.ld_bc_nn, paramBytes: 2 },
       0x02: { fn: this.ld_0xbc_a, paramBytes: 0 },
@@ -2615,28 +2581,39 @@ var CPU = function () {
       0xfe: { fn: this.cp_n, paramBytes: 1 },
       0xff: { fn: this.rst_38, paramBytes: 0 }
     };
+
+    this.mmu = mmu;
+    this.lcd = lcd;
+
+    this._r = {
+      pc: 0,
+      sp: this.mmu.ADDR_MAX - 1,
+      a: 0x01,
+      b: 0x00,
+      c: 0x13,
+      d: 0x00,
+      e: 0xd8,
+      _f: 0xb0,
+      h: 0x01,
+      l: 0x4d,
+      ime: 1
+    };
+
+    this._lastInstrWasEI = false;
+    this._m = 0; // machine cycles for lcd
+    this._m_dma = 0; // machine cycles for DMA
+
+    // CPU modes
+    this._halt = false;
+    this._stop = false;
   }
 
   /**
-   * @private
+   * @returns {number} Accumulator
    */
 
 
   _createClass(CPU, [{
-    key: '_checkSupportedROM',
-    value: function _checkSupportedROM() {
-      try {
-        this.mmu.getCartridgeType();
-      } catch (e) {
-        throw e;
-      }
-    }
-
-    /**
-     * @returns {number} Accumulator
-     */
-
-  }, {
     key: 'a',
     value: function a() {
       return this._r.a;
@@ -3426,10 +3403,10 @@ var CPU = function () {
   }, {
     key: '_getInstruction',
     value: function _getInstruction(opcode) {
-      if (this._instructions[opcode] != null) {
-        return this._instructions[opcode];
+      if (this._INSTRUCTIONS[opcode] != null) {
+        return this._INSTRUCTIONS[opcode];
       } else {
-        throw new Error('[' + _utils2.default.hex4(this._r.pc - 1) + '] ' + _utils2.default.hex2(opcode) + ' opcode not implemented.');
+        throw new Error('[' + _utils2.default.hex4(this._r.pc - 1) + '] Unknown opcode ' + _utils2.default.hex2(opcode) + '.');
       }
     }
 
@@ -8254,8 +8231,7 @@ var LCD = function () {
         return; // Transparent
       }
 
-      var start = (x + y * this._HW_WIDTH) * 4;
-      imageData.data.set(this.SHADES[palette[level]], start);
+      this._setPixelData(x, y, this.SHADES[palette[level]], imageData);
     }
 
     /** 
@@ -8319,8 +8295,7 @@ var LCD = function () {
         this._drawTileLine({
           tileNumber: tileNumber,
           tileLine: tileLine,
-          startX: this._getScrolledX(x, scx),
-          y: line
+          startX: this._getScrolledX(x, scx)
         }, line);
       }
     }
@@ -8370,7 +8345,6 @@ var LCD = function () {
                 tileNumber: chrCode + 1,
                 tileLine: line - (bottomTileY - this._MAX_TILE_HEIGHT),
                 startX: OBJ.x - this.TILE_WIDTH,
-                y: bottomTileY - this._MAX_TILE_HEIGHT,
                 OBJAttr: OBJ.attr
               }, line, this._imageDataOBJ);
             }
@@ -8381,7 +8355,6 @@ var LCD = function () {
               tileNumber: chrCode,
               tileLine: line - (topTileY - this._MAX_TILE_HEIGHT),
               startX: OBJ.x - this.TILE_WIDTH,
-              y: topTileY - this._MAX_TILE_HEIGHT,
               OBJAttr: OBJ.attr
             }, line, this._imageDataOBJ);
           }
@@ -8408,8 +8381,7 @@ var LCD = function () {
         this._drawTileLine({
           tileNumber: tileNumber,
           tileLine: (line - wy) % this._TILE_HEIGHT,
-          startX: x + wx - this._MIN_WINDOW_X,
-          y: line
+          startX: x + wx - this._MIN_WINDOW_X
         }, line, this._imageDataWindow);
       }
     }
@@ -8430,7 +8402,6 @@ var LCD = function () {
      * @param tileNumber
      * @param tileLine
      * @param startX
-     * @param y
      * @param OBJAttr
      * @param line
      * @param imageData
@@ -8442,7 +8413,6 @@ var LCD = function () {
       var tileNumber = _ref2.tileNumber,
           tileLine = _ref2.tileLine,
           startX = _ref2.startX,
-          y = _ref2.y,
           OBJAttr = _ref2.OBJAttr;
       var imageData = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this._imageDataBG;
 
@@ -8452,7 +8422,7 @@ var LCD = function () {
       var palette = this._bgp;
 
       if (isOBJ) {
-        intensityVector = this._handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, startX, y);
+        intensityVector = this._handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr);
         palette = this._getOBJPalette(OBJAttr);
       }
 
@@ -8461,8 +8431,67 @@ var LCD = function () {
         if (imageData === this._imageDataBG) {
           x %= this._OUT_WIDTH;
         }
-        this.drawPixel({ x: x, y: line, level: intensityVector[i] }, palette, imageData);
+        if (isOBJ) {
+          if (this._hasBgPriority(OBJAttr)) {
+            if (this._isBgPixelFirstPaletteColor(x, line)) {
+              this.drawPixel({ x: x, y: line, level: intensityVector[i] }, palette, imageData);
+            }
+          } else {
+            this.drawPixel({ x: x, y: line, level: intensityVector[i] }, palette, imageData);
+          }
+        } else {
+          this.drawPixel({ x: x, y: line, level: intensityVector[i] }, palette, imageData);
+        }
       }
+      return intensityVector;
+    }
+
+    /**
+     * @param x
+     * @param y
+     * @returns {boolean} true if the pixel in background is painted with the first colour from
+     * the background palette
+     * @private
+     */
+
+  }, {
+    key: '_isBgPixelFirstPaletteColor',
+    value: function _isBgPixelFirstPaletteColor(x, y) {
+      var data = this._getPixelData(x, y);
+      return data[0] === this.SHADES[this._bgp[0]][0] && data[1] === this.SHADES[this._bgp[0]][1] && data[2] === this.SHADES[this._bgp[0]][2] && data[3] === this.SHADES[this._bgp[0]][3];
+    }
+
+    /**
+     * @param x
+     * @param y
+     * @param value
+     * @param imageData
+     * @private
+     */
+
+  }, {
+    key: '_setPixelData',
+    value: function _setPixelData(x, y, value) {
+      var imageData = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : this._imageDataBG;
+
+      imageData.data.set(value, (x + y * this._HW_WIDTH) * 4);
+    }
+
+    /**
+     * @param x
+     * @param y
+     * @param imageData
+     * @returns {Array}
+     * @private
+     */
+
+  }, {
+    key: '_getPixelData',
+    value: function _getPixelData(x, y) {
+      var imageData = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this._imageDataBG;
+
+      var index = (x + y * this._HW_WIDTH) * 4;
+      return imageData.data.slice(index, index + 4);
     }
 
     /**
@@ -8513,26 +8542,12 @@ var LCD = function () {
      * @param {number} tileNumber
      * @param {number} tileLine
      * @param {number} OBJAttr
-     * @param {number} x
-     * @param {number} y
      * @private
      */
 
   }, {
     key: '_handleOBJAttributes',
-    value: function _handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr, x, y) {
-      if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_PRIORITY) === this._mmu.MASK_OBJ_ATTR_PRIORITY) {
-
-        var _tileNumber = this._getCharCodeByPx(x, y);
-        var bgIntensityVector = this._getIntensityVector(_tileNumber, tileLine, false);
-
-        if (LCD._isLightestVector(bgIntensityVector)) {
-          // Exception: OBJ with priority flag are displayed only in the underneath BG is lightest
-        } else {
-          return new Array(this.TILE_WIDTH).fill(0);
-        }
-      }
-
+    value: function _handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr) {
       // Flipping order matters
       if (this._isFlipY(OBJAttr)) {
         intensityVector = this._getIntensityVector(tileNumber, this._getVerticalMirrorLine(tileLine), true);
@@ -8543,6 +8558,18 @@ var LCD = function () {
         intensityVector = copy;
       }
       return intensityVector;
+    }
+
+    /**
+     * @param OBJAttr
+     * @returns {boolean}
+     * @private
+     */
+
+  }, {
+    key: '_hasBgPriority',
+    value: function _hasBgPriority(OBJAttr) {
+      return (OBJAttr & this._mmu.MASK_OBJ_ATTR_PRIORITY) === this._mmu.MASK_OBJ_ATTR_PRIORITY;
     }
 
     /**
@@ -8660,43 +8687,6 @@ var LCD = function () {
         array.push(byte >> shift & 0x03);
       });
       return array;
-    }
-
-    /**
-     * @param {Array} vector
-     * @returns {boolean} true if the vector is the lightest possible
-     * @private
-     */
-
-  }, {
-    key: '_isLightestVector',
-    value: function _isLightestVector(vector) {
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
-
-      try {
-        for (var _iterator = vector[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var intensity = _step.value;
-
-          if (intensity > 0) return false;
-        }
-      } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
-          }
-        } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
-          }
-        }
-      }
-
-      return true;
     }
   }]);
 
@@ -8986,6 +8976,9 @@ var MMU = function () {
     this._ROM_MMM01 = 0xb;
     this._ROM_MMM01_SRAM = 0xc;
     this._ROM_MMM01_SRAM_BATT = 0xd;
+    this._ROM_MBC3_TIMER_BATT = 0xf;
+    this._ROM_MBC3_TIMER_RAM_BATT = 0x10;
+    this._ROM_MBC3 = 0x11;
     this._ROM_MBC3_RAM = 0x12;
     this._ROM_MBC3_RAM_BATT = 0x13;
     this._ROM_MBC5 = 0x19;
@@ -9030,6 +9023,14 @@ var MMU = function () {
     this.MBC1_RAM_SIZE = this.MBC1_RAM_BANK_SIZE * this.MBC1_RAM_BANKS;
     this.MBC1_CSRAM_ON = 0x0a;
 
+    // MBC3
+    this.MBC3_ROM_BANK_SIZE = this.MBC1_ROM_BANK_SIZE;
+    this.MBC3_RAM_BANK_SIZE = this.MBC1_RAM_BANK_SIZE;
+    this.MBC3_MAX_ROM_BANK_NB = 0x7f; // 0..127
+    this.MBC3_RAM_BANKS = this.MBC1_RAM_BANKS;
+    this.MBC3_RAM_SIZE = this.MBC1_RAM_SIZE;
+    this.MBC3_CSRAM_ON = this.MBC1_CSRAM_ON;
+
     // Variables
     this._rom = rom;
     this._storage = storage;
@@ -9042,13 +9043,15 @@ var MMU = function () {
     this._div = 0x0000; // Internal divider, register DIV is msb
     this._hasMBC1 = false;
     this._hasMBC1RAM = false;
+    this._hasMBC3RAM = false;
     this._canAccessMBC1RAM = false;
+    this._canAccessMBC3RAM = false;
     this._selectedROMBankNb = 1; // default is bank 1
     this._selectedRAMBankNb = 0;
 
+    this.isCartridgeSupported();
     this._initMemory();
-    this._loadROM();
-    this._initMBC1();
+    this._initMemoryBankController();
   }
 
   /**
@@ -9093,24 +9096,15 @@ var MMU = function () {
     }
 
     /**
-     * @private
+     * Flushes the external RAM to permanent storage.
+     * This is a costly operation in browsers (localStorage),
+     * hence, should only be performed when the user stops playing.
      */
 
   }, {
-    key: '_initMBC1',
-    value: function _initMBC1() {
-      var type = this.romByteAt(this.ADDR_CARTRIDGE_TYPE);
-      this._hasMBC1 = type === 1 || type === 2 || type === 3;
-      this._hasMBC1RAM = type === 2 || type === 3;
-      if (this._hasMBC1RAM) {
-        var savedRAM = this.getSavedRAM();
-        if (savedRAM != null) {
-          this._extRAM = savedRAM;
-        } else {
-          this._extRAM = new Uint8Array(this.MBC1_RAM_SIZE);
-          this._storage.write(this.getGameTitle(), this._extRAM);
-        }
-      }
+    key: 'flushExtRamToStorage',
+    value: function flushExtRamToStorage() {
+      this._storage.write(this.getGameTitle(), this._extRAM);
     }
 
     /**
@@ -9118,16 +9112,30 @@ var MMU = function () {
      */
 
   }, {
-    key: '_loadROM',
-    value: function _loadROM() {
-      var memory_start = 0;
-      var rom_start = 0;
-      var rom_32kb = 0x7fff;
+    key: '_initMemoryBankController',
+    value: function _initMemoryBankController() {
+      var type = this._rom[this.ADDR_CARTRIDGE_TYPE];
+      this._hasMBC1 = type === 1 || type === 2 || type === 3;
+      this._hasMBC1RAM = type === 2 || type === 3;
+      this._hasMBC3 = type === 0x11 || type === 0x12 || type === 0x13;
+      this._hasMBC3RAM = type === 0x12 || type === 0x13;
+      this._initExternalRAM();
+    }
 
-      try {
-        this._memory.set(this._rom.subarray(rom_start, rom_32kb), memory_start);
-      } catch (e) {
-        throw new Error('Could not load ROM into memory');
+    /**
+     * @private
+     */
+
+  }, {
+    key: '_initExternalRAM',
+    value: function _initExternalRAM() {
+      if (this._hasMBC1RAM || this._hasMBC3RAM) {
+        var savedRAM = this.getSavedRAM();
+        if (savedRAM != null) {
+          this._extRAM = savedRAM;
+        } else {
+          this._extRAM = new Uint8Array(this.MBC1_RAM_SIZE); // Same as MBC3
+        }
       }
     }
 
@@ -9213,22 +9221,58 @@ var MMU = function () {
         _logger2.default.info('Cannot read VRAM');
         return 0xff;
       }
-      if (this._isExtRAMAddr(addr) && this._hasMBC1) {
-        if (!this._hasMBC1RAM || !this._canAccessMBC1RAM) {
-          return 0xff;
-        } else {
-          return this._extRAM[this._getMBC1RAMAddr(addr)];
+      if ((this._hasMBC1 || this._hasMBC3) && this._isProgramSwitchAddr(addr)) {
+        return this._rom[this._getMBC1ROMAddr(addr)];
+      }
+      if (this._isExtRAMAddr(addr)) {
+        if (this._hasMBC1) {
+          return this._readMBC1RAM(addr);
+        }
+        if (this._hasMBC3) {
+          return this._readMBC3RAM(addr);
         }
       }
 
-      if (addr <= this.ADDR_ROM_MAX) {
+      if (addr < this.ADDR_ROM_BANK_START) {
         if (addr < this.ADDR_GAME_START && this._inBIOS) {
           return this._biosByteAt(addr);
         }
-        return this.romByteAt(addr);
+        return this._rom[addr];
       }
 
       return this._memory[addr];
+    }
+
+    /**
+     * @param addr
+     * @returns {number}
+     * @private
+     */
+
+  }, {
+    key: '_readMBC1RAM',
+    value: function _readMBC1RAM(addr) {
+      if (!this._hasMBC1RAM || !this._canAccessMBC1RAM) {
+        return 0xff;
+      } else {
+        return this._extRAM[this._getMBC1RAMAddr(addr)];
+      }
+    }
+
+    /**
+     * @param addr
+     * @returns {number}
+     * @private
+     */
+
+  }, {
+    key: '_readMBC3RAM',
+    value: function _readMBC3RAM(addr) {
+      if (!this._hasMBC3RAM || !this._canAccessMBC3RAM) {
+        return 0xff;
+      } else {
+        return this._extRAM[this._getMBC3RAMAddr(addr)];
+      }
     }
 
     /**
@@ -9336,7 +9380,7 @@ var MMU = function () {
   }, {
     key: 'getBgCharDataStartAddr',
     value: function getBgCharDataStartAddr(tile_number) {
-      if (tile_number < 0 || tile_number >> 0xff) throw new Error('BG ' + tile_number + ' out of range');
+      if (tile_number < 0 || tile_number > 0xff) throw new Error('BG ' + tile_number + ' out of range');
 
       if ((this.lcdc() & this.MASK_BG_CHAR_DATA) === 0) {
         var start = this.BG_CHAR_DATA_8000;
@@ -9357,7 +9401,7 @@ var MMU = function () {
   }, {
     key: 'getOBJCharDataStartAddr',
     value: function getOBJCharDataStartAddr(tile_number) {
-      if (tile_number < 0 || tile_number >> 0xff) throw new Error('OBJ ' + tile_number + ' out of range');
+      if (tile_number < 0 || tile_number > 0xff) throw new Error('OBJ ' + tile_number + ' out of range');
       return this.ADDR_OBJ_DATA_START + (tile_number << 4);
     }
 
@@ -9462,8 +9506,8 @@ var MMU = function () {
      */
 
   }, {
-    key: '_handleMBC1',
-    value: function _handleMBC1(addr, n) {
+    key: '_writeMBC1Register',
+    value: function _writeMBC1Register(addr, n) {
       if (this._isMBC1Register0Addr(addr) && this._hasMBC1RAM) {
         this._canAccessMBC1RAM = n === this.MBC1_CSRAM_ON;
       }
@@ -9475,6 +9519,29 @@ var MMU = function () {
       }
       if (this._isMBC1Register3Addr(addr)) {
         throw new Error('Unsupported 4Mb/32KB mode');
+      }
+    }
+
+    /**
+     * @param addr
+     * @param n
+     * @private
+     */
+
+  }, {
+    key: '_writeMBC3Register',
+    value: function _writeMBC3Register(addr, n) {
+      if (this._isMBC3Register0Addr(addr) && this._hasMBC3RAM) {
+        this._canAccessMBC3RAM = n === this.MBC3_CSRAM_ON;
+      }
+      if (this._isMBC3Register1Addr(addr)) {
+        this._selectROMBank(n);
+      }
+      if (this._isMBC3Register2Addr(addr) && this._hasMBC3RAM) {
+        this._selectRAMBank(n);
+      }
+      if (this._isMBC3Register3Addr(addr)) {
+        throw new Error('Unsupported MBC3 Timers');
       }
     }
 
@@ -9493,7 +9560,9 @@ var MMU = function () {
       }
       if (addr <= this.ADDR_ROM_MAX) {
         if (this._hasMBC1) {
-          this._handleMBC1(addr, n);
+          this._writeMBC1Register(addr, n);
+        } else if (this._hasMBC3) {
+          this._writeMBC3Register(addr, n);
         } else {
           _logger2.default.warn('Cannot write memory address ' + _utils2.default.hexStr(addr));
         }
@@ -9547,11 +9616,40 @@ var MMU = function () {
           this._updateStatLyc();
           break;
       }
-      if (this._isExtRAMAddr(addr) && this._hasMBC1) {
-        if (this._hasMBC1RAM && this._canAccessMBC1RAM) {
-          this._extRAM[this._getMBC1RAMAddr(addr)] = n;
-          this._storage.write(this.getGameTitle(), this._extRAM);
+      if (this._isExtRAMAddr(addr)) {
+        if (this._hasMBC1) {
+          this._writeMBC1RAM(addr, n);
+        } else if (this._hasMBC3) {
+          this._writeMBC3RAM(addr, n);
         }
+      }
+    }
+
+    /**
+     * @param addr
+     * @param n
+     * @private
+     */
+
+  }, {
+    key: '_writeMBC1RAM',
+    value: function _writeMBC1RAM(addr, n) {
+      if (this._hasMBC1RAM && this._canAccessMBC1RAM) {
+        this._extRAM[this._getMBC1RAMAddr(addr)] = n;
+      }
+    }
+
+    /**
+     * @param addr
+     * @param n
+     * @private
+     */
+
+  }, {
+    key: '_writeMBC3RAM',
+    value: function _writeMBC3RAM(addr, n) {
+      if (this._hasMBC3RAM && this._canAccessMBC3RAM) {
+        this._extRAM[this._getMBC3RAMAddr(addr)] = n;
       }
     }
 
@@ -9580,6 +9678,24 @@ var MMU = function () {
     key: '_getMBC1RAMAddr',
     value: function _getMBC1RAMAddr(addr) {
       return this._selectedRAMBankNb * this.MBC1_RAM_BANK_SIZE + (addr - this.ADDR_EXT_RAM_START);
+    }
+  }, {
+    key: '_getMBC3RAMAddr',
+    value: function _getMBC3RAMAddr(addr) {
+      return this._getMBC1RAMAddr(addr);
+    }
+
+    /**
+     * @param addr
+     * @returns {number} addr in the MBC1 ROM given a MMU addr.
+     * Example: 0x4000 corresponds to 0x4000 if ROM bank is 1, 0x4000 to 0x8000 is RAM bank is 2, etc
+     * @private
+     */
+
+  }, {
+    key: '_getMBC1ROMAddr',
+    value: function _getMBC1ROMAddr(addr) {
+      return this._selectedROMBankNb * this.MBC1_ROM_BANK_SIZE + (addr - this.ADDR_ROM_BANK_START);
     }
   }, {
     key: '_updateStatLyc',
@@ -9627,6 +9743,11 @@ var MMU = function () {
     value: function _isMBC1Register0Addr(addr) {
       return addr >= 0 && addr < this.ADDR_MBC1_REG1_START;
     }
+  }, {
+    key: '_isMBC3Register0Addr',
+    value: function _isMBC3Register0Addr(addr) {
+      return this._isMBC1Register0Addr(addr);
+    }
 
     /**
      * @param addr
@@ -9638,6 +9759,11 @@ var MMU = function () {
     key: '_isMBC1Register1Addr',
     value: function _isMBC1Register1Addr(addr) {
       return addr >= this.ADDR_MBC1_REG1_START && addr < this.ADDR_ROM_BANK_START;
+    }
+  }, {
+    key: '_isMBC3Register1Addr',
+    value: function _isMBC3Register1Addr(addr) {
+      return this._isMBC1Register1Addr(addr);
     }
 
     /**
@@ -9651,6 +9777,11 @@ var MMU = function () {
     value: function _isMBC1Register2Addr(addr) {
       return addr >= this.ADDR_MBC1_REG2_START && addr < this.ADDR_MBC1_REG3_START;
     }
+  }, {
+    key: '_isMBC3Register2Addr',
+    value: function _isMBC3Register2Addr(addr) {
+      return this._isMBC1Register2Addr(addr);
+    }
 
     /**
      * @param addr
@@ -9663,6 +9794,11 @@ var MMU = function () {
     value: function _isMBC1Register3Addr(addr) {
       return addr >= this.ADDR_MBC1_REG3_START && addr <= this.ADDR_MBC1_REG3_END;
     }
+  }, {
+    key: '_isMBC3Register3Addr',
+    value: function _isMBC3Register3Addr(addr) {
+      return this._isMBC1Register3Addr(addr);
+    }
 
     /**
      * Selects a ROM bank and updates the Program Switching Area
@@ -9673,14 +9809,10 @@ var MMU = function () {
   }, {
     key: '_selectROMBank',
     value: function _selectROMBank(n) {
-      if (n === 0 || n > this.MBC1_MAX_ROM_BANK_NB) {
+      this._selectedROMBankNb = n % this.getNbOfROMBanks();
+      if (this._selectedROMBankNb === 0) {
         this._selectedROMBankNb = 1;
-      } else {
-        this._selectedROMBankNb = n % this.getNbOfROMBanks();
       }
-      var start = this.ADDR_ROM_BANK_START * this._selectedROMBankNb;
-      var end = start + this.MBC1_ROM_BANK_SIZE;
-      this._memory.set(this._rom.subarray(start, end), this.ADDR_ROM_BANK_START);
     }
 
     /**
@@ -9761,6 +9893,18 @@ var MMU = function () {
     key: '_isExtRAMAddr',
     value: function _isExtRAMAddr(addr) {
       return addr >= this.ADDR_EXT_RAM_START && addr < this.ADDR_WRAM_START;
+    }
+
+    /**
+     * @param addr
+     * @returns {boolean} true if add is in Program Switching Area (for ROM banking)
+     * @private
+     */
+
+  }, {
+    key: '_isProgramSwitchAddr',
+    value: function _isProgramSwitchAddr(addr) {
+      return addr >= this.ADDR_ROM_BANK_START && addr < this.ADDR_VRAM_START;
     }
 
     /**
@@ -9860,20 +10004,6 @@ var MMU = function () {
     }
 
     /**
-     * @param {number} address
-     * @return {number} byte value
-     */
-
-  }, {
-    key: 'romByteAt',
-    value: function romByteAt(address) {
-      if (address > this.ADDR_ROM_MAX || address < 0) {
-        throw new Error('Cannot read ROM address ' + _utils2.default.hexStr(address));
-      }
-      return this._memory[address];
-    }
-
-    /**
      * @param {number} addr
      * @returns {number} byte value
      * @private
@@ -9889,28 +10019,13 @@ var MMU = function () {
     }
 
     /**
-     * @param {number} start
-     * @param {number} end
-     * @returns {any}
-     */
-
-  }, {
-    key: 'romBufferAt',
-    value: function romBufferAt(addr_start, addr_end) {
-      if (addr_start > this.ADDR_ROM_MAX || addr_start < 0 || addr_end < addr_start || addr_end > this.ADDR_ROM_MAX) {
-        throw new Error('Cannot read ROM Buffer ' + _utils2.default.hexStr(addr_start) + ' to ' + _utils2.default.hexStr(addr_end));
-      }
-      return this._memory.slice(addr_start, addr_end);
-    }
-
-    /**
      * @return {string} game title
      */
 
   }, {
     key: 'getGameTitle',
     value: function getGameTitle() {
-      var characters = this._memory.slice(this.ADDR_TITLE_START, this.ADDR_TITLE_END + 1);
+      var characters = this._rom.subarray(this.ADDR_TITLE_START, this.ADDR_TITLE_END + 1);
       var title = [];
       var _iteratorNormalCompletion = true;
       var _didIteratorError = false;
@@ -9950,7 +10065,7 @@ var MMU = function () {
   }, {
     key: 'isGameInColor',
     value: function isGameInColor() {
-      return this.romByteAt(this.ADDR_IS_GB_COLOR) === this.IS_GB_COLOR;
+      return this._rom[this.ADDR_IS_GB_COLOR] === this.IS_GB_COLOR;
     }
 
     /**
@@ -9960,29 +10075,30 @@ var MMU = function () {
   }, {
     key: 'isGameSuperGB',
     value: function isGameSuperGB() {
-      return this.romByteAt(this.ADDR_IS_SGB);
+      return this._rom[this.ADDR_IS_SGB];
     }
 
     /**
-     * @returns {string} cartridge type
+     * @returns {boolean} cartridge is supported
      */
 
   }, {
-    key: 'getCartridgeType',
-    value: function getCartridgeType() {
-      var type = this.romByteAt(this.ADDR_CARTRIDGE_TYPE);
+    key: 'isCartridgeSupported',
+    value: function isCartridgeSupported() {
+      var type = this._rom[this.ADDR_CARTRIDGE_TYPE];
       switch (type) {
+        // TODO: support most cartridges
         case this._ROM_ONLY:
-          return 'ROM ONLY';
         case this._ROM_MBC1:
-          return 'ROM+MBC1';
         case this._ROM_MBC1_RAM:
-          return 'ROM+MBC1+RAM';
         case this._ROM_MBC1_RAM_BATT:
-          return 'ROM+MBC1+RAM+BATTERY';
-        // TODO: implement rest of types
+        case this._ROM_MBC3:
+        case this._ROM_MBC3_RAM:
+        case this._ROM_MBC3_RAM_BATT:
+          return true;
         default:
           _logger2.default.warn('Cartridge type ' + _utils2.default.hex2(type) + ' unknown');
+          return false;
       }
     }
 
@@ -9993,7 +10109,7 @@ var MMU = function () {
   }, {
     key: 'getRomSize',
     value: function getRomSize() {
-      switch (this.romByteAt(this.ADDR_ROM_SIZE)) {
+      switch (this._rom[this.ADDR_ROM_SIZE]) {
         case this._32KB:
           return '32KB';
         case this._64KB:
@@ -10026,7 +10142,7 @@ var MMU = function () {
   }, {
     key: 'getRAMSize',
     value: function getRAMSize() {
-      switch (this.romByteAt(this.ADDR_RAM_SIZE)) {
+      switch (this._rom[this.ADDR_RAM_SIZE]) {
         case this.RAM_NONE:
           return 'None';
         case this.RAM_2KB:
@@ -10049,9 +10165,9 @@ var MMU = function () {
   }, {
     key: 'getDestinationCode',
     value: function getDestinationCode() {
-      if (this.romByteAt(this.ADDR_DESTINATION_CODE) === this.JAPANESE) {
+      if (this._rom[this.ADDR_DESTINATION_CODE] === this.JAPANESE) {
         return 'Japanese';
-      } else if (this.romByteAt(this.ADDR_DESTINATION_CODE) === this.NON_JAPANESE) {
+      } else if (this._rom[this.ADDR_DESTINATION_CODE] === this.NON_JAPANESE) {
         return 'Non-Japanese';
       } else {
         throw new Error('Destination code unknown');
@@ -10059,13 +10175,13 @@ var MMU = function () {
     }
 
     /**
-     * @returns {number|any} Buffer with nintendo graphic
+     * @returns {Uint8Array} nintendo graphic logo
      */
 
   }, {
     key: 'getNintendoGraphicBuffer',
     value: function getNintendoGraphicBuffer() {
-      return this.romBufferAt(this.ADDR_NINTENDO_GRAPHIC_START, this.ADDR_NINTENDO_GRAPHIC_END + 1);
+      return this._rom.subarray(this.ADDR_NINTENDO_GRAPHIC_START, this.ADDR_NINTENDO_GRAPHIC_END + 1);
     }
 
     /**
@@ -10084,7 +10200,7 @@ var MMU = function () {
       var addr = this.ADDR_TITLE_START;
       var count = 0;
       while (addr <= this.ADDR_COMPLEMENT_CHECK) {
-        count += this.romByteAt(addr);
+        count += this._rom[addr];
         addr++;
       }
       return (count + 25 & 0xff) === 0;
@@ -10339,7 +10455,12 @@ var MMU = function () {
   }, {
     key: 'getNbOfROMBanks',
     value: function getNbOfROMBanks() {
-      return this._rom.length / this.MBC1_ROM_BANK_SIZE;
+      if (this._hasMBC1) {
+        return this._rom.length / this.MBC1_ROM_BANK_SIZE;
+      } else if (this._hasMBC3) {
+        return this._rom.length / this.MBC3_ROM_BANK_SIZE;
+      }
+      return 0;
     }
   }, {
     key: 'getSelectedROMBankNb',
@@ -10446,7 +10567,8 @@ var then = Date.now();
 var delta = void 0;
 var frames = 0;
 var ref = then;
-var cpu = void 0;
+var cpu = void 0,
+    mmu = void 0;
 var gameRequester = new _gameRequester2.default();
 
 /**
@@ -10477,7 +10599,7 @@ function handleFileSelect(evt) {
  * @param {ArrayBuffer} arrayBuffer
  */
 function init(arrayBuffer) {
-  var mmu = new _mmu2.default(new Uint8Array(arrayBuffer), new _storage2.default());
+  mmu = new _mmu2.default(new Uint8Array(arrayBuffer), new _storage2.default());
   var lcd = new _lcd2.default(mmu, $ctxBG, $ctxOBJ, $ctxWindow);
 
   cpu = new _cpu2.default(mmu, lcd);
@@ -10510,6 +10632,10 @@ function frame() {
 
 function updateTitle(speed) {
   $title.innerText = 'gb-ES6 ' + speed + '%';
+}
+
+function saveGame() {
+  if (mmu) mmu.flushExtRamToStorage();
 }
 
 function attachListeners() {
@@ -10546,8 +10672,11 @@ function attachListeners() {
 
   $cartridge.addEventListener('change', handleFileSelect, false);
   $cartridge.addEventListener('click', function (evt) {
-    this.value = null;
+    this.value = null; // reset chosen file
+    saveGame();
   }, false);
+
+  window.addEventListener('unload', saveGame); // user closes tab or window
 }
 
 attachListeners();
