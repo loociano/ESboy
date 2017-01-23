@@ -764,6 +764,25 @@ describe('LCD', () => {
       lcd.assertTransparentTile(0, 0, lcd.getImageDataOBJ());
     });
 
+    it('should support OBJ priority flag with different background palettes', () => {
+      const mmu = lcd.getMMU();
+      mmu.readBGData = (any) => new Buffer('5353', 'hex'); // 0,1,2,3,0,1,2,3
+      mmu.readOBJData = (any) => new Buffer('ff00', 'hex'); // 1,1,1,1,1,1,1,1
+      mmu.getBgCharCode = (any) => 0;
+      mmu.getOBJ = (n) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b10000000 /* bg priority */}; };
+      mmu.obg0 = () => 0b11100100;
+
+      [0b00000000, 0b00000001, 0b00000010, 0b00000011].map( (bgp) => {
+        mmu.bgp = () => bgp;
+        lcd.drawLine(0);
+
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageDataOBJ())), lcd.SHADES[1]);
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 1, lcd.getImageDataOBJ())), [0, 0, 0, 0]);
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 2, lcd.getImageDataOBJ())), [0, 0, 0, 0]);
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 3, lcd.getImageDataOBJ())), [0, 0, 0, 0]);
+      });
+    });
+
     it('should support OBJ priority flag when obj are in boundaries', () => {
       const mmu = lcd.getMMU();
       mmu.readBGData = (tileNumber, tileLine) => {
