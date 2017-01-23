@@ -72,11 +72,11 @@ export default class LCD {
     }
     this._readPalettes();
 
-    const intensityLine = this._drawLineBG(line); // always draw BG first
+    this._drawLineBG(line);
 
     this._clearLine(line, this._imageDataOBJ);
     if (this._mmu.areOBJOn()) {
-      this._drawLineOBJ(line, intensityLine);
+      this._drawLineOBJ(line);
     }
 
     this._clearLine(line, this._imageDataWindow);
@@ -126,8 +126,7 @@ export default class LCD {
       return; // Transparent
     }
 
-    const start = (x + y * this._HW_WIDTH) * 4;
-    imageData.data.set(this.SHADES[palette[level]], start);
+    this._setPixelData(x, y, this.SHADES[palette[level]], imageData);
   }
 
   /** 
@@ -171,18 +170,15 @@ export default class LCD {
       max = this._HW_WIDTH;
     }
     const tileLine = ((line + scy) % this._OUT_HEIGHT) % this._TILE_HEIGHT;
-    let intensityLine = [];
 
     for(let x = 0; x < max; x += this.TILE_WIDTH){
       const tileNumber = this._mmu.getBgCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line, scy));
-      const intensityVector = this._drawTileLine({
+      this._drawTileLine({
         tileNumber: tileNumber,
         tileLine: tileLine,
         startX: this._getScrolledX(x, scx)
       }, line);
-      intensityLine.push(...intensityVector);
     }
-    return intensityLine;
   }
 
   /**
@@ -199,7 +195,7 @@ export default class LCD {
    * @param {number} line
    * @private
    */
-  _drawLineOBJ(line, bgIntensityLine){
+  _drawLineOBJ(line){
     const doubleOBJ = this._mmu.areOBJDouble();
 
     for(let n = 0; n < this._mmu.MAX_OBJ; n++){
@@ -225,7 +221,7 @@ export default class LCD {
               tileLine: line - (bottomTileY - this._MAX_TILE_HEIGHT),
               startX: OBJ.x - this.TILE_WIDTH,
               OBJAttr: OBJ.attr,
-            }, line, this._imageDataOBJ, bgIntensityLine);
+            }, line, this._imageDataOBJ);
           }
         }
 
@@ -235,7 +231,7 @@ export default class LCD {
             tileLine: line - (topTileY - this._MAX_TILE_HEIGHT),
             startX: OBJ.x - this.TILE_WIDTH,
             OBJAttr: OBJ.attr,
-          }, line, this._imageDataOBJ, bgIntensityLine);
+          }, line, this._imageDataOBJ);
         }
       }
     }
@@ -278,12 +274,10 @@ export default class LCD {
    * @param OBJAttr
    * @param line
    * @param imageData
-   * @param {Array} bgIntensityLine
    */
-  _drawTileLine({tileNumber, tileLine, startX, OBJAttr}, line, imageData=this._imageDataBG, bgIntensityLine){
+  _drawTileLine({tileNumber, tileLine, startX, OBJAttr}, line, imageData=this._imageDataBG){
 
     const isOBJ = OBJAttr !== undefined;
-    const scx = this._mmu.scx();
     let intensityVector = this._getIntensityVector(tileNumber, tileLine, isOBJ);
     let palette = this._bgp;
 
@@ -298,8 +292,8 @@ export default class LCD {
         x %= this._OUT_WIDTH;
       }
       if(isOBJ) {
-        if (this._bgHasPriority(OBJAttr)){
-          if (this._isBgLight((x + scx) % this._OUT_WIDTH, bgIntensityLine)){
+        if (this._hasBgPriority(OBJAttr)){
+          if (this._isBgPixelFirstPaletteColor(x, line)){
             this.drawPixel({x: x, y: line, level: intensityVector[i]}, palette, imageData);
           }
         } else {
@@ -314,12 +308,40 @@ export default class LCD {
 
   /**
    * @param x
-   * @param bgIntensityLine
-   * @returns {boolean}
+   * @param y
+   * @returns {boolean} true if the pixel in background is painted with the first colour from
+   * the background palette
    * @private
    */
-  _isBgLight(x, bgIntensityLine){
-    return bgIntensityLine[x] === 0;
+  _isBgPixelFirstPaletteColor(x, y){
+    const data = this._getPixelData(x, y);
+    return data[0] === this.SHADES[this._bgp[0]][0]
+      && data[1] === this.SHADES[this._bgp[0]][1]
+      && data[2] === this.SHADES[this._bgp[0]][2]
+      && data[3] === this.SHADES[this._bgp[0]][3];
+  }
+
+  /**
+   * @param x
+   * @param y
+   * @param value
+   * @param imageData
+   * @private
+   */
+  _setPixelData(x, y, value, imageData=this._imageDataBG){
+    imageData.data.set(value, (x + y * this._HW_WIDTH) * 4);
+  }
+
+  /**
+   * @param x
+   * @param y
+   * @param imageData
+   * @returns {Array}
+   * @private
+   */
+  _getPixelData(x, y, imageData=this._imageDataBG){
+    const index = (x + y * this._HW_WIDTH) * 4;
+    return imageData.data.slice(index, index + 4);
   }
 
   /**
@@ -381,7 +403,7 @@ export default class LCD {
    * @returns {boolean}
    * @private
    */
-  _bgHasPriority(OBJAttr){
+  _hasBgPriority(OBJAttr){
     return (OBJAttr & this._mmu.MASK_OBJ_ATTR_PRIORITY) === this._mmu.MASK_OBJ_ATTR_PRIORITY;
   }
 
@@ -481,17 +503,5 @@ export default class LCD {
       array.push((byte >> shift) & 0x03);
     });
     return array;
-  }
-
-  /**
-   * @param {Array} vector
-   * @returns {boolean} true if the vector is the lightest possible
-   * @private
-   */
-  static _isLightestVector(vector){
-    for(let intensity of vector){
-      if (intensity > 0) return false;
-    }
-    return true;
   }
 }
