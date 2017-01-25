@@ -393,7 +393,7 @@ export default class MMU {
       }
     }
 
-    if (addr < this.ADDR_ROM_BANK_START){
+    if (addr <= this.ADDR_ROM_MAX){
       if (addr < this.ADDR_GAME_START && this._inBIOS){
         return this._biosByteAt(addr);
       }
