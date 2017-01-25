@@ -3073,9 +3073,9 @@ var CPU = function () {
           this._m++;
         }
 
-        this._handle_lcd();
+        this._updateDivider(this._m - m);
+        this._handleLCD();
         this._handleDMA();
-        this._handleDIV(this._m - m);
 
         if (this._r.pc === this.mmu.ADDR_GAME_START) {
           this._afterBIOS();
@@ -3084,9 +3084,13 @@ var CPU = function () {
         if (this._isLYCInterrupt()) {
           this._handleLYCInterrupt();
         }
-      } while (!this._isVBlankTriggered());
+      } while (!this._isVBlankInterruptRequested());
 
-      this._handleVBlankInterrupt();
+      if (!this._lastInstrWasEI) this._resetVBlank();
+
+      if (this._shouldStartVBlankRoutine()) {
+        this._handleVBlankInterrupt();
+      }
     }
 
     /**
@@ -3119,9 +3123,9 @@ var CPU = function () {
      */
 
   }, {
-    key: '_handleDIV',
-    value: function _handleDIV(m_instr) {
-      this.mmu.set_HW_DIV(m_instr * 2);
+    key: '_updateDivider',
+    value: function _updateDivider(instructionCPUCycles) {
+      this.mmu.setHWDivider(instructionCPUCycles * 2);
     }
 
     /**
@@ -3149,10 +3153,10 @@ var CPU = function () {
      */
 
   }, {
-    key: '_handle_lcd',
-    value: function _handle_lcd() {
+    key: '_handleLCD',
+    value: function _handleLCD() {
 
-      if (!this._is_lcd_on()) {
+      if (!this._isLCDOn()) {
         this._m = 0;
         return;
       }
@@ -3169,7 +3173,7 @@ var CPU = function () {
 
         if (this.ly() === this.mmu.LCDC_LINE_VBLANK) {
           this.mmu.setLCDMode(1);
-          this._triggerVBlank();
+          this._requestVBlankInterrupt();
         }
       } else {
         this._handleTransitionsBeforeVBL();
@@ -3223,8 +3227,8 @@ var CPU = function () {
      */
 
   }, {
-    key: '_is_lcd_on',
-    value: function _is_lcd_on() {
+    key: '_isLCDOn',
+    value: function _isLCDOn() {
       return (this.lcdc() & 0x80) === 0x80;
     }
 
@@ -3243,17 +3247,31 @@ var CPU = function () {
     }
 
     /**
-     * @returns {boolean} if vblank interrupt should be triggered
+     * @returns {boolean} true if vblank
+     */
+
+  }, {
+    key: '_isVBlankInterruptRequested',
+    value: function _isVBlankInterruptRequested() {
+      return (this.If() & this.IF_VBLANK_ON) === 1;
+    }
+
+    /**
+     * @returns {boolean}
      * @private
      */
 
   }, {
-    key: '_isVBlankTriggered',
-    value: function _isVBlankTriggered() {
-      if (this._r.ime === 0) {
-        return false;
+    key: '_shouldStartVBlankRoutine',
+    value: function _shouldStartVBlankRoutine() {
+      if (this._r.ime === 1 && (this.ie() & this.IF_VBLANK_ON) === 1) {
+        if (this._lastInstrWasEI) {
+          return false; // wait one instruction more
+        } else {
+          return true;
+        }
       }
-      return this.isVBlank();
+      return false;
     }
 
     /**
@@ -3265,7 +3283,6 @@ var CPU = function () {
     key: '_handleVBlankInterrupt',
     value: function _handleVBlankInterrupt() {
 
-      this._resetVBlank();
       this._halt = false;
 
       // BIOS does not have an vblank routine to execute
@@ -3281,31 +3298,13 @@ var CPU = function () {
     }
 
     /**
-     * @returns {boolean} true if vblank
-     */
-
-  }, {
-    key: 'isVBlank',
-    value: function isVBlank() {
-      if (this._r.ime === 1 && (this.ie() & this.If() & this.IF_VBLANK_ON) === 1) {
-        if (this._lastInstrWasEI) {
-          this._lastInstrWasEI = false;
-          return false; // wait one instruction more
-        } else {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    /**
      * Sets IF to trigger a vblank interruption
      * @private
      */
 
   }, {
-    key: '_triggerVBlank',
-    value: function _triggerVBlank() {
+    key: '_requestVBlankInterrupt',
+    value: function _requestVBlankInterrupt() {
       this._setIf(this.If() | this.IF_VBLANK_ON);
     }
 
@@ -3361,6 +3360,7 @@ var CPU = function () {
         _logger2.default.beforeCrash(this, fn, paramBytes, param);
         throw e;
       }
+      this._lastInstrWasEI = fn.name === 'ei';
     }
 
     /**
@@ -4704,7 +4704,6 @@ var CPU = function () {
     key: 'ei',
     value: function ei() {
       this._r.ime = 1;
-      this._lastInstrWasEI = true;
       this._m++;
     }
 
@@ -9609,7 +9608,7 @@ var MMU = function () {
           this._handleDMA(n);
           break;
         case this.ADDR_DIV:
-          this.set_HW_DIV(0);
+          this.setHWDivider(0);
           return;
       }
 
@@ -9856,8 +9855,8 @@ var MMU = function () {
      */
 
   }, {
-    key: 'set_HW_DIV',
-    value: function set_HW_DIV(n) {
+    key: 'setHWDivider',
+    value: function setHWDivider(n) {
       this._div = (this._div + n) % 0xffff;
       this._memory[this.ADDR_DIV] = _utils2.default.msb(this._div);
     }
