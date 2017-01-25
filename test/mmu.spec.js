@@ -629,13 +629,13 @@ describe('MMU', () => {
     });
 
     it('should set DIV with the msb', () => {
-      mmu.set_HW_DIV(0x0000);
+      mmu.setHWDivider(0x0000);
       assert.equal(mmu.readByteAt(mmu.ADDR_DIV), 0x00);
 
-      mmu.set_HW_DIV(0xff00);
+      mmu.setHWDivider(0xff00);
       assert.equal(mmu.readByteAt(mmu.ADDR_DIV), 0xff);
 
-      mmu.set_HW_DIV(0x0100);
+      mmu.setHWDivider(0x0100);
       assert.equal(mmu.readByteAt(mmu.ADDR_DIV), 0x00);
     });
 

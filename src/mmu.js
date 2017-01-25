@@ -706,7 +706,7 @@ export default class MMU {
         this._handleDMA(n);
         break;
       case this.ADDR_DIV:
-        this.set_HW_DIV(0);
+        this.setHWDivider(0);
         return;
     }
 
@@ -901,7 +901,7 @@ export default class MMU {
    * Hardware mock interface for CPU
    * @param n
    */
-  set_HW_DIV(n){
+  setHWDivider(n){
     this._div = (this._div + n) % 0xffff;
     this._memory[this.ADDR_DIV] = Utils.msb(this._div);
   }

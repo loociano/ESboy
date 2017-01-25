@@ -35,6 +35,17 @@ describe('Interruptions', () => {
     this.cpu.nop = function(){
       this._m++;
     };
+
+    /**
+     * @param {number} opcode
+     * @param {number|undefined} param1 (optional)
+     * @param {number|undefined} param2 (optional)
+     */
+    this.cpu.mockInstruction = function(opcode, param1=undefined, param2=undefined){
+      if (opcode !== undefined) this.mmu.writeByteAt(this.pc(), opcode);
+      if (param1 !== undefined) this.mmu.writeByteAt(this.pc()+1, param1);
+      if (param2 !== undefined) this.mmu.writeByteAt(this.pc()+2, param2);
+    };
   });
 
   describe('Interruptions', () => {
@@ -99,7 +110,7 @@ describe('Interruptions', () => {
 
   });
 
-  describe('VBL Interrupt', () => {
+  describe('Vertical Blank Interrupt', () => {
 
     it('should not scan lines with lcd off', function() {
 
@@ -138,18 +149,19 @@ describe('Interruptions', () => {
   
     it('should handle vertical blanking interrupt', function() {
 
-        this.cpu.setPC(0x100); // NOP
+        this.cpu.setPC(0xc000);
         this.cpu.setIf(0b00001);
-        this.cpu._t = 0xff;
-        this.cpu.ei();
         this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_IE, 0x01); // Allow vblank
         assert.equal(this.cpu.ie() & 0x01, 1, 'Vblank allowed');
 
-        const pc = this.cpu.pc();
-        assert.equal(this.cpu.pc(), 0x100);
+        this.cpu.mockInstruction(0xfb/* ei */);
+        this.cpu.start();
+        assert.equal(this.cpu.If() & this.cpu.IF_VBLANK_ON, 1, 'Interrupt Request is turned on');
 
-        const returnPC = 0x0637; // must execute pc+1 (JP 0x0637), next pc is 0x0637
-        const sp = this.cpu.sp();
+        const pc = this.cpu.pc();
+        assert.equal(this.cpu.pc(), 0xc001);
+
+        this.cpu.mockInstruction(0xc3/* jp */,0x37,0x06);
 
         assert.equal(this.cpu.ime(), 1, 'IME enabled');
         assert.equal(this.cpu.If(), 0b00001, 'Vblank requested');
@@ -157,8 +169,9 @@ describe('Interruptions', () => {
         this.cpu.start();
 
         assert.equal(this.cpu.ime(), 0, 'IME disabled');
-        assert.equal(this.cpu.peek_stack(1), Utils.msb(returnPC), 'high pc on stack');
-        assert.equal(this.cpu.peek_stack(), Utils.lsb(returnPC), 'low pc on stack');
+        assert.equal(this.cpu.If() & this.cpu.IF_VBLANK_OFF, 0, 'Interrupt Request is turned off');
+        assert.equal(this.cpu.peek_stack(1), 0x06, 'high pc on stack');
+        assert.equal(this.cpu.peek_stack(), 0x37, 'low pc on stack');
         assert.equal(this.cpu.pc(), this.cpu.ADDR_VBLANK_INTERRUPT);
 
         this.cpu.runUntil(this.cpu.ADDR_VBLANK_INTERRUPT + 1);
