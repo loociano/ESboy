@@ -9047,6 +9047,8 @@ var MMU = function () {
     this._canAccessMBC1RAM = false;
     this._canAccessMBC3RAM = false;
     this._selectedROMBankNb = 1; // default is bank 1
+    this._selectedUpperROMBankNb = 0; // used only if rom > 512 KB
+    this._isUpperROMBankSelected = true; // false if RAM
     this._selectedRAMBankNb = 0;
 
     this.isCartridgeSupported();
@@ -9233,7 +9235,7 @@ var MMU = function () {
         }
       }
 
-      if (addr < this.ADDR_ROM_BANK_START) {
+      if (addr <= this.ADDR_ROM_MAX) {
         if (addr < this.ADDR_GAME_START && this._inBIOS) {
           return this._biosByteAt(addr);
         }
@@ -9514,11 +9516,15 @@ var MMU = function () {
       if (this._isMBC1Register1Addr(addr)) {
         this._selectROMBank(n);
       }
-      if (this._isMBC1Register2Addr(addr) && this._hasMBC1RAM) {
-        this._selectRAMBank(n);
+      if (this._isMBC1Register2Addr(addr)) {
+        if (this._hasMBC1RAM && !this._isUpperROMBankSelected) {
+          this._selectRAMBank(n);
+        } else {
+          this._selectUpperROMBank(n);
+        }
       }
       if (this._isMBC1Register3Addr(addr)) {
-        throw new Error('Unsupported 4Mb/32KB mode');
+        this._isUpperROMBankSelected = n === 0;
       }
     }
 
@@ -9695,8 +9701,13 @@ var MMU = function () {
   }, {
     key: '_getMBC1ROMAddr',
     value: function _getMBC1ROMAddr(addr) {
-      return this._selectedROMBankNb * this.MBC1_ROM_BANK_SIZE + (addr - this.ADDR_ROM_BANK_START);
+      return (this._selectedUpperROMBankNb * 0x20 + this._selectedROMBankNb) * this.MBC1_ROM_BANK_SIZE + (addr - this.ADDR_ROM_BANK_START);
     }
+
+    /**
+     * @private
+     */
+
   }, {
     key: '_updateStatLyc',
     value: function _updateStatLyc() {
@@ -9801,7 +9812,7 @@ var MMU = function () {
     }
 
     /**
-     * Selects a ROM bank and updates the Program Switching Area
+     * Selects a ROM bank
      * @param n byte
      * @private
      */
@@ -9813,6 +9824,18 @@ var MMU = function () {
       if (this._selectedROMBankNb === 0) {
         this._selectedROMBankNb = 1;
       }
+    }
+
+    /**
+     * Selects the upper ROM bank
+     * @param n
+     * @private
+     */
+
+  }, {
+    key: '_selectUpperROMBank',
+    value: function _selectUpperROMBank(n) {
+      this._selectedUpperROMBankNb = n;
     }
 
     /**
@@ -10468,6 +10491,11 @@ var MMU = function () {
       return this._selectedROMBankNb;
     }
   }, {
+    key: 'getSelectedUpperROMBankNb',
+    value: function getSelectedUpperROMBankNb() {
+      return this._selectedUpperROMBankNb;
+    }
+  }, {
     key: 'getSelectedRAMBankNb',
     value: function getSelectedRAMBankNb() {
       return this._selectedRAMBankNb;
@@ -10600,12 +10628,16 @@ function handleFileSelect(evt) {
  */
 function init(arrayBuffer) {
   mmu = new _mmu2.default(new Uint8Array(arrayBuffer), new _storage2.default());
-  var lcd = new _lcd2.default(mmu, $ctxBG, $ctxOBJ, $ctxWindow);
-
-  cpu = new _cpu2.default(mmu, lcd);
-  new _inputHandler2.default(cpu, $body);
-
-  frame();
+  var bootstrap = true;
+  if (!mmu.isCartridgeSupported()) {
+    bootstrap = window.confirm('This game is not supported. Do you want to continue? Your browser may crash.');
+  }
+  if (bootstrap) {
+    var lcd = new _lcd2.default(mmu, $ctxBG, $ctxOBJ, $ctxWindow);
+    cpu = new _cpu2.default(mmu, lcd);
+    new _inputHandler2.default(cpu, $body);
+    frame();
+  }
 }
 
 /**
