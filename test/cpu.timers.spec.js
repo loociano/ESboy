@@ -1,48 +1,47 @@
 import CPU from '../src/cpu';
-import MMU from '../src/mmu';
-import Loader from '../src/loader';
 import assert from 'assert';
 import config from '../src/config';
-import lcdMock from './mock/lcdMock';
-import StorageMock from './mock/storageMock';
+import LCDMock from './mock/lcdMock';
+import MMUMock from './mock/mmuMock';
 import {describe, beforeEach, it} from 'mocha';
+import Utils from '../src/utils';
 
 describe('Dividers', () => {
 
   config.DEBUG = false;
   config.TEST = true;
-  let cpu;
+  let cpu, mmu;
 
   beforeEach( () => {
-    const loader = new Loader('./roms/blargg_cpu_instrs.gb');
-    cpu = new CPU(new MMU(loader.asUint8Array(), new StorageMock()), new lcdMock());
-    cpu._handle_lcd = () => {};
-    cpu.execute = () => cpu.nop();
-    /**
-     * NOP
-     */
-    cpu.nop = () => cpu._m++;
+    mmu = new MMUMock();
+    mmu.lcdc = () => 0; // OFF
+    cpu = new CPU(mmu, new LCDMock());
   });
 
   it('should increase first bit of divider', () => {
 
-    cpu._isVBlankTriggered = () => cpu._m >= (1 << 7); // stop execution at 2^7 machine cycles
+    mmu.setHWDivider = function(n){
+      this._div = (this._div + n) % 0xffff;
+      this._memory[this.ADDR_DIV] = Utils.msb(this._div);
+      if (this._div >= (1 << 8)){
+        this._memory[this.ADDR_IF] = 1; // request vblank interrupt
+      }
+    };
 
     cpu.frame();
 
     assert.equal(cpu.mmu.readByteAt(cpu.mmu.ADDR_DIV), 0x01);
-
-    for(let f = 0; f < 100; f++) {
-      cpu._m = 0;
-      cpu.frame();
-    }
-
-    assert.equal(cpu.mmu.readByteAt(cpu.mmu.ADDR_DIV), 101);
   });
 
   it('should increase last bit of divider', () => {
 
-    cpu._isVBlankTriggered = () => cpu._m >= (1 << 14); // stop execution at 2^7 machine cycles
+    mmu.setHWDivider = function(n){
+      this._div = (this._div + n) % 0xffff;
+      this._memory[this.ADDR_DIV] = Utils.msb(this._div);
+      if (this._div >= (1 << 15)){
+        this._memory[this.ADDR_IF] = 1; // request vblank interrupt
+      }
+    };
 
     cpu.frame();
 

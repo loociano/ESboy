@@ -8,6 +8,7 @@ export default class MMUMock {
     this.MASK_OBJ_ATTR_VFLIP = 0x40;
     this.MASK_OBJ_ATTR_HFLIP = 0x20;
     this.MASK_OBJ_ATTR_OBG = 0x10;
+    this.ADDR_DIV = 0xff04;
     this.ADDR_MAX = 0xffff;
     this.ADDR_IF = 0xff0f;
     this.ADDR_IE = this.ADDR_MAX;
@@ -15,6 +16,7 @@ export default class MMUMock {
     this._memory = [];
     this._isDMA = false;
     this._lcdMode = 0;
+    this._div = 0;
   }
 
   writeByteAt(addr, value){
@@ -22,7 +24,7 @@ export default class MMUMock {
   }
 
   readByteAt(addr){
-    return this._memory[addr];
+    return this._memory[addr] || 0;
   }
 
   getCartridgeType(){}
@@ -99,7 +101,7 @@ export default class MMUMock {
     this._lcdMode = lcdMode;
   }
 
-  set_HW_DIV(n){}
+  setHWDivider(n){}
 
   isRunningBIOS(){
     return false;

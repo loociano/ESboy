@@ -910,21 +910,23 @@ export default class CPU {
         this._m++;
       }
 
-      this._handle_lcd();
+      this._updateDivider(this._m - m);
+      this._handleLCD();
       this._handleDMA();
-      this._handleDIV(this._m - m);
 
       if (this._r.pc === this.mmu.ADDR_GAME_START){
         this._afterBIOS();
       }
 
       if (this._isLYCInterrupt()){
-        this._handleLYCInterrupt();      
+        this._handleLYCInterrupt();
       }
 
-    } while (!this._isVBlankTriggered());
+    } while (!this._isVBlankInterruptRequested());
 
-    this._handleVBlankInterrupt();
+    if (this._shouldStartVBlankRoutine()){
+      this._handleVBlankInterrupt();
+    }
   }
 
   /**
@@ -949,8 +951,8 @@ export default class CPU {
   /**
    * @private
    */
-  _handleDIV(m_instr){
-    this.mmu.set_HW_DIV(m_instr * 2);
+  _updateDivider(instructionCPUCycles){
+    this.mmu.setHWDivider(instructionCPUCycles * 2);
   }
 
   /**
@@ -973,9 +975,9 @@ export default class CPU {
    * Handles LCD updates
    * @private
    */
-  _handle_lcd(){
+  _handleLCD(){
 
-    if (!this._is_lcd_on()){
+    if (!this._isLCDOn()){
       this._m = 0;
       return;
     }
@@ -992,7 +994,7 @@ export default class CPU {
 
       if (this.ly() === this.mmu.LCDC_LINE_VBLANK) {
         this.mmu.setLCDMode(1);
-        this._triggerVBlank();
+        this._requestVBlankInterrupt();
       }
 
     } else {
@@ -1039,7 +1041,7 @@ export default class CPU {
    * @returns {boolean} true if LCD is on
    * @private
    */
-  _is_lcd_on(){
+  _isLCDOn(){
     return (this.lcdc() & 0x80) === 0x80;
   }
 
@@ -1055,14 +1057,25 @@ export default class CPU {
   }
 
   /**
-   * @returns {boolean} if vblank interrupt should be triggered
+   * @returns {boolean} true if vblank
+   */
+  _isVBlankInterruptRequested() {
+    return (this.If() & this.IF_VBLANK_ON) === 1;
+  }
+
+  /**
+   * @returns {boolean}
    * @private
    */
-  _isVBlankTriggered(){
-    if (this._r.ime === 0){
-      return false;
+  _shouldStartVBlankRoutine(){
+    if (this._r.ime === 1 && (this.ie() & this.IF_VBLANK_ON) === 1){
+      if (this._lastInstrWasEI){
+        return false; // wait one instruction more
+      } else {
+        return true;
+      }
     }
-    return this.isVBlank();
+    return false;
   }
 
   /**
@@ -1086,25 +1099,10 @@ export default class CPU {
   }
 
   /**
-   * @returns {boolean} true if vblank
-   */
-  isVBlank(){
-    if (this._r.ime === 1 && (this.ie() & this.If() & this.IF_VBLANK_ON) === 1){
-      if (this._lastInstrWasEI){
-        this._lastInstrWasEI = false;
-        return false; // wait one instruction more
-      } else {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
    * Sets IF to trigger a vblank interruption
    * @private
    */
-  _triggerVBlank(){
+  _requestVBlankInterrupt(){
     this._setIf(this.If() | this.IF_VBLANK_ON);
   }
 
@@ -1148,6 +1146,7 @@ export default class CPU {
       Logger.beforeCrash(this, fn, paramBytes, param);
       throw e;
     }
+    this._lastInstrWasEI = (fn.name === 'ei');
   }
 
   /**
@@ -2155,7 +2154,6 @@ export default class CPU {
    */
   ei(){
     this._r.ime = 1;
-    this._lastInstrWasEI = true;
     this._m++;
   }
 
