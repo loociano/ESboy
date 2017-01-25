@@ -2,17 +2,15 @@ import MMU from '../src/mmu';
 import Loader from '../src/loader';
 import assert from 'assert';
 import config from '../src/config';
-import {describe, beforeEach, it} from 'mocha';
+import {describe, before, beforeEach, it} from 'mocha';
 import StorageMock from './mock/storageMock';
-import fs from 'fs';
-import Utils from '../src/utils';
 
 describe('MMU', () => {
 
   config.DEBUG = false;
   config.TEST = true;
 
-  let mmu;
+  let mmu, rom32KB;
 
   beforeEach( () => {
     const loader = new Loader('./roms/blargg_cpu_instrs.gb');
@@ -59,6 +57,27 @@ describe('MMU', () => {
       assert.equal(mmu.readByteAt(0xffff), 0x0f, 'should write on 0xffff');
     });
 
+  });
+
+  describe('Read/write ROM', () => {
+
+    it('should read ROM', () => {
+      rom32KB = new Uint8Array(0x8000);
+      rom32KB[mmu.ADDR_CARTRIDGE_TYPE] = 0; // ROM
+      rom32KB[mmu.ADDR_ROM_SIZE] = 0; // 32KB, no banks
+
+      // Sample data
+      rom32KB[0] = 1;
+      rom32KB[0x4000] = 1;
+      rom32KB[0x7fff] = 2;
+
+      mmu = new MMU(rom32KB);
+      mmu.setRunningBIOS(false);
+
+      assert.equal(mmu.readByteAt(0), 1);
+      assert.equal(mmu.readByteAt(0x4000), 1);
+      assert.equal(mmu.readByteAt(0x7fff), 2);
+    });
   });
 
   describe('BIOS', () => {
