@@ -924,6 +924,8 @@ export default class CPU {
 
     } while (!this._isVBlankInterruptRequested());
 
+    if (!this._lastInstrWasEI) this._resetVBlank();
+
     if (this._shouldStartVBlankRoutine()){
       this._handleVBlankInterrupt();
     }
@@ -1084,7 +1086,6 @@ export default class CPU {
    */
   _handleVBlankInterrupt(){
 
-    this._resetVBlank();
     this._halt = false;
 
     // BIOS does not have an vblank routine to execute

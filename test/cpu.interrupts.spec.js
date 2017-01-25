@@ -110,7 +110,7 @@ describe('Interruptions', () => {
 
   });
 
-  describe('VBL Interrupt', () => {
+  describe('Vertical Blank Interrupt', () => {
 
     it('should not scan lines with lcd off', function() {
 
@@ -155,7 +155,8 @@ describe('Interruptions', () => {
         assert.equal(this.cpu.ie() & 0x01, 1, 'Vblank allowed');
 
         this.cpu.mockInstruction(0xfb/* ei */);
-        this.cpu.execute();
+        this.cpu.start();
+        assert.equal(this.cpu.If() & this.cpu.IF_VBLANK_ON, 1, 'Interrupt Request is turned on');
 
         const pc = this.cpu.pc();
         assert.equal(this.cpu.pc(), 0xc001);
@@ -168,6 +169,7 @@ describe('Interruptions', () => {
         this.cpu.start();
 
         assert.equal(this.cpu.ime(), 0, 'IME disabled');
+        assert.equal(this.cpu.If() & this.cpu.IF_VBLANK_OFF, 0, 'Interrupt Request is turned off');
         assert.equal(this.cpu.peek_stack(1), 0x06, 'high pc on stack');
         assert.equal(this.cpu.peek_stack(), 0x37, 'low pc on stack');
         assert.equal(this.cpu.pc(), this.cpu.ADDR_VBLANK_INTERRUPT);
