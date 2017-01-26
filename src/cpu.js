@@ -3562,15 +3562,18 @@ export default class CPU {
   /**
    * Adds a value to register a
    * @param {number} value, 8 bits
+   * @param {number} carry, 1 bit
    * @private
    */
   _add_r(value, carry=0){
 
     this._setN(0);
     const add = value + carry;
+    let mask = 0x0f;
+    if (carry === 1) mask = 0xfff;
 
     // Half carry
-    if ((add & 0x0f) > (0x0f - (this._r.a & 0x0f))){
+    if ( (add & mask) > (0x0f - (this._r.a & 0x0f))){
       this._setH(1);
     } else {
       this._setH(0);
