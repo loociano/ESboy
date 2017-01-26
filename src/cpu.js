@@ -3570,7 +3570,7 @@ export default class CPU {
     const add = value + carry;
 
     // Half carry
-    if (add > (0x0f - (this._r.a & 0x0f))){
+    if ((add & 0x0f) > (0x0f - (this._r.a & 0x0f))){
       this._setH(1);
     } else {
       this._setH(0);

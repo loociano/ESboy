@@ -1328,12 +1328,11 @@ describe('CPU Instruction Set', function() {
           assert.equal(cpu.N(), 0, 'N always reset');
           assert.equal(cpu.H(), 0, 'No carry from bit 3');
           assert.equal(cpu.C(), 0, 'No carry');
-          assert.equal(cpu.m(), m + 1, 'ADD r machine cycles');
+          assert.equal(cpu.m() - m, 1, 'ADD r machine cycles');
 
           cpu.ld_a_n(0x0f);
           ld.call(cpu, 0x01);
 
-          m = cpu.m();
           add.call(cpu); // Test carry from bit 3
 
           assert.equal(cpu.a(), 0x10, `a 0x0f plus two with half carry, ${add.name}`);
@@ -1341,20 +1340,17 @@ describe('CPU Instruction Set', function() {
           assert.equal(cpu.N(), 0, 'N always reset');
           assert.equal(cpu.H(), 1, 'Carry from bit 3');
           assert.equal(cpu.C(), 0, 'No carry');
-          assert.equal(cpu.m(), m + 1, 'ADD r machine cycles');
 
           cpu.ld_a_n(0xf0);
           ld.call(cpu, 0x10);
 
-          m = cpu.m();
           add.call(cpu); // Test a result zero
 
           assert.equal(cpu.a(), 0x00, `a 0xf0 plus 0x10 is zero, ${add.name}`);
           assert.equal(cpu.Z(), 1, 'Result is zero');
           assert.equal(cpu.N(), 0, 'N always reset');
-          assert.equal(cpu.H(), 1, 'Carry from bit 3');
+          assert.equal(cpu.H(), 0, 'Carry from bit 3');
           assert.equal(cpu.C(), 1, 'Carry');
-          assert.equal(cpu.m(), m + 1, 'ADD r machine cycles');
 
           cpu.ld_a_n(0xf0);
           ld.call(cpu, 0x12);
@@ -1365,14 +1361,12 @@ describe('CPU Instruction Set', function() {
           assert.equal(cpu.a(), 0x02, `a 0xf0 overflows to 0x02, ${add.name}`);
           assert.equal(cpu.Z(), 0, 'Result not zero');
           assert.equal(cpu.N(), 0, 'N always reset');
-          assert.equal(cpu.H(), 1, 'Carry from bit 3');
+          assert.equal(cpu.H(), 0, 'Carry from bit 3');
           assert.equal(cpu.C(), 1, 'Carry');
-          assert.equal(cpu.m(), m + 1, 'ADD r machine cycles');
 
           cpu.ld_a_n(0x02);
           ld.call(cpu, 0xff);
 
-          m = cpu.m();
           add.call(cpu); // Test max addition
 
           assert.equal(cpu.a(), 0x01, `a 0x02 plus 0xff overflows to 0x01, ${add.name}`);
@@ -1380,7 +1374,6 @@ describe('CPU Instruction Set', function() {
           assert.equal(cpu.N(), 0, 'N always reset');
           assert.equal(cpu.H(), 1, 'Carry from bit 3');
           assert.equal(cpu.C(), 1, 'Carry');
-          assert.equal(cpu.m(), m + 1, 'ADD r machine cycles');
         });
       });
 
@@ -1410,7 +1403,7 @@ describe('CPU Instruction Set', function() {
         cpu.add_0xhl(); // Test a result zero
 
         assert.equal(cpu.a(), 0x00, 'a 0xf0 plus 0x10 is zero');
-        assert.equal(cpu.f(), 0b1011, 'Zero with carries');
+        assert.equal(cpu.f(), 0b1001, 'Zero with full carry');
 
         cpu.ld_a_n(0xf0);
         cpu.ld_0xhl_n(0x12);
@@ -1418,7 +1411,7 @@ describe('CPU Instruction Set', function() {
         cpu.add_0xhl(); // Result overflows from positive number in a
 
         assert.equal(cpu.a(), 0x02, 'a 0xf0 overflows to 0x02');
-        assert.equal(cpu.f(), 0b0011, 'Positive with carries');
+        assert.equal(cpu.f(), 0b0001, 'Positive with full carry');
 
         cpu.ld_a_n(0x02);
         cpu.ld_0xhl_n(0xff);
@@ -1438,7 +1431,7 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.a(), 0x24, 'a doubles itself');
         assert.equal(cpu.Z(), 0, 'Result not zero');
         assert.equal(cpu.N(), 0, 'N always reset');
-        assert.equal(cpu.H(), 1, 'Carry from bit 3');
+        assert.equal(cpu.H(), 0, 'No half carry');
         assert.equal(cpu.C(), 0, 'No carry');
         assert.equal(cpu.m(), m + 1, 'ADD a machine cycles');
       });
