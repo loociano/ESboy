@@ -808,8 +808,11 @@ describe('CPU Instruction Set', function() {
         const m = cpu.m();
         cpu.cp_a();
 
-        assertFlagsCompareEqualValue(cpu);
-        assert.equal(cpu.m(), m+1, 'Compare cycles');
+        assert.equal(cpu.Z(), 1, 'Z is set as a=n');
+        assert.equal(cpu.N(), 1, 'N is set');
+        assert.equal(cpu.H(), 0, 'H is reset');
+        assert.equal(cpu.C(), 0, 'a is not greater than n');
+        assert.equal(cpu.m() - m, 1, 'Compare cycles');
       });
 
       it('it should compare registers with register a', () => {
@@ -828,24 +831,59 @@ describe('CPU Instruction Set', function() {
           let m = cpu.m();
           cp.call(cpu);
 
-          assertFlagsCompareEqualValue(cpu);
-          assert.equal(cpu.m(), m+1, 'Compare cycles');
+          assert.equal(cpu.Z(), 1, 'Z is set as a=n');
+          assert.equal(cpu.N(), 1, 'N is set');
+          assert.equal(cpu.H(), 0, 'H is reset');
+          assert.equal(cpu.C(), 0, 'a is not greater than n');
+          assert.equal(cpu.m() - m, 1, 'Compare cycles');
 
           ld.call(cpu, 0x01); // Lower value
 
-          m = cpu.m();
           cp.call(cpu);
 
-          assertFlagsCompareLowerValue(cpu);
-          assert.equal(cpu.m(), m+1, 'Compare cycles');
+          assert.equal(cpu.Z(), 0, 'Z not set as a > n');
+          assert.equal(cpu.N(), 1, 'N is always set');
+          assert.equal(cpu.H(), 0, 'H is reset');
+          assert.equal(cpu.C(), 0, 'a is greater than n');
 
           ld.call(cpu, 0xff); // Greater value
 
-          m = cpu.m();
           cp.call(cpu);
 
-          assertFlagsCompareGreaterValue(cpu);
-          assert.equal(cpu.m(), m+1, 'Compare cycles');
+          assert.equal(cpu.Z(), 0, 'Z reset as a < n');
+          assert.equal(cpu.N(), 1, 'N is always set');
+          assert.equal(cpu.H(), 1, 'H is set');
+          assert.equal(cpu.C(), 1, 'a is greater than n');
+
+          cpu.ld_a_n(0);
+          ld.call(cpu, 1);
+
+          cp.call(cpu);
+
+          assert.equal(cpu.Z(), 0, 'Z reset as a < n');
+          assert.equal(cpu.N(), 1, 'N is always set');
+          assert.equal(cpu.H(), 1, 'H is set');
+          assert.equal(cpu.C(), 1, 'a is greater than n');
+
+          cpu.ld_a_n(0xf0);
+          ld.call(cpu, 1);
+
+          cp.call(cpu);
+
+          assert.equal(cpu.Z(), 0, 'Z reset as a < n');
+          assert.equal(cpu.N(), 1, 'N is always set');
+          assert.equal(cpu.H(), 1, 'H is set');
+          assert.equal(cpu.C(), 0);
+
+          cpu.ld_a_n(0xff);
+          ld.call(cpu, 0x10);
+
+          cp.call(cpu);
+
+          assert.equal(cpu.Z(), 0, 'Z reset as a < n');
+          assert.equal(cpu.N(), 1, 'N is always set');
+          assert.equal(cpu.H(), 0, 'H is reset');
+          assert.equal(cpu.C(), 0);
         });
       });
 
@@ -858,23 +896,30 @@ describe('CPU Instruction Set', function() {
         const m = cpu.m();
         cpu.cp_0xhl();
 
-        assertFlagsCompareLowerValue(cpu);
-        assert.equal(cpu.m(), m+2, 'Compare cycles');
+        assert.equal(cpu.Z(), 0, 'Z not set as a > n');
+        assert.equal(cpu.N(), 1, 'N is always set');
+        assert.equal(cpu.H(), 0, 'H is reset');
+        assert.equal(cpu.C(), 0, 'a is greater than n');
+        assert.equal(cpu.m() - m, 2, 'Compare cycles');
 
         cpu.mmu.writeByteAt(cpu.hl(), 0xab); // Equal value
 
         cpu.cp_0xhl();
 
-        assertFlagsCompareEqualValue(cpu);
-        assert.equal(cpu.m(), m+4, 'Compare cycles');
+        assert.equal(cpu.Z(), 1, 'Z is set as a=n');
+        assert.equal(cpu.N(), 1, 'N is set');
+        assert.equal(cpu.H(), 0, 'H is reset');
+        assert.equal(cpu.C(), 0, 'a is not greater than n');
 
 
         cpu.mmu.writeByteAt(cpu.hl(), 0xff); // Greater value
 
         cpu.cp_0xhl();
 
-        assertFlagsCompareGreaterValue(cpu);
-        assert.equal(cpu.m(), m+6, 'Compare cycles');
+        assert.equal(cpu.Z(), 0, 'Z reset as a < n');
+        assert.equal(cpu.N(), 1, 'N is always set');
+        assert.equal(cpu.H(), 1, 'H is set');
+        assert.equal(cpu.C(), 1, 'a is greater than n');
       });
 
       it('should compare register a with lower value n', () => {
@@ -884,7 +929,10 @@ describe('CPU Instruction Set', function() {
         const m = cpu.m();
         cpu.cp_n(n);
 
-        assertFlagsCompareLowerValue(cpu);
+        assert.equal(cpu.Z(), 0, 'Z not set as a > n');
+        assert.equal(cpu.N(), 1, 'N is always set');
+        assert.equal(cpu.H(), 0, 'H is reset');
+        assert.equal(cpu.C(), 0, 'a is greater than n');
         assert.equal(cpu.m(), m+2, 'Compare cycles');
       });
 
@@ -895,8 +943,11 @@ describe('CPU Instruction Set', function() {
         const m = cpu.m();
         cpu.cp_n(n);
 
-        assertFlagsCompareEqualValue(cpu);
-        assert.equal(cpu.m(), m+2, 'Compare cycles');
+        assert.equal(cpu.Z(), 1, 'Z is set as a=n');
+        assert.equal(cpu.N(), 1, 'N is set');
+        assert.equal(cpu.H(), 0, 'H is reset');
+        assert.equal(cpu.C(), 0, 'a is not greater than n');
+        assert.equal(cpu.m() - m, 2, 'Compare cycles');
       });
 
       it('should compare register a with greater value n', () => {
@@ -906,8 +957,11 @@ describe('CPU Instruction Set', function() {
         const m = cpu.m();
         cpu.cp_n(n);
 
-        assertFlagsCompareGreaterValue(cpu);
-        assert.equal(cpu.m(), m+2, 'Compare cycles');
+        assert.equal(cpu.Z(), 0, 'Z reset as a < n');
+        assert.equal(cpu.N(), 1, 'N is always set');
+        assert.equal(cpu.H(), 1, 'H is set');
+        assert.equal(cpu.C(), 1, 'a is greater than n');
+        assert.equal(cpu.m() - m, 2, 'Compare cycles');
       });
     });
 
@@ -3416,21 +3470,3 @@ describe('CPU Instruction Set', function() {
     });
   });
 });
-
-function assertFlagsCompareGreaterValue(cpu){
-  assert.equal(cpu.Z(), 0, 'Z reset as a < n');
-  assert.equal(cpu.N(), 1, 'N is always set');
-  assert.equal(cpu.C(), 1, 'a is greater than n');
-}
-
-function assertFlagsCompareEqualValue(cpu){
-  assert.equal(cpu.Z(), 1, 'Z is set as a=n');
-  assert.equal(cpu.N(), 1, 'N is set');
-  assert.equal(cpu.C(), 0, 'a is not greater than n');
-}
-
-function assertFlagsCompareLowerValue(cpu){
-  assert.equal(cpu.Z(), 0, 'Z not set as a > n');
-  assert.equal(cpu.N(), 1, 'N is always set');
-  assert.equal(cpu.C(), 0, 'a is greater than n');
-}

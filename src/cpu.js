@@ -2250,6 +2250,15 @@ export default class CPU {
     
     this._setN(1); this._setZ(0); this._setC(0);
     const diff = this._r.a - n;
+
+    const nybbleDiff = diff & 0x0f;
+    const nybbleA = this._r.a & 0x0f;
+
+    if ( nybbleA >= nybbleDiff){
+      this._setH(0);
+    } else {
+      this._setH(1);
+    }
     
     if (diff === 0){
       this._setZ(1);
