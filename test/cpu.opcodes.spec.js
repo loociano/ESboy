@@ -1720,38 +1720,270 @@ describe('CPU Instruction Set', function() {
       cpu.ld_a_n(0x45);
       cpu.ld_b_n(0x38);
       cpu.add_b();
+      const pc = cpu.pc();
       const m = cpu.m();
 
-      cpu.daa();
+      cpu.mockInstruction(0x27/* daa */);
+      cpu.execute();
 
       assert.equal(cpu.a(), 0x83, 'BCD adjusted');
       assert.equal(cpu.f(), 0b0000, 'Flags');
       assert.equal(cpu.m() - m, 1, 'Machine cycles');
+      assert.equal(cpu.pc() - pc, 1, '1-byte instruction');
 
       cpu.ld_a_n(0x98);
-      cpu.setC(1);
+      cpu.mockInstruction(0x27/* daa */);
+      cpu.execute();
 
-      cpu.daa();
-
-      assert.equal(cpu.a(), 0xf8, 'BCD adjusted');
-      assert.equal(cpu.f(), 0b0001, 'Flags');
+      assert.equal(cpu.a(), 0x98, 'BCD adjusted');
+      assert.equal(cpu.f(), 0b0000, 'Flags');
 
       cpu.ld_a_n(0x9f);
-      cpu.setC(1);
-
-      cpu.daa();
+      cpu.mockInstruction(0x27/* daa */);
+      cpu.execute();
 
       assert.equal(cpu.a(), 0x05, 'BCD adjusted');
-      assert.equal(cpu.f(), 0b0001, 'Flags');
+      assert.equal(cpu.f(), 0b0001, 'Flags ...C');
 
-      cpu.ld_a_n(0x90);
-      cpu.ld_b_n(0x0a);
-      cpu.add_b();
-
-      cpu.daa();
+      cpu.ld_a_n(0x9a);
+      cpu.mockInstruction(0x27/* daa */);
+      cpu.execute();
 
       assert.equal(cpu.a(), 0x00, 'BCD adjusted with zero');
-      assert.equal(cpu.f(), 0b1001, 'Flags');
+      assert.equal(cpu.f(), 0b1001, 'Flags Z..C');
+    });
+
+    it('should add nothing', () => {
+      for(let a = 0; a < 10; a++ ){
+        const prev = (a << 4) + a;
+        cpu.resetFlags();
+        cpu.ld_a_n(prev);
+        cpu.mockInstruction(0x27/* daa */);
+        cpu.execute();
+
+        assert.equal(cpu.a(), prev, `${prev} should not be adjusted`);
+      }
+      for(let a = 0; a < 10; a++ ){
+        const prev = (a << 4) + a;
+        cpu.resetFlags();
+        cpu.setN(1);
+        cpu.ld_a_n(prev);
+        cpu.mockInstruction(0x27/* daa */);
+        cpu.execute();
+
+        assert.equal(cpu.a(), prev, `${prev} should not be adjusted`);
+        assert.equal(cpu.Z(), prev === 0 ? 1 : 0, `Zero flag ${prev}`);
+        assert.equal(cpu.N(), 1, `N flag ${prev}`);
+        assert.equal(cpu.H(), 0, `H flag ${prev}`);
+        assert.equal(cpu.C(), 0, `C flag ${prev}`);
+      }
+    });
+
+    it('should add +6', () => {
+      for(let a = 0; a < 9; a++ ){
+        for(let b = 0xa; b < 0x10; b++) {
+          const prev = (a << 4) + b;
+          const expect = prev + 6;
+          cpu.resetFlags();
+          cpu.ld_a_n(prev);
+          cpu.mockInstruction(0x27/* daa */);
+          cpu.execute();
+
+          assert.equal(cpu.a(), expect, `${prev} + 6`);
+          assert.equal(cpu.Z(), expect === 0 ? 1 : 0, `Zero flag ${prev}`);
+          assert.equal(cpu.N(), 0, `N flag ${prev}`);
+          assert.equal(cpu.H(), 0, `H flag ${prev}`);
+          assert.equal(cpu.C(), 0, `C flag ${prev}`);
+        }
+      }
+      for(let a = 0; a < 0xa; a++ ){
+        for(let b = 0; b < 4; b++) {
+          const prev = (a << 4) + b;
+          const expect = prev + 6;
+          cpu.resetFlags();
+          cpu.setH(1);
+          cpu.ld_a_n(prev);
+          cpu.mockInstruction(0x27/* daa */);
+          cpu.execute();
+
+          assert.equal(cpu.a(), expect, `${prev} + 6`);
+          assert.equal(cpu.Z(), expect === 0 ? 1 : 0, `Zero flag ${prev}`);
+          assert.equal(cpu.N(), 0, `N flag ${prev}`);
+          assert.equal(cpu.H(), 0, `H flag ${prev}`);
+          assert.equal(cpu.C(), 0, `C flag ${prev}`);
+        }
+      }
+    });
+
+    it('should add +0x60', () => {
+      for(let a = 0xa; a < 0x10; a++ ){
+        for(let b = 0; b < 0xa; b++) {
+          const prev = (a << 4) + b;
+          const expect = (prev + 0x60) % 0x100;
+          cpu.resetFlags();
+          cpu.ld_a_n(prev);
+          cpu.mockInstruction(0x27/* daa */);
+          cpu.execute();
+
+          assert.equal(cpu.a(), expect, `${Utils.hex2(prev)} + 0x60`);
+          assert.equal(cpu.Z(), expect === 0 ? 1 : 0, `Zero flag ${prev}`);
+          assert.equal(cpu.N(), 0, `N flag ${prev}`);
+          assert.equal(cpu.H(), 0, `H flag ${prev}`);
+          assert.equal(cpu.C(), 1, `C flag ${prev}`);
+        }
+      }
+      for(let a = 0; a < 3; a++ ){
+        for(let b = 0; b < 0xa; b++) {
+          const prev = (a << 4) + b;
+          const expect = (prev + 0x60) % 0x100;
+          cpu.resetFlags();
+          cpu.setC(1);
+          cpu.ld_a_n(prev);
+          cpu.mockInstruction(0x27/* daa */);
+          cpu.execute();
+
+          assert.equal(cpu.a(), expect, `${Utils.hex2(prev)} + 0x60`);
+          assert.equal(cpu.Z(), expect === 0 ? 1 : 0, `Zero flag ${prev}`);
+          assert.equal(cpu.N(), 0, `N flag ${prev}`);
+          assert.equal(cpu.H(), 0, `H flag ${prev}`);
+          assert.equal(cpu.C(), 1, `C flag ${prev}`);
+        }
+      }
+    });
+
+    it('should add +0x66', () => {
+      for(let a = 0x9; a < 0x10; a++ ){
+        for(let b = 0xa; b < 0x10; b++) {
+          const prev = (a << 4) + b;
+          const expect = (prev + 0x66) % 0x100;
+          cpu.resetFlags();
+          cpu.ld_a_n(prev);
+          cpu.mockInstruction(0x27/* daa */);
+          cpu.execute();
+
+          assert.equal(cpu.a(), expect, `${Utils.hex2(prev)} + 0x66`);
+          assert.equal(cpu.Z(), expect === 0 ? 1 : 0, `Zero flag ${prev}`);
+          assert.equal(cpu.N(), 0, `N flag ${prev}`);
+          assert.equal(cpu.H(), 0, `H flag ${prev}`);
+          assert.equal(cpu.C(), 1, `C flag ${prev}`);
+        }
+      }
+      for(let a = 0xa; a < 0x10; a++ ){
+        for(let b = 0x0; b < 0x4; b++) {
+          const prev = (a << 4) + b;
+          const expect = (prev + 0x66) % 0x100;
+          cpu.resetFlags();
+          cpu.setH(1);
+          cpu.ld_a_n(prev);
+          cpu.mockInstruction(0x27/* daa */);
+          cpu.execute();
+
+          assert.equal(cpu.a(), expect, `${Utils.hex2(prev)} + 0x66`);
+          assert.equal(cpu.Z(), expect === 0 ? 1 : 0, `Zero flag ${prev}`);
+          assert.equal(cpu.N(), 0, `N flag ${prev}`);
+          assert.equal(cpu.H(), 0, `H flag ${prev}`);
+          assert.equal(cpu.C(), 1, `C flag ${prev}`);
+        }
+      }
+      for(let a = 0; a < 3; a++ ){
+        for(let b = 0xa; b < 0x10; b++) {
+          const prev = (a << 4) + b;
+          const expect = (prev + 0x66) % 0x100;
+          cpu.resetFlags();
+          cpu.setC(1);
+          cpu.ld_a_n(prev);
+          cpu.mockInstruction(0x27/* daa */);
+          cpu.execute();
+
+          assert.equal(cpu.a(), expect, `${Utils.hex2(prev)} + 0x66`);
+          assert.equal(cpu.Z(), expect === 0 ? 1 : 0, `Zero flag ${prev}`);
+          assert.equal(cpu.N(), 0, `N flag ${prev}`);
+          assert.equal(cpu.H(), 0, `H flag ${prev}`);
+          assert.equal(cpu.C(), 1, `C flag ${prev}`);
+        }
+      }
+      for(let a = 0; a < 4; a++ ){
+        for(let b = 0; b < 4; b++) {
+          const prev = (a << 4) + b;
+          const expect = (prev + 0x66) % 0x100;
+          cpu.resetFlags();
+          cpu.setC(1);
+          cpu.setH(1);
+          cpu.ld_a_n(prev);
+          cpu.mockInstruction(0x27/* daa */);
+          cpu.execute();
+
+          assert.equal(cpu.a(), expect, `${Utils.hex2(prev)} + 0x66`);
+          assert.equal(cpu.Z(), expect === 0 ? 1 : 0, `Zero flag ${prev}`);
+          assert.equal(cpu.N(), 0, `N flag ${prev}`);
+          assert.equal(cpu.H(), 0, `H flag ${prev}`);
+          assert.equal(cpu.C(), 1, `C flag ${prev}`);
+        }
+      }
+    });
+
+    it('should add 0xfa', () => {
+      for(let a = 0; a < 9; a++ ){
+        for(let b = 6; b < 0x10; b++) {
+          const prev = (a << 4) + b;
+          const expect = (prev + 0xfa) % 0x100;
+          cpu.resetFlags();
+          cpu.setN(1);
+          cpu.setH(1);
+          cpu.ld_a_n(prev);
+          cpu.mockInstruction(0x27/* daa */);
+          cpu.execute();
+
+          assert.equal(cpu.a(), expect, `${Utils.hex2(prev)} + 0xfa`);
+          assert.equal(cpu.Z(), expect === 0 ? 1 : 0, `Zero flag ${prev}`);
+          assert.equal(cpu.N(), 1, `N flag ${prev}`);
+          assert.equal(cpu.H(), 0, `H flag ${prev}`);
+          assert.equal(cpu.C(), 0, `C flag ${prev}`);
+        }
+      }
+    });
+
+    it('should add 0xa0', () => {
+      for(let a = 7; a < 0x10; a++ ){
+        for(let b = 0; b < 0xa; b++) {
+          const prev = (a << 4) + b;
+          const expect = (prev + 0xa0) % 0x100;
+          cpu.resetFlags();
+          cpu.setN(1);
+          cpu.setC(1);
+          cpu.ld_a_n(prev);
+          cpu.mockInstruction(0x27/* daa */);
+          cpu.execute();
+
+          assert.equal(cpu.a(), expect, `${Utils.hex2(prev)} + 0xa0`);
+          assert.equal(cpu.Z(), expect === 0 ? 1 : 0, `Zero flag ${prev}`);
+          assert.equal(cpu.N(), 1, `N flag ${prev}`);
+          assert.equal(cpu.H(), 0, `H flag ${prev}`);
+          assert.equal(cpu.C(), 1, `C flag ${prev}`);
+        }
+      }
+    });
+
+    it('should add 0x9a', () => {
+      for(let a = 6; a < 0x10; a++ ){
+        for(let b = 6; b < 0x10; b++) {
+          const prev = (a << 4) + b;
+          const expect = (prev + 0x9a) % 0x100;
+          cpu.setZ(0);
+          cpu.setN(1);
+          cpu.setC(1);
+          cpu.setH(1);
+          cpu.ld_a_n(prev);
+          cpu.mockInstruction(0x27/* daa */);
+          cpu.execute();
+
+          assert.equal(cpu.a(), expect, `${Utils.hex2(prev)} + 0x9a`);
+          assert.equal(cpu.Z(), expect === 0 ? 1 : 0, `Zero flag ${prev}`);
+          assert.equal(cpu.N(), 1, `N flag ${prev}`);
+          assert.equal(cpu.H(), 0, `H flag ${prev}`);
+          assert.equal(cpu.C(), 1, `C flag ${prev}`);
+        }
+      }
     });
 
     it('should adjust to BDC after subtraction', () => {
@@ -1759,19 +1991,21 @@ describe('CPU Instruction Set', function() {
       cpu.ld_b_n(0x01);
       cpu.sub_b();
 
-      cpu.daa();
+      cpu.mockInstruction(0x27/* daa */);
+      cpu.execute();
 
       assert.equal(cpu.a(), 0x19, 'BCD adjusted');
-      assert.equal(cpu.f(), 0b0100, 'Flags');
+      assert.equal(cpu.f(), 0b0100, 'Flags .N..');
 
       cpu.ld_a_n(0x83);
       cpu.ld_b_n(0x38);
       cpu.sub_b();
 
-      cpu.daa();
+      cpu.mockInstruction(0x27/* daa */);
+      cpu.execute();
 
       assert.equal(cpu.a(), 0x45, 'BCD adjusted');
-      assert.equal(cpu.f(), 0b0100, 'Flags');
+      assert.equal(cpu.f(), 0b0100, 'Flags .N..');
     });
 
     it('should adjust with half-carry', () => {
@@ -1779,7 +2013,8 @@ describe('CPU Instruction Set', function() {
       cpu.setH(1);
       cpu.setC(0);
 
-      cpu.daa();
+      cpu.mockInstruction(0x27/* daa */);
+      cpu.execute();
 
       assert.equal(cpu.a(), 0x2c, 'BCD adjusted');
       assert.equal(cpu.f(), 0b0000, 'Flags');
@@ -1787,14 +2022,13 @@ describe('CPU Instruction Set', function() {
 
     it('should do nothing on zero', () => {
       cpu.ld_a_n(0x00);
-      cpu.setZ(1);
-      cpu.setH(0);
-      cpu.setC(0);
+      cpu.resetFlags();
 
-      cpu.daa();
+      cpu.mockInstruction(0x27/* daa */);
+      cpu.execute();
 
       assert.equal(cpu.a(), 0x00);
-      assert.equal(cpu.f(), 0b1000, 'Flags');
+      assert.equal(cpu.f(), 0b1000, 'Flags Z...');
     });
 
   });
