@@ -2108,7 +2108,7 @@ var CPU = function () {
       0x24: { fn: this.inc_h, paramBytes: 0 },
       0x25: { fn: this.dec_h, paramBytes: 0 },
       0x26: { fn: this.ld_h_n, paramBytes: 1 },
-      0x27: { fn: this.daa, paramBytes: 0 },
+      0x27: { fn: this._daa, paramBytes: 0 },
       0x28: { fn: this._jr_z_n, paramBytes: 1 },
       0x29: { fn: this.add_hl_hl, paramBytes: 0 },
       0x2a: { fn: this.ldi_a_0xhl, paramBytes: 0 },
@@ -6700,7 +6700,7 @@ var CPU = function () {
       var hl = this.hl();
       var value = hl + nn;
 
-      if ((value & 0xf000) > (hl & 0xf000)) {
+      if ((nn & 0x0fff) > 0x0fff - (hl & 0x0fff)) {
         this._setH(1);
       } else {
         this._setH(0);
@@ -7686,8 +7686,8 @@ var CPU = function () {
      */
 
   }, {
-    key: 'daa',
-    value: function daa() {
+    key: '_daa',
+    value: function _daa() {
       if ((this._r.a & 0x0f) > 9 || this.H()) {
         if (this.N() === 1) {
           this._r.a -= 0x06;
