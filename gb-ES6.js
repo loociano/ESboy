@@ -4836,6 +4836,15 @@ var CPU = function () {
       this._setN(1);this._setZ(0);this._setC(0);
       var diff = this._r.a - n;
 
+      var nybbleDiff = diff & 0x0f;
+      var nybbleA = this._r.a & 0x0f;
+
+      if (nybbleA >= nybbleDiff) {
+        this._setH(0);
+      } else {
+        this._setH(1);
+      }
+
       if (diff === 0) {
         this._setZ(1);
       } else if (diff < 0) {
@@ -6610,6 +6619,7 @@ var CPU = function () {
     /**
      * Adds a value to register a
      * @param {number} value, 8 bits
+     * @param {number} carry, 1 bit
      * @private
      */
 
@@ -6623,7 +6633,7 @@ var CPU = function () {
       var add = value + carry;
 
       // Half carry
-      if (add > 0x0f - (this._r.a & 0x0f)) {
+      if ((add & 0x0f) > 0x0f - (this._r.a & 0x0f)) {
         this._setH(1);
       } else {
         this._setH(0);
