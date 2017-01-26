@@ -2812,6 +2812,11 @@ describe('CPU Instruction Set', function() {
 
               assert.equal(r.call(cpu), 0b00000001, `${r.name} rotated left taking from carry`);
               assert.equal(cpu.f(), 0b0000, 'Positive result without carry');
+
+              rl.call(cpu);
+
+              assert.equal(r.call(cpu), 0b00000010, `${r.name} rotated left`);
+              assert.equal(cpu.f(), 0b0000, 'Positive result without carry');
           });
         });
       });
@@ -2876,18 +2881,23 @@ describe('CPU Instruction Set', function() {
             if (rr === cpu.rra) cycles = 1;
             if (rr === cpu.rr_0xhl) cycles = 4;
             cpu.setC(0);
-            ld.call(cpu, 0x01);
+            ld.call(cpu, 0b00000001);
             const m = cpu.m();
 
             rr.call(cpu);
 
-            assert.equal(r.call(cpu), 0x00, `${r.name} rotated right`);
+            assert.equal(r.call(cpu), 0b00000000, `${r.name} rotated right`);
             assert.equal(cpu.f(), 0b1001, 'Zero result with carry');
             assert.equal(cpu.m() - m, cycles, `Machine cycles`);
 
             rr.call(cpu);
 
-            assert.equal(r.call(cpu), 0x80, `${r.name} rotated right taking from carry`);
+            assert.equal(r.call(cpu), 0b10000000, `${r.name} rotated right`);
+            assert.equal(cpu.f(), 0b0000, 'Positive without carry');
+
+            rr.call(cpu);
+
+            assert.equal(r.call(cpu), 0b01000000, `${r.name} rotated right taking from carry`);
             assert.equal(cpu.f(), 0b0000, 'Positive result without carry');
           });
         });
@@ -2925,8 +2935,18 @@ describe('CPU Instruction Set', function() {
             assert.equal(r.call(cpu), 0b01100001, `${rrc.name} rotates right`);
             assert.equal(cpu.f(), 0b0000, 'bit 0 copied to carry');
 
-            ld.call(cpu, 0x00);
+            rrc.call(cpu);
 
+            assert.equal(r.call(cpu), 0b10110000, `${rrc.name} rotates right`);
+            assert.equal(cpu.f(), 0b0001, 'bit 0 copied to carry');
+
+            ld.call(cpu, 0b11111111);
+            rrc.call(cpu);
+
+            assert.equal(r.call(cpu), 0b11111111, `${rrc.name} rotates right`);
+            assert.equal(cpu.f(), 0b0001, 'bit 0 copied to carry');
+
+            ld.call(cpu, 0x00);
             rrc.call(cpu);
 
             assert.equal(r.call(cpu), 0x00, 'Identical');
@@ -2976,6 +2996,13 @@ describe('CPU Instruction Set', function() {
 
             assert.equal(r.call(cpu), 0b00000000, 'Shifted left');
             assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+
+            ld.call(cpu, 0b11111111);
+
+            sla.call(cpu);
+
+            assert.equal(r.call(cpu), 0b11111110, 'Shifted left');
+            assert.equal(cpu.f(), 0b0001, 'Positive with carry');
           });
         });
       });
@@ -3019,6 +3046,18 @@ describe('CPU Instruction Set', function() {
 
             assert.equal(r.call(cpu), 0b00000000, `${srl.name} shifts right`);
             assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+
+            ld.call(cpu, 0b10000110);
+
+            srl.call(cpu);
+
+            assert.equal(r.call(cpu), 0b01000011, `${srl.name} shifts right`);
+            assert.equal(cpu.f(), 0b0000, 'Zero result without carry');
+
+            srl.call(cpu);
+
+            assert.equal(r.call(cpu), 0b00100001, `${srl.name} shifts right`);
+            assert.equal(cpu.f(), 0b0001, 'Zero result without carry');
           });
         });
       });
@@ -3076,6 +3115,11 @@ describe('CPU Instruction Set', function() {
 
             assert.equal(r.call(cpu), 0b11100001, `${sra.name} shifts right`);
             assert.equal(cpu.f(), 0b0001, 'Carry');
+
+            sra.call(cpu);
+
+            assert.equal(r.call(cpu), 0b11110000, `${sra.name} shifts right`);
+            assert.equal(cpu.f(), 0b0001, 'Carry');
           });
         });
       });
@@ -3103,13 +3147,11 @@ describe('CPU Instruction Set', function() {
           assert.equal(cpu.m() - m, 2, 'Machine cycles');
 
           ld.call(cpu, 0x00);
-          m = cpu.m();
 
           swap.call(cpu);
 
           assert.equal(r.call(cpu), 0x00, `${swap.name} does not modify zero`);
           assert.equal(cpu.f(), 0b1000, `${swap.name} sets Z with zero result`);
-          assert.equal(cpu.m() - m, 2, 'Machine cycles');
         });
       });
       it('should swap nybbles from value at memory location hl', () => {
@@ -3124,13 +3166,11 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.m() - m, 4, 'Machine cycles');
 
         cpu.ld_0xhl_n(0x00);
-        m = cpu.m();
 
         cpu.swap_0xhl();
 
         assert.equal(cpu.$hl(), 0x00, 'Identical');
         assert.equal(cpu.f(), 0b1000, 'Sets Z with zero result');
-        assert.equal(cpu.m() - m, 4, 'Machine cycles');
       });
     });
   });
