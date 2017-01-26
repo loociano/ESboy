@@ -1564,10 +1564,11 @@ describe('CPU Instruction Set', function() {
           assert.equal(cpu.N(), 0, 'N reset');
           assert.equal(cpu.H(), 1, 'Carry from bit 11');
           assert.equal(cpu.C(), 0, 'No carry bit 15');
-          assert.equal(cpu.m(), m + 2, `${add.name} machine cycles`);
+          assert.equal(cpu.m() - m, 2, `${add.name} machine cycles`);
 
           // Test carry, bit 15
-          ld.call(cpu, 0x3001);
+          cpu.ld_hl_nn(0xc000);
+          ld.call(cpu, 0x4001);
 
           m = cpu.m();
           add.call(cpu);
@@ -1577,6 +1578,17 @@ describe('CPU Instruction Set', function() {
           assert.equal(cpu.H(), 0, 'No carry from bit 11');
           assert.equal(cpu.C(), 1, 'Carry bit 15');
           assert.equal(cpu.m(), m + 2, `${add.name} machine cycles`);
+
+          // Test value loop
+          cpu.ld_hl_nn(0x8a23);
+          ld.call(cpu, 0x8a23);
+
+          add.call(cpu);
+
+          assert.equal(cpu.hl(), 0x1446, `${add.name} to HL results 0xc001`);
+          assert.equal(cpu.N(), 0, 'N reset');
+          assert.equal(cpu.H(), 1, 'Carry bit 11');
+          assert.equal(cpu.C(), 1, 'Carry bit 15');
         });
       });
 

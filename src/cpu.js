@@ -3623,7 +3623,7 @@ export default class CPU {
     const hl = this.hl();
     let value = hl + nn;
 
-    if ((value & 0xf000) > (hl & 0xf000)){
+    if ( (nn & 0x0fff) > (0x0fff - (hl & 0x0fff) ) ){
       this._setH(1);
     } else {
       this._setH(0);
