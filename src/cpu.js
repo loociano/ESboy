@@ -2516,7 +2516,7 @@ export default class CPU {
       this._r[r]++;
       this._setZ(0);
     }
-    if (this._r[r] === 0x10){
+    if ((this._r[r] & 0x0f) === 0){
       this._setH(1);
     } else {
       this._setH(0);

@@ -977,40 +977,45 @@ describe('CPU Instruction Set', function() {
           {r: cpu.h, ld: cpu.ld_h_n, inc: cpu.inc_h},
           {r: cpu.l, ld: cpu.ld_l_n, inc: cpu.inc_l}].map(({r, ld, inc}) => {
 
+          cpu.resetFlags();
           ld.call(cpu, 0x00);
-          let value = r.call(cpu);
 
           let m = cpu.m();
           inc.call(cpu);
 
-          assert.equal(r.call(cpu), value + 1, 'a incremented.');
+          assert.equal(r.call(cpu), 0x01, 'incremented.');
           assert.equal(cpu.Z(), 0, 'Z set if result is zero');
           assert.equal(cpu.N(), 0, 'N is always reset');
           assert.equal(cpu.H(), 0, 'H reset as no half carry');
-          assert.equal(cpu.m(), m+1, 'INC r machine cycle');
+          assert.equal(cpu.m() - m, 1, 'INC r machine cycle');
 
           ld.call(cpu, 0x0f); // Test half carry
-          value = r.call(cpu);
 
-          m = cpu.m();
           inc.call(cpu);
 
-          assert.equal(r.call(cpu), value + 1, 'a incremented.');
+          assert.equal(r.call(cpu), 0x10, 'incremented.');
           assert.equal(cpu.Z(), 0, 'Z set if result is zero');
           assert.equal(cpu.N(), 0, 'N is always reset');
           assert.equal(cpu.H(), 1, 'H set as half carry');
-          assert.equal(cpu.m(), m+1, 'INC r machine cycle');
+
+          ld.call(cpu, 0x1f);
+
+          inc.call(cpu);
+
+          assert.equal(r.call(cpu), 0x20, 'incremented.');
+          assert.equal(cpu.Z(), 0, 'Z set if result is zero');
+          assert.equal(cpu.N(), 0, 'N is always reset');
+          assert.equal(cpu.H(), 1, 'H set as half carry');
 
           ld.call(cpu, 0xff); // Test value loop
 
-          m = cpu.m();
           inc.call(cpu);
 
           assert.equal(r.call(cpu), 0x00, 'a resets to 0x00.');
           assert.equal(cpu.Z(), 1, 'Z set if result is zero');
           assert.equal(cpu.N(), 0, 'N is always reset');
-          assert.equal(cpu.H(), 0, 'H reset as no half carry');
-          assert.equal(cpu.m(), m+1, 'INC r machine cycle');
+          assert.equal(cpu.H(), 1);
+          assert.equal(cpu.C(), 0);
         });
       });
 
@@ -1484,6 +1489,24 @@ describe('CPU Instruction Set', function() {
 
           assert.equal(cpu.a(), 0x01, 'a + b + carry');
           assert.equal(cpu.f(), 0b0000, 'Positive');
+
+          cpu.ld_a_n(0x40);
+          ld.call(cpu, 0x10);
+          cpu.setC(0);
+
+          adc.call(cpu);
+
+          assert.equal(cpu.a(), 0x50, 'a + b + carry');
+          assert.equal(cpu.f(), 0b0000, 'Half carry');
+
+          cpu.ld_a_n(0xfe);
+          ld.call(cpu, 0xfe);
+          cpu.setC(1);
+
+          adc.call(cpu);
+
+          assert.equal(cpu.a(), 0xfd, 'a + b + carry');
+          assert.equal(cpu.f(), 0b0011, 'Carries');
         });
       });
 
@@ -1513,6 +1536,14 @@ describe('CPU Instruction Set', function() {
 
         assert.equal(cpu.a(), 0x00, 'a + b + carry');
         assert.equal(cpu.f(), 0b1000, 'Zero');
+
+        cpu.ld_a_n(0xff);
+        cpu.setC(1);
+
+        cpu.adc_a();
+
+        assert.equal(cpu.a(), 0xff);
+        assert.equal(cpu.f(), 0b0011);
       });
 
       it('should add n plus carry to a', () => {
