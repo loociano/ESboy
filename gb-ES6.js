@@ -6631,9 +6631,11 @@ var CPU = function () {
 
       this._setN(0);
       var add = value + carry;
+      var mask = 0x0f;
+      if (carry === 1) mask = 0xfff;
 
       // Half carry
-      if ((add & 0x0f) > 0x0f - (this._r.a & 0x0f)) {
+      if ((add & mask) > 0x0f - (this._r.a & 0x0f)) {
         this._setH(1);
       } else {
         this._setH(0);
