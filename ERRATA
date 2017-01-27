@@ -15,3 +15,7 @@ Game Boy CPU Manual GBCPUMan.pdf
 - Page 99:
   It reads: RLCA. Z - Set if result is zero
   It should read: RLCA. Z - Reset
+
+- Page 99:
+  It reads: RLA. Z - Set if result is zero
+  It should read: RLA. Z - Reset

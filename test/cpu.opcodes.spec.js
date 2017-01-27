@@ -2895,7 +2895,11 @@ describe('CPU Instruction Set', function() {
               rl.call(cpu);
 
               assert.equal(r.call(cpu), 0x00, `${r.name} rotated left`);
-              assert.equal(cpu.f(), 0b1001, 'Zero result with carry');
+              if (rl === cpu.rla)
+                assert.equal(cpu.f(), 0b0001, `Zero result with carry ${rl.name}`);
+              else
+                assert.equal(cpu.f(), 0b1001, `Zero result with carry ${rl.name}`);
+
               assert.equal(cpu.m() - m, cycles, `RL ${r.name} machine cycles`);
 
               rl.call(cpu);
@@ -2948,7 +2952,10 @@ describe('CPU Instruction Set', function() {
             rlc.call(cpu);
 
             assert.equal(r.call(cpu), 0x00, 'Identical');
-            assert.equal(cpu.f(), 0b0000, 'Zero flag is always reset');
+            if (rlc === cpu.rlca)
+              assert.equal(cpu.f(), 0b0000, 'RLCA always resets Zero flag');
+            else
+              assert.equal(cpu.f(), 0b1000, `zero flag ${rlc.name}`);
           });
         });
       });

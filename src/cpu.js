@@ -3047,7 +3047,7 @@ export default class CPU {
    * Rotates left register a
    */
   rl_a(){
-    this.rla();
+    this._rl_r(this._set_a, this.a);
     this._m++;
   }
 
@@ -3056,6 +3056,7 @@ export default class CPU {
    */
   rla(){
     this._rl_r(this._set_a, this.a);
+    this._setZ(0);
   }
 
   /**
@@ -3120,8 +3121,6 @@ export default class CPU {
     value = rotated & 0xff;
     setter.call(this, value);
 
-    this._setC((rotated & 0x100) >> 8);
-
     if (value === 0){
       this._setZ(1);
     } else {
@@ -3130,6 +3129,7 @@ export default class CPU {
 
     this._setN(0);
     this._setH(0);
+    this._setC((rotated & 0x100) >> 8);
     this._m++;
   }
 
@@ -3226,6 +3226,9 @@ export default class CPU {
    */
   rl_0xhl(carried=this.C()) {
     this._rl_r(this._ld_0xhl_n, this._0xhl, carried);
+    if (this.$hl() === 0){
+      this._setZ(1);
+    }
   }
 
   /**
@@ -3945,6 +3948,9 @@ export default class CPU {
    */
   _sla_r(setter, getter){
     this._rl_r(setter, getter, 0);
+    if (getter.call(this) === 0){
+      this._setZ(1);
+    }
     this._m++;
   }
 
@@ -4100,13 +4106,14 @@ export default class CPU {
    */
   rlca(){
     this._rlc_r(this._set_a, this.a);
+    this._setZ(0);
   }
 
   /**
    * Rotates left a with copy to carry
    */
   rlc_a(){
-    this.rlca();
+    this._rlc_r(this._set_a, this.a);
     this._m++;
   }
 
@@ -4178,7 +4185,11 @@ export default class CPU {
     value = (rotated & 0xff) + carry;
     setter.call(this, value);
 
-    this._setZ(0);
+    if (value === 0){
+      this._setZ(1);
+    } else {
+      this._setZ(0);
+    }
     this._setN(0);
     this._setH(0);
     this._setC(carry);
