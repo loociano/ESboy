@@ -3138,13 +3138,14 @@ export default class CPU {
    */
   rra(){
     this._rr_r(this._set_a, this.a);
+    this._setZ(0);
   }
 
   /**
    * Rotates right register a
    */
   rr_a(){
-    this.rra();
+    this._rr_r(this._set_a, this.a);
     this._m++;
   }
 
@@ -4227,13 +4228,14 @@ export default class CPU {
    */
   rrca(){
     this._rrc_r(this._set_a, this.a);
+    this._setZ(0);
   }
 
   /**
    * Rotates right register a with copy to carry
    */
   rrc_a(){
-    this.rrca();
+    this._rrc_r(this._set_a, this.a);
     this._m++;
   }
 

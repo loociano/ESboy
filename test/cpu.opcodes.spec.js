@@ -2984,7 +2984,7 @@ describe('CPU Instruction Set', function() {
             rr.call(cpu);
 
             assert.equal(r.call(cpu), 0b00000000, `${r.name} rotated right`);
-            assert.equal(cpu.f(), 0b1001, 'Zero result with carry');
+            assert.equal(cpu.f(), (rr === cpu.rra) ? 0b0001 : 0b1001, 'Zero result with carry');
             assert.equal(cpu.m() - m, cycles, `Machine cycles`);
 
             rr.call(cpu);
@@ -3047,7 +3047,11 @@ describe('CPU Instruction Set', function() {
             rrc.call(cpu);
 
             assert.equal(r.call(cpu), 0x00, 'Identical');
-            assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+
+            if (rrc === cpu.rrca)
+              assert.equal(cpu.f(), 0b0000, 'Zero result without carry');
+            else
+              assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
           });
         });
       });
