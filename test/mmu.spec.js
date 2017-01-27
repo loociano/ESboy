@@ -13,7 +13,7 @@ describe('MMU', () => {
   let mmu, rom32KB;
 
   beforeEach( () => {
-    const loader = new Loader('./roms/blargg_cpu_instrs.gb');
+    const loader = new Loader('./roms/blargg/cpu_instrs/cpu_instrs.gb');
     mmu = new MMU(loader.asUint8Array(), new StorageMock());
     mmu.If = function(){
       return this.readByteAt(mmu.ADDR_IF);

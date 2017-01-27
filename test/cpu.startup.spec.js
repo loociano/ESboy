@@ -11,7 +11,7 @@ let cpu, lcd;
 describe('Start BIOS', () => {
 
   before( () => {
-    const loader = new Loader('./roms/blargg_cpu_instrs.gb');
+    const loader = new Loader('./roms/blargg/cpu_instrs/cpu_instrs.gb');
     lcd = new lcdMock();
     cpu = new CPU(new MMU(loader.asUint8Array(), new StorageMock()), lcd);
     /**

@@ -14,7 +14,7 @@ describe('Interruptions', () => {
   config.TEST = true;
 
   beforeEach(function() {
-    const loader = new Loader('./roms/blargg_cpu_instrs.gb');
+    const loader = new Loader('./roms/blargg/cpu_instrs/cpu_instrs.gb');
     this.cpu = new CPU(new MMU(loader.asUint8Array(), new StorageMock()), new lcdMock());
     /**
      * @param {number} pc

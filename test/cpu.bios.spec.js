@@ -15,7 +15,7 @@ describe('BIOS execution', function() {
 
   const stopAt = 0x0100;
 
-  const loader = new Loader('./roms/blargg_cpu_instrs.gb');
+  const loader = new Loader('./roms/blargg/cpu_instrs/cpu_instrs.gb');
   const mmu = new MMU(loader.asUint8Array(), new StorageMock());
   const lcd = new LCD(mmu, new ContextMock(), new ContextMock(), new ContextMock());
   const cpu = new CPU(mmu, lcd);
