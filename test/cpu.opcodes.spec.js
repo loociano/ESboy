@@ -1101,7 +1101,7 @@ describe('CPU Instruction Set', function() {
           sub.call(cpu); // Result negative from positive number in a
 
           assert.equal(cpu.a(), 0xfd, `a loops back to 0xfd, ${sub.name}`);
-          assert.equal(cpu.f(), 0b0101, 'Positive with carry');
+          assert.equal(cpu.f(), 0b0111, 'Positive with carry');
 
           cpu.ld_a_n(0x01);
           ld.call(cpu, 0xff);
@@ -1110,6 +1110,22 @@ describe('CPU Instruction Set', function() {
 
           assert.equal(cpu.a(), 0x02, 'a loops back to 0x02');
           assert.equal(cpu.f(), 0b0111, 'Positive with carries');
+
+          cpu.ld_a_n(0);
+          ld.call(cpu, 0);
+
+          sub.call(cpu);
+
+          assert.equal(cpu.a(), 0);
+          assert.equal(cpu.f(), 0b1100, 'Zero');
+
+          cpu.ld_a_n(0);
+          ld.call(cpu, 1);
+
+          sub.call(cpu);
+
+          assert.equal(cpu.a(), 0xff);
+          assert.equal(cpu.f(), 0b0111, 'Loop');
         });
       });
 
@@ -1147,7 +1163,7 @@ describe('CPU Instruction Set', function() {
         cpu.sub_0xhl(); // Result negative from positive number in a
 
         assert.equal(cpu.a(), 0xfd, 'a loops back to 0xfd, from (hl)');
-        assert.equal(cpu.f(), 0b0101, 'Loop therefore carry');
+        assert.equal(cpu.f(), 0b0111, 'Loop therefore carry');
 
         cpu.ld_a_n(0x01);
         cpu.ld_0xhl_n(0xff);
@@ -1167,7 +1183,7 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.a(), 0x00, 'a subtracted itself');
         assert.equal(cpu.Z(), 1, 'Result is zero');
         assert.equal(cpu.N(), 1, 'N always set');
-        assert.equal(cpu.H(), 1, 'No borrow from bit 4');
+        assert.equal(cpu.H(), 0, 'No borrow from bit 4');
         assert.equal(cpu.C(), 0, 'No borrow from carry');
         assert.equal(cpu.m(), m+1, 'SUB r machine cycles');
       });
@@ -1223,7 +1239,7 @@ describe('CPU Instruction Set', function() {
           sbc.call(cpu);
 
           assert.equal(cpu.a(), 0xeb, 'a - b - carry');
-          assert.equal(cpu.f(), 0b0111, 'Zero with half- and carry');
+          assert.equal(cpu.f(), 0b0111, `${sbc.name} Zero with half- and carry`); //BGB
         });
       });
 
@@ -1235,7 +1251,7 @@ describe('CPU Instruction Set', function() {
         cpu.sbc_a();
 
         assert.equal(cpu.a(), 0xff, 'a - a - carry');
-        assert.equal(cpu.f(), 0b0101, 'Carry');
+        assert.equal(cpu.f(), 0b0111, 'Carry'); // BGB
         assert.equal(cpu.m() - m, 1, 'Machine cycles');
 
         cpu.ld_a_n(0xaa);
@@ -1243,8 +1259,8 @@ describe('CPU Instruction Set', function() {
 
         cpu.sbc_a();
 
-        assert.equal(cpu.a(), 0x00, 'a - a - carry');
-        assert.equal(cpu.f(), 0b1110, 'Zero with half-carry');
+        assert.equal(cpu.a(), 0x00, '0xaa - 0xaa');
+        assert.equal(cpu.f(), 0b1100, 'Zero with half-carry');
       });
 
       it('should subtract n minus carry to a', () => {
@@ -1360,7 +1376,6 @@ describe('CPU Instruction Set', function() {
           cpu.ld_a_n(0xf0);
           ld.call(cpu, 0x12);
 
-          m = cpu.m();
           add.call(cpu); // Result overflows from positive number in a
 
           assert.equal(cpu.a(), 0x02, `a 0xf0 overflows to 0x02, ${add.name}`);

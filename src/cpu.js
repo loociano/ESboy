@@ -3397,30 +3397,29 @@ export default class CPU {
 
     let subtract = value + carry;
     const diff = this._r.a - subtract;
-    let nybble_a = this._r.a & 0xf0;
+    let nybbleA = this._r.a & 0x0f;
+    const subNybble = subtract & 0x0f;
 
     if (diff < 0) {
       this._r.a += 0x100;
-      nybble_a = 0xf0;
       this._setC(1);
     } else {
       this._setC(0);
     }
 
     this._r.a -= subtract;
+
+    if (subNybble > nybbleA || (subNybble === 0 && carry === 1)){
+      this._setH(1);
+    } else {
+      this._setH(0);
+    }
       
     if (this._r.a === 0){
       this._setZ(1);
     } else {
       this._setZ(0);
     }
-
-    if ((this._r.a & 0xf0) < nybble_a){
-      this._setH(1);
-    } else {
-      this._setH(0);
-    }
-
     this._m++;
   }
 
