@@ -270,6 +270,7 @@ export default class MMU {
   }
 
   getSavedRAM(){
+    if (!this._storage) return null;
     return this._storage.read(this.getGameTitle());
   }
 
