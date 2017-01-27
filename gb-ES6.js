@@ -6046,6 +6046,7 @@ var CPU = function () {
     key: 'rra',
     value: function rra() {
       this._rr_r(this._set_a, this.a);
+      this._setZ(0);
     }
 
     /**
@@ -6055,7 +6056,7 @@ var CPU = function () {
   }, {
     key: 'rr_a',
     value: function rr_a() {
-      this.rra();
+      this._rr_r(this._set_a, this.a);
       this._m++;
     }
 
@@ -6396,11 +6397,11 @@ var CPU = function () {
 
       var subtract = value + carry;
       var diff = this._r.a - subtract;
-      var nybble_a = this._r.a & 0xf0;
+      var nybbleA = this._r.a & 0x0f;
+      var subNybble = subtract & 0x0f;
 
       if (diff < 0) {
         this._r.a += 0x100;
-        nybble_a = 0xf0;
         this._setC(1);
       } else {
         this._setC(0);
@@ -6408,18 +6409,17 @@ var CPU = function () {
 
       this._r.a -= subtract;
 
-      if (this._r.a === 0) {
-        this._setZ(1);
-      } else {
-        this._setZ(0);
-      }
-
-      if ((this._r.a & 0xf0) < nybble_a) {
+      if (subNybble > nybbleA || subNybble === 0 && carry === 1) {
         this._setH(1);
       } else {
         this._setH(0);
       }
 
+      if (this._r.a === 0) {
+        this._setZ(1);
+      } else {
+        this._setZ(0);
+      }
       this._m++;
     }
 
@@ -6634,11 +6634,11 @@ var CPU = function () {
 
       this._setN(0);
       var add = value + carry;
-      var mask = 0x0f;
-      if (carry === 1) mask = 0xfff;
+      var valueNybble = value & 0x0f;
+      var needed = 0x0f - (this._r.a & 0x0f);
 
       // Half carry
-      if ((add & mask) > 0x0f - (this._r.a & 0x0f)) {
+      if (valueNybble > needed || carry === 1 && valueNybble >= needed) {
         this._setH(1);
       } else {
         this._setH(0);
@@ -7505,6 +7505,7 @@ var CPU = function () {
     key: 'rrca',
     value: function rrca() {
       this._rrc_r(this._set_a, this.a);
+      this._setZ(0);
     }
 
     /**
@@ -7514,7 +7515,7 @@ var CPU = function () {
   }, {
     key: 'rrc_a',
     value: function rrc_a() {
-      this.rrca();
+      this._rrc_r(this._set_a, this.a);
       this._m++;
     }
 
