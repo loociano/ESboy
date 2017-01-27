@@ -1489,6 +1489,7 @@ describe('CPU Instruction Set', function() {
           assert.equal(cpu.f(), 0b0010, 'Half carry');
           assert.equal(cpu.m() - m, 1, 'Machine cycles');
 
+          cpu.ld_a_n(0x10);
           ld.call(cpu, 0xef);
           cpu.setC(1);
 
@@ -1497,6 +1498,7 @@ describe('CPU Instruction Set', function() {
           assert.equal(cpu.a(), 0x00, 'a + b + carry');
           assert.equal(cpu.f(), 0b1011, 'Zero with half- and carry');
 
+          cpu.ld_a_n(0x00);
           ld.call(cpu, 0x00);
           cpu.setC(1);
 
@@ -1522,6 +1524,24 @@ describe('CPU Instruction Set', function() {
 
           assert.equal(cpu.a(), 0xfd, 'a + b + carry');
           assert.equal(cpu.f(), 0b0011, 'Carries');
+
+          cpu.ld_a_n(0xe1);
+          ld.call(cpu, 0x1e);
+          cpu.setC(1);
+
+          adc.call(cpu);
+
+          assert.equal(cpu.a(), 0x00, 'a + b + carry');
+          assert.equal(cpu.f(), 0b1011, 'Zero with carries');
+
+          cpu.ld_a_n(0xe1);
+          ld.call(cpu, 0x3b);
+          cpu.setC(1);
+
+          adc.call(cpu);
+
+          assert.equal(cpu.a(), 0x1d, 'a + b + carry');
+          assert.equal(cpu.f(), 0b0001, 'Carry');
         });
       });
 
@@ -1611,7 +1631,7 @@ describe('CPU Instruction Set', function() {
         cpu.adc_0xhl(); // Result overflows from positive number in a
 
         assert.equal(cpu.a(), 0x02, 'a 0xf0 + 0x11 + 1 overflows to 0x02');
-        assert.equal(cpu.f(), 0b0011, 'Positive with carries');
+        assert.equal(cpu.f(), 0b0001, 'Positive with carry');
 
         cpu.setC(1);
         cpu.ld_a_n(0x02);

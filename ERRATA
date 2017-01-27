@@ -3,27 +3,31 @@ ERRATA
 Game Boy Programming Manual
 
 - Page 59:
-  It says: With y=10, object displayed from top edge of LCD screen.
-  It should say: With y=0x10, object displayed from top edge of LCD screen.
+  It says:          With y=10, object displayed from top edge of LCD screen.
+  It should say:    With y=0x10, object displayed from top edge of LCD screen.
 
 - Page 105, instruction JR e.
-  It says: e = -127 to +129
-  It should say: e = -126 to +129
+  It says:          e = -127 to +129
+  It should say:    e = -126 to +129
+
+- Page 92:
+  It reads:         ADC A, 0x3B ; A <- 0x1D, Z <- 0, H <- 0, CY <- -1
+  It should read:   ADC A, 0x3B ; A <- 0x1D, Z <- 0, H <- 0, CY <- 1
 
 Game Boy CPU Manual GBCPUMan.pdf
 
 - Page 99:
-  It reads: RLCA. Z - Set if result is zero
-  It should read: RLCA. Z - Reset
+  It reads:         RLCA. Z - Set if result is zero
+  It should read:   RLCA. Z - Reset
 
 - Page 99:
-  It reads: RLA. Z - Set if result is zero
-  It should read: RLA. Z - Reset
+  It reads:         RLA. Z - Set if result is zero
+  It should read:   RLA. Z - Reset
 
 - Page 100:
-  It reads: RRCA. Z - Set if result is zero
-  It should read: RRCA. Z - Reset
+  It reads:         RRCA. Z - Set if result is zero
+  It should read:   RRCA. Z - Reset
 
 - Page 100:
-  It reads: RRA. Z - Set if result is zero
-  It should read: RRA. Z - Reset
+  It reads:         RRA. Z - Set if result is zero
+  It should read:   RRA. Z - Reset

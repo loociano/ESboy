@@ -3572,11 +3572,11 @@ export default class CPU {
 
     this._setN(0);
     const add = value + carry;
-    let mask = 0x0f;
-    if (carry === 1) mask = 0xfff;
+    const valueNybble = value & 0x0f;
+    const needed = 0x0f - (this._r.a & 0x0f);
 
     // Half carry
-    if ( (add & mask) > (0x0f - (this._r.a & 0x0f))){
+    if ( valueNybble > needed || (carry === 1 && valueNybble >= needed )){
       this._setH(1);
     } else {
       this._setH(0);
