@@ -5191,7 +5191,7 @@ var CPU = function () {
         this._r[r]++;
         this._setZ(0);
       }
-      if (this._r[r] === 0x10) {
+      if ((this._r[r] & 0x0f) === 0) {
         this._setH(1);
       } else {
         this._setH(0);
@@ -5926,7 +5926,7 @@ var CPU = function () {
   }, {
     key: 'rl_a',
     value: function rl_a() {
-      this.rla();
+      this._rl_r(this._set_a, this.a);
       this._m++;
     }
 
@@ -5938,6 +5938,7 @@ var CPU = function () {
     key: 'rla',
     value: function rla() {
       this._rl_r(this._set_a, this.a);
+      this._setZ(0);
     }
 
     /**
@@ -6025,8 +6026,6 @@ var CPU = function () {
       value = rotated & 0xff;
       setter.call(this, value);
 
-      this._setC((rotated & 0x100) >> 8);
-
       if (value === 0) {
         this._setZ(1);
       } else {
@@ -6035,6 +6034,7 @@ var CPU = function () {
 
       this._setN(0);
       this._setH(0);
+      this._setC((rotated & 0x100) >> 8);
       this._m++;
     }
 
@@ -6165,6 +6165,9 @@ var CPU = function () {
       var carried = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.C();
 
       this._rl_r(this._ld_0xhl_n, this._0xhl, carried);
+      if (this.$hl() === 0) {
+        this._setZ(1);
+      }
     }
 
     /**
@@ -7130,6 +7133,9 @@ var CPU = function () {
     key: '_sla_r',
     value: function _sla_r(setter, getter) {
       this._rl_r(setter, getter, 0);
+      if (getter.call(this) === 0) {
+        this._setZ(1);
+      }
       this._m++;
     }
 
@@ -7345,6 +7351,7 @@ var CPU = function () {
     key: 'rlca',
     value: function rlca() {
       this._rlc_r(this._set_a, this.a);
+      this._setZ(0);
     }
 
     /**
@@ -7354,7 +7361,7 @@ var CPU = function () {
   }, {
     key: 'rlc_a',
     value: function rlc_a() {
-      this.rlca();
+      this._rlc_r(this._set_a, this.a);
       this._m++;
     }
 
@@ -7450,16 +7457,14 @@ var CPU = function () {
       value = (rotated & 0xff) + carry;
       setter.call(this, value);
 
-      this._setC(carry);
-
       if (value === 0) {
         this._setZ(1);
       } else {
         this._setZ(0);
       }
-
       this._setN(0);
       this._setH(0);
+      this._setC(carry);
       this._m++;
     }
 
