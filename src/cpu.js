@@ -4178,16 +4178,10 @@ export default class CPU {
     value = (rotated & 0xff) + carry;
     setter.call(this, value);
 
-    this._setC(carry);
-
-    if (value === 0){
-      this._setZ(1);
-    } else {
-      this._setZ(0);
-    }
-
+    this._setZ(0);
     this._setN(0);
     this._setH(0);
+    this._setC(carry);
     this._m++;
   }
 

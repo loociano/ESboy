@@ -2948,7 +2948,7 @@ describe('CPU Instruction Set', function() {
             rlc.call(cpu);
 
             assert.equal(r.call(cpu), 0x00, 'Identical');
-            assert.equal(cpu.f(), 0b1000, 'Zero result without carry');
+            assert.equal(cpu.f(), 0b0000, 'Zero flag is always reset');
           });
         });
       });

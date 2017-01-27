@@ -9,3 +9,9 @@ Game Boy Programming Manual
 - Page 105, instruction JR e.
   It says: e = -127 to +129
   It should say: e = -126 to +129
+
+Game Boy CPU Manual GBCPUMan.pdf
+
+- Page 99:
+  It reads: RLCA. Z - Set if result is zero
+  It should read: RLCA. Z - Reset
