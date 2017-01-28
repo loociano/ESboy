@@ -2003,6 +2003,79 @@ module.exports = Array.isArray || function (arr) {
 };
 
 },{}],6:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var BrowserStorage = function () {
+
+  /**
+   * @param {Object} localStorage implementing getItem, setItem
+   */
+  function BrowserStorage(localStorage) {
+    _classCallCheck(this, BrowserStorage);
+
+    if (localStorage == null) throw new Error('Missing localStorage');
+
+    if (typeof localStorage.getItem !== 'function' || typeof localStorage.setItem !== 'function') throw new Error('localStorage must implement getItem(key), setItem(key, value)');
+
+    this._localStorage = localStorage;
+  }
+
+  /**
+   * @param {number} expectedSize
+   */
+
+
+  _createClass(BrowserStorage, [{
+    key: 'setExpectedGameSize',
+    value: function setExpectedGameSize(expectedSize) {
+      this._expectedSize = expectedSize;
+    }
+
+    /**
+     * @param gameTitle
+     * @returns {Uint8Array} saved game
+     */
+
+  }, {
+    key: 'read',
+    value: function read(gameTitle) {
+      var stringyfiedMemory = this._localStorage.getItem(gameTitle);
+
+      if (stringyfiedMemory == null || stringyfiedMemory.length == null) return null;
+
+      var array = stringyfiedMemory.split(',');
+
+      if (array.length !== this._expectedSize) return null;
+
+      return new Uint8Array(array);
+    }
+
+    /**
+     * @param {string} gameTitle
+     * @param {Uint8Array} memory
+     */
+
+  }, {
+    key: 'write',
+    value: function write(gameTitle, memory) {
+      this._localStorage.setItem(gameTitle, memory);
+    }
+  }]);
+
+  return BrowserStorage;
+}();
+
+exports.default = BrowserStorage;
+
+},{}],7:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2016,7 +2089,7 @@ var config = {
 
 exports.default = config;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -7879,7 +7952,7 @@ var CPU = function () {
 
 exports.default = CPU;
 
-},{"./logger":11,"./utils":15}],8:[function(require,module,exports){
+},{"./logger":12,"./utils":15}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -7933,7 +8006,7 @@ var GameRequester = function () {
 
 exports.default = GameRequester;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -8079,7 +8152,7 @@ var InputHandler = function () {
 
 exports.default = InputHandler;
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -8712,7 +8785,7 @@ var LCD = function () {
 
 exports.default = LCD;
 
-},{"./logger":11,"./utils":15}],11:[function(require,module,exports){
+},{"./logger":12,"./utils":15}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -8805,7 +8878,7 @@ var Logger = function () {
 
 exports.default = Logger;
 
-},{"./config":6,"./utils":15}],12:[function(require,module,exports){
+},{"./config":7,"./utils":15}],13:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 
@@ -9111,6 +9184,7 @@ var MMU = function () {
   }, {
     key: 'getSavedRAM',
     value: function getSavedRAM() {
+      if (!this._storage) return null;
       return this._storage.read(this.getGameTitle());
     }
 
@@ -9123,7 +9197,7 @@ var MMU = function () {
   }, {
     key: 'flushExtRamToStorage',
     value: function flushExtRamToStorage() {
-      this._storage.write(this.getGameTitle(), this._extRAM);
+      if (this._hasMBC1RAM || this._hasMBC3RAM) this._storage.write(this.getGameTitle(), this._extRAM);
     }
 
     /**
@@ -9149,6 +9223,10 @@ var MMU = function () {
     key: '_initExternalRAM',
     value: function _initExternalRAM() {
       if (this._hasMBC1RAM || this._hasMBC3RAM) {
+        if (this._storage != null) {
+          this._storage.setExpectedGameSize(this.MBC1_RAM_SIZE);
+        }
+
         var savedRAM = this.getSavedRAM();
         if (savedRAM != null) {
           this._extRAM = savedRAM;
@@ -10565,7 +10643,7 @@ var MMU = function () {
 exports.default = MMU;
 
 }).call(this,require("buffer").Buffer)
-},{"./logger":11,"./utils":15,"buffer":3,"fs":2}],13:[function(require,module,exports){
+},{"./logger":12,"./utils":15,"buffer":3,"fs":2}],14:[function(require,module,exports){
 'use strict';
 
 var _cpu = require('./cpu');
@@ -10588,9 +10666,9 @@ var _gameRequester = require('./gameRequester');
 
 var _gameRequester2 = _interopRequireDefault(_gameRequester);
 
-var _storage = require('./storage');
+var _browserStorage = require('./browserStorage');
 
-var _storage2 = _interopRequireDefault(_storage);
+var _browserStorage2 = _interopRequireDefault(_browserStorage);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -10644,7 +10722,7 @@ function handleFileSelect(evt) {
  * @param {ArrayBuffer} arrayBuffer
  */
 function init(arrayBuffer) {
-  mmu = new _mmu2.default(new Uint8Array(arrayBuffer), new _storage2.default());
+  mmu = new _mmu2.default(new Uint8Array(arrayBuffer), new _browserStorage2.default(window.localStorage));
   var bootstrap = true;
   if (!mmu.isCartridgeSupported()) {
     bootstrap = window.confirm('This game is not supported. Do you want to continue? Your browser may crash.');
@@ -10732,42 +10810,7 @@ attachListeners();
 
 gameRequester.request('load-game', init);
 
-},{"./cpu":7,"./gameRequester":8,"./inputHandler":9,"./lcd":10,"./mmu":12,"./storage":14}],14:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var BrowserStorage = function () {
-  function BrowserStorage() {
-    _classCallCheck(this, BrowserStorage);
-  }
-
-  _createClass(BrowserStorage, [{
-    key: 'read',
-    value: function read(gameTitle) {
-      var stringyfiedMemory = window.localStorage.getItem(gameTitle);
-      if (stringyfiedMemory == null) return null;
-      return new Uint8Array(stringyfiedMemory.split(','));
-    }
-  }, {
-    key: 'write',
-    value: function write(gameTitle, memory) {
-      window.localStorage.setItem(gameTitle, memory);
-    }
-  }]);
-
-  return BrowserStorage;
-}();
-
-exports.default = BrowserStorage;
-
-},{}],15:[function(require,module,exports){
+},{"./browserStorage":6,"./cpu":8,"./gameRequester":9,"./inputHandler":10,"./lcd":11,"./mmu":13}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -10952,4 +10995,4 @@ var Utils = function () {
 
 exports.default = Utils;
 
-},{}]},{},[13]);
+},{}]},{},[14]);
