@@ -2265,32 +2265,37 @@ describe('CPU Instruction Set', function() {
     describe('LDHL SP,e', () => {
 
       it('should load SP + signed int into HL', () => {
-        cpu.ld_sp_nn(0xfff8);
         const m = cpu.m();
 
-        cpu.ldhl_sp_n(0x02);
+        cpu._r.sp = 0xfff8;
+        cpu.mockInstruction(0xf8/* LD HL,SP+e */, 0x02);
+        cpu.execute();
 
-        assert.equal(cpu.hl(), 0xfff8 + 2);
+        assert.equal(cpu.hl(), 0xfffa);
         assert.equal(cpu.f(), 0b0000);
         assert.equal(cpu.m() - m, 3, 'Machine cycles');
 
-        cpu.ldhl_sp_n(0x80); // -128
+        cpu.mockInstruction(0xf8/* LD HL,SP+e */, 0x80 /* -128 */);
+        cpu.execute();
 
-        assert.equal(cpu.hl(), 0xfff8 - 128);
+        assert.equal(cpu.hl(), 0xff78 /* 0xfff8 - 128 */);
         assert.equal(cpu.f(), 0b0000);
 
-        cpu.ldhl_sp_n(0x00);
+        cpu.mockInstruction(0xf8/* LD HL,SP+e */, 0);
+        cpu.execute();
 
         assert.equal(cpu.hl(), 0xfff8);
         assert.equal(cpu.f(), 0b0000);
 
-        cpu.ldhl_sp_n(0x08);
+        cpu.mockInstruction(0xf8/* LD HL,SP+e */, 0x08);
+        cpu.execute();
 
         assert.equal(cpu.hl(), 0x0000);
         assert.equal(cpu.f(), 0b0011, 'Half- and carry');
 
         cpu.ld_sp_nn(0xefff);
-        cpu.ldhl_sp_n(0x01);
+        cpu.mockInstruction(0xf8/* LD HL,SP+e */, 0x01);
+        cpu.execute();
 
         assert.equal(cpu.hl(), 0xf000);
         assert.equal(cpu.f(), 0b0010, 'Half carry');
