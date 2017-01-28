@@ -2279,7 +2279,7 @@ describe('CPU Instruction Set', function() {
         cpu.execute();
 
         assert.equal(cpu.hl(), 0xff78 /* 0xfff8 - 128 */);
-        assert.equal(cpu.f(), 0b0000);
+        assert.equal(cpu.f(), 0b0001);
 
         cpu.mockInstruction(0xf8/* LD HL,SP+e */, 0);
         cpu.execute();
@@ -2293,11 +2293,19 @@ describe('CPU Instruction Set', function() {
         assert.equal(cpu.hl(), 0x0000);
         assert.equal(cpu.f(), 0b0011, 'Half- and carry');
 
-        cpu.ld_sp_nn(0xefff);
+        cpu._r.sp = 0xefff;
         cpu.mockInstruction(0xf8/* LD HL,SP+e */, 0x01);
         cpu.execute();
 
         assert.equal(cpu.hl(), 0xf000);
+        assert.equal(cpu.f(), 0b0011);
+
+        // Test more H
+        cpu._r.sp = 0xfe0f;
+        cpu.mockInstruction(0xf8/* LD HL,SP+e */, 0x01);
+        cpu.execute();
+
+        assert.equal(cpu.hl(), 0xfe10);
         assert.equal(cpu.f(), 0b0010, 'Half carry');
       });
     });

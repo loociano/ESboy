@@ -535,7 +535,7 @@ export default class CPU {
       0xf5: {fn: this.push_af, paramBytes: 0},
       0xf6: {fn: this.or_n, paramBytes: 1},
       0xf7: {fn: this.rst_30, paramBytes: 0},
-      0xf8: {fn: this.ldhl_sp_n, paramBytes: 1},
+      0xf8: {fn: this._ldhl_sp_n, paramBytes: 1},
       0xf9: {fn: this.ld_sp_hl, paramBytes: 0},
       0xfa: {fn: this.ld_a_nn, paramBytes: 2},
       0xfb: {fn: this.ei, paramBytes: 0},
@@ -4461,24 +4461,44 @@ export default class CPU {
 
   /**
    * Loads the stack pointer plus a signed int into hl
+   * Sets H if there was overflow from bit 3
+   * Sets C if there was overflow from bit 7
    * @param n [-128,127]
    */
-  ldhl_sp_n(n){
-    let value = this.sp() + Utils.uint8ToInt8(n);
+  _ldhl_sp_n(n){
+    this._setN(0); this._setZ(0);
+    let newValue = this._r.sp;
 
-    this._setZ(0);
-    this._setN(0);
-    if (Math.abs((this.sp() & 0xf000) - (value & 0xf000)) > 0x0fff){
+    if ( (n & 0x0f) > (0xf - (newValue & 0x000f)) ){
       this._setH(1);
     } else {
       this._setH(0);
     }
-    if (value > 0xffff){
+
+    if ( (n & 0xff) > (0xff - (newValue & 0x00ff)) ){
       this._setC(1);
     } else {
       this._setC(0);
     }
-    this.ld_hl_nn(value & 0xffff);
+
+    if (n > 0x7f){
+      if ( (newValue & 0xff00) === 0){
+        newValue += 0xff00;
+      } else {
+        newValue -= 0x100;
+      }
+    }
+
+    if ( (newValue + n) > 0xffff){
+      newValue = newValue + n - 0x10000;
+    } else {
+      newValue = newValue + n;
+    }
+    if (newValue < 0){
+      newValue =+ 0x10000;
+    }
+
+    this.ld_hl_nn(newValue);
   }
 
   pressA(){
