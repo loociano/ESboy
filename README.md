@@ -1,4 +1,4 @@
-# Game Boy emulator in ECMAScript 6 [![Build Status](https://travis-ci.org/loociano/gb-ES6.svg?branch=master)](https://travis-ci.org/loociano/gb-ES6)
+# gb-ES6 – GAME BOY&trade; emulator [![Build Status](https://travis-ci.org/loociano/gb-ES6.svg?branch=master)](https://travis-ci.org/loociano/gb-ES6)
 
 ![Pokemon Blue running on Chrome](https://raw.githubusercontent.com/loociano/gb-ES6/master/screenshots/2017-01-28%2021_17_03-gb-ES6.png)
 
