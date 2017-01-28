@@ -8,7 +8,7 @@ Goal of this project is to write the GAME BOY&trade; CPU and rest of controllers
 
 ## Play 
 
-* Online: Try it on http://loociano.github.io/gb-ES6
+* [Try it online!](http://loociano.github.io/gb-ES6) 
 * Offline: clone/download this repository and open `index.html` in your browser.
 
 ### Hardware tests
