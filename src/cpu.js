@@ -519,7 +519,7 @@ export default class CPU {
       0xe5: {fn: this.push_hl, paramBytes: 0},
       0xe6: {fn: this._and_n, paramBytes: 1},
       0xe7: {fn: this.rst_20, paramBytes: 0},
-      0xe8: {fn: this.add_sp_e, paramBytes: 1},
+      0xe8: {fn: this._add_sp_e, paramBytes: 1},
       0xe9: {fn: this._jp_hl, paramBytes: 0},
       0xea: {fn: this.ld_0xnn_a, paramBytes: 2},
       0xeb: {fn: this._noSuchOpcode, paramBytes: 0},
@@ -3658,23 +3658,43 @@ export default class CPU {
   }
 
   /**
+   * Adds a signed byte to the stack pointer
+   * Flag H is set if there has been overflow from bit 3 (not 7!)
+   * Flag C is set if there has been overflow from bit 7 (not 15!)
    * @param {number} signed byte
+   * @private
    */
-  add_sp_e(signed){
-    this._setN(0); this._setZ(0); this._setH(0); this._setC(0);
+  _add_sp_e(signed){
+    this._setN(0); this._setZ(0);
 
-    const newValue = this._r.sp + Utils.uint8ToInt8(signed);
-
-    if (newValue > 0xffff){
-      this._setC(1); this._setH(1);
-      this._r.sp -= 0x10000;
+    if ( (signed & 0x0f) > (0xf - (this._r.sp & 0x000f)) ){
+      this._setH(1);
+    } else {
+      this._setH(0);
     }
-    if (newValue < 0){
+
+    if ( (signed & 0xff) > (0xff - (this._r.sp & 0x00ff)) ){
+      this._setC(1);
+    } else {
+      this._setC(0);
+    }
+
+    if (signed > 0x7f){
+      if ( (this._r.sp & 0xff00) === 0){
+        this._r.sp += 0xff00;
+      } else {
+        this._r.sp -= 0x100;
+      }
+    }
+
+    if ( (this._r.sp + signed) > 0xffff){
+      this._r.sp = this._r.sp + signed - 0x10000;
+    } else {
+      this._r.sp = this._r.sp + signed;
+    }
+    if (this._r.sp < 0){
       this._r.sp =+ 0x10000;
     }
-
-    this._r.sp += Utils.uint8ToInt8(signed);
-
     this._m += 4;
   }
 
