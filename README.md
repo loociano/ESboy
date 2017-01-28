@@ -6,18 +6,26 @@ GAME BOY&trade; running in your browser. [Compatibility List](https://docs.googl
 
 Goal of this project is to write the GAME BOY&trade; CPU and rest of controllers (memory, gpu, timers, i/o etc) from scratch using ECMAScript 6, [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) and [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API).
 
-### Progress
-
-* CPU: all instructions are implemented. To test more HALT and STOP.
-* MMU: basic RAM usage and Memory Bank Controller 1 (MBC1) implemented. To work on MBC3, MBC5 and additional RAM.
-* PPU: background and sprites are drawn. Vertical/horizontal background scrolling.
-* I/O: buttons implemented.
-* Sound: to work on.
-
 ## Play 
 
 * Online: Try it on http://loociano.github.io/gb-ES6
 * Offline: clone/download this repository and open `index.html` in your browser.
+
+### Hardware tests
+
+| Test          | Result|  
+| ------------- |--------------|
+| Blargg test 1 | ✗ Test 6 DAA fails|
+| Blargg test 2 | ✗ Fails     |
+| Blargg test 3 | ✓     |
+| Blargg test 4 | ✓     |
+| Blargg test 5 | ✓     |
+| Blargg test 6 | ✓     |
+| Blargg test 7 | ✓    |
+| Blargg test 8 | ✓     |
+| Blargg test 9 | ✓     |
+| Blargg test 10| ✓     |
+| Blargg test 11| ✗ Fails 34 27     |
 
 ## Develop
 
