@@ -280,7 +280,8 @@ export default class MMU {
    * hence, should only be performed when the user stops playing.
    */
   flushExtRamToStorage(){
-    this._storage.write(this.getGameTitle(), this._extRAM);
+    if (this._hasMBC1RAM || this._hasMBC3RAM)
+      this._storage.write(this.getGameTitle(), this._extRAM);
   }
 
   /**
@@ -300,6 +301,10 @@ export default class MMU {
    */
   _initExternalRAM(){
     if (this._hasMBC1RAM || this._hasMBC3RAM){
+      if (this._storage != null) {
+        this._storage.setExpectedGameSize(this.MBC1_RAM_SIZE);
+      }
+
       const savedRAM = this.getSavedRAM();
       if (savedRAM != null){
         this._extRAM = savedRAM;

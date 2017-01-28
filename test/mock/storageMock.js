@@ -8,4 +8,5 @@ export default class StorageMock {
   read(gameTitle){
     return this._memory[gameTitle];
   }
+  setExpectedGameSize(){}
 }

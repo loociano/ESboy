@@ -3,7 +3,7 @@ import MMU from './mmu';
 import LCD from './lcd';
 import InputHandler from './inputHandler';
 import GameRequester from './gameRequester';
-import BrowserStorage from './storage';
+import BrowserStorage from './browserStorage';
 
 // Cache DOM references
 const $cartridge = document.getElementById('cartridge');
@@ -54,7 +54,7 @@ function handleFileSelect(evt) {
  * @param {ArrayBuffer} arrayBuffer
  */
 function init(arrayBuffer){
-  mmu = new MMU(new Uint8Array(arrayBuffer), new BrowserStorage());
+  mmu = new MMU(new Uint8Array(arrayBuffer), new BrowserStorage(window.localStorage));
   let bootstrap = true;
   if (!mmu.isCartridgeSupported()){
     bootstrap = window.confirm('This game is not supported. Do you want to continue? Your browser may crash.');

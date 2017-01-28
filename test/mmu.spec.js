@@ -4,6 +4,7 @@ import assert from 'assert';
 import config from '../src/config';
 import {describe, before, beforeEach, it} from 'mocha';
 import StorageMock from './mock/storageMock';
+import BrowserStorage from '../src/browserStorage';
 
 describe('MMU', () => {
 
@@ -11,6 +12,7 @@ describe('MMU', () => {
   config.TEST = true;
 
   let mmu, rom32KB;
+  const GAME_NAME = 'CPU_INSTRS';
 
   beforeEach( () => {
     const loader = new Loader('./roms/blargg/cpu_instrs/cpu_instrs.gb');
@@ -95,9 +97,9 @@ describe('MMU', () => {
   describe('ROM checks', () => {
 
     it('should read the game header', () => {
-      assert.equal(mmu.getGameTitle(), 'CPU_INSTRS', 'should read title');
-      assert.equal(mmu.isGameInColor(), true, 'is gb color');
-      assert.equal(mmu.isGameSuperGB(), false, 'should not be super GB');
+      assert.equal(mmu.getGameTitle(), GAME_NAME);
+      assert.equal(mmu.isGameInColor(), true);
+      assert.equal(mmu.isGameSuperGB(), false);
       assert.equal(mmu.isCartridgeSupported(), true, 'MBC1 is supported');
       assert.equal(mmu.getRomSize(), '64KB');
       assert.equal(mmu.getRAMSize(), 'None');
@@ -672,6 +674,52 @@ describe('MMU', () => {
         assert.equal(mmu.getSelectedROMBankNb(), 1, 'default is bank 1');
       });
     });
+
+    describe('Storage', () => {
+      it('should not write any storage if there is no external RAM', () => {
+        const rom = new Uint8Array(0x8000); // 32 KB
+        rom[mmu.ADDR_CARTRIDGE_TYPE] = 0; // ROM ONLY
+        rom[mmu.ADDR_TITLE_START] = 0x41; // 'A'
+        const storage = new StorageMock();
+        storage.write = (gameTitle, memory) => { throw new Error('Called!'); };
+        mmu = new MMU(rom, storage);
+
+        assert.equal(storage.read('A'), undefined);
+
+        mmu.flushExtRamToStorage();
+
+        assert.equal(storage.read('A'), undefined);
+      });
+
+      it('should sanity check the saved RAM in storage', () => {
+        let localStorageMock = {
+          table: {},
+          getItem: function(key) {
+            return this.table[key];
+          },
+          setItem: function(key, value) {
+            this.table[key] = value;
+          }
+        };
+        const brokenStorage = new BrowserStorage(localStorageMock);
+        brokenStorage.write(GAME_NAME, 0);
+        mmu._storage = brokenStorage;
+
+        assert.equal(mmu.getSavedRAM(), null);
+
+        brokenStorage.write(GAME_NAME, undefined);
+
+        assert.equal(mmu.getSavedRAM(), null);
+
+        brokenStorage.write(GAME_NAME, 'abc');
+
+        assert.equal(mmu.getSavedRAM(), null);
+
+        brokenStorage.write(GAME_NAME, '1,2,3');
+
+        assert.equal(mmu.getSavedRAM(), null, 'not long enough');
+      });
+    })
   });
 
 });
