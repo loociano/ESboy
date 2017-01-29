@@ -3,7 +3,9 @@ export default class GameRequester {
   constructor(){
     this._games = {
       'load-game': 'roms/load-game.gb',
+      'CPU instructions tests': 'roms/blargg/cpu_instrs/cpu_instrs.gb',
       'fonts': 'roms/gbdk/fonts.gb',
+      'galaxy': 'roms/gbdk/galaxy.gb',
       'rand': 'roms/gbdk/rand.gb',
       'colorbar': 'roms/gbdk/colorbar.gb'
     };
