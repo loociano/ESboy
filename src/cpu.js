@@ -4389,25 +4389,28 @@ export default class CPU {
 
   /**
    * Decimal Adjust to register a
+   * H is always reset after DAA
+   * C is set or kept after DAA, but never reset
+   * @private
    */
   _daa(){
-    if ( (this._r.a & 0x0f) > 9 || this.H()){
-      if (this.N() === 1){
-        this._r.a -= 0x06;
-      } else {
+
+    if (!this.N()) {
+      if (this.H() || (this._r.a & 0xf) > 9)
         this._r.a += 0x06;
-      }
-    }
-    if ((this._r.a >> 4) > 9 || this.C()){
-      if (this.N() === 1){
-        this._r.a -= 0x60;
-      } else {
+      if (this.C() || this._r.a > 0x9f)
         this._r.a += 0x60;
-      }
-      this._setC(1);
     } else {
-      this._setC(0);
+      if (this.H())
+        this._r.a = (this._r.a - 6) & 0xFF;
+      if (this.C())
+        this._r.a -= 0x60;
     }
+
+    if ( (this._r.a & 0x100) === 0x100 ){
+      this._setC(1); // Note DAA never resets C
+    }
+
     this._r.a &= 0xff;
 
     if (this._r.a === 0){
@@ -4415,7 +4418,7 @@ export default class CPU {
     } else {
       this._setZ(0);
     }
-    this._setH(0);
+    this._setH(0); // H always reset after DAA
     this._m++;
   }
 
