@@ -48,7 +48,7 @@ export default class CPU {
       0x0d: {fn: this.dec_c, paramBytes: 0},
       0x0e: {fn: this.ld_c_n, paramBytes: 1},
       0x0f: {fn: this.rrca, paramBytes: 0},
-      0x10: {fn: this.stop, paramBytes: 0},
+      0x10: {fn: this._stop, paramBytes: 1},
       0x11: {fn: this.ld_de_nn, paramBytes: 2},
       0x12: {fn: this.ld_0xde_a, paramBytes: 0},
       0x13: {fn: this.inc_de, paramBytes: 0},
@@ -4513,7 +4513,7 @@ export default class CPU {
   /**
    * Stops CPU and LCD
    */
-  stop(){
+  _stop(){
     this._stop = true;
     this._m++;
   }

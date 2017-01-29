@@ -3579,18 +3579,25 @@ describe('CPU Instruction Set', function() {
 
     it('should STOP', () => {
       const m = cpu.m();
+      const pc = cpu.pc();
 
-      cpu.stop();
+      cpu.mockInstruction(0x10/* stop */, 0);
+      cpu.execute();
 
       assert.equal(cpu.m() - m, 1, 'Machine cycles');
+      assert.equal(cpu.pc() - pc, 2, 'instr length');
       assert(cpu.isStopped());
 
       [ cpu.pressA, cpu.pressB, cpu.pressSTART, cpu.pressSTART,
         cpu.pressLeft, cpu.pressRight, cpu.pressUp, cpu.pressDown].map( (fn) => {
 
-          cpu.stop();
+          cpu.mockInstruction(0x10/* stop */, 0);
+          cpu.execute();
+
           assert(cpu.isStopped());
+
           fn.call(cpu);
+
           assert(!cpu.isStopped());
       });
     });
