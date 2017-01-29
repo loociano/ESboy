@@ -2158,7 +2158,7 @@ var CPU = function () {
       0x0d: { fn: this.dec_c, paramBytes: 0 },
       0x0e: { fn: this.ld_c_n, paramBytes: 1 },
       0x0f: { fn: this.rrca, paramBytes: 0 },
-      0x10: { fn: this.stop, paramBytes: 0 },
+      0x10: { fn: this._stop, paramBytes: 1 },
       0x11: { fn: this.ld_de_nn, paramBytes: 2 },
       0x12: { fn: this.ld_0xde_a, paramBytes: 0 },
       0x13: { fn: this.inc_de, paramBytes: 0 },
@@ -2675,6 +2675,7 @@ var CPU = function () {
     this._lastInstrWasEI = false;
     this._m = 0; // machine cycles for lcd
     this._m_dma = 0; // machine cycles for DMA
+    this._t = 0; // timer counter
 
     // CPU modes
     this._halt = false;
@@ -3138,25 +3139,7 @@ var CPU = function () {
           return;
         }
 
-        var m = this._m;
-
-        if (!this.isHalted()) {
-          this.execute();
-        } else {
-          this._m++;
-        }
-
-        this._updateDivider(this._m - m);
-        this._handleLCD();
-        this._handleDMA();
-
-        if (this._r.pc === this.mmu.ADDR_GAME_START) {
-          this._afterBIOS();
-        }
-
-        if (this._isLYCInterrupt()) {
-          this._handleLYCInterrupt();
-        }
+        this._cpuCycle(pc_stop);
       } while (!this._isVBlankInterruptRequested());
 
       if (!this._lastInstrWasEI) this._resetVBlank();
@@ -3164,6 +3147,102 @@ var CPU = function () {
       if (this._shouldStartVBlankRoutine()) {
         this._handleVBlankInterrupt();
       }
+    }
+
+    /**
+     * @private
+     */
+
+  }, {
+    key: '_cpuCycle',
+    value: function _cpuCycle() {
+      if (this._isTimerInterruptRequested()) {
+        this._handleTimerInterrupt();
+      }
+
+      var m = this._m;
+
+      if (!this.isHalted()) {
+        this.execute();
+      } else {
+        this._m++;
+      }
+
+      if (this._isTimerOn()) {
+        this._updateTimer(this._m - m);
+      }
+
+      this._updateDivider(this._m - m);
+      this._handleLCD();
+      this._handleDMA();
+
+      if (this._r.pc === this.mmu.ADDR_GAME_START) {
+        this._afterBIOS();
+      }
+
+      if (this._isLYCInterrupt()) {
+        this._handleLYCInterrupt();
+      }
+    }
+
+    /**
+     * @returns {boolean} true if timer is on
+     * @private
+     */
+
+  }, {
+    key: '_isTimerOn',
+    value: function _isTimerOn() {
+      return (this.mmu.readByteAt(this.mmu.ADDR_TAC) & this.mmu.MASK_TIMER_ON) === this.mmu.MASK_TIMER_ON;
+    }
+
+    /**
+     * @param instrCycles
+     * @private
+     */
+
+  }, {
+    key: '_updateTimer',
+    value: function _updateTimer(instrCycles) {
+      var current = this.mmu.readByteAt(this.mmu.ADDR_TIMA);
+      this._t += instrCycles;
+      if (this._t >= 4) {
+        var newValue = current + 1; // TODO: frequency
+        if (newValue > 0xff) {
+          this._setIf(this.If() | this.mmu.IF_TIMER_ON);
+          if (this._halt && (this.ie() & this.If() & this.mmu.IF_TIMER_ON) === this.mmu.IF_TIMER_ON) {
+            this._halt = false;
+          }
+          newValue = this.mmu.readByteAt(this.mmu.ADDR_TMA);
+        }
+        this.mmu.writeByteAt(this.mmu.ADDR_TIMA, newValue);
+        this._t = 0;
+      }
+    }
+
+    /**
+     * @returns {boolean}
+     * @private
+     */
+
+  }, {
+    key: '_isTimerInterruptRequested',
+    value: function _isTimerInterruptRequested() {
+      return (this.ie() & this.If() & this.mmu.IF_TIMER_ON) === this.mmu.IF_TIMER_ON;
+    }
+
+    /**
+     * @private
+     */
+
+  }, {
+    key: '_handleTimerInterrupt',
+    value: function _handleTimerInterrupt() {
+      if (this._r.ime === 0) {
+        return false;
+      }
+      this._setIf(this.If() & this.mmu.IF_TIMER_OFF);
+      this._rst_50();
     }
 
     /**
@@ -3400,7 +3479,7 @@ var CPU = function () {
   }, {
     key: 'runUntil',
     value: function runUntil(pc_stop) {
-      while (this.pc() < pc_stop) {
+      while (this.pc() !== pc_stop) {
         this.start(pc_stop);
       }
     }
@@ -7135,6 +7214,17 @@ var CPU = function () {
     }
 
     /**
+     * Jumps to Timer Overflow interrupt routine
+     * @private
+     */
+
+  }, {
+    key: '_rst_50',
+    value: function _rst_50() {
+      this._rst_n(this.ADDR_TIMER_INTERRUPT);
+    }
+
+    /**
      * Pushes the pc into stack and jumps to address n
      * @param n
      * @private
@@ -7854,8 +7944,8 @@ var CPU = function () {
      */
 
   }, {
-    key: 'stop',
-    value: function stop() {
+    key: '_stop',
+    value: function _stop() {
       this._stop = true;
       this._m++;
     }
@@ -9074,6 +9164,8 @@ var MMU = function () {
     this.STAT_INTERRUPT_MODE_UNSUPPORTED = 0x38;
 
     // IF masks
+    this.IF_TIMER_ON = 4;
+    this.IF_TIMER_OFF = 27;
     this.IF_STAT_ON = 2;
     this.IF_STAT_OFF = 29;
 
@@ -9084,6 +9176,9 @@ var MMU = function () {
     this.NUM_LINES = 153;
     this.CHARS_PER_LINE = 32;
     this.VISIBLE_CHARS_PER_LINE = 20;
+
+    // Timer
+    this.MASK_TIMER_ON = 0x04;
 
     // OBJ
     this.MAX_OBJ = 40;
@@ -9334,13 +9429,13 @@ var MMU = function () {
       switch (addr) {
         case this.ADDR_DMA:
         case this.ADDR_SB:
-        case this.ADDR_TIMA:
-        case this.ADDR_TMA:
-        case this.ADDR_TAC:
         case this.ADDR_SVBK:
           throw new Error('Unsupported register ' + _utils2.default.hex4(addr));
 
         case this.ADDR_KEY1:
+          _logger2.default.info('Unsupported register ' + _utils2.default.hex4(addr));
+          return 0xff;
+
         case this.ADDR_SC:
           _logger2.default.info('Unsupported register ' + _utils2.default.hex4(addr));
           break;
@@ -9747,6 +9842,9 @@ var MMU = function () {
         case this.ADDR_DIV:
           this.setHWDivider(0);
           return;
+        case this.ADDR_TAC:
+          n &= 0x07; // bit 3-7 unused
+          break;
       }
 
       this._memory[addr] = n;
