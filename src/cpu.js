@@ -902,6 +902,10 @@ export default class CPU {
         return;
       }
 
+      if (this._isTimerInterruptRequested()){
+        this._handleTimerInterrupt();
+      }
+
       const m = this._m;
 
       if (!this.isHalted()) {
@@ -929,6 +933,25 @@ export default class CPU {
     if (this._shouldStartVBlankRoutine()){
       this._handleVBlankInterrupt();
     }
+  }
+
+  /**
+   * @returns {boolean}
+   * @private
+   */
+  _isTimerInterruptRequested(){
+    return (this.ie() & this.If() & this.mmu.IF_TIMER_ON) === this.mmu.IF_TIMER_ON;
+  }
+
+  /**
+   * @private
+   */
+  _handleTimerInterrupt(){
+    if (this._r.ime === 0){
+      return false;
+    }
+    this._setIf(this.If() & this.mmu.IF_TIMER_OFF);
+    this._rst_50();
   }
 
   /**
@@ -1120,7 +1143,7 @@ export default class CPU {
    * @param {number} pc_stop
    */
   runUntil(pc_stop){
-    while (this.pc() < pc_stop){
+    while (this.pc() !== pc_stop){
       this.start(pc_stop);
     }
   }
@@ -3901,6 +3924,14 @@ export default class CPU {
    */
   _rst_48(){
     this._rst_n(this.ADDR_STAT_INTERRUPT);
+  }
+
+  /**
+   * Jumps to Timer Overflow interrupt routine
+   * @private
+   */
+  _rst_50(){
+    this._rst_n(this.ADDR_TIMER_INTERRUPT);
   }
 
   /**

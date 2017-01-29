@@ -130,6 +130,8 @@ export default class MMU {
     this.STAT_INTERRUPT_MODE_UNSUPPORTED = 0x38;
 
     // IF masks
+    this.IF_TIMER_ON = 0b00100;
+    this.IF_TIMER_OFF = 0b11011;
     this.IF_STAT_ON = 0b00010;
     this.IF_STAT_OFF = 0b11101;
 

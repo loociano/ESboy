@@ -180,6 +180,25 @@ describe('Interruptions', () => {
         assert.equal(this.cpu.If(), 0x00, 'Vblank dispatched');
     });
   });
+
+  describe('Timer overflow interrupt', () => {
+
+    it('should jump to timer overflow routine', function() {
+      this.cpu.setPC(0x150);
+      this.cpu._r.sp = 0xfffe;
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_IE, 0b00000100);
+      this.cpu.mockInstruction(0xfb/* ei */);
+      this.cpu.execute();
+
+      assert.equal(this.cpu.ie(), 0x04, 'Timer overflow interrup is allowed');
+      this.cpu.setIf(0b00000101); // Trigger timer overflow + vblank to stop the frame
+
+      this.cpu.runUntil(this.cpu.ADDR_TIMER_INTERRUPT + 1); // stop when the first instruction in the routine is executed
+
+      assert.equal(this.cpu.pc(), this.cpu.ADDR_TIMER_INTERRUPT + 1, 'PC is in Timer overflow routine');
+    });
+
+  });
 });
 
 function fail(){
