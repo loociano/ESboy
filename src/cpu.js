@@ -965,6 +965,9 @@ export default class CPU {
       let newValue = current + 1; // TODO: frequency
       if (newValue > 0xff){
         this._setIf(this.If() | this.mmu.IF_TIMER_ON);
+        if (this._halt && (this.ie() & this.If() & this.mmu.IF_TIMER_ON) === this.mmu.IF_TIMER_ON){
+          this._halt = false;
+        }
         newValue = this.mmu.readByteAt(this.mmu.ADDR_TMA);
       }
       this.mmu.writeByteAt(this.mmu.ADDR_TIMA, newValue);

@@ -214,6 +214,27 @@ describe('Interruptions', () => {
       assert.equal(this.cpu.pc(), this.cpu.ADDR_TIMER_INTERRUPT + 1, 'PC is in Timer overflow routine');
     });
 
+    it('should exit halt on timer interrupt', function() {
+      let called = 0;
+      this.cpu.setPC(0x150);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_IE, 0b00000100);
+      this.cpu.execute = () => called++;
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TAC, 1); // chose 262,144 Khz (overflow in ~1ms)
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TIMA, 0);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TAC, 0x05); // start timer
+
+      assert.equal(this.cpu.pc(), 0x150);
+
+      this.cpu.halt();
+
+      for(let m = 0; m < 0x100*4; m++) {
+        this.cpu._cpuCycle(); // cause time overflow
+      }
+      this.cpu._cpuCycle(); // cpu is not halted, should execute next instruction
+
+      assert.equal(called, 1, 'called when timer exits halt');
+    });
+
   });
 });
 
