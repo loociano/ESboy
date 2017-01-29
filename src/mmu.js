@@ -143,6 +143,9 @@ export default class MMU {
     this.CHARS_PER_LINE = 32;
     this.VISIBLE_CHARS_PER_LINE = 20;
 
+    // Timer
+    this.MASK_TIMER_ON = 0x04;
+
     // OBJ
     this.MAX_OBJ = 40;
     this.BYTES_PER_OBJ = 4;

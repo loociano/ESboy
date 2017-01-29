@@ -183,6 +183,22 @@ describe('Interruptions', () => {
 
   describe('Timer overflow interrupt', () => {
 
+    it('should request interrupt when timer overflows', function() {
+      this.cpu.setPC(0x150);
+      this.cpu.execute = () => { this.cpu._m++; };
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TAC, 1); // chose 262,144 Khz (overflow in ~1ms)
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TIMA, 0);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TAC, 0x05); // start timer
+
+      assert.equal(this.cpu.If(), 0x00, 'interrupt not requested');
+
+      for(let m = 0; m < 0x100*4; m++) {
+        this.cpu._cpuCycle();
+      }
+
+      assert.equal(this.cpu.If(), 0x04, 'timer overflow interrupt requested');
+    });
+
     it('should jump to timer overflow routine', function() {
       this.cpu.setPC(0x150);
       this.cpu._r.sp = 0xfffe;

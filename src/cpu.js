@@ -565,6 +565,7 @@ export default class CPU {
     this._lastInstrWasEI = false;
     this._m = 0; // machine cycles for lcd
     this._m_dma = 0; // machine cycles for DMA
+    this._t = 0; // timer counter
 
     // CPU modes
     this._halt = false;
@@ -902,36 +903,72 @@ export default class CPU {
         return;
       }
 
-      if (this._isTimerInterruptRequested()){
-        this._handleTimerInterrupt();
-      }
-
-      const m = this._m;
-
-      if (!this.isHalted()) {
-        this.execute();
-      } else {
-        this._m++;
-      }
-
-      this._updateDivider(this._m - m);
-      this._handleLCD();
-      this._handleDMA();
-
-      if (this._r.pc === this.mmu.ADDR_GAME_START){
-        this._afterBIOS();
-      }
-
-      if (this._isLYCInterrupt()){
-        this._handleLYCInterrupt();
-      }
-
+      this._cpuCycle(pc_stop);
     } while (!this._isVBlankInterruptRequested());
 
     if (!this._lastInstrWasEI) this._resetVBlank();
 
     if (this._shouldStartVBlankRoutine()){
       this._handleVBlankInterrupt();
+    }
+  }
+
+  /**
+   * @private
+   */
+  _cpuCycle(){
+    if (this._isTimerInterruptRequested()){
+      this._handleTimerInterrupt();
+    }
+
+    const m = this._m;
+
+    if (!this.isHalted()) {
+      this.execute();
+    } else {
+      this._m++;
+    }
+
+    if (this._isTimerOn()){
+      this._updateTimer(this._m - m);
+    }
+
+    this._updateDivider(this._m - m);
+    this._handleLCD();
+    this._handleDMA();
+
+    if (this._r.pc === this.mmu.ADDR_GAME_START){
+      this._afterBIOS();
+    }
+
+    if (this._isLYCInterrupt()){
+      this._handleLYCInterrupt();
+    }
+  }
+
+  /**
+   * @returns {boolean} true if timer is on
+   * @private
+   */
+  _isTimerOn(){
+   return (this.mmu.readByteAt(this.mmu.ADDR_TAC) & this.mmu.MASK_TIMER_ON) === this.mmu.MASK_TIMER_ON;
+  }
+
+  /**
+   * @param instrCycles
+   * @private
+   */
+  _updateTimer(instrCycles){
+    const current = this.mmu.readByteAt(this.mmu.ADDR_TIMA);
+    this._t += instrCycles;
+    if (this._t >= 4){
+      let newValue = current + 1; // TODO: frequency
+      if (newValue > 0xff){
+        this._setIf(this.If() | this.mmu.IF_TIMER_ON);
+        newValue = this.mmu.readByteAt(this.mmu.ADDR_TMA);
+      }
+      this.mmu.writeByteAt(this.mmu.ADDR_TIMA, newValue);
+      this._t = 0;
     }
   }
 
