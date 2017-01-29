@@ -84,7 +84,7 @@ export default class CPU {
       0x31: {fn: this.ld_sp_nn, paramBytes: 2},
       0x32: {fn: this.ldd_0xhl_a, paramBytes: 0},
       0x33: {fn: this.inc_sp, paramBytes: 0},
-      0x34: {fn: this.inc_0xhl, paramBytes: 0},
+      0x34: {fn: this._inc_0xhl, paramBytes: 0},
       0x35: {fn: this.dec_0xhl, paramBytes: 0},
       0x36: {fn: this.ld_0xhl_n, paramBytes: 1},
       0x37: {fn: this._scf, paramBytes: 0},
@@ -2483,18 +2483,20 @@ export default class CPU {
   /**
    * Increments the value at memory location hl by 1.
    */
-  inc_0xhl(){
+  _inc_0xhl(){
     let value = this._0xhl();
 
     if (value === 0xff){
-      this.mmu.writeByteAt(this.hl(), 0x00);
+      value = 0;
       this._setZ(1);
     } else {
-      this.mmu.writeByteAt(this.hl(), ++value);
+      value++;
       this._setZ(0);
     }
 
-    if (value === 0x10){
+    this.mmu.writeByteAt(this.hl(), value);
+
+    if ((value & 0x0f) === 0){
       this._setH(1);
     } else {
       this._setH(0);

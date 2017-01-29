@@ -1024,37 +1024,38 @@ describe('CPU Instruction Set', function() {
         cpu.ld_hl_nn(addr);
         let value = 0x00;
         cpu.mmu.writeByteAt(addr, value);
-
         const m = cpu.m();
-        cpu.inc_0xhl();
 
-        assert.equal(cpu.mmu.readByteAt(cpu.hl()), value + 1, 'value at memory (hl) incremented.');
+        cpu.mockInstruction(0x34 /* INC (HL) */);
+        cpu.execute();
+
+        assert.equal(cpu.$hl(), 1, 'value at memory (hl) incremented.');
         assert.equal(cpu.Z(), 0, 'Z set if result is zero');
         assert.equal(cpu.N(), 0, 'N is always reset');
         assert.equal(cpu.H(), 0, 'H reset as no half carry');
-        assert.equal(cpu.m(), m+3, 'INC (HL) machine cycle');
+        assert.equal(cpu.m() - m, 3, 'INC (HL) machine cycle');
 
         value = 0x0f; // Test half carry
         cpu.mmu.writeByteAt(addr, value);
 
-        cpu.inc_0xhl();
+        cpu.mockInstruction(0x34 /* INC (HL) */);
+        cpu.execute();
 
         assert.equal(cpu.mmu.readByteAt(cpu.hl()), value + 1, 'value at memory (hl) incremented.');
         assert.equal(cpu.Z(), 0, 'Z set if result is zero');
         assert.equal(cpu.N(), 0, 'N is always reset');
         assert.equal(cpu.H(), 1, 'H set as half carry');
-        assert.equal(cpu.m(), m+6, 'INC (HL) machine cycle');
 
         value = 0xff; // Test value loop
         cpu.mmu.writeByteAt(addr, value);
 
-        cpu.inc_0xhl();
+        cpu.mockInstruction(0x34 /* INC (HL) */);
+        cpu.execute();
 
         assert.equal(cpu.mmu.readByteAt(cpu.hl()), 0x00, 'value at memory (hl) resets to 0x00.');
         assert.equal(cpu.Z(), 1, 'Z set if result is zero');
         assert.equal(cpu.N(), 0, 'N is always reset');
-        assert.equal(cpu.H(), 0, 'H reset as no half carry');
-        assert.equal(cpu.m(), m+9, 'INC (HL) machine cycle');
+        assert.equal(cpu.H(), 1);
       });
     });
 
