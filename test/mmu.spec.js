@@ -618,10 +618,12 @@ describe('MMU', () => {
   });
 
   describe('Timers', () => {
-    it('should detect timers', () => {
-      assert.throws( () => mmu.readByteAt(mmu.ADDR_TIMA), Error, 'TIMA register unsupported');
-      assert.throws( () => mmu.readByteAt(mmu.ADDR_TMA), Error, 'TMA register unsupported');
-      assert.throws( () => mmu.readByteAt(mmu.ADDR_TAC), Error, 'TAC register unsupported');
+    it('should be able to write on TAC', () => {
+      mmu.writeByteAt(mmu.ADDR_TAC, 0x07);
+      assert.equal(mmu.readByteAt(mmu.ADDR_TAC), 0x07);
+
+      mmu.writeByteAt(mmu.ADDR_TAC, 0xff);
+      assert.equal(mmu.readByteAt(mmu.ADDR_TAC), 0x07, 'only bits 0,1,2 can be set');
     });
   });
 

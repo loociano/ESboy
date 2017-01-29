@@ -364,9 +364,6 @@ export default class MMU {
     switch(addr){
       case this.ADDR_DMA:
       case this.ADDR_SB:
-      case this.ADDR_TIMA:
-      case this.ADDR_TMA:
-      case this.ADDR_TAC:
       case this.ADDR_SVBK:
         throw new Error(`Unsupported register ${Utils.hex4(addr)}`);
 
@@ -716,6 +713,9 @@ export default class MMU {
       case this.ADDR_DIV:
         this.setHWDivider(0);
         return;
+      case this.ADDR_TAC:
+        n &= 0x07; // bit 3-7 unused
+        break;
     }
 
     this._memory[addr] = n;
