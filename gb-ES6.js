@@ -2194,7 +2194,7 @@ var CPU = function () {
       0x31: { fn: this.ld_sp_nn, paramBytes: 2 },
       0x32: { fn: this.ldd_0xhl_a, paramBytes: 0 },
       0x33: { fn: this.inc_sp, paramBytes: 0 },
-      0x34: { fn: this.inc_0xhl, paramBytes: 0 },
+      0x34: { fn: this._inc_0xhl, paramBytes: 0 },
       0x35: { fn: this.dec_0xhl, paramBytes: 0 },
       0x36: { fn: this.ld_0xhl_n, paramBytes: 1 },
       0x37: { fn: this._scf, paramBytes: 0 },
@@ -5227,19 +5227,21 @@ var CPU = function () {
      */
 
   }, {
-    key: 'inc_0xhl',
-    value: function inc_0xhl() {
+    key: '_inc_0xhl',
+    value: function _inc_0xhl() {
       var value = this._0xhl();
 
       if (value === 0xff) {
-        this.mmu.writeByteAt(this.hl(), 0x00);
+        value = 0;
         this._setZ(1);
       } else {
-        this.mmu.writeByteAt(this.hl(), ++value);
+        value++;
         this._setZ(0);
       }
 
-      if (value === 0x10) {
+      this.mmu.writeByteAt(this.hl(), value);
+
+      if ((value & 0x0f) === 0) {
         this._setH(1);
       } else {
         this._setH(0);
@@ -7794,28 +7796,27 @@ var CPU = function () {
 
     /**
      * Decimal Adjust to register a
+     * H is always reset after DAA
+     * C is set or kept after DAA, but never reset
+     * @private
      */
 
   }, {
     key: '_daa',
     value: function _daa() {
-      if ((this._r.a & 0x0f) > 9 || this.H()) {
-        if (this.N() === 1) {
-          this._r.a -= 0x06;
-        } else {
-          this._r.a += 0x06;
-        }
-      }
-      if (this._r.a >> 4 > 9 || this.C()) {
-        if (this.N() === 1) {
-          this._r.a -= 0x60;
-        } else {
-          this._r.a += 0x60;
-        }
-        this._setC(1);
+
+      if (!this.N()) {
+        if (this.H() || (this._r.a & 0xf) > 9) this._r.a += 0x06;
+        if (this.C() || this._r.a > 0x9f) this._r.a += 0x60;
       } else {
-        this._setC(0);
+        if (this.H()) this._r.a = this._r.a - 6 & 0xFF;
+        if (this.C()) this._r.a -= 0x60;
       }
+
+      if ((this._r.a & 0x100) === 0x100) {
+        this._setC(1); // Note DAA never resets C
+      }
+
       this._r.a &= 0xff;
 
       if (this._r.a === 0) {
@@ -7823,7 +7824,7 @@ var CPU = function () {
       } else {
         this._setZ(0);
       }
-      this._setH(0);
+      this._setH(0); // H always reset after DAA
       this._m++;
     }
 
