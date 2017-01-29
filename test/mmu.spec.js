@@ -724,4 +724,10 @@ describe('MMU', () => {
     })
   });
 
+  describe('Operating speed (CGB only)', () => {
+    it('should detect unsupported speed in DMG', () => {
+      assert.equal(mmu.readByteAt(mmu.ADDR_KEY1), 0xff);
+    })
+  })
+
 });

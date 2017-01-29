@@ -371,6 +371,9 @@ export default class MMU {
         throw new Error(`Unsupported register ${Utils.hex4(addr)}`);
 
       case this.ADDR_KEY1:
+        Logger.info(`Unsupported register ${Utils.hex4(addr)}`);
+        return 0xff;
+
       case this.ADDR_SC:
         Logger.info(`Unsupported register ${Utils.hex4(addr)}`);
         break;
