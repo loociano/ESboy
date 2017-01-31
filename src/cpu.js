@@ -881,19 +881,6 @@ export default class CPU {
   }
 
   /**
-   * Main loop
-   * @param {number} pc_stop
-   */
-  start(pc_stop = -1){
-    try {
-      this.frame(pc_stop);
-    } catch(e){
-      Logger.error(e.stack);
-      throw e;
-    }
-  }
-
-  /**
    * Runs cpu during a frame
    */
   frame(pc_stop){
@@ -1184,7 +1171,7 @@ export default class CPU {
    */
   runUntil(pc_stop){
     while (this.pc() !== pc_stop){
-      this.start(pc_stop);
+      this.frame(pc_stop);
     }
   }
 
@@ -1256,6 +1243,7 @@ export default class CPU {
    * @private
    */
   _nextOpcode() {
+    if (this._r.pc > this.mmu.ADDR_HRAM_END) throw new Error(`PC overflown`);
     const opcode = this.mmu.readByteAt(this._r.pc);
     this._r.pc = (this._r.pc + 1) % 0x10000;
     return opcode;

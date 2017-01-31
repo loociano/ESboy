@@ -71,21 +71,25 @@ function init(arrayBuffer){
  * Main loop
  */
 function frame(){
-  window.requestAnimationFrame(frame);
-  now = Date.now();
-  delta = now - then;
+  try {
+    now = Date.now();
+    delta = now - then;
 
-  if (delta > INTERVAL) {
-    // fps limitation logic, Kindly borrowed from Rishabh
-    // http://codetheory.in/controlling-the-frame-rate-with-requestanimationframe
-    then = now - (delta % INTERVAL);
-    if (++frames > MAX_FPS){
-      updateTitle(Math.floor(frames*1000/(new Date() - ref)/60*100));
-      frames = 0;
-      ref = new Date();
+    if (delta > INTERVAL) {
+      // fps limitation logic, Kindly borrowed from Rishabh
+      // http://codetheory.in/controlling-the-frame-rate-with-requestanimationframe
+      then = now - (delta % INTERVAL);
+      if (++frames > MAX_FPS) {
+        updateTitle(Math.floor(frames * 1000 / (new Date() - ref) / 60 * 100));
+        frames = 0;
+        ref = new Date();
+      }
+      cpu.frame();
+      cpu.paint();
+      window.requestAnimationFrame(frame);
     }
-    cpu.start();
-    cpu.paint();
+  } catch(e){
+    console.error(e.stack);
   }
 }
 

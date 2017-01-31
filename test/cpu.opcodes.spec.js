@@ -118,12 +118,19 @@ describe('CPU Instruction Set', function() {
   });
 
   describe('Program Counter', () => {
-    it('should not allow the program counter to overflow', () => {
-      cpu.setPC(0xffff);
+
+    it('should not allow running instructions above WRAM', () => {
+      cpu.setPC(0xfffd);
       cpu.mockInstruction(0x00/* nop */);
       cpu.cpuCycle();
 
-      assert.equal(cpu.pc(), 0, 'pc loops');
+      assert.throws( () => cpu.cpuCycle(), Error, 'PC cannot be > 0xfffd');
+
+      cpu.setPC(0xfffd);
+      cpu.mockInstruction(0xc3/* jp nn */, 0x85, 0x01);
+      cpu.cpuCycle();
+
+      assert.equal(cpu.pc(), 0x185);
     });
   });
 
@@ -204,20 +211,20 @@ describe('CPU Instruction Set', function() {
 
       it('should jump around highest address memory', () => {
         const maxJump = 0x7f;
-        cpu.setPC(0xfffe);
+        cpu.setPC(0xfffd);
         cpu.mockInstruction(0x18/* jr e */, maxJump);
       
         cpu.execute();
 
-        assert.equal(cpu.pc(), 0x007f); // 0xfffe + 2 + 0x7f
+        assert.equal(cpu.pc(), 0x007e); // 0xfffe + 2 + 0x7f
 
         const minJump = 0x80;
-        cpu.setPC(0xfffe);
+        cpu.setPC(0xfffd);
         cpu.mockInstruction(0x18/* jr e */, minJump);
 
         cpu.execute();
 
-        assert.equal(cpu.pc(), 0xff80);
+        assert.equal(cpu.pc(), 0xff7f);
       });
 
       it('should jump to same address', () => {

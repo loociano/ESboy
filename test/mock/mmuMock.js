@@ -9,6 +9,7 @@ export default class MMUMock {
     this.MASK_OBJ_ATTR_HFLIP = 0x20;
     this.MASK_OBJ_ATTR_OBG = 0x10;
     this.ADDR_DIV = 0xff04;
+    this.ADDR_HRAM_END = 0xfffd;
     this.ADDR_MAX = 0xffff;
     this.ADDR_IF = 0xff0f;
     this.ADDR_IE = this.ADDR_MAX;

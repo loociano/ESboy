@@ -50,6 +50,9 @@ export default class MMU {
     // Working RAM
     this.ADDR_WRAM_START = 0xc000;
 
+    // High working RAM
+    this.ADDR_HRAM_END = 0xfffd;
+
     // OAM
     this.ADDR_OAM_START = 0xfe00;
     this.ADDR_OAM_END = 0xfe9f;

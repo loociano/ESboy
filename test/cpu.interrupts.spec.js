@@ -155,7 +155,7 @@ describe('Interruptions', () => {
         assert.equal(this.cpu.ie() & 0x01, 1, 'Vblank allowed');
 
         this.cpu.mockInstruction(0xfb/* ei */);
-        this.cpu.start();
+        this.cpu.frame();
         assert.equal(this.cpu.If() & this.cpu.IF_VBLANK_ON, 1, 'Interrupt Request is turned on');
 
         const pc = this.cpu.pc();
@@ -166,7 +166,7 @@ describe('Interruptions', () => {
         assert.equal(this.cpu.ime(), 1, 'IME enabled');
         assert.equal(this.cpu.If(), 0b00001, 'Vblank requested');
 
-        this.cpu.start();
+        this.cpu.frame();
 
         assert.equal(this.cpu.ime(), 0, 'IME disabled');
         assert.equal(this.cpu.If() & this.cpu.IF_VBLANK_OFF, 0, 'Interrupt Request is turned off');
