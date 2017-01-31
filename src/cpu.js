@@ -903,7 +903,7 @@ export default class CPU {
         return;
       }
 
-      this._cpuCycle(pc_stop);
+      this.cpuCycle(pc_stop);
     } while (!this._isVBlankInterruptRequested());
 
     if (!this._lastInstrWasEI) this._resetVBlank();
@@ -914,9 +914,9 @@ export default class CPU {
   }
 
   /**
-   * @private
+   *
    */
-  _cpuCycle(){
+  cpuCycle(){
     if (this._isTimerInterruptRequested()){
       this._handleTimerInterrupt();
     }
@@ -1256,7 +1256,9 @@ export default class CPU {
    * @private
    */
   _nextOpcode() {
-    return this.mmu.readByteAt(this._r.pc++);
+    const opcode = this.mmu.readByteAt(this._r.pc);
+    this._r.pc = (this._r.pc + 1) % 0x10000;
+    return opcode;
   }
 
   /**

@@ -117,6 +117,16 @@ describe('CPU Instruction Set', function() {
 
   });
 
+  describe('Program Counter', () => {
+    it('should not allow the program counter to overflow', () => {
+      cpu.setPC(0xffff);
+      cpu.mockInstruction(0x00/* nop */);
+      cpu.cpuCycle();
+
+      assert.equal(cpu.pc(), 0, 'pc loops');
+    });
+  });
+
   describe('NOP', () => {
     it('should run NOP in 1 machine cycle', () => {
       const m = cpu.m();

@@ -193,7 +193,7 @@ describe('Interruptions', () => {
       assert.equal(this.cpu.If(), 0x00, 'interrupt not requested');
 
       for(let m = 0; m < 0x100*4; m++) {
-        this.cpu._cpuCycle();
+        this.cpu.cpuCycle();
       }
 
       assert.equal(this.cpu.If(), 0x04, 'timer overflow interrupt requested');
@@ -228,9 +228,9 @@ describe('Interruptions', () => {
       this.cpu.halt();
 
       for(let m = 0; m < 0x100*4; m++) {
-        this.cpu._cpuCycle(); // cause time overflow
+        this.cpu.cpuCycle(); // cause time overflow
       }
-      this.cpu._cpuCycle(); // cpu is not halted, should execute next instruction
+      this.cpu.cpuCycle(); // cpu is not halted, should execute next instruction
 
       assert.equal(called, 1, 'called when timer exits halt');
     });
