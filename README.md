@@ -11,12 +11,14 @@ Goal of this project is to write the GAME BOY&trade; CPU and rest of controllers
 * [Try it online!](http://loociano.github.io/gb-ES6) 
 * Offline: clone/download this repository and open `index.html` in your browser.
 
-### Hardware tests
+### Hardware accuracy 
+
+#### Blargg's CPU instructions tests:
 
 | Test          | Result|  
 | ------------- |--------------|
-| Blargg test 1 | ✗ Test 6 DAA fails|
-| Blargg test 2 | ✗ Fails     |
+| Blargg test 1 | ✓|
+| Blargg test 2 | ✓     |
 | Blargg test 3 | ✓     |
 | Blargg test 4 | ✓     |
 | Blargg test 5 | ✓     |
@@ -25,7 +27,7 @@ Goal of this project is to write the GAME BOY&trade; CPU and rest of controllers
 | Blargg test 8 | ✓     |
 | Blargg test 9 | ✓     |
 | Blargg test 10| ✓     |
-| Blargg test 11| ✗ Fails 34 27     |
+| Blargg test 11| ✓     |
 
 ## Develop
 
