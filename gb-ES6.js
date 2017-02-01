@@ -2996,8 +2996,8 @@ var CPU = function () {
      */
 
   }, {
-    key: '_setIf',
-    value: function _setIf(value) {
+    key: 'setIf',
+    value: function setIf(value) {
       this.mmu.writeByteAt(this.mmu.ADDR_IF, value);
     }
 
@@ -3109,63 +3109,39 @@ var CPU = function () {
     }
 
     /**
-     * Main loop
-     * @param {number} pc_stop
-     */
-
-  }, {
-    key: 'start',
-    value: function start() {
-      var pc_stop = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : -1;
-
-      try {
-        this.frame(pc_stop);
-      } catch (e) {
-        _logger2.default.error(e.stack);
-        throw e;
-      }
-    }
-
-    /**
      * Runs cpu during a frame
      */
 
   }, {
     key: 'frame',
     value: function frame(pc_stop) {
-
-      do {
-        if (this.isStopped() || pc_stop !== -1 && this._r.pc === pc_stop) {
-          return;
-        }
-
-        this._cpuCycle(pc_stop);
-      } while (!this._isVBlankInterruptRequested());
-
-      if (!this._lastInstrWasEI) this._resetVBlank();
-
-      if (this._shouldStartVBlankRoutine()) {
-        this._handleVBlankInterrupt();
+      while (!this._shouldStartVBlankRoutine()) {
+        if (this.isStopped() || pc_stop !== -1 && this._r.pc === pc_stop) return;
+        this.cpuCycle(pc_stop);
       }
+      this._handleVBlankInterrupt();
     }
 
     /**
-     * @private
+     * Runs a CPU instruction cycle, including interruption handle and LCD/DMA/DIV updates
      */
 
   }, {
-    key: '_cpuCycle',
-    value: function _cpuCycle() {
-      if (this._isTimerInterruptRequested()) {
-        this._handleTimerInterrupt();
-      }
+    key: 'cpuCycle',
+    value: function cpuCycle() {
 
       var m = this._m;
 
-      if (!this.isHalted()) {
-        this.execute();
+      if (this._shouldHandleLCDInterrupt()) {
+        this._handleLYCInterrupt();
+      } else if (this._shouldHandleTimerInterrupt()) {
+        this._handleTimerInterrupt();
       } else {
-        this._m++;
+        if (!this.isHalted()) {
+          this.execute();
+        } else {
+          this._m++;
+        }
       }
 
       if (this._isTimerOn()) {
@@ -3176,12 +3152,8 @@ var CPU = function () {
       this._handleLCD();
       this._handleDMA();
 
-      if (this._r.pc === this.mmu.ADDR_GAME_START) {
+      if (this.mmu.isRunningBIOS() && this._r.pc === this.mmu.ADDR_GAME_START) {
         this._afterBIOS();
-      }
-
-      if (this._isLYCInterrupt()) {
-        this._handleLYCInterrupt();
       }
     }
 
@@ -3206,17 +3178,36 @@ var CPU = function () {
     value: function _updateTimer(instrCycles) {
       var current = this.mmu.readByteAt(this.mmu.ADDR_TIMA);
       this._t += instrCycles;
-      if (this._t >= 4) {
-        var newValue = current + 1; // TODO: frequency
+
+      if (this._t >= this._getTicksToIncreaseTimer()) {
+        var newValue = current + 1;
         if (newValue > 0xff) {
-          this._setIf(this.If() | this.mmu.IF_TIMER_ON);
-          if (this._halt && (this.ie() & this.If() & this.mmu.IF_TIMER_ON) === this.mmu.IF_TIMER_ON) {
-            this._halt = false;
-          }
+          this.setIf(this.If() | this.mmu.IF_TIMER_ON);
           newValue = this.mmu.readByteAt(this.mmu.ADDR_TMA);
         }
         this.mmu.writeByteAt(this.mmu.ADDR_TIMA, newValue);
         this._t = 0;
+      }
+    }
+
+    /**
+     * @returns {number}
+     * @private
+     */
+
+  }, {
+    key: '_getTicksToIncreaseTimer',
+    value: function _getTicksToIncreaseTimer() {
+      var clock = this.mmu.readByteAt(this.mmu.ADDR_TAC) & this.mmu.TAC_MASK_CLOCK;
+      switch (clock) {
+        case 0:
+          return 256;
+        case 1:
+          return 4;
+        case 2:
+          return 16;
+        case 3:
+          return 64;
       }
     }
 
@@ -3226,9 +3217,9 @@ var CPU = function () {
      */
 
   }, {
-    key: '_isTimerInterruptRequested',
-    value: function _isTimerInterruptRequested() {
-      return (this.ie() & this.If() & this.mmu.IF_TIMER_ON) === this.mmu.IF_TIMER_ON;
+    key: '_shouldHandleTimerInterrupt',
+    value: function _shouldHandleTimerInterrupt() {
+      return this._r.ime === 1 && (this.ie() & this.If() & this.mmu.IF_TIMER_ON) === this.mmu.IF_TIMER_ON;
     }
 
     /**
@@ -3238,11 +3229,11 @@ var CPU = function () {
   }, {
     key: '_handleTimerInterrupt',
     value: function _handleTimerInterrupt() {
-      if (this._r.ime === 0) {
-        return false;
-      }
-      this._setIf(this.If() & this.mmu.IF_TIMER_OFF);
+      this._halt = false;
+      this.setIf(this.If() & this.mmu.IF_TIMER_OFF);
+      this.di();
       this._rst_50();
+      this._m = 0;
     }
 
     /**
@@ -3251,9 +3242,9 @@ var CPU = function () {
      */
 
   }, {
-    key: '_isLYCInterrupt',
-    value: function _isLYCInterrupt() {
-      return (this.ie() & this.If() & this.mmu.IF_STAT_ON) >> 1 === 1;
+    key: '_shouldHandleLCDInterrupt',
+    value: function _shouldHandleLCDInterrupt() {
+      return this._r.ime === 1 && (this.ie() & this.If() & this.mmu.IF_STAT_ON) >> 1 === 1;
     }
 
     /**
@@ -3263,10 +3254,9 @@ var CPU = function () {
   }, {
     key: '_handleLYCInterrupt',
     value: function _handleLYCInterrupt() {
-      if (this._r.ime === 0) {
-        return false;
-      }
-      this._setIf(this.If() & this.mmu.IF_STAT_OFF);
+      this._halt = false;
+      this.setIf(this.If() & this.mmu.IF_STAT_OFF);
+      this.di();
       this._rst_48();
     }
 
@@ -3399,16 +3389,6 @@ var CPU = function () {
     }
 
     /**
-     * @returns {boolean} true if vblank
-     */
-
-  }, {
-    key: '_isVBlankInterruptRequested',
-    value: function _isVBlankInterruptRequested() {
-      return (this.If() & this.IF_VBLANK_ON) === 1;
-    }
-
-    /**
      * @returns {boolean}
      * @private
      */
@@ -3416,7 +3396,7 @@ var CPU = function () {
   }, {
     key: '_shouldStartVBlankRoutine',
     value: function _shouldStartVBlankRoutine() {
-      if (this._r.ime === 1 && (this.ie() & this.IF_VBLANK_ON) === 1) {
+      if (this._r.ime === 1 && (this.ie() & this.If() & this.IF_VBLANK_ON) === 1) {
         if (this._lastInstrWasEI) {
           return false; // wait one instruction more
         } else {
@@ -3436,6 +3416,7 @@ var CPU = function () {
     value: function _handleVBlankInterrupt() {
 
       this._halt = false;
+      this.setIf(this.If() & this.IF_VBLANK_OFF);
 
       // BIOS does not have an vblank routine to execute
       if (!this.mmu.isRunningBIOS()) {
@@ -3457,18 +3438,7 @@ var CPU = function () {
   }, {
     key: '_requestVBlankInterrupt',
     value: function _requestVBlankInterrupt() {
-      this._setIf(this.If() | this.IF_VBLANK_ON);
-    }
-
-    /**
-     * Resets vblank when dispatched.
-     * @private
-     */
-
-  }, {
-    key: '_resetVBlank',
-    value: function _resetVBlank() {
-      this._setIf(this.If() & this.IF_VBLANK_OFF);
+      this.setIf(this.If() | this.IF_VBLANK_ON);
     }
 
     /**
@@ -3480,7 +3450,19 @@ var CPU = function () {
     key: 'runUntil',
     value: function runUntil(pc_stop) {
       while (this.pc() !== pc_stop) {
-        this.start(pc_stop);
+        this.frame(pc_stop);
+      }
+    }
+
+    /**
+     * @param cycles
+     */
+
+  }, {
+    key: 'runCycles',
+    value: function runCycles(cycles) {
+      while (cycles-- > 0) {
+        this.cpuCycle();
       }
     }
 
@@ -3570,7 +3552,12 @@ var CPU = function () {
   }, {
     key: '_nextOpcode',
     value: function _nextOpcode() {
-      return this.mmu.readByteAt(this._r.pc++);
+      if (this._r.pc > this.mmu.ADDR_HRAM_END) {
+        throw new Error('PC overflown');
+      }
+      var opcode = this.mmu.readByteAt(this._r.pc);
+      this._r.pc = (this._r.pc + 1) % 0x10000;
+      return opcode;
     }
 
     /**
@@ -9086,6 +9073,9 @@ var MMU = function () {
     // Working RAM
     this.ADDR_WRAM_START = 0xc000;
 
+    // High working RAM
+    this.ADDR_HRAM_END = 0xfffd;
+
     // OAM
     this.ADDR_OAM_START = 0xfe00;
     this.ADDR_OAM_END = 0xfe9f;
@@ -9158,6 +9148,7 @@ var MMU = function () {
     this.MASK_STAT_MODE = 0x03;
     this.MASK_STAT_LYC_ON = 0x04;
     this.MASK_STAT_LYC_OFF = 0xfb;
+    this.MASK_STAT_LYC_INTERRUPT = 0x40;
 
     this.MASK_OBJ_ATTR_PRIORITY = 0x80;
     this.MASK_OBJ_ATTR_VFLIP = 0x40;
@@ -9181,6 +9172,7 @@ var MMU = function () {
 
     // Timer
     this.MASK_TIMER_ON = 0x04;
+    this.TAC_MASK_CLOCK = 0x03;
 
     // OBJ
     this.MAX_OBJ = 40;
@@ -9949,7 +9941,9 @@ var MMU = function () {
     value: function _updateStatLyc() {
       if (this.ly() === this.lyc()) {
         this.writeByteAt(this.ADDR_STAT, this.stat() | this.MASK_STAT_LYC_ON);
-        this._setIf(this._If() | this.IF_STAT_ON);
+        if ((this.stat() & this.MASK_STAT_LYC_INTERRUPT) === this.MASK_STAT_LYC_INTERRUPT) {
+          this._setIf(this._If() | this.IF_STAT_ON);
+        }
       } else {
         this.writeByteAt(this.ADDR_STAT, this.stat() & this.MASK_STAT_LYC_OFF);
       }
@@ -10880,21 +10874,25 @@ function init(arrayBuffer) {
  * Main loop
  */
 function frame() {
-  window.requestAnimationFrame(frame);
-  now = Date.now();
-  delta = now - then;
+  try {
+    window.requestAnimationFrame(frame);
+    now = Date.now();
+    delta = now - then;
 
-  if (delta > INTERVAL) {
-    // fps limitation logic, Kindly borrowed from Rishabh
-    // http://codetheory.in/controlling-the-frame-rate-with-requestanimationframe
-    then = now - delta % INTERVAL;
-    if (++frames > MAX_FPS) {
-      updateTitle(Math.floor(frames * 1000 / (new Date() - ref) / 60 * 100));
-      frames = 0;
-      ref = new Date();
+    if (delta > INTERVAL) {
+      // fps limitation logic, Kindly borrowed from Rishabh
+      // http://codetheory.in/controlling-the-frame-rate-with-requestanimationframe
+      then = now - delta % INTERVAL;
+      if (++frames > MAX_FPS) {
+        updateTitle(Math.floor(frames * 1000 / (new Date() - ref) / 60 * 100));
+        frames = 0;
+        ref = new Date();
+      }
+      cpu.frame();
+      cpu.paint();
     }
-    cpu.start();
-    cpu.paint();
+  } catch (e) {
+    console.error(e.stack);
   }
 }
 
