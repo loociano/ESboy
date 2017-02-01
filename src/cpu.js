@@ -942,9 +942,6 @@ export default class CPU {
       let newValue = current + 1; // TODO: frequency
       if (newValue > 0xff){
         this.setIf(this.If() | this.mmu.IF_TIMER_ON);
-        if (this._halt && (this.ie() & this.If() & this.mmu.IF_TIMER_ON) === this.mmu.IF_TIMER_ON){
-          this._halt = false;
-        }
         newValue = this.mmu.readByteAt(this.mmu.ADDR_TMA);
       }
       this.mmu.writeByteAt(this.mmu.ADDR_TIMA, newValue);
@@ -964,6 +961,7 @@ export default class CPU {
    * @private
    */
   _handleTimerInterrupt(){
+    this._halt = false;
     this.setIf(this.If() & this.mmu.IF_TIMER_OFF);
     this.di();
     this._rst_50();
@@ -981,6 +979,7 @@ export default class CPU {
    * @private
    */
   _handleLYCInterrupt(){
+    this._halt = false;
     this.setIf(this.If() & this.mmu.IF_STAT_OFF);
     this.di();
     this._rst_48();

@@ -4,7 +4,6 @@ import Loader from '../src/loader';
 import assert from 'assert';
 import config from '../src/config';
 import LCDMock from './mock/lcdMock';
-import MMUMock from './mock/mmuMock';
 import StorageMock from './mock/storageMock';
 import {describe, beforeEach, it} from 'mocha';
 
@@ -14,8 +13,8 @@ describe('Interruptions', () => {
   config.TEST = true;
 
   beforeEach(function() {
-    const loader = new Loader('./roms/blargg/cpu_instrs/cpu_instrs.gb');
-    this.cpu = new CPU(new MMU(loader.asUint8Array(), new StorageMock()), new LCDMock());
+    this.rom32KB = new Uint8Array(0x8000);
+    this.cpu = new CPU(new MMU(this.rom32KB, new StorageMock()), new LCDMock());
     /**
      * @param {number} pc
      */
@@ -100,6 +99,18 @@ describe('Interruptions', () => {
       this.cpu.frame();
 
       assert.equal(called, 1);
+    });
+
+    it('should exit halt', function() {
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_STAT, 0b01000000); // LYC=LY interrupt on
+      this.cpu.setIe(0b00000010); // Allow STAT interrupt
+      this.cpu.setPC(0xc000);
+      this.cpu.mockInstruction(0x76/* halt */);
+
+      this.cpu.runUntil(0x48/* stat interrupt addr */);
+
+      assert.equal(this.cpu.isHalted(), false);
     });
 
   });
