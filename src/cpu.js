@@ -918,7 +918,7 @@ export default class CPU {
     this._handleLCD();
     this._handleDMA();
 
-    if (this._r.pc === this.mmu.ADDR_GAME_START){
+    if (this.mmu.isRunningBIOS() && this._r.pc === this.mmu.ADDR_GAME_START){
       this._afterBIOS();
     }
   }
@@ -938,14 +938,29 @@ export default class CPU {
   _updateTimer(instrCycles){
     const current = this.mmu.readByteAt(this.mmu.ADDR_TIMA);
     this._t += instrCycles;
-    if (this._t >= 4){
-      let newValue = current + 1; // TODO: frequency
+
+    if (this._t >= this._getTicksToIncreaseTimer()){
+      let newValue = current + 1;
       if (newValue > 0xff){
         this.setIf(this.If() | this.mmu.IF_TIMER_ON);
         newValue = this.mmu.readByteAt(this.mmu.ADDR_TMA);
       }
       this.mmu.writeByteAt(this.mmu.ADDR_TIMA, newValue);
       this._t = 0;
+    }
+  }
+
+  /**
+   * @returns {number}
+   * @private
+   */
+  _getTicksToIncreaseTimer(){
+    const clock = this.mmu.readByteAt(this.mmu.ADDR_TAC) & this.mmu.TAC_MASK_CLOCK;
+    switch(clock){
+      case 0: return 256;
+      case 1: return 4;
+      case 2: return 16;
+      case 3: return 64;
     }
   }
 
@@ -965,6 +980,7 @@ export default class CPU {
     this.setIf(this.If() & this.mmu.IF_TIMER_OFF);
     this.di();
     this._rst_50();
+    this._m = 0;
   }
 
   /**
@@ -1223,7 +1239,9 @@ export default class CPU {
    * @private
    */
   _nextOpcode() {
-    if (this._r.pc > this.mmu.ADDR_HRAM_END) throw new Error(`PC overflown`);
+    if (this._r.pc > this.mmu.ADDR_HRAM_END) {
+      throw new Error(`PC overflown`);
+    }
     const opcode = this.mmu.readByteAt(this._r.pc);
     this._r.pc = (this._r.pc + 1) % 0x10000;
     return opcode;

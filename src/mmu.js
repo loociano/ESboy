@@ -125,6 +125,7 @@ export default class MMU {
     this.MASK_STAT_MODE = 0x03;
     this.MASK_STAT_LYC_ON = 0x04;
     this.MASK_STAT_LYC_OFF = 0xfb;
+    this.MASK_STAT_LYC_INTERRUPT = 0x40;
 
     this.MASK_OBJ_ATTR_PRIORITY = 0x80;
     this.MASK_OBJ_ATTR_VFLIP = 0x40;
@@ -148,6 +149,7 @@ export default class MMU {
 
     // Timer
     this.MASK_TIMER_ON = 0x04;
+    this.TAC_MASK_CLOCK = 0x03;
 
     // OBJ
     this.MAX_OBJ = 40;
@@ -808,7 +810,9 @@ export default class MMU {
   _updateStatLyc(){
     if (this.ly() === this.lyc()){
       this.writeByteAt(this.ADDR_STAT, this.stat() | this.MASK_STAT_LYC_ON);
-      this._setIf(this._If() | this.IF_STAT_ON);
+      if ((this.stat() & this.MASK_STAT_LYC_INTERRUPT) === this.MASK_STAT_LYC_INTERRUPT) {
+        this._setIf(this._If() | this.IF_STAT_ON);
+      }
     } else {
       this.writeByteAt(this.ADDR_STAT, this.stat() & this.MASK_STAT_LYC_OFF);
     }

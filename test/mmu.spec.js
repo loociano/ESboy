@@ -379,6 +379,7 @@ describe('MMU', () => {
     });
 
     it('should update STAT.2 when LY equals LYC', () => {
+      mmu.writeByteAt(mmu.ADDR_STAT, 0b01000000);
 
       mmu.writeByteAt(mmu.ADDR_LYC, 1);
       mmu.setLy(2);

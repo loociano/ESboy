@@ -1,10 +1,10 @@
 import CPU from '../src/cpu';
 import MMU from '../src/mmu';
-import Loader from '../src/loader';
 import assert from 'assert';
 import config from '../src/config';
 import LCDMock from './mock/lcdMock';
 import StorageMock from './mock/storageMock';
+import Utils from '../src/utils';
 import {describe, beforeEach, it} from 'mocha';
 
 describe('Interruptions', () => {
@@ -196,19 +196,32 @@ describe('Interruptions', () => {
   describe('Timer overflow interrupt', () => {
 
     it('should request interrupt when timer overflows', function() {
-      this.cpu.setPC(0x150);
-      this.cpu.execute = () => { this.cpu._m++; };
-      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TAC, 1); // chose 262,144 Khz (overflow in ~1ms)
-      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TIMA, 0);
-      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TAC, 0x05); // start timer
 
-      assert.equal(this.cpu.If(), 0x00, 'interrupt not requested');
+      [ {clock: 0, cycles: 0x100*256},
+        {clock: 1, cycles: 0x100*4},
+        {clock: 2, cycles: 0x100*16},
+        {clock: 3, cycles: 0x100*64}
+        ].map(({clock, cycles}) => {
 
-      for(let m = 0; m < 0x100*4; m++) {
-        this.cpu.cpuCycle();
-      }
+          this.cpu.setIf(0);
+          this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0); // lcd off
+          this.cpu.setIe(0x04); // allow timer interrupt
+          this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TAC, clock);
+          this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TIMA, 0);
+          this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TAC, clock | 0x04); // start timer
 
-      assert.equal(this.cpu.If(), 0x04, 'timer overflow interrupt requested');
+          assert.equal(this.cpu.If(), 0x00, `clock:${Utils.hex2(clock)}, interrupt not requested`);
+
+          for(let m = 0; m < cycles; m++) {
+            this.cpu.setPC(0x150); // to prevent pc overflow
+            this.cpu.cpuCycle();
+          }
+
+          assert.equal(this.cpu.mmu.readByteAt(this.cpu.mmu.ADDR_TIMA), 0, `${Utils.hex2(clock)}`);
+          assert.equal(this.cpu.If() & this.cpu.mmu.IF_TIMER_ON, 0x04, `timer with clock ${Utils.hex2(clock)} interrupt requested`);
+          this.cpu.cpuCycle(); // handle interruption
+          this.cpu.reti();
+      });
     });
 
     it('should jump to timer overflow routine', function() {
