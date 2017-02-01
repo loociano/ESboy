@@ -72,6 +72,7 @@ function init(arrayBuffer){
  */
 function frame(){
   try {
+    window.requestAnimationFrame(frame);
     now = Date.now();
     delta = now - then;
 
@@ -86,7 +87,6 @@ function frame(){
       }
       cpu.frame();
       cpu.paint();
-      window.requestAnimationFrame(frame);
     }
   } catch(e){
     console.error(e.stack);
