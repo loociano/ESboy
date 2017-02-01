@@ -794,7 +794,7 @@ export default class CPU {
    * Sets Interrupt flags
    * @param value
    */
-  _setIf(value){
+  setIf(value){
     this.mmu.writeByteAt(this.mmu.ADDR_IF, value);
   }
 
@@ -884,36 +884,30 @@ export default class CPU {
    * Runs cpu during a frame
    */
   frame(pc_stop){
-
-    do {
-      if (this.isStopped() || (pc_stop !== -1 && this._r.pc === pc_stop)){
-        return;
-      }
-
+    while (!this._shouldStartVBlankRoutine()){
+      if (this.isStopped() || (pc_stop !== -1 && this._r.pc === pc_stop)) return;
       this.cpuCycle(pc_stop);
-    } while (!this._isVBlankInterruptRequested());
-
-    if (!this._lastInstrWasEI) this._resetVBlank();
-
-    if (this._shouldStartVBlankRoutine()){
-      this._handleVBlankInterrupt();
     }
+    this._handleVBlankInterrupt();
   }
 
   /**
-   *
+   * Runs a CPU instruction cycle, including interruption handle and LCD/DMA/DIV updates
    */
   cpuCycle(){
-    if (this._isTimerInterruptRequested()){
-      this._handleTimerInterrupt();
-    }
 
     const m = this._m;
 
-    if (!this.isHalted()) {
-      this.execute();
+    if (this._shouldHandleLCDInterrupt()){
+      this._handleLYCInterrupt();
+    } else if (this._shouldHandleTimerInterrupt()){
+      this._handleTimerInterrupt();
     } else {
-      this._m++;
+      if (!this.isHalted()) {
+        this.execute();
+      } else {
+        this._m++;
+      }
     }
 
     if (this._isTimerOn()){
@@ -926,10 +920,6 @@ export default class CPU {
 
     if (this._r.pc === this.mmu.ADDR_GAME_START){
       this._afterBIOS();
-    }
-
-    if (this._isLYCInterrupt()){
-      this._handleLYCInterrupt();
     }
   }
 
@@ -951,7 +941,7 @@ export default class CPU {
     if (this._t >= 4){
       let newValue = current + 1; // TODO: frequency
       if (newValue > 0xff){
-        this._setIf(this.If() | this.mmu.IF_TIMER_ON);
+        this.setIf(this.If() | this.mmu.IF_TIMER_ON);
         if (this._halt && (this.ie() & this.If() & this.mmu.IF_TIMER_ON) === this.mmu.IF_TIMER_ON){
           this._halt = false;
         }
@@ -966,18 +956,16 @@ export default class CPU {
    * @returns {boolean}
    * @private
    */
-  _isTimerInterruptRequested(){
-    return (this.ie() & this.If() & this.mmu.IF_TIMER_ON) === this.mmu.IF_TIMER_ON;
+  _shouldHandleTimerInterrupt(){
+    return this._r.ime === 1 && (this.ie() & this.If() & this.mmu.IF_TIMER_ON) === this.mmu.IF_TIMER_ON;
   }
 
   /**
    * @private
    */
   _handleTimerInterrupt(){
-    if (this._r.ime === 0){
-      return false;
-    }
-    this._setIf(this.If() & this.mmu.IF_TIMER_OFF);
+    this.setIf(this.If() & this.mmu.IF_TIMER_OFF);
+    this.di();
     this._rst_50();
   }
 
@@ -985,18 +973,16 @@ export default class CPU {
    * @returns {boolean}
    * @private
    */
-  _isLYCInterrupt(){
-    return ( (this.ie() & this.If() & this.mmu.IF_STAT_ON) >> 1) === 1;
+  _shouldHandleLCDInterrupt(){
+    return this._r.ime === 1 && ( (this.ie() & this.If() & this.mmu.IF_STAT_ON) >> 1) === 1;
   }
 
   /**
    * @private
    */
   _handleLYCInterrupt(){
-    if (this._r.ime === 0){
-      return false;
-    }
-    this._setIf(this.If() & this.mmu.IF_STAT_OFF);
+    this.setIf(this.If() & this.mmu.IF_STAT_OFF);
+    this.di();
     this._rst_48();
   }
 
@@ -1109,18 +1095,11 @@ export default class CPU {
   }
 
   /**
-   * @returns {boolean} true if vblank
-   */
-  _isVBlankInterruptRequested() {
-    return (this.If() & this.IF_VBLANK_ON) === 1;
-  }
-
-  /**
    * @returns {boolean}
    * @private
    */
   _shouldStartVBlankRoutine(){
-    if (this._r.ime === 1 && (this.ie() & this.IF_VBLANK_ON) === 1){
+    if (this._r.ime === 1 && (this.ie() & this.If() & this.IF_VBLANK_ON) === 1){
       if (this._lastInstrWasEI){
         return false; // wait one instruction more
       } else {
@@ -1137,6 +1116,7 @@ export default class CPU {
   _handleVBlankInterrupt(){
 
     this._halt = false;
+    this.setIf(this.If() & this.IF_VBLANK_OFF);
 
     // BIOS does not have an vblank routine to execute
     if (!this.mmu.isRunningBIOS()) {
@@ -1154,15 +1134,7 @@ export default class CPU {
    * @private
    */
   _requestVBlankInterrupt(){
-    this._setIf(this.If() | this.IF_VBLANK_ON);
-  }
-
-  /**
-   * Resets vblank when dispatched.
-   * @private
-   */
-  _resetVBlank(){
-    this._setIf(this.If() & this.IF_VBLANK_OFF);
+    this.setIf(this.If() | this.IF_VBLANK_ON);
   }
 
   /**
@@ -1172,6 +1144,15 @@ export default class CPU {
   runUntil(pc_stop){
     while (this.pc() !== pc_stop){
       this.frame(pc_stop);
+    }
+  }
+
+  /**
+   * @param cycles
+   */
+  runCycles(cycles){
+    while (cycles-- > 0){
+      this.cpuCycle();
     }
   }
 

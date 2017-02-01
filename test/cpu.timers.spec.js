@@ -16,6 +16,8 @@ describe('Dividers', () => {
     mmu = new MMUMock();
     mmu.lcdc = () => 0; // OFF
     cpu = new CPU(mmu, new LCDMock());
+    cpu.setIe(0x1); // enable vblank interruption
+    cpu.execute = () => { cpu._m++ };
   });
 
   it('should increase first bit of divider', () => {
@@ -24,7 +26,7 @@ describe('Dividers', () => {
       this._div = (this._div + n) % 0xffff;
       this._memory[this.ADDR_DIV] = Utils.msb(this._div);
       if (this._div >= (1 << 8)){
-        this._memory[this.ADDR_IF] = 1; // request vblank interrupt
+        this._memory[mmu.ADDR_IF] = 1; // request vblank interrupt
       }
     };
 

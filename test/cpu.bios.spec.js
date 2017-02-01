@@ -15,10 +15,11 @@ describe('BIOS execution', function() {
 
   const stopAt = 0x0100;
 
-  const loader = new Loader('./roms/blargg/cpu_instrs/cpu_instrs.gb');
+  const loader = new Loader('./roms/blargg/cpu_instrs/cpu_instrs.gb'); // ROM has to have Nintendo logo
   const mmu = new MMU(loader.asUint8Array(), new StorageMock());
   const lcd = new LCD(mmu, new ContextMock(), new ContextMock(), new ContextMock());
   const cpu = new CPU(mmu, lcd);
+  mmu.writeByteAt(mmu.ADDR_LCDC, 0b10000000); // LCD on
 
   lcd.getBGTileLineData = function(grid_x, grid_y){
     const index = (grid_x*this.TILE_WIDTH + grid_y*this.TILE_WIDTH * this._HW_WIDTH) * 4;

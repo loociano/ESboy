@@ -3,8 +3,8 @@ import MMU from '../src/mmu';
 import Loader from '../src/loader';
 import assert from 'assert';
 import config from '../src/config';
-import Utils from '../src/utils';
-import lcdMock from './mock/lcdMock';
+import LCDMock from './mock/lcdMock';
+import MMUMock from './mock/mmuMock';
 import StorageMock from './mock/storageMock';
 import {describe, beforeEach, it} from 'mocha';
 
@@ -15,19 +15,13 @@ describe('Interruptions', () => {
 
   beforeEach(function() {
     const loader = new Loader('./roms/blargg/cpu_instrs/cpu_instrs.gb');
-    this.cpu = new CPU(new MMU(loader.asUint8Array(), new StorageMock()), new lcdMock());
+    this.cpu = new CPU(new MMU(loader.asUint8Array(), new StorageMock()), new LCDMock());
     /**
      * @param {number} pc
      */
     this.cpu.setPC = function(pc){
       this.mmu.setRunningBIOS(false);
       this._r.pc = pc;
-    };
-    /**
-     * @param {number} If
-     */
-    this.cpu.setIf = function(If){
-      this._setIf(If);
     };
     /**
      * NOP
@@ -148,36 +142,43 @@ describe('Interruptions', () => {
     });
   
     it('should handle vertical blanking interrupt', function() {
+      this.cpu.mmu.setRunningBIOS(false);
+      this.cpu._r.pc = 0xc000;
+      this.cpu.setIf(0b00001); // Request vblank
+      this.cpu.setIe(0b00001); // Allow vblank
+      this.cpu._r.ime = 0;
+      this.cpu.mockInstruction(0xfb/* ei */);
 
-        this.cpu.setPC(0xc000);
-        this.cpu.setIf(0b00001);
-        this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_IE, 0x01); // Allow vblank
-        assert.equal(this.cpu.ie() & 0x01, 1, 'Vblank allowed');
+      this.cpu.runCycles(1); // should NOT vblank interrupt, last instruction was EI
 
-        this.cpu.mockInstruction(0xfb/* ei */);
-        this.cpu.frame();
-        assert.equal(this.cpu.If() & this.cpu.IF_VBLANK_ON, 1, 'Interrupt Request is turned on');
+      assert.equal(this.cpu.pc(), 0xc001);
+      assert.equal(this.cpu.If(), 1);
+      assert.equal(this.cpu.ie(), 1);
+      assert.equal(this.cpu.ime(), 1);
 
-        const pc = this.cpu.pc();
-        assert.equal(this.cpu.pc(), 0xc001);
+      this.cpu.mockInstruction(0xc3/* jp */,0x37,0x06);
 
-        this.cpu.mockInstruction(0xc3/* jp */,0x37,0x06);
+      this.cpu.frame();
 
-        assert.equal(this.cpu.ime(), 1, 'IME enabled');
-        assert.equal(this.cpu.If(), 0b00001, 'Vblank requested');
+      assert.equal(this.cpu.pc(), 0x40 /* vbl */);
+      assert.equal(this.cpu.ime(), 0, 'IME disabled');
+      assert.equal(this.cpu.If(), 0);
+      assert.equal(this.cpu.ie(), 1);
+      assert.equal(this.cpu.peek_stack(1), 0x06, 'high pc on stack');
+      assert.equal(this.cpu.peek_stack(), 0x37, 'low pc on stack');
 
-        this.cpu.frame();
+      this.cpu.runCycles(1);
 
-        assert.equal(this.cpu.ime(), 0, 'IME disabled');
-        assert.equal(this.cpu.If() & this.cpu.IF_VBLANK_OFF, 0, 'Interrupt Request is turned off');
-        assert.equal(this.cpu.peek_stack(1), 0x06, 'high pc on stack');
-        assert.equal(this.cpu.peek_stack(), 0x37, 'low pc on stack');
-        assert.equal(this.cpu.pc(), this.cpu.ADDR_VBLANK_INTERRUPT);
+      assert.equal(this.cpu.pc(), 0x41, 'PC advances in vblank routine');
 
-        this.cpu.runUntil(this.cpu.ADDR_VBLANK_INTERRUPT + 1);
+      this.cpu.mmu._rom[0x41] = 0xd9; /* reti */
 
-        assert.equal(this.cpu.pc(), this.cpu.ADDR_VBLANK_INTERRUPT + 1, 'PC advances in vblank routine');
-        assert.equal(this.cpu.If(), 0x00, 'Vblank dispatched');
+      this.cpu.runCycles(1); // reti
+
+      assert.equal(this.cpu.pc(), 0x0637);
+      assert.equal(this.cpu.ime(), 1);
+      assert.equal(this.cpu.If(), 0);
+      assert.equal(this.cpu.ie(), 1);
     });
   });
 
@@ -230,11 +231,87 @@ describe('Interruptions', () => {
       for(let m = 0; m < 0x100*4; m++) {
         this.cpu.cpuCycle(); // cause time overflow
       }
-      this.cpu.cpuCycle(); // cpu is not halted, should execute next instruction
+      this.cpu.cpuCycle(); // cpu exits halts and enters the timer routine
+      this.cpu.cpuCycle(); // execute opcode
 
       assert.equal(called, 1, 'called when timer exits halt');
     });
 
+  });
+
+  describe('Interrupt priority VBL > LCD > TIM', () => {
+    it('should handle interrupts with priority', function() {
+      const rom32KB = new Uint8Array(0x8000);
+      rom32KB[0x40/* vbl */] = 0; /* nop */
+      rom32KB[0x41/* vbl */] = 0xd9; /* reti */
+      rom32KB[0x48/* stat */] = 0;
+      rom32KB[0x49/* stat */] = 0xd9;
+      rom32KB[0x50/* timer */] = 0;
+      rom32KB[0x51/* timer */] = 0xd9;
+
+      const mmu = new MMU(rom32KB);
+      mmu.setRunningBIOS(false);
+
+      this.cpu = new CPU(mmu, new LCDMock());
+
+      this.cpu.setIe(0b00000111); // VBL + LCD + TIMER
+      this.cpu._r.pc = 0x150;
+      this.cpu.setIf(0b00000111);
+
+      this.cpu.frame(); // execute until VBL is handled
+
+      assert.equal(this.cpu.pc(), 0x40);
+      assert.equal(this.cpu.If(), 0b00000110, 'VBL dispatched');
+      assert.equal(this.cpu.ie(), 0b00000111);
+      assert.equal(this.cpu.ime(), 0);
+
+      this.cpu.runCycles(1); // inside routine: execute nop
+
+      assert.equal(this.cpu.pc(), 0x41);
+
+      this.cpu.runCycles(1); // inside routine: execute reti
+
+      assert.equal(this.cpu.pc(), 0x150);
+      assert.equal(this.cpu.If(), 0b00000110);
+      assert.equal(this.cpu.ie(), 0b00000111);
+      assert.equal(this.cpu.ime(), 1);
+
+      this.cpu.runCycles(1); // STAT interrupt
+
+      assert.equal(this.cpu.pc(), 0x48);
+      assert.equal(this.cpu.If(), 0b00000100, 'LCD dispatched');
+      assert.equal(this.cpu.ie(), 0b00000111);
+      assert.equal(this.cpu.ime(), 0);
+
+      this.cpu.runCycles(1); // execute nop
+
+      assert.equal(this.cpu.pc(), 0x49);
+
+      this.cpu.runCycles(1); // execute reti
+
+      assert.equal(this.cpu.pc(), 0x150);
+      assert.equal(this.cpu.If(), 0b00000100);
+      assert.equal(this.cpu.ie(), 0b00000111);
+      assert.equal(this.cpu.ime(), 1);
+
+      this.cpu.runCycles(1); // TIMER interrupt
+
+      assert.equal(this.cpu.pc(), 0x50);
+      assert.equal(this.cpu.If(), 0b00000000, 'TIM dispatched');
+      assert.equal(this.cpu.ie(), 0b00000111);
+      assert.equal(this.cpu.ime(), 0);
+
+      this.cpu.runCycles(1); // nop
+
+      assert.equal(this.cpu.pc(), 0x51);
+
+      this.cpu.runCycles(1); // reti
+
+      assert.equal(this.cpu.pc(), 0x150);
+      assert.equal(this.cpu.If(), 0b00000000);
+      assert.equal(this.cpu.ie(), 0b00000111);
+      assert.equal(this.cpu.ime(), 1);
+    });
   });
 });
 
