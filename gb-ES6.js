@@ -3115,11 +3115,16 @@ var CPU = function () {
   }, {
     key: 'frame',
     value: function frame(pc_stop) {
-      while (!this._shouldStartVBlankRoutine()) {
+      while (this._lastInstrWasEI || !this._isVblankInterruptRequested()) {
         if (this.isStopped() || pc_stop !== -1 && this._r.pc === pc_stop) return;
         this.cpuCycle(pc_stop);
       }
-      this._handleVBlankInterrupt();
+
+      if (!this._lastInstrWasEI) this._resetVBlankInterruptRequest();
+
+      if (this._shouldStartVBlankRoutine()) {
+        this._handleVBlankInterrupt();
+      }
     }
 
     /**
@@ -3396,14 +3401,20 @@ var CPU = function () {
   }, {
     key: '_shouldStartVBlankRoutine',
     value: function _shouldStartVBlankRoutine() {
-      if (this._r.ime === 1 && (this.ie() & this.If() & this.IF_VBLANK_ON) === 1) {
+      if (this._r.ime === 1 && (this.ie() & this.IF_VBLANK_ON) === 1) {
         if (this._lastInstrWasEI) {
+          this._lastInstrWasEI = false;
           return false; // wait one instruction more
         } else {
           return true;
         }
       }
       return false;
+    }
+  }, {
+    key: '_isVblankInterruptRequested',
+    value: function _isVblankInterruptRequested() {
+      return (this.If() & this.IF_VBLANK_ON) === 1;
     }
 
     /**
@@ -3439,6 +3450,11 @@ var CPU = function () {
     key: '_requestVBlankInterrupt',
     value: function _requestVBlankInterrupt() {
       this.setIf(this.If() | this.IF_VBLANK_ON);
+    }
+  }, {
+    key: '_resetVBlankInterruptRequest',
+    value: function _resetVBlankInterruptRequest() {
+      this.setIf(this.If() & this.IF_VBLANK_OFF);
     }
 
     /**
