@@ -157,19 +157,16 @@ describe('Interruptions', () => {
       this.cpu._r.pc = 0xc000;
       this.cpu.setIf(0b00001); // Request vblank
       this.cpu.setIe(0b00001); // Allow vblank
-      this.cpu._r.ime = 0;
+      this.cpu.di();
       this.cpu.mockInstruction(0xfb/* ei */);
 
-      this.cpu.runCycles(1); // should NOT vblank interrupt, last instruction was EI
+      this.cpu.cpuCycle(1);
 
       assert.equal(this.cpu.pc(), 0xc001);
-      assert.equal(this.cpu.If(), 1);
-      assert.equal(this.cpu.ie(), 1);
-      assert.equal(this.cpu.ime(), 1);
 
       this.cpu.mockInstruction(0xc3/* jp */,0x37,0x06);
 
-      this.cpu.frame();
+      this.cpu.frame(); // should run another instruction (JP) before going to vblank routine, as last instruction was EI
 
       assert.equal(this.cpu.pc(), 0x40 /* vbl */);
       assert.equal(this.cpu.ime(), 0, 'IME disabled');

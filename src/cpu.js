@@ -884,11 +884,16 @@ export default class CPU {
    * Runs cpu during a frame
    */
   frame(pc_stop){
-    while (!this._shouldStartVBlankRoutine()){
+    while (this._lastInstrWasEI || !this._isVblankInterruptRequested()){
       if (this.isStopped() || (pc_stop !== -1 && this._r.pc === pc_stop)) return;
       this.cpuCycle(pc_stop);
     }
-    this._handleVBlankInterrupt();
+
+    if (!this._lastInstrWasEI) this._resetVBlankInterruptRequest();
+
+    if (this._shouldStartVBlankRoutine()){
+      this._handleVBlankInterrupt();
+    }
   }
 
   /**
@@ -1114,14 +1119,19 @@ export default class CPU {
    * @private
    */
   _shouldStartVBlankRoutine(){
-    if (this._r.ime === 1 && (this.ie() & this.If() & this.IF_VBLANK_ON) === 1){
+    if (this._r.ime === 1 && (this.ie() & this.IF_VBLANK_ON) === 1){
       if (this._lastInstrWasEI){
+        this._lastInstrWasEI = false;
         return false; // wait one instruction more
       } else {
         return true;
       }
     }
     return false;
+  }
+
+  _isVblankInterruptRequested(){
+    return (this.If() & this.IF_VBLANK_ON) === 1;
   }
 
   /**
@@ -1150,6 +1160,10 @@ export default class CPU {
    */
   _requestVBlankInterrupt(){
     this.setIf(this.If() | this.IF_VBLANK_ON);
+  }
+
+  _resetVBlankInterruptRequest(){
+    this.setIf(this.If() & this.IF_VBLANK_OFF);
   }
 
   /**
