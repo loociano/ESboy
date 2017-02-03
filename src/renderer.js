@@ -8,9 +8,7 @@ import BrowserStorage from './browserStorage';
 // Cache DOM references
 const $cartridge = document.getElementById('cartridge');
 const $body = document.querySelector('body');
-const $ctxBG = document.getElementById('bg').getContext('2d');
-const $ctxOBJ = document.getElementById('obj').getContext('2d');
-const $ctxWindow = document.getElementById('window').getContext('2d');
+const $ctx = document.getElementById('screen').getContext('2d');
 const $title = document.querySelector('title');
 const $games = document.querySelectorAll('#games > li');
 
@@ -60,7 +58,7 @@ function init(arrayBuffer){
     bootstrap = window.confirm('This game is not supported. Do you want to continue? Your browser may crash.');
   }
   if (bootstrap) {
-    const lcd = new LCD(mmu, $ctxBG, $ctxOBJ, $ctxWindow);
+    const lcd = new LCD(mmu, $ctx);
     cpu = new CPU(mmu, lcd);
     new InputHandler(cpu, $body);
     frame();

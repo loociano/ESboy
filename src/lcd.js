@@ -5,11 +5,9 @@ export default class LCD {
 
   /**
    * @param {MMU} mmu
-   * @param {CanvasRenderingContext2D} ctxBG
-   * @param {CanvasRenderingContext2D} ctxOBJ
-   * @param {CanvasRenderingContext2D} ctxWindow
+   * @param {CanvasRenderingContext2D} ctx
    */
-  constructor(mmu, ctxBG, ctxOBJ, ctxWindow){
+  constructor(mmu, ctx){
 
     // Public constants
     this.TILE_WIDTH = 8;
@@ -33,33 +31,20 @@ export default class LCD {
     this._V_TILES = this._HW_HEIGHT / this._TILE_HEIGHT;
 
     this._mmu = mmu;
-    this._ctxBG = ctxBG;
-    this._ctxOBJ = ctxOBJ;
-    this._ctxWindow = ctxWindow;
+    this._ctx = ctx;
     this._bgp = null;
     this._obg0 = null;
     this._obg1 = null;
-    this._imageDataBG = this._ctxBG.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
-    this._imageDataOBJ = this._ctxOBJ.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
-    this._imageDataWindow = this._ctxWindow.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
+    this._imageData = this._ctx.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
 
     this._clear();
-    this._clear(this._imageDataOBJ, this._ctxOBJ);
     this._readPalettes();
 
     this.paint();
   }
 
-  getImageDataBG(){
-    return this._imageDataBG;
-  }
-
-  getImageDataOBJ(){
-    return this._imageDataOBJ;
-  }
-
-  getImageDataWindow(){
-    return this._imageDataWindow;
+  getImageData(){
+    return this._imageData;
   }
 
   /**
@@ -74,12 +59,10 @@ export default class LCD {
 
     this._drawLineBG(line);
 
-    this._clearLine(line, this._imageDataOBJ);
     if (this._mmu.areOBJOn()) {
       this._drawLineOBJ(line);
     }
 
-    this._clearLine(line, this._imageDataWindow);
     if (this._mmu.isWindowOn()){
       this._drawLineWindow(line);
     }
@@ -99,9 +82,7 @@ export default class LCD {
    * NOTE: EXPENSIVE, should be called once per frame (not per line)
    */
   paint(){
-    this._ctxBG.putImageData(this._imageDataBG, 0, 0);
-    this._ctxOBJ.putImageData(this._imageDataOBJ, 0, 0);
-    this._ctxWindow.putImageData(this._imageDataWindow, 0, 0);
+    this._ctx.putImageData(this._imageData, 0, 0);
   }
 
   /**
@@ -111,9 +92,8 @@ export default class LCD {
    * @param {number} y
    * @param {number} level
    * @param {Array} palette
-   * @param {ImageData} imageData
    */
-  drawPixel({x, y, level}, palette=this._bgp, imageData=this._imageDataBG) {
+  drawPixel({x, y, level}, palette=this._bgp) {
 
     if (level < 0 || level > 3){
       Logger.error(`Unrecognized level gray level ${level}`);
@@ -126,35 +106,17 @@ export default class LCD {
       return; // Transparent
     }
 
-    this._setPixelData(x, y, this.SHADES[palette[level]], imageData);
+    this._setPixelData(x, y, this.SHADES[palette[level]]);
   }
 
   /** 
    * Clears the LCD by writing transparent pixels
-   * @param {ImageData} imageData
-   * @param {CanvasRenderingContext2D} ctx
    * @private
    */
-  _clear(imageData=this._imageDataBG, ctx=this._ctxBG){
+  _clear(){
     const size = this._HW_WIDTH * this._HW_HEIGHT * 4;
     for(let p = 0; p < size; p++){
-      imageData.data[p] = 0;
-    }
-  }
-
-  /**
-   * Clears the LCD line by writing transparent pixels
-   * @param {number} line
-   * @param {ImageData} imageData
-   * @param {CanvasRenderingContext2D} ctx
-   * @private
-   */
-  _clearLine(line, imageData=this._imageDataBG){
-    const start = this._HW_WIDTH * line * 4;
-    const end = start + this._HW_WIDTH*4;
-
-    for(let p = start; p < end; p++){
-      imageData.data[p] = 0;
+      this._imageData.data[p] = 0;
     }
   }
 
@@ -221,7 +183,7 @@ export default class LCD {
               tileLine: line - (bottomTileY - this._MAX_TILE_HEIGHT),
               startX: OBJ.x - this.TILE_WIDTH,
               OBJAttr: OBJ.attr,
-            }, line, this._imageDataOBJ);
+            }, line);
           }
         }
 
@@ -231,7 +193,7 @@ export default class LCD {
             tileLine: line - (topTileY - this._MAX_TILE_HEIGHT),
             startX: OBJ.x - this.TILE_WIDTH,
             OBJAttr: OBJ.attr,
-          }, line, this._imageDataOBJ);
+          }, line);
         }
       }
     }
@@ -254,7 +216,7 @@ export default class LCD {
         tileNumber: tileNumber,
         tileLine: (line - wy) % this._TILE_HEIGHT,
         startX: x + wx - this._MIN_WINDOW_X
-      }, line, this._imageDataWindow);
+      }, line);
     }
   }
 
@@ -275,7 +237,7 @@ export default class LCD {
    * @param line
    * @param imageData
    */
-  _drawTileLine({tileNumber, tileLine, startX, OBJAttr}, line, imageData=this._imageDataBG){
+  _drawTileLine({tileNumber, tileLine, startX, OBJAttr}, line){
 
     const isOBJ = OBJAttr !== undefined;
     let intensityVector = this._getIntensityVector(tileNumber, tileLine, isOBJ);
@@ -288,19 +250,19 @@ export default class LCD {
 
     for(let i = 0; i < intensityVector.length; i++){
       let x = startX + i;
-      if (imageData === this._imageDataBG) {
+      if (!isOBJ) {
         x %= this._OUT_WIDTH;
       }
       if(isOBJ) {
         if (this._hasBgPriority(OBJAttr)){
           if (this._isBgPixelFirstPaletteColor(x, line)){
-            this.drawPixel({x: x, y: line, level: intensityVector[i]}, palette, imageData);
+            this.drawPixel({x: x, y: line, level: intensityVector[i]}, palette);
           }
         } else {
-          this.drawPixel({x: x, y: line, level: intensityVector[i]}, palette, imageData);
+          this.drawPixel({x: x, y: line, level: intensityVector[i]}, palette);
         }
       } else {
-        this.drawPixel({x: x, y: line, level: intensityVector[i]}, palette, imageData);
+        this.drawPixel({x: x, y: line, level: intensityVector[i]}, palette);
       }
     }
     return intensityVector;
@@ -325,11 +287,10 @@ export default class LCD {
    * @param x
    * @param y
    * @param value
-   * @param imageData
    * @private
    */
-  _setPixelData(x, y, value, imageData=this._imageDataBG){
-    imageData.data.set(value, (x + y * this._HW_WIDTH) * 4);
+  _setPixelData(x, y, value){
+    this._imageData.data.set(value, (x + y * this._HW_WIDTH) * 4);
   }
 
   /**
@@ -339,9 +300,9 @@ export default class LCD {
    * @returns {Array}
    * @private
    */
-  _getPixelData(x, y, imageData=this._imageDataBG){
+  _getPixelData(x, y){
     const index = (x + y * this._HW_WIDTH) * 4;
-    return imageData.data.slice(index, index + 4);
+    return this._imageData.data.slice(index, index + 4);
   }
 
   /**
