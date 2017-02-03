@@ -23,7 +23,7 @@ describe('BIOS execution', function() {
 
   lcd.getBGTileLineData = function(grid_x, grid_y){
     const index = (grid_x*this.TILE_WIDTH + grid_y*this.TILE_WIDTH * this._HW_WIDTH) * 4;
-    return this._imageDataBG.data.slice(index, index + this.TILE_WIDTH*4);
+    return this._imageData.data.slice(index, index + this.TILE_WIDTH*4);
   };
 
   cpu.runUntil(stopAt);
