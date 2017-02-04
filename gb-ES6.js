@@ -8313,11 +8313,9 @@ var LCD = function () {
 
   /**
    * @param {MMU} mmu
-   * @param {CanvasRenderingContext2D} ctxBG
-   * @param {CanvasRenderingContext2D} ctxOBJ
-   * @param {CanvasRenderingContext2D} ctxWindow
+   * @param {CanvasRenderingContext2D} ctx
    */
-  function LCD(mmu, ctxBG, ctxOBJ, ctxWindow) {
+  function LCD(mmu, ctx) {
     _classCallCheck(this, LCD);
 
     // Public constants
@@ -8342,37 +8340,22 @@ var LCD = function () {
     this._V_TILES = this._HW_HEIGHT / this._TILE_HEIGHT;
 
     this._mmu = mmu;
-    this._ctxBG = ctxBG;
-    this._ctxOBJ = ctxOBJ;
-    this._ctxWindow = ctxWindow;
+    this._ctx = ctx;
     this._bgp = null;
     this._obg0 = null;
     this._obg1 = null;
-    this._imageDataBG = this._ctxBG.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
-    this._imageDataOBJ = this._ctxOBJ.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
-    this._imageDataWindow = this._ctxWindow.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
+    this._imageData = this._ctx.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
 
     this._clear();
-    this._clear(this._imageDataOBJ, this._ctxOBJ);
     this._readPalettes();
 
     this.paint();
   }
 
   _createClass(LCD, [{
-    key: 'getImageDataBG',
-    value: function getImageDataBG() {
-      return this._imageDataBG;
-    }
-  }, {
-    key: 'getImageDataOBJ',
-    value: function getImageDataOBJ() {
-      return this._imageDataOBJ;
-    }
-  }, {
-    key: 'getImageDataWindow',
-    value: function getImageDataWindow() {
-      return this._imageDataWindow;
+    key: 'getImageData',
+    value: function getImageData() {
+      return this._imageData;
     }
 
     /**
@@ -8387,18 +8370,9 @@ var LCD = function () {
         return;
       }
       this._readPalettes();
-
       this._drawLineBG(line);
-
-      this._clearLine(line, this._imageDataOBJ);
-      if (this._mmu.areOBJOn()) {
-        this._drawLineOBJ(line);
-      }
-
-      this._clearLine(line, this._imageDataWindow);
-      if (this._mmu.isWindowOn()) {
-        this._drawLineWindow(line);
-      }
+      if (this._mmu.isWindowOn()) this._drawLineWindow(line);
+      if (this._mmu.areOBJOn()) this._drawLineOBJ(line);
     }
 
     /**
@@ -8421,9 +8395,7 @@ var LCD = function () {
   }, {
     key: 'paint',
     value: function paint() {
-      this._ctxBG.putImageData(this._imageDataBG, 0, 0);
-      this._ctxOBJ.putImageData(this._imageDataOBJ, 0, 0);
-      this._ctxWindow.putImageData(this._imageDataWindow, 0, 0);
+      this._ctx.putImageData(this._imageData, 0, 0);
     }
 
     /**
@@ -8433,7 +8405,6 @@ var LCD = function () {
      * @param {number} y
      * @param {number} level
      * @param {Array} palette
-     * @param {ImageData} imageData
      */
 
   }, {
@@ -8443,7 +8414,6 @@ var LCD = function () {
           y = _ref.y,
           level = _ref.level;
       var palette = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._bgp;
-      var imageData = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this._imageDataBG;
 
 
       if (level < 0 || level > 3) {
@@ -8457,46 +8427,20 @@ var LCD = function () {
         return; // Transparent
       }
 
-      this._setPixelData(x, y, this.SHADES[palette[level]], imageData);
+      this._setPixelData(x, y, this.SHADES[palette[level]]);
     }
 
     /** 
      * Clears the LCD by writing transparent pixels
-     * @param {ImageData} imageData
-     * @param {CanvasRenderingContext2D} ctx
      * @private
      */
 
   }, {
     key: '_clear',
     value: function _clear() {
-      var imageData = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this._imageDataBG;
-      var ctx = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._ctxBG;
-
       var size = this._HW_WIDTH * this._HW_HEIGHT * 4;
       for (var p = 0; p < size; p++) {
-        imageData.data[p] = 0;
-      }
-    }
-
-    /**
-     * Clears the LCD line by writing transparent pixels
-     * @param {number} line
-     * @param {ImageData} imageData
-     * @param {CanvasRenderingContext2D} ctx
-     * @private
-     */
-
-  }, {
-    key: '_clearLine',
-    value: function _clearLine(line) {
-      var imageData = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._imageDataBG;
-
-      var start = this._HW_WIDTH * line * 4;
-      var end = start + this._HW_WIDTH * 4;
-
-      for (var p = start; p < end; p++) {
-        imageData.data[p] = 0;
+        this._imageData.data[p] = 0;
       }
     }
 
@@ -8522,7 +8466,7 @@ var LCD = function () {
           tileNumber: tileNumber,
           tileLine: tileLine,
           startX: this._getScrolledX(x, scx)
-        }, line);
+        }, line, true /* isBG */);
       }
     }
 
@@ -8572,7 +8516,7 @@ var LCD = function () {
                 tileLine: line - (bottomTileY - this._MAX_TILE_HEIGHT),
                 startX: OBJ.x - this.TILE_WIDTH,
                 OBJAttr: OBJ.attr
-              }, line, this._imageDataOBJ);
+              }, line);
             }
           }
 
@@ -8582,7 +8526,7 @@ var LCD = function () {
               tileLine: line - (topTileY - this._MAX_TILE_HEIGHT),
               startX: OBJ.x - this.TILE_WIDTH,
               OBJAttr: OBJ.attr
-            }, line, this._imageDataOBJ);
+            }, line);
           }
         }
       }
@@ -8608,7 +8552,7 @@ var LCD = function () {
           tileNumber: tileNumber,
           tileLine: (line - wy) % this._TILE_HEIGHT,
           startX: x + wx - this._MIN_WINDOW_X
-        }, line, this._imageDataWindow);
+        }, line);
       }
     }
 
@@ -8630,17 +8574,16 @@ var LCD = function () {
      * @param startX
      * @param OBJAttr
      * @param line
-     * @param imageData
+     * @param isBG
      */
 
   }, {
     key: '_drawTileLine',
-    value: function _drawTileLine(_ref2, line) {
+    value: function _drawTileLine(_ref2, line, isBG) {
       var tileNumber = _ref2.tileNumber,
           tileLine = _ref2.tileLine,
           startX = _ref2.startX,
           OBJAttr = _ref2.OBJAttr;
-      var imageData = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this._imageDataBG;
 
 
       var isOBJ = OBJAttr !== undefined;
@@ -8654,19 +8597,19 @@ var LCD = function () {
 
       for (var i = 0; i < intensityVector.length; i++) {
         var x = startX + i;
-        if (imageData === this._imageDataBG) {
+        if (isBG) {
           x %= this._OUT_WIDTH;
         }
         if (isOBJ) {
           if (this._hasBgPriority(OBJAttr)) {
             if (this._isBgPixelFirstPaletteColor(x, line)) {
-              this.drawPixel({ x: x, y: line, level: intensityVector[i] }, palette, imageData);
+              this.drawPixel({ x: x, y: line, level: intensityVector[i] }, palette);
             }
           } else {
-            this.drawPixel({ x: x, y: line, level: intensityVector[i] }, palette, imageData);
+            this.drawPixel({ x: x, y: line, level: intensityVector[i] }, palette);
           }
         } else {
-          this.drawPixel({ x: x, y: line, level: intensityVector[i] }, palette, imageData);
+          this.drawPixel({ x: x, y: line, level: intensityVector[i] }, palette);
         }
       }
       return intensityVector;
@@ -8691,16 +8634,13 @@ var LCD = function () {
      * @param x
      * @param y
      * @param value
-     * @param imageData
      * @private
      */
 
   }, {
     key: '_setPixelData',
     value: function _setPixelData(x, y, value) {
-      var imageData = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : this._imageDataBG;
-
-      imageData.data.set(value, (x + y * this._HW_WIDTH) * 4);
+      this._imageData.data.set(value, (x + y * this._HW_WIDTH) * 4);
     }
 
     /**
@@ -8714,10 +8654,8 @@ var LCD = function () {
   }, {
     key: '_getPixelData',
     value: function _getPixelData(x, y) {
-      var imageData = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this._imageDataBG;
-
       var index = (x + y * this._HW_WIDTH) * 4;
-      return imageData.data.slice(index, index + 4);
+      return this._imageData.data.slice(index, index + 4);
     }
 
     /**
@@ -10826,9 +10764,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 // Cache DOM references
 var $cartridge = document.getElementById('cartridge');
 var $body = document.querySelector('body');
-var $ctxBG = document.getElementById('bg').getContext('2d');
-var $ctxOBJ = document.getElementById('obj').getContext('2d');
-var $ctxWindow = document.getElementById('window').getContext('2d');
+var $ctx = document.getElementById('screen').getContext('2d');
 var $title = document.querySelector('title');
 var $games = document.querySelectorAll('#games > li');
 
@@ -10879,7 +10815,7 @@ function init(arrayBuffer) {
     bootstrap = window.confirm('This game is not supported. Do you want to continue? Your browser may crash.');
   }
   if (bootstrap) {
-    var lcd = new _lcd2.default(mmu, $ctxBG, $ctxOBJ, $ctxWindow);
+    var lcd = new _lcd2.default(mmu, $ctx);
     cpu = new _cpu2.default(mmu, lcd);
     new _inputHandler2.default(cpu, $body);
     frame();
