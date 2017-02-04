@@ -727,6 +727,8 @@ describe('MMU', () => {
 
   describe('CGB LCD banking', () => {
     it('should read/write VBK register', () => {
+      assert.equal(mmu.readByteAt(mmu.ADDR_VBK), 0xfe, 'default, bit 1-7 always set');
+
       mmu.writeByteAt(mmu.ADDR_VBK, 0xff);
       assert.equal(mmu.readByteAt(mmu.ADDR_VBK), 0xff);
 
@@ -747,6 +749,53 @@ describe('MMU', () => {
 
       mmu.writeByteAt(mmu.ADDR_VBK, 1);
       assert.equal(mmu.readByteAt(mmu.ADDR_VRAM_START), 0xcd, 'value was saved');
+    });
+
+  });
+
+  describe('CGB WRAM banking', () => {
+    it('should read/write in the SVBK register', () => {
+      assert.equal(mmu.readByteAt(mmu.ADDR_SVBK), 0xf8, 'default, bit 3-7 always set');
+
+      mmu.writeByteAt(mmu.ADDR_SVBK, 0xff);
+      assert.equal(mmu.readByteAt(mmu.ADDR_SVBK), 0xff);
+
+      mmu.writeByteAt(mmu.ADDR_SVBK, 0);
+      assert.equal(mmu.readByteAt(mmu.ADDR_SVBK), 0xf8, 'bit 3-7 always set');
+    });
+
+    it('should switch WRAM banks', () => {
+      mmu.writeByteAt(mmu.ADDR_WRAM_START, 0xab);
+      assert.equal(mmu.readByteAt(mmu.ADDR_WRAM_START), 0xab, 'bank 0');
+
+      mmu.writeByteAt(mmu.ADDR_SVBK, 1);
+      mmu.writeByteAt(mmu.ADDR_WRAM_CGB_UPPER_BANK_START, 1);
+      assert.equal(mmu.readByteAt(mmu.ADDR_WRAM_CGB_UPPER_BANK_START), 1, 'bank 1');
+
+      mmu.writeByteAt(mmu.ADDR_SVBK, 0);
+      assert.equal(mmu.readByteAt(mmu.ADDR_WRAM_CGB_UPPER_BANK_START), 1, 'still bank 1');
+      mmu.writeByteAt(mmu.ADDR_WRAM_CGB_UPPER_BANK_START, 0xf);
+      assert.equal(mmu.readByteAt(mmu.ADDR_WRAM_CGB_UPPER_BANK_START), 0xf);
+
+      mmu.writeByteAt(mmu.ADDR_SVBK, 2);
+      mmu.writeByteAt(mmu.ADDR_WRAM_CGB_UPPER_BANK_START, 2);
+      assert.equal(mmu.readByteAt(mmu.ADDR_WRAM_CGB_UPPER_BANK_START), 2, 'bank 2');
+
+      mmu.writeByteAt(mmu.ADDR_SVBK, 7);
+      mmu.writeByteAt(mmu.ADDR_WRAM_CGB_UPPER_BANK_START, 7);
+      assert.equal(mmu.readByteAt(mmu.ADDR_WRAM_CGB_UPPER_BANK_START), 7, 'bank 7');
+
+      mmu.writeByteAt(mmu.ADDR_SVBK, 8); // 3 lower bits are zero, hence 0, hence bank 1
+      assert.equal(mmu.readByteAt(mmu.ADDR_WRAM_CGB_UPPER_BANK_START), 0xf, 'bank 1');
+
+      mmu.writeByteAt(mmu.ADDR_WRAM_CGB_UPPER_BANK_START, 0xcd);
+      assert.equal(mmu.readByteAt(mmu.ADDR_WRAM_CGB_UPPER_BANK_START), 0xcd);
+
+      mmu.writeByteAt(mmu.ADDR_SVBK, 2);
+      assert.equal(mmu.readByteAt(mmu.ADDR_WRAM_CGB_UPPER_BANK_START), 2, 'value was saved');
+
+      mmu.writeByteAt(mmu.ADDR_SVBK, 7);
+      assert.equal(mmu.readByteAt(mmu.ADDR_WRAM_CGB_UPPER_BANK_START), 7, 'value was saved');
     });
 
   });

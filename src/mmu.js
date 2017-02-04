@@ -52,6 +52,11 @@ export default class MMU {
 
     // Working RAM
     this.ADDR_WRAM_START = 0xc000;
+    this.ADDR_WRAM_END = 0xdfff;
+    this.ADDR_WRAM_CGB_UPPER_BANK_START = 0xd000;
+    this.CGB_VRAM_SIZE = 0x8000-0x2000; // cgb size - already in dmg
+    this.SVBK_MASK_BANK = 0x07;
+    this.WRAM_CGB_BANK_SIZE = 0x1000;
 
     // High working RAM
     this.ADDR_HRAM_END = 0xfffd;
@@ -237,6 +242,7 @@ export default class MMU {
     this._extRAM; // init only if there is a Memory Bank Controller
     this._memory = new Uint8Array(this.ADDR_MAX + 1);
     this._CGB_VRAM_bank1 = new Uint8Array(this.CGB_VRAM_BANK_SIZE);
+    this._CGB_WRAM = new Uint8Array(this.CGB_VRAM_SIZE);
     this._bios = this.getBIOS();
     this._inBIOS = true;
     this._isDMA = false;
@@ -351,6 +357,8 @@ export default class MMU {
     this._memory[0xff21] = 0x00;
     this._memory[0xff22] = 0x00;
     this._memory[0xff23] = 0xbf;
+    this._memory[this.ADDR_VBK] = 0xfe;
+    this._memory[this.ADDR_SVBK] = 0xf8;
 
     this._memory[this.ADDR_IF] = 0x00;
     this._memory[this.ADDR_IE] = 0x01;
@@ -376,7 +384,6 @@ export default class MMU {
     switch(addr){
       case this.ADDR_DMA:
       case this.ADDR_SB:
-      case this.ADDR_SVBK:
         throw new Error(`Unsupported register ${Utils.hex4(addr)}`);
 
       case this.ADDR_KEY1:
@@ -404,6 +411,12 @@ export default class MMU {
       }
       if (this.readByteAt(this.ADDR_VBK) === 0xff){
         return this._CGB_VRAM_bank1[addr - this.ADDR_VRAM_START];
+      }
+    }
+    if (this._isUpperWRAMAddr(addr)){
+      let WRAMBank = this.readByteAt(this.ADDR_SVBK) & this.SVBK_MASK_BANK;
+      if (WRAMBank > 1){ // banks 0,1 are stored in _memory, as in DMG
+        return this._CGB_WRAM[this._getCGBWRAMAddr(addr, WRAMBank)];
       }
     }
     if ( (this._hasMBC1 || this._hasMBC3) && this._isProgramSwitchAddr(addr)){
@@ -716,6 +729,13 @@ export default class MMU {
         return;
       }
     }
+    if (this._isUpperWRAMAddr(addr)){
+      const WRAMBank = this.readByteAt(this.ADDR_SVBK) & this.SVBK_MASK_BANK;
+      if (WRAMBank > 1){
+        this._CGB_WRAM[this._getCGBWRAMAddr(addr, WRAMBank)] = n;
+        return;
+      }
+    }
 
     switch(addr){
       case this.ADDR_P1:
@@ -723,6 +743,9 @@ export default class MMU {
         break;
       case this.ADDR_VBK:
         n |= 0xfe; // Bits 1-7 always set
+        break;
+      case this.ADDR_SVBK:
+        n |= 0xf8; // Bits 3-7 always set
         break;
       case this.ADDR_STAT:
         n |= 0x80; // Bit 7 is always set
@@ -805,6 +828,16 @@ export default class MMU {
 
   _getMBC3RAMAddr(addr){
     return this._getMBC1RAMAddr(addr);
+  }
+
+  /**
+   * @param addr
+   * @param {number} WRAMBank 2-7
+   * @returns {number}
+   * @private
+   */
+  _getCGBWRAMAddr(addr, WRAMBank){
+    return (WRAMBank-2)*this.WRAM_CGB_BANK_SIZE + (addr - this.ADDR_WRAM_CGB_UPPER_BANK_START);
   }
 
   /**
@@ -973,6 +1006,15 @@ export default class MMU {
    */
   _isVRAMAddr(addr){
     return (addr >= this.ADDR_VRAM_START) && (addr <= this.ADDR_VRAM_END);
+  }
+
+  /**
+   * @param addr
+   * @returns {boolean} true if addr is in WRAM range
+   * @private
+   */
+  _isUpperWRAMAddr(addr){
+    return (addr >= this.ADDR_WRAM_CGB_UPPER_BANK_START) && (addr <= this.ADDR_WRAM_END);
   }
 
   /**
