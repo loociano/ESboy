@@ -277,9 +277,9 @@ export default class LCD {
   }
 
   /**
-   * @param x
-   * @param y
-   * @param value
+   * @param {number} x
+   * @param {number} y
+   * @param {Array} value
    * @private
    */
   _setPixelData(x, y, value){
@@ -457,5 +457,16 @@ export default class LCD {
       array.push((byte >> shift) & 0x03);
     });
     return array;
+  }
+
+  /**
+   * @param {Array} rgb15
+   * @returns {Array} rgba32
+   * @constructor
+   */
+  static RGB15toRGBA32(rgb15){
+    const rgba24 = rgb15.map( (i) => i*8 );
+    rgba24.push(255);
+    return rgba24;
   }
 }

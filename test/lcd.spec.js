@@ -10,7 +10,7 @@ describe('LCD', () => {
   let lcd;
   const lineRgbaLength = 160*4;
 
-  beforeEach(function() {
+  beforeEach(() => {
     lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock(), new ContextMock());
 
     /**
@@ -1145,6 +1145,14 @@ describe('LCD', () => {
       lcd.drawTiles();
 
       lcd.assertTile(0, 0, lcd.SHADES[3]); // objects
+    });
+  });
+
+  describe('CGB palettes', () => {
+    it('should convert 15-bit RGB to 32-bit RGBA', () => {
+      assert.deepEqual(LCD.RGB15toRGBA32([0, 0, 0]), [0, 0, 0, 255]);
+      assert.deepEqual(LCD.RGB15toRGBA32([0x0f, 0x0f, 0x0f]), [120, 120, 120, 255]);
+      assert.deepEqual(LCD.RGB15toRGBA32([0x1f, 0x1f, 0x1f]), [248, 248, 248, 255]);
     });
   });
 
