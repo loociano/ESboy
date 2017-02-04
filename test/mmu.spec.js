@@ -606,12 +606,6 @@ describe('MMU', () => {
     });
   });
 
-  describe('Bank Registers (CGB only)', () => {
-    it('should detect bank register', () => {
-      assert.throws(() => mmu.readByteAt(mmu.ADDR_SVBK), Error, 'SVBK register unsupported');
-    });
-  });
-
   describe('Timers', () => {
     it('should be able to write on TAC', () => {
       mmu.writeByteAt(mmu.ADDR_TAC, 0x07);
