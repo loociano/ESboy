@@ -71,7 +71,7 @@ export default class LCD {
   }
 
   /**
-   * Outputs the imageDatas into the actual HTML canvas
+   * Writes (paints) the imageData into the actual HTML canvas (refresh)
    * NOTE: EXPENSIVE, should be called once per frame (not per line)
    */
   paint(){

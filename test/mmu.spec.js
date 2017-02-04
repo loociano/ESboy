@@ -610,12 +610,6 @@ describe('MMU', () => {
     it('should detect bank register', () => {
       assert.throws(() => mmu.readByteAt(mmu.ADDR_SVBK), Error, 'SVBK register unsupported');
     });
-
-    it('should not write VBK in DMG mode', () => {
-      assert.equal(mmu.vbk(), 0, 'VBK always zero in DMG');
-      mmu.writeByteAt(mmu.ADDR_VBK, 0xab);
-      assert.equal(mmu.vbk(), 0, 'VBK always zero in DMG');
-    });
   });
 
   describe('Timers', () => {
@@ -729,6 +723,32 @@ describe('MMU', () => {
     it('should detect unsupported speed in DMG', () => {
       assert.equal(mmu.readByteAt(mmu.ADDR_KEY1), 0xff);
     })
-  })
+  });
+
+  describe('CGB LCD banking', () => {
+    it('should read/write VBK register', () => {
+      mmu.writeByteAt(mmu.ADDR_VBK, 0xff);
+      assert.equal(mmu.readByteAt(mmu.ADDR_VBK), 0xff);
+
+      mmu.writeByteAt(mmu.ADDR_VBK, 0);
+      assert.equal(mmu.readByteAt(mmu.ADDR_VBK), 0xfe, 'bit 1-7 always set');
+    });
+
+    it('should switch LCD banks', () => {
+      mmu.writeByteAt(mmu.ADDR_VRAM_START, 0xab);
+      assert.equal(mmu.readByteAt(mmu.ADDR_VRAM_START), 0xab);
+
+      mmu.writeByteAt(mmu.ADDR_VBK, 1);
+      mmu.writeByteAt(mmu.ADDR_VRAM_START, 0xcd);
+      assert.equal(mmu.readByteAt(mmu.ADDR_VRAM_START), 0xcd);
+
+      mmu.writeByteAt(mmu.ADDR_VBK, 0);
+      assert.equal(mmu.readByteAt(mmu.ADDR_VRAM_START), 0xab, 'value was saved');
+
+      mmu.writeByteAt(mmu.ADDR_VBK, 1);
+      assert.equal(mmu.readByteAt(mmu.ADDR_VRAM_START), 0xcd, 'value was saved');
+    });
+
+  });
 
 });

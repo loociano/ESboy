@@ -44,6 +44,9 @@ export default class MMU {
     this.ADDR_DISPLAY_DATA_2 = 0x9c00;
     this.ADDR_VRAM_END = 0x9fff;
 
+    // CGB extra RAM
+    this.CGB_VRAM_BANK_SIZE = 0x2000; // 8KB
+
     // External RAM
     this.ADDR_EXT_RAM_START = 0xa000;
 
@@ -233,6 +236,7 @@ export default class MMU {
     this._storage = storage;
     this._extRAM; // init only if there is a Memory Bank Controller
     this._memory = new Uint8Array(this.ADDR_MAX + 1);
+    this._CGB_VRAM_bank1 = new Uint8Array(this.CGB_VRAM_BANK_SIZE);
     this._bios = this.getBIOS();
     this._inBIOS = true;
     this._isDMA = false;
@@ -393,9 +397,14 @@ export default class MMU {
       Logger.info('Cannot read OAM');
       return 0xff;
     }
-    if (this._isVRAMAddr(addr) && !this._canAccessVRAM()){
-      Logger.info('Cannot read VRAM');
-      return 0xff;
+    if (this._isVRAMAddr(addr)){
+      if(!this._canAccessVRAM()) {
+        Logger.info('Cannot read VRAM');
+        return 0xff;
+      }
+      if (this.readByteAt(this.ADDR_VBK) === 0xff){
+        return this._CGB_VRAM_bank1[addr - this.ADDR_VRAM_START];
+      }
     }
     if ( (this._hasMBC1 || this._hasMBC3) && this._isProgramSwitchAddr(addr)){
       return this._rom[this._getMBC1ROMAddr(addr)];
@@ -702,6 +711,10 @@ export default class MMU {
         Logger.info('Cannot write on VRAM now');
         return;
       }
+      if (this.readByteAt(this.ADDR_VBK) === 0xff){
+        this._CGB_VRAM_bank1[addr - this.ADDR_VRAM_START] = n;
+        return;
+      }
     }
 
     switch(addr){
@@ -709,8 +722,8 @@ export default class MMU {
         n = (this._memory[addr] & this.MASK_P1_RW) | n;
         break;
       case this.ADDR_VBK:
-        Logger.info(`Cannot write on ${Utils.hex4(addr)}`);
-        return;
+        n |= 0xfe; // Bits 1-7 always set
+        break;
       case this.ADDR_STAT:
         n |= 0x80; // Bit 7 is always set
         this._handleStatWrite(n);
