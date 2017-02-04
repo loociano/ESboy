@@ -56,16 +56,9 @@ export default class LCD {
       return;
     }
     this._readPalettes();
-
     this._drawLineBG(line);
-
-    if (this._mmu.areOBJOn()) {
-      this._drawLineOBJ(line);
-    }
-
-    if (this._mmu.isWindowOn()){
-      this._drawLineWindow(line);
-    }
+    if (this._mmu.isWindowOn()) this._drawLineWindow(line);
+    if (this._mmu.areOBJOn()) this._drawLineOBJ(line);
   }
 
   /**

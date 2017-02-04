@@ -1112,6 +1112,40 @@ describe('LCD', () => {
 
       assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(lcd.generateLineData(0)));
     });
+
+    it('should draw objects on top of window, window on top of background', () => {
+      const mmu = lcd.getMMU();
+      mmu.readBGData = (tileNumber) => {
+        if (tileNumber === 0) {
+          return new Buffer('00ff', 'hex'); // window
+        } else {
+          return new Buffer('ff00', 'hex'); // background
+        }
+      };
+      mmu.readOBJData = (any) => new Buffer('ffff', 'hex'); // obj
+      mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 1, attr: 0}; };
+      mmu.getBgCharCode = () => 1;
+      mmu.getWindowCharCode = () => 0;
+      mmu.wy = () => 0;
+      mmu.wx = () => 7;
+
+      mmu.isWindowOn = () => false;
+      mmu.areOBJOn = () => false;
+
+      lcd.drawTiles();
+
+      lcd.assertTile(0, 0, lcd.SHADES[1]); // background
+
+      mmu.isWindowOn = () => true;
+      lcd.drawTiles();
+
+      lcd.assertTile(0, 0, lcd.SHADES[2]); // window
+
+      mmu.areOBJOn = () => true;
+      lcd.drawTiles();
+
+      lcd.assertTile(0, 0, lcd.SHADES[3]); // objects
+    });
   });
 
 });
