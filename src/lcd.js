@@ -139,7 +139,7 @@ export default class LCD {
         tileNumber: tileNumber,
         tileLine: tileLine,
         startX: this._getScrolledX(x, scx)
-      }, line);
+      }, line, true /* isBG */);
     }
   }
 
@@ -235,9 +235,9 @@ export default class LCD {
    * @param startX
    * @param OBJAttr
    * @param line
-   * @param imageData
+   * @param isBG
    */
-  _drawTileLine({tileNumber, tileLine, startX, OBJAttr}, line){
+  _drawTileLine({tileNumber, tileLine, startX, OBJAttr}, line, isBG){
 
     const isOBJ = OBJAttr !== undefined;
     let intensityVector = this._getIntensityVector(tileNumber, tileLine, isOBJ);
@@ -250,7 +250,7 @@ export default class LCD {
 
     for(let i = 0; i < intensityVector.length; i++){
       let x = startX + i;
-      if (!isOBJ) {
+      if (isBG) {
         x %= this._OUT_WIDTH;
       }
       if(isOBJ) {

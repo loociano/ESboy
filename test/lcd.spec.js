@@ -2,6 +2,7 @@ import assert from 'assert';
 import LCD from '../src/lcd';
 import ContextMock from './mock/contextMock';
 import MMUMock from './mock/mmuMock';
+import Utils from '../src/utils';
 import {describe, beforeEach, it} from 'mocha';
 
 describe('LCD', () => {
@@ -41,20 +42,19 @@ describe('LCD', () => {
      * @param {Array} rgba
      * @param {ImageData} imageData
      */
-    lcd.assertLinePixels = function(line, grid_x, rgba, imageData){
+    lcd.assertLinePixels = function(line, grid_x, rgba){
       for(let x = grid_x*8; x < (grid_x+1)*8; x++){
-        assert.deepEqual(Array.from(this.getPixelData(x, line, imageData)), Array.from(rgba), `Line=${line} x=${x} pixel data ${rgba}`);
+        assert.deepEqual(Array.from(this.getPixelData(x, line)), Array.from(rgba), `Line=${line} x=${x} pixel data ${rgba}`);
       }
     };
     /**
      * @param {number} x
      * @param {number} y
-     * @param {ImageData} imageData
-     * @returns {Array} pixel data
+     * @returns pixel data
      */
-    lcd.getPixelData = function(x, y, imageData){
+    lcd.getPixelData = function(x, y){
       const index = (x + y * this._HW_WIDTH) * 4;
-      return imageData.data.slice(index, index + 4);
+      return lcd.getImageData().data.slice(index, index + 4);
     };
 
     /**
@@ -63,25 +63,33 @@ describe('LCD', () => {
      * @param grid_y
      * @param {array} rgba
      */
-    lcd.assertTile = function(grid_x, grid_y, rgba, imageData){
+    lcd.assertTile = function(grid_x, grid_y, rgba){
       for(let x = grid_x*8; x < (grid_x+1)*8; x++){
         for(let y = grid_y*8; y < (grid_y+1)*8; y++){
-          assert.deepEqual(Array.from(this.getPixelData(x, y, imageData)), Array.from(rgba), `Tile: ${grid_x},${grid_y} x=${x}, y=${y} pixel data ${rgba}`);
+          assert.deepEqual(Array.from(this.getPixelData(x, y)), Array.from(rgba), `Tile: ${grid_x},${grid_y} x=${x}, y=${y} pixel data ${rgba}`);
         }
       }
     };
 
-    lcd.assertDarkestTile = function(grid_x, grid_y, imageData){
-      this.assertTile(grid_x, grid_y, this.SHADES[3], imageData);
+    lcd.assertDarkestTile = function(grid_x, grid_y){
+      this.assertTile(grid_x, grid_y, this.SHADES[3]);
     };
 
-    lcd.assertLightestTile = function(grid_x, grid_y, imageData){
-      this.assertTile(grid_x, grid_y, this.SHADES[0], imageData);
+    lcd.assertLightestTile = function(grid_x, grid_y){
+      this.assertTile(grid_x, grid_y, this.SHADES[0]);
     };
 
-    lcd.assertTransparentTile = function(grid_x, grid_y, imageData){
-      this.assertTile(grid_x, grid_y, [0, 0, 0, 0], imageData);
-    }
+    lcd.assertTransparentTile = function(grid_x, grid_y){
+      this.assertTile(grid_x, grid_y, [0, 0, 0, 0]);
+    };
+
+    lcd.generateLineData = function(paletteLevel) {
+      const lineData = new Uint8ClampedArray(lineRgbaLength);
+      for (let p = 0; p < lineData.length; p++) {
+        lineData[p] = lcd.SHADES[lcd._bgp[paletteLevel]][p % 4];
+      }
+      return lineData;
+    };
 
   });
 
@@ -237,9 +245,9 @@ describe('LCD', () => {
 
       lcd.drawTiles();
 
-      lcd.assertDarkestTile(0, 0, lcd.getImageData());
-      lcd.assertDarkestTile(10, 9, lcd.getImageData());
-      lcd.assertDarkestTile(19, 17, lcd.getImageData());
+      lcd.assertDarkestTile(0, 0);
+      lcd.assertDarkestTile(10, 9);
+      lcd.assertDarkestTile(19, 17);
     });
 
     describe('Scrolling (SCX, SCY)', () => {
@@ -263,27 +271,27 @@ describe('LCD', () => {
 
         lcd.drawLine(0);
 
-        assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageData())), lcd.SHADES[1]);
-        assert.deepEqual(Array.from(lcd.getPixelData(12*8, 0, lcd.getImageData())), lcd.SHADES[1]);
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), lcd.SHADES[1]);
+        assert.deepEqual(Array.from(lcd.getPixelData(12*8, 0)), lcd.SHADES[1]);
         // tile 31 is not visible
 
         mmu.scx = () => 1;
         lcd.drawLine(0);
 
-        assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageData())), lcd.SHADES[0]);
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), lcd.SHADES[0]);
 
         mmu.scx = () => 96;
         lcd.drawLine(0);
 
-        assert.deepEqual(Array.from(lcd.getPixelData(12*8 - 96, 0, lcd.getImageData())), lcd.SHADES[1], 'pixel shifted 96px left');
-        assert.deepEqual(Array.from(lcd.getPixelData(31*8 - 96, 0, lcd.getImageData())), lcd.SHADES[2], 'pixel shifted 96px left');
-        assert.deepEqual(Array.from(lcd.getPixelData(31*8 - 96 + 7, 0, lcd.getImageData())), lcd.SHADES[2], 'pixel shifted 96px left');
+        assert.deepEqual(Array.from(lcd.getPixelData(12*8 - 96, 0)), lcd.SHADES[1], 'pixel shifted 96px left');
+        assert.deepEqual(Array.from(lcd.getPixelData(31*8 - 96, 0)), lcd.SHADES[2], 'pixel shifted 96px left');
+        assert.deepEqual(Array.from(lcd.getPixelData(31*8 - 96 + 7, 0)), lcd.SHADES[2], 'pixel shifted 96px left');
 
         mmu.scx = () => 255;
         lcd.drawLine(0);
 
-        assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageData())), lcd.SHADES[2], 'pixel shifted 255px left');
-        assert.deepEqual(Array.from(lcd.getPixelData(1, 0, lcd.getImageData())), lcd.SHADES[1], 'pixel loop-shifted 255px left');
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), lcd.SHADES[2], 'pixel shifted 255px left');
+        assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), lcd.SHADES[1], 'pixel loop-shifted 255px left');
       });
 
       it('should shift background vertically', () => {
@@ -324,22 +332,22 @@ describe('LCD', () => {
         lcd.drawLine(96);
         // line 255 out of bounds
 
-        assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageData())), lcd.SHADES[2]);
-        assert.deepEqual(Array.from(lcd.getPixelData(0, 96, lcd.getImageData())), lcd.SHADES[3]);
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), lcd.SHADES[2]);
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 96)), lcd.SHADES[3]);
 
         mmu.scy = () => 96;
 
         lcd.drawLine(0);
 
-        assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageData())), lcd.SHADES[3], 'pixel shifted 100px up');
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), lcd.SHADES[3], 'pixel shifted 100px up');
 
         mmu.scy = () => 255;
 
         lcd.drawLine(0);
         lcd.drawLine(1);
 
-        assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageData())), lcd.SHADES[3], 'pixel shifted 255px up');
-        assert.deepEqual(Array.from(lcd.getPixelData(0, 1, lcd.getImageData())), lcd.SHADES[2], 'pixel loop-shifted 255px up');
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), lcd.SHADES[3], 'pixel shifted 255px up');
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 1)), lcd.SHADES[2], 'pixel loop-shifted 255px up');
       });
 
       it('should shift background by means of registers SCX and SCY', () => {
@@ -370,7 +378,7 @@ describe('LCD', () => {
 
         lcd.drawTiles();
 
-        assert.deepEqual(Array.from(lcd.getPixelData(1, 1, lcd.getImageData())), lcd.SHADES[3]);
+        assert.deepEqual(Array.from(lcd.getPixelData(1, 1)), lcd.SHADES[3]);
 
         lcd._clear();
         mmu.scx = () => 1;
@@ -378,8 +386,8 @@ describe('LCD', () => {
 
         lcd.drawTiles();
 
-        assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageData())), lcd.SHADES[3], 'shifted from 1,1 to 0,0');
-        assert.deepEqual(Array.from(lcd.getPixelData(159, 143, lcd.getImageData())), lcd.SHADES[3], 'shifted from 160,144 to 159,143');
+        assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), lcd.SHADES[3], 'shifted from 1,1 to 0,0');
+        assert.deepEqual(Array.from(lcd.getPixelData(159, 143)), lcd.SHADES[3], 'shifted from 160,144 to 159,143');
       });
     });
 
@@ -412,12 +420,12 @@ describe('LCD', () => {
 
       lcd.drawLine(0);
 
-      lcd.assertLinePixels(0, 0, lcd.SHADES[3], lcd.getImageData());
+      lcd.assertLinePixels(0, 0, lcd.SHADES[3]);
 
       mmu.areOBJOn = () => false;
       lcd.drawLine(0);
 
-      lcd.assertLinePixels(0, 0, lcd.SHADES[0], lcd.getImageData());
+      lcd.assertLinePixels(0, 0, lcd.SHADES[0]);
     });
 
     it('should draw OBJs in any line', () => {
@@ -444,8 +452,8 @@ describe('LCD', () => {
       lcd.drawLine(100);
       lcd.drawLine(101);
 
-      lcd.assertLinePixels(100, 12.5, lcd.SHADES[3], lcd.getImageData());
-      lcd.assertLinePixels(101, 12.5, lcd.SHADES[1], lcd.getImageData());
+      lcd.assertLinePixels(100, 12.5, lcd.SHADES[3]);
+      lcd.assertLinePixels(101, 12.5, lcd.SHADES[1]);
     });
 
     it('should draw 8x16 OBJs', () => {
@@ -473,9 +481,9 @@ describe('LCD', () => {
 
       for(let l = 1; l < 17; l++){
         if (l < 9)
-          lcd.assertLinePixels(l, 1, lcd.SHADES[1], lcd.getImageData());
+          lcd.assertLinePixels(l, 1, lcd.SHADES[1]);
         else
-          lcd.assertLinePixels(l, 1, lcd.SHADES[2], lcd.getImageData());
+          lcd.assertLinePixels(l, 1, lcd.SHADES[2]);
       }
     });
 
@@ -505,9 +513,9 @@ describe('LCD', () => {
 
       for(let l = 1; l < 17; l++){
         if (l < 9)
-          lcd.assertLinePixels(l, 1, lcd.SHADES[1], lcd.getImageData());
+          lcd.assertLinePixels(l, 1, lcd.SHADES[1]);
         else
-          lcd.assertLinePixels(l, 1, lcd.SHADES[2], lcd.getImageData());
+          lcd.assertLinePixels(l, 1, lcd.SHADES[2]);
       }
     });
 
@@ -532,9 +540,9 @@ describe('LCD', () => {
       for(let x = 0; x < lcd._H_TILES; x++){
         for(let y = 0; y < lcd._V_TILES; y++){
           if (x === 0 && y === 0){
-            lcd.assertDarkestTile(x, y, lcd.getImageData());
+            lcd.assertDarkestTile(x, y);
           } else {
-            lcd.assertLightestTile(x, y, lcd.getImageData());
+            lcd.assertLightestTile(x, y);
           }
         }
       }
@@ -551,7 +559,7 @@ describe('LCD', () => {
       lcd.drawTiles();
 
       // Everything must be darkest, as the OBJ is all transparent
-      lcd.assertDarkestTile(0, 0, lcd.getImageData());
+      lcd.assertDarkestTile(0, 0);
     });
 
     it('should not paint pixels 00 from OBJ regardless of their palette', () => {
@@ -565,7 +573,7 @@ describe('LCD', () => {
       lcd.drawTiles();
 
       // Still, no OBJ is painted as the buffer is zero
-      lcd.assertDarkestTile(0, 0, lcd.getImageData());
+      lcd.assertDarkestTile(0, 0);
     });
 
     it('should transform palettes to intensity array', () => {
@@ -584,7 +592,7 @@ describe('LCD', () => {
 
       lcd.drawTiles();
 
-      lcd.assertTile(0, 0, lcd.SHADES[0], lcd.getImageData());
+      lcd.assertTile(0, 0, lcd.SHADES[0]);
 
       // Use OBG1
       mmu.getOBJ = () => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b00010000/* obg1 */}; };
@@ -592,19 +600,19 @@ describe('LCD', () => {
 
       lcd.drawTiles();
 
-      lcd.assertTile(0, 0, lcd.SHADES[1], lcd.getImageData());
+      lcd.assertTile(0, 0, lcd.SHADES[1]);
 
       mmu.obg1 = () => 0b00001000;
 
       lcd.drawTiles();
 
-      lcd.assertTile(0, 0, lcd.SHADES[2], lcd.getImageData());
+      lcd.assertTile(0, 0, lcd.SHADES[2]);
 
       mmu.obg1 = () => 0b00001100;
 
       lcd.drawTiles();
 
-      lcd.assertTile(0, 0, lcd.SHADES[3], lcd.getImageData());
+      lcd.assertTile(0, 0, lcd.SHADES[3]);
     });
 
     it('should flip OBJ horizontally', () => {
@@ -622,9 +630,9 @@ describe('LCD', () => {
       for(let x = 0; x < 8; x++){
         for(let y = 0; y < 8; y++){
           if (x < 4){
-            assert.deepEqual(lcd.getPixelData(x, y, lcd.getImageData()), lcd.SHADES[0], 'Left half is transparent');
+            assert.deepEqual(lcd.getPixelData(x, y), lcd.SHADES[0], 'Left half is transparent');
           } else {
-            assert.deepEqual(lcd.getPixelData(x, y, lcd.getImageData()), lcd.SHADES[3], 'Right half is darkest');
+            assert.deepEqual(lcd.getPixelData(x, y), lcd.SHADES[3], 'Right half is darkest');
           }
         }
       }
@@ -656,9 +664,9 @@ describe('LCD', () => {
       for(let x = 0; x < 8; x++){
         for(let y = 0; y < 8; y++){
           if (y < 4){
-            assert.deepEqual(lcd.getPixelData(x, y, lcd.getImageData()), lcd.SHADES[0], 'Top half is transparent');
+            assert.deepEqual(lcd.getPixelData(x, y), lcd.SHADES[0], 'Top half is transparent');
           } else {
-            assert.deepEqual(lcd.getPixelData(x, y, lcd.getImageData()), lcd.SHADES[3], 'Bottom half is darkest');
+            assert.deepEqual(lcd.getPixelData(x, y), lcd.SHADES[3], 'Bottom half is darkest');
           }
         }
       }
@@ -688,9 +696,9 @@ describe('LCD', () => {
       for(let x = 0; x < 8; x++){
         for(let y = 0; y < 8; y++){
           if (x === 7 && y === 7){
-            assert.deepEqual(lcd.getPixelData(x, y, lcd.getImageData()), lcd.SHADES[3], 'Bottom-right most pixel is darkest');
+            assert.deepEqual(lcd.getPixelData(x, y), lcd.SHADES[3], 'Bottom-right most pixel is darkest');
           } else {
-            assert.deepEqual(lcd.getPixelData(x, y, lcd.getImageData()), lcd.SHADES[0], `${x},${y} is transparent`);
+            assert.deepEqual(lcd.getPixelData(x, y), lcd.SHADES[0], `${x},${y} is transparent`);
           }
         }
       }
@@ -728,9 +736,9 @@ describe('LCD', () => {
       for(let x = 0; x < 8; x++){
         for(let y = 0; y < 8; y++){
           if ( (x === 7 && y === 0) || (x === 0 && y === 15)) {
-            assert.deepEqual(lcd.getPixelData(x, y, lcd.getImageData()), lcd.SHADES[1]);
+            assert.deepEqual(lcd.getPixelData(x, y), lcd.SHADES[1]);
           } else {
-            assert.deepEqual(lcd.getPixelData(x, y, lcd.getImageData()), lcd.SHADES[0]);
+            assert.deepEqual(lcd.getPixelData(x, y), lcd.SHADES[0]);
           }
         }
       }
@@ -746,33 +754,95 @@ describe('LCD', () => {
 
       lcd.drawTiles();
 
-      lcd.assertTile(0, 0, lcd.SHADES[1], lcd.getImageData());
+      lcd.assertTile(0, 0, lcd.SHADES[1]);
 
       // Priority flag: BG over OBJ
       mmu.getOBJ = (any) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b10000000/* bg priority */}; };
 
       lcd.drawTiles();
 
-      lcd.assertDarkestTile(0, 0, lcd.getImageData());
+      lcd.assertDarkestTile(0, 0);
     });
 
     it('should support OBJ priority flag with different background palettes', () => {
       const mmu = lcd.getMMU();
-      mmu.readBGData = (any) => new Buffer('5353', 'hex'); // 0,1,2,3,0,1,2,3
+      mmu.readBGData = (any) => new Buffer('5533', 'hex'); // 0,1,2,3,0,1,2,3
       mmu.readOBJData = (any) => new Buffer('ff00', 'hex'); // 1,1,1,1,1,1,1,1
       mmu.getBgCharCode = (any) => 0;
       mmu.getOBJ = (n) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b10000000 /* bg priority */}; };
-      mmu.obg0 = () => 0b11100100;
+      mmu.obp0 = () => 0b11100100;
 
-      [0b00000000, 0b00000001, 0b00000010, 0b00000011].map( (bgp) => {
-        mmu.bgp = () => bgp;
-        lcd.drawLine(0);
+      mmu.bgp = () => 0b00000000;
 
-        assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageData())), lcd.SHADES[1]);
-        assert.deepEqual(Array.from(lcd.getPixelData(0, 1, lcd.getImageData())), lcd.SHADES[0]);
-        assert.deepEqual(Array.from(lcd.getPixelData(0, 2, lcd.getImageData())), lcd.SHADES[0]);
-        assert.deepEqual(Array.from(lcd.getPixelData(0, 3, lcd.getImageData())), lcd.SHADES[0]);
-      });
+      mmu.areOBJOn = () => false;
+      lcd.drawLine(0);
+
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), lcd.SHADES[0]);
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), lcd.SHADES[0]);
+      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), lcd.SHADES[0]);
+      assert.deepEqual(Array.from(lcd.getPixelData(3, 0)), lcd.SHADES[0]);
+
+      mmu.areOBJOn = () => true;
+      lcd.drawLine(0);
+
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), lcd.SHADES[1]);
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), lcd.SHADES[1]);
+      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), lcd.SHADES[1]);
+      assert.deepEqual(Array.from(lcd.getPixelData(3, 0)), lcd.SHADES[1]);
+
+      mmu.bgp = () => 0b00000001;
+
+      mmu.areOBJOn = () => false;
+      lcd.drawLine(0);
+
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), lcd.SHADES[1]);
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), lcd.SHADES[0]);
+      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), lcd.SHADES[0]);
+      assert.deepEqual(Array.from(lcd.getPixelData(3, 0)), lcd.SHADES[0]);
+
+      mmu.areOBJOn = () => true;
+      lcd.drawLine(0);
+
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), lcd.SHADES[1]);
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), lcd.SHADES[0]);
+      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), lcd.SHADES[0]);
+      assert.deepEqual(Array.from(lcd.getPixelData(3, 0)), lcd.SHADES[0]);
+
+      mmu.bgp = () => 0b00000010;
+
+      mmu.areOBJOn = () => false;
+      lcd.drawLine(0);
+
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), lcd.SHADES[2]);
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), lcd.SHADES[0]);
+      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), lcd.SHADES[0]);
+      assert.deepEqual(Array.from(lcd.getPixelData(3, 0)), lcd.SHADES[0]);
+
+      mmu.areOBJOn = () => true;
+      lcd.drawLine(0);
+
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), lcd.SHADES[1]);
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), lcd.SHADES[0]);
+      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), lcd.SHADES[0]);
+      assert.deepEqual(Array.from(lcd.getPixelData(3, 0)), lcd.SHADES[0]);
+
+      mmu.bgp = () => 0b00000011;
+
+      mmu.areOBJOn = () => false;
+      lcd.drawLine(0);
+
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), lcd.SHADES[3]);
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), lcd.SHADES[0]);
+      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), lcd.SHADES[0]);
+      assert.deepEqual(Array.from(lcd.getPixelData(3, 0)), lcd.SHADES[0]);
+
+      mmu.areOBJOn = () => true;
+      lcd.drawLine(0);
+
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), lcd.SHADES[1]);
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), lcd.SHADES[0]);
+      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), lcd.SHADES[0]);
+      assert.deepEqual(Array.from(lcd.getPixelData(3, 0)), lcd.SHADES[0]);
     });
 
     it('should support OBJ priority flag when obj are in boundaries', () => {
@@ -803,8 +873,8 @@ describe('LCD', () => {
       lcd.drawLine(0);
       lcd.drawLine(1);
 
-      lcd.assertLinePixels(0, 0, lcd.SHADES[1], lcd.getImageData());
-      lcd.assertLinePixels(1, 0, lcd.SHADES[1], lcd.getImageData()); // BG is lightest, paint OBJ
+      lcd.assertLinePixels(0, 0, lcd.SHADES[1]);
+      lcd.assertLinePixels(1, 0, lcd.SHADES[1]); // BG is lightest, paint OBJ
     });
 
     it('should display an OBJ with a priority flag only if the BG behind is lightest', () => {
@@ -823,7 +893,7 @@ describe('LCD', () => {
 
       lcd.drawTiles();
 
-      lcd.assertTile(0, 0, lcd.SHADES[1], lcd.getImageData());
+      lcd.assertTile(0, 0, lcd.SHADES[1]);
 
       // Test now if the background has been shifted with SCX, SCY
       // 1 dark pixel at x=0 y=0
@@ -849,26 +919,24 @@ describe('LCD', () => {
       // OBJ pixels should not be painted when background is not the lightest
       for (let x = 0; x < 8; x++){
         let value = lcd.SHADES[1];
-        if (x === 0) value = lcd.SHADES[0];
-        assert.deepEqual(Array.from(lcd.getPixelData(x, 0, lcd.getImageData())), value, `${x},0`);
+        if (x === 0) value = lcd.SHADES[3];
+        assert.deepEqual(Array.from(lcd.getPixelData(x, 0)), value, `${x},0`);
       }
-      lcd.assertLinePixels(1, 0, lcd.SHADES[1], lcd.getImageData());
-      lcd.assertLinePixels(2, 0, lcd.SHADES[1], lcd.getImageData());
-      lcd.assertLinePixels(3, 0, lcd.SHADES[1], lcd.getImageData());
-      lcd.assertLinePixels(4, 0, lcd.SHADES[1], lcd.getImageData());
-      lcd.assertLinePixels(5, 0, lcd.SHADES[1], lcd.getImageData());
-      lcd.assertLinePixels(6, 0, lcd.SHADES[1], lcd.getImageData());
-      lcd.assertLinePixels(7, 0, lcd.SHADES[1], lcd.getImageData());
+      lcd.assertLinePixels(1, 0, lcd.SHADES[1]);
+      lcd.assertLinePixels(2, 0, lcd.SHADES[1]);
+      lcd.assertLinePixels(3, 0, lcd.SHADES[1]);
+      lcd.assertLinePixels(4, 0, lcd.SHADES[1]);
+      lcd.assertLinePixels(5, 0, lcd.SHADES[1]);
+      lcd.assertLinePixels(6, 0, lcd.SHADES[1]);
+      lcd.assertLinePixels(7, 0, lcd.SHADES[1]);
 
       mmu.scx = () => 1;
       mmu.scy = () => 1;
 
       lcd.drawTiles();
 
-      assert.deepEqual(Array.from(lcd.getPixelData(0, 0, lcd.getImageData())), lcd.SHADES[0], 'pixel is not visible');
-
       // OBJ should be painted
-      lcd.assertTile(0, 0, lcd.SHADES[1], lcd.getImageData());
+      lcd.assertTile(0, 0, lcd.SHADES[1]);
     });
 
     it('should display an OBJ with a priority flag only if the BG behind is lightest + SCX and SCX', () => {
@@ -907,14 +975,14 @@ describe('LCD', () => {
       lcd.drawLine(1);
       lcd.drawLine(2);
 
-      lcd.assertLinePixels(0, 0, lcd.SHADES[1], lcd.getImageData());
+      lcd.assertLinePixels(0, 0, lcd.SHADES[1]);
       for (let x = 0; x < 8; x++){
         if (x === 1)
-          assert.deepEqual(Array.from(lcd.getPixelData(x, 1, lcd.getImageData())), lcd.SHADES[3], `${x},1`);
+          assert.deepEqual(Array.from(lcd.getPixelData(x, 1)), lcd.SHADES[3], `${x},1`);
         else
-          assert.deepEqual(Array.from(lcd.getPixelData(x, 1, lcd.getImageData())), lcd.SHADES[1], `${x},1`);
+          assert.deepEqual(Array.from(lcd.getPixelData(x, 1)), lcd.SHADES[1], `${x},1`);
       }
-      lcd.assertLinePixels(2, 0, lcd.SHADES[1], lcd.getImageData());
+      lcd.assertLinePixels(2, 0, lcd.SHADES[1]);
     });
   });
 
@@ -923,30 +991,25 @@ describe('LCD', () => {
       const mmu = lcd.getMMU();
       mmu.readBGData = (tileNumber) => {
         if (tileNumber === 0) {
-          return new Buffer('ff00', 'hex');
+          return new Buffer('ff00', 'hex'); // window
         } else {
-          return new Buffer('0000', 'hex');
+          return new Buffer('0000', 'hex'); // bg
         }
       };
+      mmu.getBgCharCode = () => 1;
       mmu.getWindowCharCode = () => 0;
       mmu.isWindowOn = () => true;
       mmu.wy = () => 0;
       mmu.wx = () => 7;
 
-      const expectedData = new Uint8ClampedArray(lineRgbaLength);
-      for(let p = 0; p < expectedData.length; p++) {
-        expectedData[p] = lcd.SHADES[lcd._bgp[1]][p % 4];
-      }
-
       lcd.drawLine(0);
 
-      assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(expectedData));
+      assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(lcd.generateLineData(1)));
 
       mmu.isWindowOn = () => false;
-
       lcd.drawLine(0);
 
-      assert.deepEqual(Array.from(lcd.getLineData(0)), new Uint8ClampedArray(lineRgbaLength));
+      assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(lcd.generateLineData(0)));
     });
 
     it('should draw a Window line when WY > 0', () => {
@@ -958,32 +1021,28 @@ describe('LCD', () => {
           return new Buffer('0000', 'hex');
         }
       };
+      mmu.getBgCharCode = () => 1;
       mmu.getWindowCharCode = () => 0;
       mmu.isWindowOn = () => true;
       mmu.wy = () => 10; // Move window 10px down
       mmu.wx = () => 7;
 
-      const expectedData = new Uint8ClampedArray(lineRgbaLength);
-      for(let p = 0; p < expectedData.length; p++) {
-        expectedData[p] = lcd.SHADES[lcd._bgp[1]][p % 4];
-      }
-
       lcd.drawLine(0);
       lcd.drawLine(10);
 
-      assert.deepEqual(Array.from(lcd.getWindowLineData(0)), new Uint8ClampedArray(lineRgbaLength));
-      assert.deepEqual(Array.from(lcd.getWindowLineData(10)), Array.from(expectedData));
+      assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(lcd.generateLineData(0)));
+      assert.deepEqual(Array.from(lcd.getLineData(10)), Array.from(lcd.generateLineData(1)));
 
       // Test that WX < 7 (prohibited values) as considered as WX = 7
       mmu.wx = () => 6;
       lcd.drawLine(10);
 
-      assert.deepEqual(Array.from(lcd.getWindowLineData(10)), Array.from(expectedData));
+      assert.deepEqual(Array.from(lcd.getLineData(10)), Array.from(lcd.generateLineData(1)));
 
       mmu.wx = () => 0;
       lcd.drawLine(10);
 
-      assert.deepEqual(Array.from(lcd.getWindowLineData(10)), Array.from(expectedData));
+      assert.deepEqual(Array.from(lcd.getLineData(10)), Array.from(lcd.generateLineData(1)));
     });
 
     it('should draw a Window line when WX > 7', () => {
@@ -995,6 +1054,7 @@ describe('LCD', () => {
           return new Buffer('0000', 'hex');
         }
       };
+      mmu.getBgCharCode = () => 1;
       mmu.getWindowCharCode = () => 0;
       mmu.isWindowOn = () => true;
       mmu.wy = () => 0;
@@ -1002,12 +1062,16 @@ describe('LCD', () => {
 
       const expectedData = new Uint8ClampedArray(lineRgbaLength);
       for(let p = 0; p < expectedData.length; p++) {
-        if (p >= 10*4) expectedData[p] = lcd.SHADES[lcd._bgp[1]][p % 4];
+        if (p >= 10*4) {
+          expectedData[p] = lcd.SHADES[lcd._bgp[1]][p % 4];
+        } else {
+          expectedData[p] = lcd.SHADES[lcd._bgp[0]][p % 4];
+        }
       }
 
       lcd.drawLine(0);
 
-      assert.deepEqual(Array.from(lcd.getWindowLineData(0)), Array.from(expectedData));
+      assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(expectedData));
     });
 
     it('should draw a Window line as long as WX < 167', () => {
@@ -1019,12 +1083,13 @@ describe('LCD', () => {
           return new Buffer('0000', 'hex');
         }
       };
+      mmu.getBgCharCode = () => 1;
       mmu.getWindowCharCode = () => 0;
       mmu.isWindowOn = () => true;
       mmu.wy = () => 0;
       mmu.wx = () => 166; // move right 159px, only one visible pixel
 
-      const expectedData = new Uint8ClampedArray(lineRgbaLength);
+      const expectedData = lcd.generateLineData(0);
       expectedData[lineRgbaLength-4] = lcd.SHADES[lcd._bgp[1]][0];
       expectedData[lineRgbaLength-3] = lcd.SHADES[lcd._bgp[1]][1];
       expectedData[lineRgbaLength-2] = lcd.SHADES[lcd._bgp[1]][2];
@@ -1032,7 +1097,7 @@ describe('LCD', () => {
 
       lcd.drawLine(0);
 
-      assert.deepEqual(Array.from(lcd.getWindowLineData(0)), Array.from(expectedData));
+      assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(expectedData));
     });
 
     it('should not draw a Window line when WX > 166', () => {
@@ -1045,7 +1110,7 @@ describe('LCD', () => {
 
       lcd.drawLine(0);
 
-      assert.deepEqual(Array.from(lcd.getWindowLineData(0)), Array.from(new Uint8ClampedArray(lineRgbaLength)));
+      assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(lcd.generateLineData(0)));
     });
   });
 
