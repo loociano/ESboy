@@ -88,6 +88,8 @@ export default class MMU {
     this.ADDR_WX = 0xff4b;
     this.ADDR_KEY1 = 0xff4d;
     this.ADDR_VBK = 0xff4f;
+    this.ADDR_BCPS = 0xff68;
+    this.ADDR_BCPD = 0xff69;
     this.ADDR_SVBK = 0xff70;
     this.ADDR_IE = 0xffff;
     this.ADDR_MAX = 0xffff;
@@ -236,6 +238,8 @@ export default class MMU {
     this.MBC3_RAM_SIZE = this.MBC1_RAM_SIZE;
     this.MBC3_CSRAM_ON = this.MBC1_CSRAM_ON;
 
+    this.PALETTES_SIZE = 64;
+
     // Variables
     this._rom = rom;
     this._storage = storage;
@@ -243,6 +247,9 @@ export default class MMU {
     this._memory = new Uint8Array(this.ADDR_MAX + 1);
     this._CGB_VRAM_bank1 = new Uint8Array(this.CGB_VRAM_BANK_SIZE);
     this._CGB_WRAM = new Uint8Array(this.CGB_VRAM_SIZE);
+    this._CGBpalettes = new Uint8Array(this.PALETTES_SIZE);
+    this._paletteAddr = 0;
+    this._autoNextPalette = false;
     this._bios = this.getBIOS();
     this._inBIOS = true;
     this._isDMA = false;
@@ -261,6 +268,22 @@ export default class MMU {
     this.isCartridgeSupported();
     this._initMemory();
     this._initMemoryBankController();
+  }
+
+  /**
+   * @param paletteNb 0-7
+   * @param paletteData 0-3
+   * @returns {Array} 15-bit RGB, 5 bit per channel (0-0x1f)
+   */
+  getRGB(paletteNb, paletteData){
+    const start = paletteNb*8 + paletteData*2;
+    const l = this._CGBpalettes[start];
+    const h = this._CGBpalettes[start+1];
+    const rgb = [];
+    rgb.push(l & 0x1f);
+    rgb.push((l >> 5 & 7) + ((h & 3) << 3));
+    rgb.push((h >> 2 & 0x1f));
+    return rgb;
   }
 
   /**
@@ -763,6 +786,12 @@ export default class MMU {
       case this.ADDR_TAC:
         n &= 0x07; // bit 3-7 unused
         break;
+      case this.ADDR_BCPS:
+        this._handleBCPS(n);
+        return;
+      case this.ADDR_BCPD:
+        this._handleBCPD(n);
+        return;
     }
 
     this._memory[addr] = n;
@@ -781,6 +810,33 @@ export default class MMU {
         this._writeMBC3RAM(addr, n);
       }
     }
+  }
+
+  /**
+   * @param n
+   * @private
+   */
+  _handleBCPD(n){
+    this._CGBpalettes[this._paletteAddr] = n;
+    if (this._autoNextPalette){
+      if (this._paletteAddr < (this.PALETTES_SIZE - 1)){
+        this._paletteAddr++;
+      } else {
+        this._paletteAddr = 0;
+      }
+    }
+  }
+
+  /**
+   * @param n
+   * @private
+   */
+  _handleBCPS(n){
+    const hl = n & 0x01;
+    const paletteData = (n >> 1) & 3;
+    const paletteNb = (n >> 3) & 7;
+    this._autoNextPalette = (n >> 7) === 1;
+    this._paletteAddr = paletteNb*8 + paletteData*2 + hl;
   }
 
   /**
