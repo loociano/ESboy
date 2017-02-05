@@ -8312,8 +8312,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var LCD = function () {
 
   /**
-   * @param {MMU} mmu
-   * @param {CanvasRenderingContext2D} ctx
+   * @param {MMU|MMUMock} mmu
+   * @param {CanvasRenderingContext2D|ContextMock} ctx
    */
   function LCD(mmu, ctx) {
     _classCallCheck(this, LCD);
@@ -8345,6 +8345,7 @@ var LCD = function () {
     this._obg0 = null;
     this._obg1 = null;
     this._imageData = this._ctx.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
+    this._IS_COLOUR = this._mmu.isGameInColor();
 
     this._clear();
     this._readPalettes();
@@ -8388,7 +8389,7 @@ var LCD = function () {
     }
 
     /**
-     * Outputs the imageDatas into the actual HTML canvas
+     * Writes (paints) the imageData into the actual HTML canvas (refresh)
      * NOTE: EXPENSIVE, should be called once per frame (not per line)
      */
 
@@ -8399,11 +8400,11 @@ var LCD = function () {
     }
 
     /**
-     * Draws pixel in image data, given its coords and grey level
+     * Draws pixel in image data, given its coords and palette data nb
      *
      * @param {number} x
      * @param {number} y
-     * @param {number} level
+     * @param {number} paletteDataNb 0-3
      * @param {Array} palette
      */
 
@@ -8412,22 +8413,22 @@ var LCD = function () {
     value: function drawPixel(_ref) {
       var x = _ref.x,
           y = _ref.y,
-          level = _ref.level;
+          paletteDataNb = _ref.paletteDataNb;
       var palette = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._bgp;
 
 
-      if (level < 0 || level > 3) {
-        _logger2.default.error('Unrecognized level gray level ' + level);
+      if (paletteDataNb < 0 || paletteDataNb > 3) {
+        _logger2.default.error('Unrecognized palette data nb ' + paletteDataNb);
         return;
       }
 
       if (x < 0 || y < 0 || x >= this._HW_WIDTH || y >= this._HW_HEIGHT) return;
 
-      if ((palette === this._obg0 || palette === this._obg1) && level === 0) {
+      if ((palette === this._obg0 || palette === this._obg1) && paletteDataNb === 0) {
         return; // Transparent
       }
 
-      this._setPixelData(x, y, this.SHADES[palette[level]]);
+      this._setPixelData(x, y, palette[paletteDataNb]);
     }
 
     /** 
@@ -8461,12 +8462,18 @@ var LCD = function () {
       var tileLine = (line + scy) % this._OUT_HEIGHT % this._TILE_HEIGHT;
 
       for (var x = 0; x < max; x += this.TILE_WIDTH) {
-        var tileNumber = this._mmu.getBgCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line, scy));
+        var gridX = this._getHorizontalGrid(x);
+        var gridY = this.getVerticalGrid(line, scy);
+        var tileNumber = this._mmu.getBgCharCode(gridX, gridY);
+        var palette = this._bgp;
+        if (this._IS_COLOUR) {
+          palette = this._bgn[this._mmu.getBgPaletteNb(gridX, gridY)];
+        }
         this._drawTileLine({
           tileNumber: tileNumber,
           tileLine: tileLine,
           startX: this._getScrolledX(x, scx)
-        }, line, true /* isBG */);
+        }, line, true /* isBG */, palette);
       }
     }
 
@@ -8504,6 +8511,7 @@ var LCD = function () {
 
           var topTileY = OBJ.y;
           var bottomTileY = OBJ.y + this._TILE_HEIGHT;
+          var palette = this._getOBJPalette(OBJ.attr);
           if (doubleOBJ) {
             if (this._isFlipY(OBJ.attr)) {
               // Swap
@@ -8516,7 +8524,7 @@ var LCD = function () {
                 tileLine: line - (bottomTileY - this._MAX_TILE_HEIGHT),
                 startX: OBJ.x - this.TILE_WIDTH,
                 OBJAttr: OBJ.attr
-              }, line);
+              }, line, false /* isBg */, palette);
             }
           }
 
@@ -8526,7 +8534,7 @@ var LCD = function () {
               tileLine: line - (topTileY - this._MAX_TILE_HEIGHT),
               startX: OBJ.x - this.TILE_WIDTH,
               OBJAttr: OBJ.attr
-            }, line);
+            }, line, false /* isBg */, palette);
           }
         }
       }
@@ -8584,15 +8592,14 @@ var LCD = function () {
           tileLine = _ref2.tileLine,
           startX = _ref2.startX,
           OBJAttr = _ref2.OBJAttr;
+      var palette = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : this._bgp;
 
 
       var isOBJ = OBJAttr !== undefined;
       var intensityVector = this._getIntensityVector(tileNumber, tileLine, isOBJ);
-      var palette = this._bgp;
 
       if (isOBJ) {
         intensityVector = this._handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr);
-        palette = this._getOBJPalette(OBJAttr);
       }
 
       for (var i = 0; i < intensityVector.length; i++) {
@@ -8603,13 +8610,13 @@ var LCD = function () {
         if (isOBJ) {
           if (this._hasBgPriority(OBJAttr)) {
             if (this._isBgPixelFirstPaletteColor(x, line)) {
-              this.drawPixel({ x: x, y: line, level: intensityVector[i] }, palette);
+              this.drawPixel({ x: x, y: line, paletteDataNb: intensityVector[i] }, palette);
             }
           } else {
-            this.drawPixel({ x: x, y: line, level: intensityVector[i] }, palette);
+            this.drawPixel({ x: x, y: line, paletteDataNb: intensityVector[i] }, palette);
           }
         } else {
-          this.drawPixel({ x: x, y: line, level: intensityVector[i] }, palette);
+          this.drawPixel({ x: x, y: line, paletteDataNb: intensityVector[i] }, palette);
         }
       }
       return intensityVector;
@@ -8627,13 +8634,13 @@ var LCD = function () {
     key: '_isBgPixelFirstPaletteColor',
     value: function _isBgPixelFirstPaletteColor(x, y) {
       var data = this._getPixelData(x, y);
-      return data[0] === this.SHADES[this._bgp[0]][0] && data[1] === this.SHADES[this._bgp[0]][1] && data[2] === this.SHADES[this._bgp[0]][2] && data[3] === this.SHADES[this._bgp[0]][3];
+      return data[0] === this._bgp[0][0] && data[1] === this._bgp[0][1] && data[2] === this._bgp[0][2] && data[3] === this._bgp[0][3];
     }
 
     /**
-     * @param x
-     * @param y
-     * @param value
+     * @param {number} x
+     * @param {number} y
+     * @param {Array} value
      * @private
      */
 
@@ -8666,9 +8673,58 @@ var LCD = function () {
   }, {
     key: '_readPalettes',
     value: function _readPalettes() {
-      this._bgp = LCD.paletteToArray(this._mmu.bgp());
-      this._obg0 = LCD.paletteToArray(this._mmu.obg0());
-      this._obg1 = LCD.paletteToArray(this._mmu.obg1());
+      if (this._IS_COLOUR) {
+        this._bgn = [];
+        for (var p = 0; p < 8; p++) {
+          var rgb15Palette = this._mmu.getBgPalette(p);
+          var rgba32Palette = rgb15Palette.map(function (i) {
+            return LCD.RGB15toRGBA32(i);
+          });
+          this._bgn.push(rgba32Palette);
+        }
+      } else {
+        this._bgp = this._generatePalette(this._mmu.bgp());
+        this._obg0 = this._generatePalette(this._mmu.obg0());
+        this._obg1 = this._generatePalette(this._mmu.obg1());
+      }
+    }
+
+    /**
+     * @param source
+     * @private
+     */
+
+  }, {
+    key: '_generatePalette',
+    value: function _generatePalette(source) {
+      var palette = [];
+      var bgpOrder = LCD.paletteToArray(source);
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = bgpOrder[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var i = _step.value;
+
+          palette.push(this.SHADES[i]);
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+
+      return palette;
     }
 
     /**
@@ -8800,7 +8856,7 @@ var LCD = function () {
     }
 
     /**
-     * Converts a 16 bits tile buffer into array of level of grays [0-3]
+     * Converts a 16 bits tile buffer into array of levels [0-3]
      * Example:
      * 0x0000 -> [0,0,0,0,0,0,0,0]
      * 0xff00 -> [1,1,1,1,1,1,1,1]
@@ -8851,6 +8907,22 @@ var LCD = function () {
         array.push(byte >> shift & 0x03);
       });
       return array;
+    }
+
+    /**
+     * @param {Array} rgb15
+     * @returns {Array} rgba32
+     * @constructor
+     */
+
+  }, {
+    key: 'RGB15toRGBA32',
+    value: function RGB15toRGBA32(rgb15) {
+      var rgba24 = rgb15.map(function (i) {
+        return i * 8;
+      });
+      rgba24.push(255);
+      return rgba24;
     }
   }]);
 
@@ -9021,11 +9093,19 @@ var MMU = function () {
     this.ADDR_DISPLAY_DATA_2 = 0x9c00;
     this.ADDR_VRAM_END = 0x9fff;
 
+    // CGB extra RAM
+    this.CGB_VRAM_BANK_SIZE = 0x2000; // 8KB
+
     // External RAM
     this.ADDR_EXT_RAM_START = 0xa000;
 
     // Working RAM
     this.ADDR_WRAM_START = 0xc000;
+    this.ADDR_WRAM_END = 0xdfff;
+    this.ADDR_WRAM_CGB_UPPER_BANK_START = 0xd000;
+    this.CGB_VRAM_SIZE = 0x8000 - 0x2000; // cgb size - already in dmg
+    this.SVBK_MASK_BANK = 0x07;
+    this.WRAM_CGB_BANK_SIZE = 0x1000;
 
     // High working RAM
     this.ADDR_HRAM_END = 0xfffd;
@@ -9057,6 +9137,8 @@ var MMU = function () {
     this.ADDR_WX = 0xff4b;
     this.ADDR_KEY1 = 0xff4d;
     this.ADDR_VBK = 0xff4f;
+    this.ADDR_BCPS = 0xff68;
+    this.ADDR_BCPD = 0xff69;
     this.ADDR_SVBK = 0xff70;
     this.ADDR_IE = 0xffff;
     this.ADDR_MAX = 0xffff;
@@ -9205,11 +9287,18 @@ var MMU = function () {
     this.MBC3_RAM_SIZE = this.MBC1_RAM_SIZE;
     this.MBC3_CSRAM_ON = this.MBC1_CSRAM_ON;
 
+    this.PALETTES_SIZE = 64;
+
     // Variables
     this._rom = rom;
     this._storage = storage;
     this._extRAM; // init only if there is a Memory Bank Controller
     this._memory = new Uint8Array(this.ADDR_MAX + 1);
+    this._CGB_VRAM_bank1 = new Uint8Array(this.CGB_VRAM_BANK_SIZE);
+    this._CGB_WRAM = new Uint8Array(this.CGB_VRAM_SIZE);
+    this._CGBpalettes = new Uint8Array(this.PALETTES_SIZE);
+    this._paletteAddr = 0;
+    this._autoNextPalette = false;
     this._bios = this.getBIOS();
     this._inBIOS = true;
     this._isDMA = false;
@@ -9231,11 +9320,30 @@ var MMU = function () {
   }
 
   /**
-   * @returns {boolean} true if running BIOS
+   * @param paletteNb 0-7
+   * @param paletteData 0-3
+   * @returns {Array} 15-bit RGB, 5 bit per channel (0-0x1f)
    */
 
 
   _createClass(MMU, [{
+    key: '_getRGB',
+    value: function getRGB(paletteNb, paletteData) {
+      var start = paletteNb * 8 + paletteData * 2;
+      var l = this._CGBpalettes[start];
+      var h = this._CGBpalettes[start + 1];
+      var rgb = [];
+      rgb.push(l & 0x1f);
+      rgb.push((l >> 5 & 7) + ((h & 3) << 3));
+      rgb.push(h >> 2 & 0x1f);
+      return rgb;
+    }
+
+    /**
+     * @returns {boolean} true if running BIOS
+     */
+
+  }, {
     key: 'isRunningBIOS',
     value: function isRunningBIOS() {
       return this._inBIOS;
@@ -9346,6 +9454,8 @@ var MMU = function () {
       this._memory[0xff21] = 0x00;
       this._memory[0xff22] = 0x00;
       this._memory[0xff23] = 0xbf;
+      this._memory[this.ADDR_VBK] = 0xfe;
+      this._memory[this.ADDR_SVBK] = 0xf8;
 
       this._memory[this.ADDR_IF] = 0x00;
       this._memory[this.ADDR_IE] = 0x01;
@@ -9377,7 +9487,6 @@ var MMU = function () {
       switch (addr) {
         case this.ADDR_DMA:
         case this.ADDR_SB:
-        case this.ADDR_SVBK:
           throw new Error('Unsupported register ' + _utils2.default.hex4(addr));
 
         case this.ADDR_KEY1:
@@ -9398,9 +9507,21 @@ var MMU = function () {
         _logger2.default.info('Cannot read OAM');
         return 0xff;
       }
-      if (this._isVRAMAddr(addr) && !this._canAccessVRAM()) {
-        _logger2.default.info('Cannot read VRAM');
-        return 0xff;
+      if (this._isVRAMAddr(addr)) {
+        if (!this._canAccessVRAM()) {
+          _logger2.default.info('Cannot read VRAM');
+          return 0xff;
+        }
+        if (this.readByteAt(this.ADDR_VBK) === 0xff) {
+          return this._CGB_VRAM_bank1[addr - this.ADDR_VRAM_START];
+        }
+      }
+      if (this._isUpperWRAMAddr(addr)) {
+        var WRAMBank = this.readByteAt(this.ADDR_SVBK) & this.SVBK_MASK_BANK;
+        if (WRAMBank > 1) {
+          // banks 0,1 are stored in _memory, as in DMG
+          return this._CGB_WRAM[this._getCGBWRAMAddr(addr, WRAMBank)];
+        }
       }
       if ((this._hasMBC1 || this._hasMBC3) && this._isProgramSwitchAddr(addr)) {
         return this._rom[this._getMBC1ROMAddr(addr)];
@@ -9768,6 +9889,17 @@ var MMU = function () {
           _logger2.default.info('Cannot write on VRAM now');
           return;
         }
+        if (this.readByteAt(this.ADDR_VBK) === 0xff) {
+          this._CGB_VRAM_bank1[addr - this.ADDR_VRAM_START] = n;
+          return;
+        }
+      }
+      if (this._isUpperWRAMAddr(addr)) {
+        var WRAMBank = this.readByteAt(this.ADDR_SVBK) & this.SVBK_MASK_BANK;
+        if (WRAMBank > 1) {
+          this._CGB_WRAM[this._getCGBWRAMAddr(addr, WRAMBank)] = n;
+          return;
+        }
       }
 
       switch (addr) {
@@ -9775,8 +9907,11 @@ var MMU = function () {
           n = this._memory[addr] & this.MASK_P1_RW | n;
           break;
         case this.ADDR_VBK:
-          _logger2.default.info('Cannot write on ' + _utils2.default.hex4(addr));
-          return;
+          n |= 0xfe; // Bits 1-7 always set
+          break;
+        case this.ADDR_SVBK:
+          n |= 0xf8; // Bits 3-7 always set
+          break;
         case this.ADDR_STAT:
           n |= 0x80; // Bit 7 is always set
           this._handleStatWrite(n);
@@ -9793,6 +9928,12 @@ var MMU = function () {
         case this.ADDR_TAC:
           n &= 0x07; // bit 3-7 unused
           break;
+        case this.ADDR_BCPS:
+          this._handleBCPS(n);
+          return;
+        case this.ADDR_BCPD:
+          this._handleBCPD(n);
+          return;
       }
 
       this._memory[addr] = n;
@@ -9811,6 +9952,39 @@ var MMU = function () {
           this._writeMBC3RAM(addr, n);
         }
       }
+    }
+
+    /**
+     * @param n
+     * @private
+     */
+
+  }, {
+    key: '_handleBCPD',
+    value: function _handleBCPD(n) {
+      this._CGBpalettes[this._paletteAddr] = n;
+      if (this._autoNextPalette) {
+        if (this._paletteAddr < this.PALETTES_SIZE - 1) {
+          this._paletteAddr++;
+        } else {
+          this._paletteAddr = 0;
+        }
+      }
+    }
+
+    /**
+     * @param n
+     * @private
+     */
+
+  }, {
+    key: '_handleBCPS',
+    value: function _handleBCPS(n) {
+      var hl = n & 0x01;
+      var paletteData = n >> 1 & 3;
+      var paletteNb = n >> 3 & 7;
+      this._autoNextPalette = n >> 7 === 1;
+      this._paletteAddr = paletteNb * 8 + paletteData * 2 + hl;
     }
 
     /**
@@ -9875,6 +10049,19 @@ var MMU = function () {
 
     /**
      * @param addr
+     * @param {number} WRAMBank 2-7
+     * @returns {number}
+     * @private
+     */
+
+  }, {
+    key: '_getCGBWRAMAddr',
+    value: function _getCGBWRAMAddr(addr, WRAMBank) {
+      return (WRAMBank - 2) * this.WRAM_CGB_BANK_SIZE + (addr - this.ADDR_WRAM_CGB_UPPER_BANK_START);
+    }
+
+    /**
+     * @param addr
      * @returns {number} addr in the MBC1 ROM given a MMU addr.
      * Example: 0x4000 corresponds to 0x4000 if ROM bank is 1, 0x4000 to 0x8000 is RAM bank is 2, etc
      * @private
@@ -9901,18 +10088,6 @@ var MMU = function () {
       } else {
         this.writeByteAt(this.ADDR_STAT, this.stat() & this.MASK_STAT_LYC_OFF);
       }
-    }
-
-    /**
-     * @param addr
-     * @return {number} char number 0..1023
-     * @private
-     */
-
-  }, {
-    key: '_getCharNb',
-    value: function _getCharNb(addr) {
-      return addr - this._getBgDisplayDataStartAddr();
     }
 
     /**
@@ -10088,6 +10263,18 @@ var MMU = function () {
     key: '_isVRAMAddr',
     value: function _isVRAMAddr(addr) {
       return addr >= this.ADDR_VRAM_START && addr <= this.ADDR_VRAM_END;
+    }
+
+    /**
+     * @param addr
+     * @returns {boolean} true if addr is in WRAM range
+     * @private
+     */
+
+  }, {
+    key: '_isUpperWRAMAddr',
+    value: function _isUpperWRAMAddr(addr) {
+      return addr >= this.ADDR_WRAM_CGB_UPPER_BANK_START && addr <= this.ADDR_WRAM_END;
     }
 
     /**
@@ -10644,6 +10831,21 @@ var MMU = function () {
     }
 
     /**
+     * @param paletteNb
+     * @returns {Array[Array]}
+     */
+
+  }, {
+    key: 'getBgPalette',
+    value: function getBgPalette(paletteNb) {
+      var palette = [];
+      for (var i = 0; i < 4; i++) {
+        palette.push(this._getRGB(paletteNb, i));
+      }
+      return palette;
+    }
+
+    /**
      * MBC1 mode: 0 is 2MB ROM/8KB RAM, 1 is 512KB ROM/32KB RAM
      * @returns {number}
      */
@@ -10723,6 +10925,18 @@ var MMU = function () {
     key: 'wx',
     value: function wx() {
       return this.readByteAt(this.ADDR_WX);
+    }
+
+    /**
+     * @param gridX
+     * @param gridY
+     */
+
+  }, {
+    key: 'getBgPaletteNb',
+    value: function getBgPaletteNb(gridX, gridY) {
+      // TODO: implement
+      return 0;
     }
   }]);
 
