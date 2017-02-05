@@ -274,8 +274,9 @@ export default class MMU {
    * @param paletteNb 0-7
    * @param paletteData 0-3
    * @returns {Array} 15-bit RGB, 5 bit per channel (0-0x1f)
+   * @private
    */
-  getRGB(paletteNb, paletteData){
+  _getRGB(paletteNb, paletteData){
     const start = paletteNb*8 + paletteData*2;
     const l = this._CGBpalettes[start];
     const h = this._CGBpalettes[start+1];
@@ -1473,7 +1474,7 @@ export default class MMU {
   getBgPalette(paletteNb){
     const palette = [];
     for(let i = 0; i < 4; i++){
-      palette.push(this.getRGB(paletteNb, i));
+      palette.push(this._getRGB(paletteNb, i));
     }
     return palette;
   }

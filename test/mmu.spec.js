@@ -803,12 +803,6 @@ describe('MMU', () => {
         mmu.writeByteAt(mmu.ADDR_BCPD, 0xff);
       }
 
-      for(let palette = 0; palette < 8; palette++){
-        for (let data = 0; data < 4; data++){
-          assert.deepEqual(mmu.getRGB(palette, data), [0x1f,0x1f,0x1f], `palette:${palette}, data:${data}`);
-        }
-      }
-
       assert.deepEqual(mmu.getBgPalette(0), [[0x1f,0x1f,0x1f], [0x1f,0x1f,0x1f], [0x1f,0x1f,0x1f], [0x1f,0x1f,0x1f]]);
 
       // last palette, first data, pure red
@@ -817,15 +811,11 @@ describe('MMU', () => {
       mmu.writeByteAt(mmu.ADDR_BCPS, 0b00111001);
       mmu.writeByteAt(mmu.ADDR_BCPD, 0);
 
-      assert.deepEqual(mmu.getRGB(7, 0), [0x1f,0,0]);
-
       // last palette, first data, pure green
       mmu.writeByteAt(mmu.ADDR_BCPS, 0b00111010);
       mmu.writeByteAt(mmu.ADDR_BCPD, 0xe0);
       mmu.writeByteAt(mmu.ADDR_BCPS, 0b00111011);
       mmu.writeByteAt(mmu.ADDR_BCPD, 0x03);
-
-      assert.deepEqual(mmu.getRGB(7, 1), [0,0x1f,0]);
 
       // last palette, first data, pure blue
       mmu.writeByteAt(mmu.ADDR_BCPS, 0b00111100);
@@ -833,15 +823,11 @@ describe('MMU', () => {
       mmu.writeByteAt(mmu.ADDR_BCPS, 0b00111101);
       mmu.writeByteAt(mmu.ADDR_BCPD, 0x7c);
 
-      assert.deepEqual(mmu.getRGB(7, 2), [0,0,0x1f]);
-
       // last palette, first data, pure black
       mmu.writeByteAt(mmu.ADDR_BCPS, 0b00111110);
       mmu.writeByteAt(mmu.ADDR_BCPD, 0);
       mmu.writeByteAt(mmu.ADDR_BCPS, 0b00111111);
       mmu.writeByteAt(mmu.ADDR_BCPD, 0);
-
-      assert.deepEqual(mmu.getRGB(7, 3), [0,0,0]);
 
       assert.deepEqual(mmu.getBgPalette(7), [[0x1f,0,0], [0,0x1f,0], [0,0,0x1f], [0,0,0]]);
     });
