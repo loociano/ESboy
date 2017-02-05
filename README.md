@@ -1,4 +1,4 @@
-# gb-ES6 – GAME BOY&trade; emulator [![Build Status](https://travis-ci.org/loociano/gb-ES6.svg?branch=master)](https://travis-ci.org/loociano/gb-ES6)
+# ESboy – GAME BOY&trade; emulator [![Build Status](https://travis-ci.org/loociano/gb-ES6.svg?branch=master)](https://travis-ci.org/loociano/gb-ES6)
 
 ![Pokemon Blue running on Chrome](https://raw.githubusercontent.com/loociano/gb-ES6/master/screenshots/2017-01-28%2021_17_03-gb-ES6.png)
 
@@ -8,7 +8,7 @@ Goal of this project is to write the GAME BOY&trade; CPU and rest of controllers
 
 ## Play 
 
-* [Try it online!](http://loociano.github.io/gb-ES6) 
+* [Try it online! esboy.org](http://esboy.org) 
 * Offline: clone/download this repository and open `index.html` in your browser.
 
 ### Hardware accuracy 
