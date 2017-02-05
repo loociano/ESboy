@@ -79,27 +79,27 @@ export default class LCD {
   }
 
   /**
-   * Draws pixel in image data, given its coords and grey level
+   * Draws pixel in image data, given its coords and palette data nb
    *
    * @param {number} x
    * @param {number} y
-   * @param {number} level
+   * @param {number} palette data nb 0-3
    * @param {Array} palette
    */
-  drawPixel({x, y, level}, palette=this._bgp) {
+  drawPixel({x, y, paletteDataNb}, palette=this._bgp) {
 
-    if (level < 0 || level > 3){
-      Logger.error(`Unrecognized level gray level ${level}`);
+    if (paletteDataNb < 0 || paletteDataNb > 3){
+      Logger.error(`Unrecognized palette data nb ${paletteDataNb}`);
       return;
     }
 
     if (x < 0 || y < 0 || x >= this._HW_WIDTH || y >= this._HW_HEIGHT) return;
 
-    if ((palette === this._obg0 || palette === this._obg1) && level === 0) {
+    if ((palette === this._obg0 || palette === this._obg1) && paletteDataNb === 0) {
       return; // Transparent
     }
 
-    this._setPixelData(x, y, this.SHADES[palette[level]]);
+    this._setPixelData(x, y, this.SHADES[palette[paletteDataNb]]);
   }
 
   /** 
@@ -249,13 +249,13 @@ export default class LCD {
       if(isOBJ) {
         if (this._hasBgPriority(OBJAttr)){
           if (this._isBgPixelFirstPaletteColor(x, line)){
-            this.drawPixel({x: x, y: line, level: intensityVector[i]}, palette);
+            this.drawPixel({x: x, y: line, paletteDataNb: intensityVector[i]}, palette);
           }
         } else {
-          this.drawPixel({x: x, y: line, level: intensityVector[i]}, palette);
+          this.drawPixel({x: x, y: line, paletteDataNb: intensityVector[i]}, palette);
         }
       } else {
-        this.drawPixel({x: x, y: line, level: intensityVector[i]}, palette);
+        this.drawPixel({x: x, y: line, paletteDataNb: intensityVector[i]}, palette);
       }
     }
     return intensityVector;
@@ -415,7 +415,7 @@ export default class LCD {
   }
 
   /**
-   * Converts a 16 bits tile buffer into array of level of grays [0-3]
+   * Converts a 16 bits tile buffer into array of levels [0-3]
    * Example:
    * 0x0000 -> [0,0,0,0,0,0,0,0]
    * 0xff00 -> [1,1,1,1,1,1,1,1]

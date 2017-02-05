@@ -125,25 +125,25 @@ describe('LCD', () => {
       const lastIndex = WIDTH * HEIGHT * 4 - 1;
       const data = lcd.getImageData().data;
 
-      let pixel = {x: 0, y: 0, level: 0};
+      let pixel = {x: 0, y: 0, paletteDataNb: 0};
       lcd.drawPixel(pixel);
 
-      assert.deepEqual([data[0], data[1], data[2], data[3]], lcd.SHADES[lcd._bgp[pixel.level]]);
+      assert.deepEqual([data[0], data[1], data[2], data[3]], lcd.SHADES[lcd._bgp[pixel.paletteDataNb]]);
 
-      pixel = {x: 1, y: 0, level: 1};
+      pixel = {x: 1, y: 0, paletteDataNb: 1};
       lcd.drawPixel(pixel);
 
-      assert.deepEqual([data[4], data[5], data[6], data[7]], lcd.SHADES[lcd._bgp[pixel.level]]);
+      assert.deepEqual([data[4], data[5], data[6], data[7]], lcd.SHADES[lcd._bgp[pixel.paletteDataNb]]);
 
-      pixel = {x: WIDTH - 1, y: 0, level: 2};
+      pixel = {x: WIDTH - 1, y: 0, paletteDataNb: 2};
       lcd.drawPixel(pixel);
 
-      assert.deepEqual([data[WIDTH * 4 - 4], data[WIDTH * 4 - 3], data[WIDTH * 4 - 2], data[WIDTH * 4 - 1]], lcd.SHADES[lcd._bgp[pixel.level]]);
+      assert.deepEqual([data[WIDTH * 4 - 4], data[WIDTH * 4 - 3], data[WIDTH * 4 - 2], data[WIDTH * 4 - 1]], lcd.SHADES[lcd._bgp[pixel.paletteDataNb]]);
 
-      pixel = {x: WIDTH - 1, y: HEIGHT - 1, level: 3};
+      pixel = {x: WIDTH - 1, y: HEIGHT - 1, paletteDataNb: 3};
       lcd.drawPixel(pixel);
 
-      assert.deepEqual([data[lastIndex - 3], data[lastIndex - 2], data[lastIndex - 1], data[lastIndex]], lcd.SHADES[lcd._bgp[pixel.level]]);
+      assert.deepEqual([data[lastIndex - 3], data[lastIndex - 2], data[lastIndex - 1], data[lastIndex]], lcd.SHADES[lcd._bgp[pixel.paletteDataNb]]);
     });
 
   });
