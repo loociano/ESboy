@@ -1541,13 +1541,12 @@ export default class MMU {
     return this.readByteAt(this.ADDR_WX);
   }
 
-
   /**
    * @param gridX
    * @param gridY
    */
   getBgPaletteNb(gridX, gridY){
-    // TODO: implement
-    return 0;
+    const addr = this._getBgDisplayDataStartAddr() + gridX + (gridY * this.CHARS_PER_LINE);
+    return (this._CGB_VRAM_bank1[addr - this.ADDR_VRAM_START] & 0x07);
   }
 }

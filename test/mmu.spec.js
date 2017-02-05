@@ -832,6 +832,27 @@ describe('MMU', () => {
       assert.deepEqual(mmu.getBgPalette(7), [[0x1f,0,0], [0,0x1f,0], [0,0,0x1f], [0,0,0]]);
     });
 
+    it('should read color palette for a given background tile', () => {
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_CODE_AREA_1);
+      mmu.writeByteAt(0x9800, 0xab); // bank 0
+      mmu.writeByteAt(0x9bff, 0xcd); // bank 0
+
+      assert.equal(mmu.getBgCharCode(0, 0), 0xab, 'Block 0');
+      assert.equal(mmu.getBgCharCode(31, 31), 0xcd, 'Block 1023');
+
+      mmu.writeByteAt(mmu.ADDR_VBK, 1);
+      mmu.writeByteAt(0x9800, 0x01/*palette 1*/); // bank 1
+      mmu.writeByteAt(0x9bff, 0x02/*palette 2*/); // bank 1
+
+      assert.equal(mmu.getBgPaletteNb(0, 0), 1);
+      assert.equal(mmu.getBgPaletteNb(31, 31), 2);
+
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_CODE_AREA_2);
+
+      assert.equal(mmu.getBgPaletteNb(0, 0), 0); // no palette was set, default: 0
+      assert.equal(mmu.getBgPaletteNb(31, 31), 0);
+    });
+
   });
 
 });
