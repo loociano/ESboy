@@ -809,6 +809,8 @@ describe('MMU', () => {
         }
       }
 
+      assert.deepEqual(mmu.getBgPalette(0), [[0x1f,0x1f,0x1f], [0x1f,0x1f,0x1f], [0x1f,0x1f,0x1f], [0x1f,0x1f,0x1f]]);
+
       // last palette, first data, pure red
       mmu.writeByteAt(mmu.ADDR_BCPS, 0b00111000);
       mmu.writeByteAt(mmu.ADDR_BCPD, 0x1f);
@@ -840,6 +842,8 @@ describe('MMU', () => {
       mmu.writeByteAt(mmu.ADDR_BCPD, 0);
 
       assert.deepEqual(mmu.getRGB(7, 3), [0,0,0]);
+
+      assert.deepEqual(mmu.getBgPalette(7), [[0x1f,0,0], [0,0x1f,0], [0,0,0x1f], [0,0,0]]);
     });
 
   });

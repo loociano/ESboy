@@ -120,4 +120,8 @@ export default class MMUMock {
   areOBJDouble(){
     return false;
   }
+
+  isGameInColor(){
+    return false;
+  }
 }

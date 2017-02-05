@@ -921,15 +921,6 @@ export default class MMU {
   }
 
   /**
-   * @param addr
-   * @return {number} char number 0..1023
-   * @private
-   */
-  _getCharNb(addr){
-    return (addr - this._getBgDisplayDataStartAddr());
-  }
-
-  /**
    * @param {number} addr
    * @returns {boolean}
    * @private
@@ -1476,6 +1467,18 @@ export default class MMU {
   }
 
   /**
+   * @param paletteNb
+   * @returns {Array[Array]}
+   */
+  getBgPalette(paletteNb){
+    const palette = [];
+    for(let i = 0; i < 4; i++){
+      palette.push(this.getRGB(paletteNb, i));
+    }
+    return palette;
+  }
+
+  /**
    * MBC1 mode: 0 is 2MB ROM/8KB RAM, 1 is 512KB ROM/32KB RAM
    * @returns {number}
    */
@@ -1535,5 +1538,15 @@ export default class MMU {
    */
   wx(){
     return this.readByteAt(this.ADDR_WX);
+  }
+
+
+  /**
+   * @param gridX
+   * @param gridY
+   */
+  getBgPaletteNb(gridX, gridY){
+    // TODO: implement
+    return 0;
   }
 }

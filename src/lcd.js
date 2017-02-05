@@ -4,8 +4,8 @@ import Logger from './logger';
 export default class LCD {
 
   /**
-   * @param {MMU} mmu
-   * @param {CanvasRenderingContext2D} ctx
+   * @param {MMU|MMUMock} mmu
+   * @param {CanvasRenderingContext2D|ContextMock} ctx
    */
   constructor(mmu, ctx){
 
@@ -36,6 +36,7 @@ export default class LCD {
     this._obg0 = null;
     this._obg1 = null;
     this._imageData = this._ctx.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
+    this._IS_COLOUR = this._mmu.isGameInColor();
 
     this._clear();
     this._readPalettes();
@@ -83,7 +84,7 @@ export default class LCD {
    *
    * @param {number} x
    * @param {number} y
-   * @param {number} palette data nb 0-3
+   * @param {number} paletteDataNb 0-3
    * @param {Array} palette
    */
   drawPixel({x, y, paletteDataNb}, palette=this._bgp) {
@@ -99,7 +100,7 @@ export default class LCD {
       return; // Transparent
     }
 
-    this._setPixelData(x, y, this.SHADES[palette[paletteDataNb]]);
+    this._setPixelData(x, y, palette[paletteDataNb]);
   }
 
   /** 
@@ -127,12 +128,18 @@ export default class LCD {
     const tileLine = ((line + scy) % this._OUT_HEIGHT) % this._TILE_HEIGHT;
 
     for(let x = 0; x < max; x += this.TILE_WIDTH){
-      const tileNumber = this._mmu.getBgCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line, scy));
+      const gridX = this._getHorizontalGrid(x);
+      const gridY = this.getVerticalGrid(line, scy);
+      const tileNumber = this._mmu.getBgCharCode(gridX, gridY);
+      let palette = this._bgp;
+      if (this._IS_COLOUR){
+        palette = this._bgn[this._mmu.getBgPaletteNb(gridX, gridY)];
+      }
       this._drawTileLine({
         tileNumber: tileNumber,
         tileLine: tileLine,
         startX: this._getScrolledX(x, scx)
-      }, line, true /* isBG */);
+      }, line, true /* isBG */, palette);
     }
   }
 
@@ -164,6 +171,7 @@ export default class LCD {
 
         let topTileY = OBJ.y;
         let bottomTileY = OBJ.y + this._TILE_HEIGHT;
+        const palette = this._getOBJPalette(OBJ.attr);
         if (doubleOBJ){
           if (this._isFlipY(OBJ.attr)){
             // Swap
@@ -176,7 +184,7 @@ export default class LCD {
               tileLine: line - (bottomTileY - this._MAX_TILE_HEIGHT),
               startX: OBJ.x - this.TILE_WIDTH,
               OBJAttr: OBJ.attr,
-            }, line);
+            }, line, false/* isBg */, palette);
           }
         }
 
@@ -186,7 +194,7 @@ export default class LCD {
             tileLine: line - (topTileY - this._MAX_TILE_HEIGHT),
             startX: OBJ.x - this.TILE_WIDTH,
             OBJAttr: OBJ.attr,
-          }, line);
+          }, line, false/* isBg */, palette);
         }
       }
     }
@@ -230,15 +238,13 @@ export default class LCD {
    * @param line
    * @param isBG
    */
-  _drawTileLine({tileNumber, tileLine, startX, OBJAttr}, line, isBG){
+  _drawTileLine({tileNumber, tileLine, startX, OBJAttr}, line, isBG, palette=this._bgp){
 
     const isOBJ = OBJAttr !== undefined;
     let intensityVector = this._getIntensityVector(tileNumber, tileLine, isOBJ);
-    let palette = this._bgp;
 
     if(isOBJ){
       intensityVector = this._handleOBJAttributes(intensityVector, tileNumber, tileLine, OBJAttr);
-      palette = this._getOBJPalette(OBJAttr);
     }
 
     for(let i = 0; i < intensityVector.length; i++){
@@ -270,10 +276,10 @@ export default class LCD {
    */
   _isBgPixelFirstPaletteColor(x, y){
     const data = this._getPixelData(x, y);
-    return data[0] === this.SHADES[this._bgp[0]][0]
-      && data[1] === this.SHADES[this._bgp[0]][1]
-      && data[2] === this.SHADES[this._bgp[0]][2]
-      && data[3] === this.SHADES[this._bgp[0]][3];
+    return data[0] === this._bgp[0][0]
+      && data[1] === this._bgp[0][1]
+      && data[2] === this._bgp[0][2]
+      && data[3] === this._bgp[0][3];
   }
 
   /**
@@ -303,9 +309,31 @@ export default class LCD {
    * @private
    */
   _readPalettes(){
-    this._bgp = LCD.paletteToArray(this._mmu.bgp());
-    this._obg0 = LCD.paletteToArray(this._mmu.obg0());
-    this._obg1 = LCD.paletteToArray(this._mmu.obg1());
+    if (this._IS_COLOUR) {
+      this._bgn = [];
+      for (let p = 0; p < 8; p++){
+        const rgb15Palette = this._mmu.getBgPalette(p);
+        const rgba32Palette = rgb15Palette.map( (i) => LCD.RGB15toRGBA32(i) );
+        this._bgn.push(rgba32Palette);
+      }
+    } else {
+      this._bgp = this._generatePalette(this._mmu.bgp());
+      this._obg0 = this._generatePalette(this._mmu.obg0());
+      this._obg1 = this._generatePalette(this._mmu.obg1());
+    }
+  }
+
+  /**
+   * @param source
+   * @private
+   */
+  _generatePalette(source){
+    const palette = [];
+    const bgpOrder = LCD.paletteToArray(source);
+    for(let i of bgpOrder){
+      palette.push(this.SHADES[i]);
+    }
+    return palette;
   }
 
   /**

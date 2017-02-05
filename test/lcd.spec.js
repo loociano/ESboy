@@ -7,11 +7,13 @@ import {describe, beforeEach, it} from 'mocha';
 
 describe('LCD', () => {
 
-  let lcd;
+  let lcd, mmu;
   const lineRgbaLength = 160*4;
 
   beforeEach(() => {
-    lcd = new LCD(new MMUMock(), new ContextMock(), new ContextMock(), new ContextMock());
+    mmu = new MMUMock();
+    mmu.isGameInColor = () => false;
+    lcd = new LCD(mmu, new ContextMock());
 
     /**
      * @returns {MMU}
@@ -86,7 +88,7 @@ describe('LCD', () => {
     lcd.generateLineData = function(paletteLevel) {
       const lineData = new Uint8ClampedArray(lineRgbaLength);
       for (let p = 0; p < lineData.length; p++) {
-        lineData[p] = lcd.SHADES[lcd._bgp[paletteLevel]][p % 4];
+        lineData[p] = lcd._bgp[paletteLevel][p % 4];
       }
       return lineData;
     };
@@ -128,22 +130,22 @@ describe('LCD', () => {
       let pixel = {x: 0, y: 0, paletteDataNb: 0};
       lcd.drawPixel(pixel);
 
-      assert.deepEqual([data[0], data[1], data[2], data[3]], lcd.SHADES[lcd._bgp[pixel.paletteDataNb]]);
+      assert.deepEqual([data[0], data[1], data[2], data[3]], lcd._bgp[0]);
 
       pixel = {x: 1, y: 0, paletteDataNb: 1};
       lcd.drawPixel(pixel);
 
-      assert.deepEqual([data[4], data[5], data[6], data[7]], lcd.SHADES[lcd._bgp[pixel.paletteDataNb]]);
+      assert.deepEqual([data[4], data[5], data[6], data[7]], lcd._bgp[1]);
 
       pixel = {x: WIDTH - 1, y: 0, paletteDataNb: 2};
       lcd.drawPixel(pixel);
 
-      assert.deepEqual([data[WIDTH * 4 - 4], data[WIDTH * 4 - 3], data[WIDTH * 4 - 2], data[WIDTH * 4 - 1]], lcd.SHADES[lcd._bgp[pixel.paletteDataNb]]);
+      assert.deepEqual([data[WIDTH * 4 - 4], data[WIDTH * 4 - 3], data[WIDTH * 4 - 2], data[WIDTH * 4 - 1]], lcd._bgp[2]);
 
       pixel = {x: WIDTH - 1, y: HEIGHT - 1, paletteDataNb: 3};
       lcd.drawPixel(pixel);
 
-      assert.deepEqual([data[lastIndex - 3], data[lastIndex - 2], data[lastIndex - 1], data[lastIndex]], lcd.SHADES[lcd._bgp[pixel.paletteDataNb]]);
+      assert.deepEqual([data[lastIndex - 3], data[lastIndex - 2], data[lastIndex - 1], data[lastIndex]], lcd._bgp[3]);
     });
 
   });
@@ -170,9 +172,9 @@ describe('LCD', () => {
       const expectedData = new Uint8ClampedArray(lineRgbaLength); // first LCD line
       for(let p = 0; p < expectedData.length; p++){
         if (p < 8*4){
-          expectedData[p] = lcd.SHADES[lcd._bgp[3]][p % 4]; // left-most tile
+          expectedData[p] = lcd._bgp[3][p % 4]; // left-most tile
         } else {
-          expectedData[p] = lcd.SHADES[lcd._bgp[0]][p % 4];
+          expectedData[p] = lcd._bgp[0][p % 4];
         }
       }
 
@@ -195,8 +197,8 @@ describe('LCD', () => {
       const expectedDarkLine = new Uint8ClampedArray(lineRgbaLength);
       const expectedLightLine = new Uint8ClampedArray(lineRgbaLength);
       for(let p = 0; p < expectedDarkLine.length; p++){
-        expectedDarkLine[p] = lcd.SHADES[lcd._bgp[3]][p % 4];
-        expectedLightLine[p] = lcd.SHADES[lcd._bgp[0]][p % 4];
+        expectedDarkLine[p] = lcd._bgp[3][p % 4];
+        expectedLightLine[p] = lcd._bgp[0][p % 4];
       }
 
       lcd.drawTiles();
@@ -1063,9 +1065,9 @@ describe('LCD', () => {
       const expectedData = new Uint8ClampedArray(lineRgbaLength);
       for(let p = 0; p < expectedData.length; p++) {
         if (p >= 10*4) {
-          expectedData[p] = lcd.SHADES[lcd._bgp[1]][p % 4];
+          expectedData[p] = lcd._bgp[1][p % 4];
         } else {
-          expectedData[p] = lcd.SHADES[lcd._bgp[0]][p % 4];
+          expectedData[p] = lcd._bgp[0][p % 4];
         }
       }
 
@@ -1090,10 +1092,10 @@ describe('LCD', () => {
       mmu.wx = () => 166; // move right 159px, only one visible pixel
 
       const expectedData = lcd.generateLineData(0);
-      expectedData[lineRgbaLength-4] = lcd.SHADES[lcd._bgp[1]][0];
-      expectedData[lineRgbaLength-3] = lcd.SHADES[lcd._bgp[1]][1];
-      expectedData[lineRgbaLength-2] = lcd.SHADES[lcd._bgp[1]][2];
-      expectedData[lineRgbaLength-1] = lcd.SHADES[lcd._bgp[1]][3];
+      expectedData[lineRgbaLength-4] = lcd._bgp[1][0];
+      expectedData[lineRgbaLength-3] = lcd._bgp[1][1];
+      expectedData[lineRgbaLength-2] = lcd._bgp[1][2];
+      expectedData[lineRgbaLength-1] = lcd._bgp[1][3];
 
       lcd.drawLine(0);
 
@@ -1153,6 +1155,22 @@ describe('LCD', () => {
       assert.deepEqual(LCD.RGB15toRGBA32([0, 0, 0]), [0, 0, 0, 255]);
       assert.deepEqual(LCD.RGB15toRGBA32([0x0f, 0x0f, 0x0f]), [120, 120, 120, 255]);
       assert.deepEqual(LCD.RGB15toRGBA32([0x1f, 0x1f, 0x1f]), [248, 248, 248, 255]);
+    });
+
+    it('should paint coloured pixels on a line', () => {
+      lcd._IS_COLOUR = true;
+      const mmu = lcd.getMMU();
+      mmu.getBgCharCode = () => 0;
+      mmu.readBGData = () => new Buffer('5533', 'hex'); // 0,1,2,3,0,1,2,3
+      mmu.getBgPaletteNb = () => 0;
+      mmu.getBgPalette = (paletteNb) => { return [[0x1f,0,0], [0,0x1f,0], [0,0,0x1f], [0,0,0]]; };
+
+      lcd.drawLine(0);
+
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), [248, 0, 0, 255]); // 0 is red
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), [0, 248, 0, 255]); // 1 is green
+      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), [0, 0, 248, 255]); // 2 is blue
+      assert.deepEqual(Array.from(lcd.getPixelData(3, 0)), [0, 0, 0, 255]); // 3 is black
     });
   });
 

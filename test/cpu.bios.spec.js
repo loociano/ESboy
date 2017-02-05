@@ -17,7 +17,7 @@ describe('BIOS execution', function() {
 
   const loader = new Loader('./roms/blargg/cpu_instrs/cpu_instrs.gb'); // ROM has to have Nintendo logo
   const mmu = new MMU(loader.asUint8Array(), new StorageMock());
-  const lcd = new LCD(mmu, new ContextMock(), new ContextMock(), new ContextMock());
+  const lcd = new LCD(mmu, new ContextMock());
   const cpu = new CPU(mmu, lcd);
   mmu.writeByteAt(mmu.ADDR_LCDC, 0b10000000); // LCD on
 
@@ -118,14 +118,14 @@ describe('BIOS execution', function() {
 
   it('should paint the Nintendo logo on screen', () => {
     const tile1Line0Data = [
-      ...lcd.SHADES[lcd._bgp[3]],
-      ...lcd.SHADES[lcd._bgp[3]],
-      ...lcd.SHADES[lcd._bgp[3]],
-      ...lcd.SHADES[lcd._bgp[3]],
-      ...lcd.SHADES[lcd._bgp[0]],
-      ...lcd.SHADES[lcd._bgp[0]],
-      ...lcd.SHADES[lcd._bgp[0]],
-      ...lcd.SHADES[lcd._bgp[0]]];
+      ...lcd._bgn[0][3],
+      ...lcd._bgn[0][3],
+      ...lcd._bgn[0][3],
+      ...lcd._bgn[0][3],
+      ...lcd._bgn[0][0],
+      ...lcd._bgn[0][0],
+      ...lcd._bgn[0][0],
+      ...lcd._bgn[0][0]];
 
     assert.equal(cpu.mmu.getBgCharCode(4, 8), 0x01, 'Tile 1 at 0x04,0x08');
     assert.deepEqual(Array.from(lcd.getBGTileLineData(4, 8)), tile1Line0Data);
