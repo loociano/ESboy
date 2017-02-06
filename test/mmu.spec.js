@@ -796,14 +796,16 @@ describe('MMU', () => {
 
   describe('CGB Palettes', () => {
     it('should read/write background palettes', () => {
+      assert.deepEqual(mmu.getBgPalette(0), [[0x1f,0x1f,0x1f], [0x1f,0x1f,0x1f], [0x1f,0x1f,0x1f], [0x1f,0x1f,0x1f]], 'default');
+
       mmu.writeByteAt(mmu.ADDR_BCPS, 0b10000000); // auto=y, palette 0, palette data 0, L
-      mmu.writeByteAt(mmu.ADDR_BCPD, 0xff);
+      mmu.writeByteAt(mmu.ADDR_BCPD, 0x00);
 
       for(let i = 0; i < mmu.PALETTES_SIZE; i++){
-        mmu.writeByteAt(mmu.ADDR_BCPD, 0xff);
+        mmu.writeByteAt(mmu.ADDR_BCPD, 0x00);
       }
 
-      assert.deepEqual(mmu.getBgPalette(0), [[0x1f,0x1f,0x1f], [0x1f,0x1f,0x1f], [0x1f,0x1f,0x1f], [0x1f,0x1f,0x1f]]);
+      assert.deepEqual(mmu.getBgPalette(0), [[0,0,0], [0,0,0], [0,0,0], [0,0,0]]);
 
       // last palette, first data, pure red
       mmu.writeByteAt(mmu.ADDR_BCPS, 0b00111000);

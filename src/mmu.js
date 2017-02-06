@@ -363,6 +363,7 @@ export default class MMU {
    */
   _initMemory() {
     this._memory.fill(0); // Buffers are created with random data
+    this._CGBpalettes.fill(0xff); // default is white
 
     this._memory[this.ADDR_P1] = 0xff;
     this._memory[0xff05] = 0x00;
