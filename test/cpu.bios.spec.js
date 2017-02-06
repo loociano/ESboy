@@ -77,8 +77,7 @@ describe('BIOS execution', function() {
   it('should init IO registers', function() {
     assert.equal(cpu.pc(), 0x100, 'PC at 0x100');
     assert.equal(cpu.lcdc(), 0x91, 'LCDC initialized');
-    // TODO: implement LCDC interruptions to decrease it to 0x00 (scrolling down Nintendo logo)
-    //assert.equal(cpu.scy(), 0x00, 'SCY initialized'); // BIOS setting it at 0x64!
+    assert.equal(cpu.scy(), 0x00, 'SCY initialized'); // BIOS setting it at 0x64!
     assert.equal(cpu.scx(), 0x00, 'SCX initialized');
     assert.equal(cpu.ly(), 0x00, 'LY initialized');
     assert.equal(cpu.lyc(), 0x00, 'LYC initialized');
