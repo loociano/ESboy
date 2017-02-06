@@ -990,6 +990,41 @@ describe('LCD', () => {
       lcd.assertTile(0, 0, lcd.SHADES[1]);
     });
 
+    it('should only paint OBJ pixels that are not the first colour background palette colour when priority flag is set', () => {
+      lcd._IS_COLOUR = true;
+      const mmu = lcd.getMMU();
+      mmu.readBGData = (any) => new Buffer('0f00', 'hex');  //0,0,0,0,1,1,1,1
+      mmu.readOBJData = (any) => new Buffer('5533', 'hex'); //0,1,2,3,0,1,2,3
+      mmu.getBgCharCode = () => 0;
+      mmu.getOBJ = (n) => { return {y: 16, x: 8, chrCode: 0x00, attr: 0b10000000 /* bg priority */}; };
+      mmu.getBgPaletteNb = () => 0;
+      mmu.getBgPalette = (paletteNb) => { return [[0x1f,0,0], [0,0x1f,0], [0,0,0x1f], [0,0,0]]; };
+      mmu.getObjPalette = (paletteNb) => { return [[0x1f,0x1f,0], [0,0x1f,0x1f], [0x1f,0,0x1f], [0,0,0]]; };
+
+      mmu.areOBJOn = () => false;
+      lcd.drawLine(0);
+
+      for (let x = 0; x < 4; x++) {
+        assert.deepEqual(Array.from(lcd.getPixelData(x, 0)), [248, 0, 0, 255], `x:${x}`); // background, red
+      }
+      for (let x = 4; x < 8; x++) {
+        assert.deepEqual(Array.from(lcd.getPixelData(x, 0)), [0, 248, 0, 255], `x:${x}`); // background, green
+      }
+
+      mmu.areOBJOn = () => true;
+      lcd.drawLine(0);
+
+      // Only OBJ pixels that are on top of red will be painted
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), [248, 0, 0, 255], 'obj color 0 is transparent, showing bg red');
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), [0, 248, 248, 255], 'obj color 1');
+      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), [248, 0, 248, 255], 'obj color 2');
+      assert.deepEqual(Array.from(lcd.getPixelData(3, 0)), [0, 0, 0, 255], 'obj color 3');
+      assert.deepEqual(Array.from(lcd.getPixelData(4, 0)), [0, 248, 0, 255], 'bg priority, showing bg green');
+      assert.deepEqual(Array.from(lcd.getPixelData(5, 0)), [0, 248, 0, 255]);
+      assert.deepEqual(Array.from(lcd.getPixelData(6, 0)), [0, 248, 0, 255]);
+      assert.deepEqual(Array.from(lcd.getPixelData(7, 0)), [0, 248, 0, 255]);
+    });
+
     it('should display an OBJ with a priority flag only if the BG behind is lightest + SCX and SCX', () => {
       const mmu = lcd.getMMU();
       mmu.readOBJData = (any) => new Buffer('ff00', 'hex');

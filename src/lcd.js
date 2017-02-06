@@ -58,6 +58,7 @@ export default class LCD {
       Logger.warn(`Cannot draw line ${line}`);
       return;
     }
+    this._bgLineFlags = 0; // will contain 160 bit flags, 1 when bg is first color palette
     this._readPalettes();
     this._drawLineBG(line);
     if (this._mmu.isWindowOn()) this._drawLineWindow(line);
@@ -90,7 +91,7 @@ export default class LCD {
    * @param {Array} palette
    * @param {boolean} isOBJ
    */
-  drawPixel({x, y, paletteDataNb}, palette=this._bgp, isOBJ) {
+  drawPixel({x, y, paletteDataNb}, palette=this._bgp, isOBJ, isBg) {
 
     if (paletteDataNb < 0 || paletteDataNb > 3){
       Logger.error(`Unrecognized palette data nb ${paletteDataNb}`);
@@ -99,8 +100,12 @@ export default class LCD {
 
     if (x < 0 || y < 0 || x >= this._HW_WIDTH || y >= this._HW_HEIGHT) return;
 
-    if (isOBJ && paletteDataNb === 0) {
-      return; // Transparent
+    if (paletteDataNb === 0){
+      if (isOBJ){
+        return; // transparent
+      } else if (isBg) {
+        this._bgLineFlags |= (1 << x);
+      }
     }
 
     this._setPixelData(x, y, palette[paletteDataNb]);
@@ -221,7 +226,7 @@ export default class LCD {
         tileNumber: tileNumber,
         tileLine: (line - wy) % this._TILE_HEIGHT,
         startX: x + wx - this._MIN_WINDOW_X
-      }, line);
+      }, line, false/* isBg */);
     }
   }
 
@@ -265,7 +270,7 @@ export default class LCD {
           this.drawPixel({x: x, y: line, paletteDataNb: intensityVector[i]}, palette, isOBJ);
         }
       } else {
-        this.drawPixel({x: x, y: line, paletteDataNb: intensityVector[i]}, palette, isOBJ);
+        this.drawPixel({x: x, y: line, paletteDataNb: intensityVector[i]}, palette, isOBJ, isBG);
       }
     }
     return intensityVector;
@@ -280,11 +285,14 @@ export default class LCD {
    */
   _isBgPixelFirstPaletteColor(x, y){
     const data = this._getPixelData(x, y);
-    // TODO: implement for CGB
-    return data[0] === this._bgp[0][0]
-      && data[1] === this._bgp[0][1]
-      && data[2] === this._bgp[0][2]
-      && data[3] === this._bgp[0][3];
+    if (this._IS_COLOUR){
+      return ((this._bgLineFlags >> x) & 1) === 1;
+    } else {
+      return data[0] === this._bgp[0][0]
+        && data[1] === this._bgp[0][1]
+        && data[2] === this._bgp[0][2]
+        && data[3] === this._bgp[0][3];
+    }
   }
 
   /**
