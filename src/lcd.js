@@ -221,12 +221,20 @@ export default class LCD {
     if ( (line - wy < 0) || wx > this._MAX_WINDOW_X ) return;
 
     for(let x = 0; x < this._HW_WIDTH; x += this.TILE_WIDTH){
-      const tileNumber = this._mmu.getWindowCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line - wy, 0));
+      const gridX = this._getHorizontalGrid(x);
+      const gridY = this.getVerticalGrid(line - wy, 0);
+      const tileNumber = this._mmu.getWindowCharCode(gridX, gridY);
+      let palette = this._bgp;
+
+      if (this._IS_COLOUR){
+        palette = this._bgn[this._mmu.getBgPaletteNb(gridX, gridY)];
+      }
+
       this._drawTileLine({
         tileNumber: tileNumber,
         tileLine: (line - wy) % this._TILE_HEIGHT,
         startX: x + wx - this._MIN_WINDOW_X
-      }, line, false/* isBg */);
+      }, line, false/* isBg */, palette);
     }
   }
 

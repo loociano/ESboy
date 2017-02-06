@@ -85,10 +85,10 @@ describe('LCD', () => {
       this.assertTile(grid_x, grid_y, [0, 0, 0, 0]);
     };
 
-    lcd.generateLineData = function(paletteLevel) {
+    lcd.generateLineData = function(palette, paletteLevel) {
       const lineData = new Uint8ClampedArray(lineRgbaLength);
       for (let p = 0; p < lineData.length; p++) {
-        lineData[p] = lcd._bgp[paletteLevel][p % 4];
+        lineData[p] = palette[paletteLevel][p % 4];
       }
       return lineData;
     };
@@ -1090,12 +1090,12 @@ describe('LCD', () => {
 
       lcd.drawLine(0);
 
-      assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(lcd.generateLineData(1)));
+      assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(lcd.generateLineData(lcd._bgp, 1)));
 
       mmu.isWindowOn = () => false;
       lcd.drawLine(0);
 
-      assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(lcd.generateLineData(0)));
+      assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(lcd.generateLineData(lcd._bgp, 0)));
     });
 
     it('should draw a Window line when WY > 0', () => {
@@ -1116,19 +1116,19 @@ describe('LCD', () => {
       lcd.drawLine(0);
       lcd.drawLine(10);
 
-      assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(lcd.generateLineData(0)));
-      assert.deepEqual(Array.from(lcd.getLineData(10)), Array.from(lcd.generateLineData(1)));
+      assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(lcd.generateLineData(lcd._bgp, 0)));
+      assert.deepEqual(Array.from(lcd.getLineData(10)), Array.from(lcd.generateLineData(lcd._bgp, 1)));
 
       // Test that WX < 7 (prohibited values) as considered as WX = 7
       mmu.wx = () => 6;
       lcd.drawLine(10);
 
-      assert.deepEqual(Array.from(lcd.getLineData(10)), Array.from(lcd.generateLineData(1)));
+      assert.deepEqual(Array.from(lcd.getLineData(10)), Array.from(lcd.generateLineData(lcd._bgp, 1)));
 
       mmu.wx = () => 0;
       lcd.drawLine(10);
 
-      assert.deepEqual(Array.from(lcd.getLineData(10)), Array.from(lcd.generateLineData(1)));
+      assert.deepEqual(Array.from(lcd.getLineData(10)), Array.from(lcd.generateLineData(lcd._bgp, 1)));
     });
 
     it('should draw a Window line when WX > 7', () => {
@@ -1175,7 +1175,7 @@ describe('LCD', () => {
       mmu.wy = () => 0;
       mmu.wx = () => 166; // move right 159px, only one visible pixel
 
-      const expectedData = lcd.generateLineData(0);
+      const expectedData = lcd.generateLineData(lcd._bgp, 0);
       expectedData[lineRgbaLength-4] = lcd._bgp[1][0];
       expectedData[lineRgbaLength-3] = lcd._bgp[1][1];
       expectedData[lineRgbaLength-2] = lcd._bgp[1][2];
@@ -1196,7 +1196,7 @@ describe('LCD', () => {
 
       lcd.drawLine(0);
 
-      assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(lcd.generateLineData(0)));
+      assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(lcd.generateLineData(lcd._bgp, 0)));
     });
 
     it('should draw objects on top of window, window on top of background', () => {
@@ -1231,6 +1231,34 @@ describe('LCD', () => {
       lcd.drawTiles();
 
       lcd.assertTile(0, 0, lcd.SHADES[3]); // objects
+    });
+
+    it('should draw a Window colour line ', () => {
+      lcd._IS_COLOUR = true;
+      const mmu = lcd.getMMU();
+      mmu.readBGData = (tileNumber) => {
+        if (tileNumber === 0) {
+          return new Buffer('ff00', 'hex'); // window
+        } else {
+          return new Buffer('0000', 'hex'); // bg
+        }
+      };
+      mmu.getBgPaletteNb = () => 0;
+      mmu.getBgPalette = (paletteNb) => { return [[0x1f,0,0], [0,0x1f,0], [0,0,0x1f], [0,0,0]]; };
+      mmu.getBgCharCode = () => 1;
+      mmu.getWindowCharCode = () => 0;
+      mmu.isWindowOn = () => false;
+
+      lcd.drawLine(0);
+
+      assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(lcd.generateLineData(lcd._bgn[0], 0)));
+
+      mmu.isWindowOn = () => true;
+      mmu.wy = () => 0;
+      mmu.wx = () => 7;
+      lcd.drawLine(0);
+
+      assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(lcd.generateLineData(lcd._bgn[0], 1)));
     });
   });
 
