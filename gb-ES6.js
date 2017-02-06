@@ -3390,7 +3390,8 @@ var CPU = function () {
       this.mmu.setRunningBIOS(false);
       this.setIe(0x00);
       this.mmu.setLy(0x00);
-      this._r.c = 0x13; // there's a bug somewhere that leaves c=0x14
+      this._r.a = 0x11; // GBC a:0x11, DMG a:0x01
+      //this._r.c = 0x13; // there's a bug somewhere that leaves c=0x14
     }
 
     /**
@@ -8342,8 +8343,10 @@ var LCD = function () {
     this._mmu = mmu;
     this._ctx = ctx;
     this._bgp = null;
+    this._bgn = null; // will hold array of 8 bg colour palettes
     this._obg0 = null;
     this._obg1 = null;
+    this._objn = null; // will hold array of 8 obj colour palettes
     this._imageData = this._ctx.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
     this._IS_COLOUR = this._mmu.isGameInColor();
 
@@ -8370,6 +8373,7 @@ var LCD = function () {
         _logger2.default.warn('Cannot draw line ' + line);
         return;
       }
+      this._bgLineFlags = 0; // will contain 160 bit flags, 1 when bg is first color palette
       this._readPalettes();
       this._drawLineBG(line);
       if (this._mmu.isWindowOn()) this._drawLineWindow(line);
@@ -8406,6 +8410,7 @@ var LCD = function () {
      * @param {number} y
      * @param {number} paletteDataNb 0-3
      * @param {Array} palette
+     * @param {boolean} isOBJ
      */
 
   }, {
@@ -8415,6 +8420,8 @@ var LCD = function () {
           y = _ref.y,
           paletteDataNb = _ref.paletteDataNb;
       var palette = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._bgp;
+      var isOBJ = arguments[2];
+      var isBg = arguments[3];
 
 
       if (paletteDataNb < 0 || paletteDataNb > 3) {
@@ -8424,8 +8431,12 @@ var LCD = function () {
 
       if (x < 0 || y < 0 || x >= this._HW_WIDTH || y >= this._HW_HEIGHT) return;
 
-      if ((palette === this._obg0 || palette === this._obg1) && paletteDataNb === 0) {
-        return; // Transparent
+      if (paletteDataNb === 0) {
+        if (isOBJ) {
+          return; // transparent
+        } else if (isBg) {
+          this._bgLineFlags |= 1 << x;
+        }
       }
 
       this._setPixelData(x, y, palette[paletteDataNb]);
@@ -8512,6 +8523,7 @@ var LCD = function () {
           var topTileY = OBJ.y;
           var bottomTileY = OBJ.y + this._TILE_HEIGHT;
           var palette = this._getOBJPalette(OBJ.attr);
+
           if (doubleOBJ) {
             if (this._isFlipY(OBJ.attr)) {
               // Swap
@@ -8555,12 +8567,20 @@ var LCD = function () {
       if (line - wy < 0 || wx > this._MAX_WINDOW_X) return;
 
       for (var x = 0; x < this._HW_WIDTH; x += this.TILE_WIDTH) {
-        var tileNumber = this._mmu.getWindowCharCode(this._getHorizontalGrid(x), this.getVerticalGrid(line - wy, 0));
+        var gridX = this._getHorizontalGrid(x);
+        var gridY = this.getVerticalGrid(line - wy, 0);
+        var tileNumber = this._mmu.getWindowCharCode(gridX, gridY);
+        var palette = this._bgp;
+
+        if (this._IS_COLOUR) {
+          palette = this._bgn[this._mmu.getBgPaletteNb(gridX, gridY)];
+        }
+
         this._drawTileLine({
           tileNumber: tileNumber,
           tileLine: (line - wy) % this._TILE_HEIGHT,
           startX: x + wx - this._MIN_WINDOW_X
-        }, line);
+        }, line, false /* isBg */, palette);
       }
     }
 
@@ -8610,13 +8630,13 @@ var LCD = function () {
         if (isOBJ) {
           if (this._hasBgPriority(OBJAttr)) {
             if (this._isBgPixelFirstPaletteColor(x, line)) {
-              this.drawPixel({ x: x, y: line, paletteDataNb: intensityVector[i] }, palette);
+              this.drawPixel({ x: x, y: line, paletteDataNb: intensityVector[i] }, palette, isOBJ);
             }
           } else {
-            this.drawPixel({ x: x, y: line, paletteDataNb: intensityVector[i] }, palette);
+            this.drawPixel({ x: x, y: line, paletteDataNb: intensityVector[i] }, palette, isOBJ);
           }
         } else {
-          this.drawPixel({ x: x, y: line, paletteDataNb: intensityVector[i] }, palette);
+          this.drawPixel({ x: x, y: line, paletteDataNb: intensityVector[i] }, palette, isOBJ, isBG);
         }
       }
       return intensityVector;
@@ -8634,7 +8654,11 @@ var LCD = function () {
     key: '_isBgPixelFirstPaletteColor',
     value: function _isBgPixelFirstPaletteColor(x, y) {
       var data = this._getPixelData(x, y);
-      return data[0] === this._bgp[0][0] && data[1] === this._bgp[0][1] && data[2] === this._bgp[0][2] && data[3] === this._bgp[0][3];
+      if (this._IS_COLOUR) {
+        return (this._bgLineFlags >> x & 1) === 1;
+      } else {
+        return data[0] === this._bgp[0][0] && data[1] === this._bgp[0][1] && data[2] === this._bgp[0][2] && data[3] === this._bgp[0][3];
+      }
     }
 
     /**
@@ -8674,19 +8698,33 @@ var LCD = function () {
     key: '_readPalettes',
     value: function _readPalettes() {
       if (this._IS_COLOUR) {
-        this._bgn = [];
-        for (var p = 0; p < 8; p++) {
-          var rgb15Palette = this._mmu.getBgPalette(p);
-          var rgba32Palette = rgb15Palette.map(function (i) {
-            return LCD.RGB15toRGBA32(i);
-          });
-          this._bgn.push(rgba32Palette);
-        }
+        this._bgn = this._transformPalettesFromMemory(this._mmu.getBgPalette);
+        this._objn = this._transformPalettesFromMemory(this._mmu.getObjPalette);
       } else {
         this._bgp = this._generatePalette(this._mmu.bgp());
         this._obg0 = this._generatePalette(this._mmu.obg0());
         this._obg1 = this._generatePalette(this._mmu.obg1());
       }
+    }
+
+    /**
+     * @param {function} mmuCallFn
+     * @returns {Array}
+     * @private
+     */
+
+  }, {
+    key: '_transformPalettesFromMemory',
+    value: function _transformPalettesFromMemory(mmuCallFn) {
+      var array = [];
+      for (var p = 0; p < 8; p++) {
+        var rgb15Palette = mmuCallFn.call(this._mmu, p);
+        var rgba32Palette = rgb15Palette.map(function (i) {
+          return LCD.RGB15toRGBA32(i);
+        });
+        array.push(rgba32Palette);
+      }
+      return array;
     }
 
     /**
@@ -8750,10 +8788,14 @@ var LCD = function () {
   }, {
     key: '_getOBJPalette',
     value: function _getOBJPalette(OBJAttr) {
-      if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_OBG) === 0) {
-        return this._obg0;
+      if (this._IS_COLOUR) {
+        return this._objn[OBJAttr & 0x07];
       } else {
-        return this._obg1;
+        if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_OBG) === 0) {
+          return this._obg0;
+        } else {
+          return this._obg1;
+        }
       }
     }
 
@@ -9139,6 +9181,8 @@ var MMU = function () {
     this.ADDR_VBK = 0xff4f;
     this.ADDR_BCPS = 0xff68;
     this.ADDR_BCPD = 0xff69;
+    this.ADDR_OCPS = 0xff6a;
+    this.ADDR_OCPD = 0xff6b;
     this.ADDR_SVBK = 0xff70;
     this.ADDR_IE = 0xffff;
     this.ADDR_MAX = 0xffff;
@@ -9296,9 +9340,12 @@ var MMU = function () {
     this._memory = new Uint8Array(this.ADDR_MAX + 1);
     this._CGB_VRAM_bank1 = new Uint8Array(this.CGB_VRAM_BANK_SIZE);
     this._CGB_WRAM = new Uint8Array(this.CGB_VRAM_SIZE);
-    this._CGBpalettes = new Uint8Array(this.PALETTES_SIZE);
-    this._paletteAddr = 0;
-    this._autoNextPalette = false;
+    this._bgPalettes = new Uint8Array(this.PALETTES_SIZE);
+    this._objPalettes = new Uint8Array(this.PALETTES_SIZE);
+    this._BgPaletteAddr = 0;
+    this._objPaletteAddr = 0;
+    this._autoNextBgPalette = false;
+    this._autoNextObjPalette = false;
     this._bios = this.getBIOS();
     this._inBIOS = true;
     this._isDMA = false;
@@ -9320,18 +9367,20 @@ var MMU = function () {
   }
 
   /**
+   * @param {Uint8Array} palette
    * @param paletteNb 0-7
    * @param paletteData 0-3
    * @returns {Array} 15-bit RGB, 5 bit per channel (0-0x1f)
+   * @private
    */
 
 
   _createClass(MMU, [{
     key: '_getRGB',
-    value: function getRGB(paletteNb, paletteData) {
+    value: function _getRGB(palette, paletteNb, paletteData) {
       var start = paletteNb * 8 + paletteData * 2;
-      var l = this._CGBpalettes[start];
-      var h = this._CGBpalettes[start + 1];
+      var l = palette[start];
+      var h = palette[start + 1];
       var rgb = [];
       rgb.push(l & 0x1f);
       rgb.push((l >> 5 & 7) + ((h & 3) << 3));
@@ -9436,6 +9485,7 @@ var MMU = function () {
     key: '_initMemory',
     value: function _initMemory() {
       this._memory.fill(0); // Buffers are created with random data
+      this._bgPalettes.fill(0xff); // default is white
 
       this._memory[this.ADDR_P1] = 0xff;
       this._memory[0xff05] = 0x00;
@@ -9934,6 +9984,12 @@ var MMU = function () {
         case this.ADDR_BCPD:
           this._handleBCPD(n);
           return;
+        case this.ADDR_OCPS:
+          this._handleOCPS(n);
+          return;
+        case this.ADDR_OCPD:
+          this._handleOCPD(n);
+          return;
       }
 
       this._memory[addr] = n;
@@ -9962,12 +10018,30 @@ var MMU = function () {
   }, {
     key: '_handleBCPD',
     value: function _handleBCPD(n) {
-      this._CGBpalettes[this._paletteAddr] = n;
-      if (this._autoNextPalette) {
-        if (this._paletteAddr < this.PALETTES_SIZE - 1) {
-          this._paletteAddr++;
+      this._bgPalettes[this._BgPaletteAddr] = n;
+      if (this._autoNextBgPalette) {
+        if (this._BgPaletteAddr < this.PALETTES_SIZE - 1) {
+          this._BgPaletteAddr++;
         } else {
-          this._paletteAddr = 0;
+          this._BgPaletteAddr = 0;
+        }
+      }
+    }
+
+    /**
+     * @param n
+     * @private
+     */
+
+  }, {
+    key: '_handleOCPD',
+    value: function _handleOCPD(n) {
+      this._objPalettes[this._objPaletteAddr] = n;
+      if (this._autoNextObjPalette) {
+        if (this._objPaletteAddr < this.PALETTES_SIZE - 1) {
+          this._objPaletteAddr++;
+        } else {
+          this._objPaletteAddr = 0;
         }
       }
     }
@@ -9983,8 +10057,23 @@ var MMU = function () {
       var hl = n & 0x01;
       var paletteData = n >> 1 & 3;
       var paletteNb = n >> 3 & 7;
-      this._autoNextPalette = n >> 7 === 1;
-      this._paletteAddr = paletteNb * 8 + paletteData * 2 + hl;
+      this._autoNextBgPalette = n >> 7 === 1;
+      this._BgPaletteAddr = paletteNb * 8 + paletteData * 2 + hl;
+    }
+
+    /**
+     * @param n
+     * @private
+     */
+
+  }, {
+    key: '_handleOCPS',
+    value: function _handleOCPS(n) {
+      var hl = n & 0x01;
+      var paletteData = n >> 1 & 3;
+      var paletteNb = n >> 3 & 7;
+      this._autoNextObjPalette = n >> 7 === 1;
+      this._objPaletteAddr = paletteNb * 8 + paletteData * 2 + hl;
     }
 
     /**
@@ -10838,11 +10927,33 @@ var MMU = function () {
   }, {
     key: 'getBgPalette',
     value: function getBgPalette(paletteNb) {
-      var palette = [];
+      return this._getPalette(this._bgPalettes, paletteNb);
+    }
+
+    /**
+     * @param paletteNb
+     */
+
+  }, {
+    key: 'getObjPalette',
+    value: function getObjPalette(paletteNb) {
+      return this._getPalette(this._objPalettes, paletteNb);
+    }
+
+    /**
+     * @param palette
+     * @param paletteNb
+     * @private
+     */
+
+  }, {
+    key: '_getPalette',
+    value: function _getPalette(palette, paletteNb) {
+      var result = [];
       for (var i = 0; i < 4; i++) {
-        palette.push(this._getRGB(paletteNb, i));
+        result.push(this._getRGB(palette, paletteNb, i));
       }
-      return palette;
+      return result;
     }
 
     /**
@@ -10935,8 +11046,8 @@ var MMU = function () {
   }, {
     key: 'getBgPaletteNb',
     value: function getBgPaletteNb(gridX, gridY) {
-      // TODO: implement
-      return 0;
+      var addr = this._getBgDisplayDataStartAddr() + gridX + gridY * this.CHARS_PER_LINE;
+      return this._CGB_VRAM_bank1[addr - this.ADDR_VRAM_START] & 0x07;
     }
   }]);
 
