@@ -33,8 +33,10 @@ export default class LCD {
     this._mmu = mmu;
     this._ctx = ctx;
     this._bgp = null;
+    this._bgn = null; // will hold array of 8 bg colour palettes
     this._obg0 = null;
     this._obg1 = null;
+    this._objn = null; // will hold array of 8 obj colour palettes
     this._imageData = this._ctx.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
     this._IS_COLOUR = this._mmu.isGameInColor();
 
@@ -86,8 +88,9 @@ export default class LCD {
    * @param {number} y
    * @param {number} paletteDataNb 0-3
    * @param {Array} palette
+   * @param {boolean} isOBJ
    */
-  drawPixel({x, y, paletteDataNb}, palette=this._bgp) {
+  drawPixel({x, y, paletteDataNb}, palette=this._bgp, isOBJ) {
 
     if (paletteDataNb < 0 || paletteDataNb > 3){
       Logger.error(`Unrecognized palette data nb ${paletteDataNb}`);
@@ -96,7 +99,7 @@ export default class LCD {
 
     if (x < 0 || y < 0 || x >= this._HW_WIDTH || y >= this._HW_HEIGHT) return;
 
-    if ((palette === this._obg0 || palette === this._obg1) && paletteDataNb === 0) {
+    if (isOBJ && paletteDataNb === 0) {
       return; // Transparent
     }
 
@@ -172,6 +175,7 @@ export default class LCD {
         let topTileY = OBJ.y;
         let bottomTileY = OBJ.y + this._TILE_HEIGHT;
         const palette = this._getOBJPalette(OBJ.attr);
+
         if (doubleOBJ){
           if (this._isFlipY(OBJ.attr)){
             // Swap
@@ -255,13 +259,13 @@ export default class LCD {
       if(isOBJ) {
         if (this._hasBgPriority(OBJAttr)){
           if (this._isBgPixelFirstPaletteColor(x, line)){
-            this.drawPixel({x: x, y: line, paletteDataNb: intensityVector[i]}, palette);
+            this.drawPixel({x: x, y: line, paletteDataNb: intensityVector[i]}, palette, isOBJ);
           }
         } else {
-          this.drawPixel({x: x, y: line, paletteDataNb: intensityVector[i]}, palette);
+          this.drawPixel({x: x, y: line, paletteDataNb: intensityVector[i]}, palette, isOBJ);
         }
       } else {
-        this.drawPixel({x: x, y: line, paletteDataNb: intensityVector[i]}, palette);
+        this.drawPixel({x: x, y: line, paletteDataNb: intensityVector[i]}, palette, isOBJ);
       }
     }
     return intensityVector;
@@ -276,6 +280,7 @@ export default class LCD {
    */
   _isBgPixelFirstPaletteColor(x, y){
     const data = this._getPixelData(x, y);
+    // TODO: implement for CGB
     return data[0] === this._bgp[0][0]
       && data[1] === this._bgp[0][1]
       && data[2] === this._bgp[0][2]
@@ -310,17 +315,28 @@ export default class LCD {
    */
   _readPalettes(){
     if (this._IS_COLOUR) {
-      this._bgn = [];
-      for (let p = 0; p < 8; p++){
-        const rgb15Palette = this._mmu.getBgPalette(p);
-        const rgba32Palette = rgb15Palette.map( (i) => LCD.RGB15toRGBA32(i) );
-        this._bgn.push(rgba32Palette);
-      }
+      this._bgn = this._transformPalettesFromMemory(this._mmu.getBgPalette);
+      this._objn = this._transformPalettesFromMemory(this._mmu.getObjPalette);
     } else {
       this._bgp = this._generatePalette(this._mmu.bgp());
       this._obg0 = this._generatePalette(this._mmu.obg0());
       this._obg1 = this._generatePalette(this._mmu.obg1());
     }
+  }
+
+  /**
+   * @param {function} mmuCallFn
+   * @returns {Array}
+   * @private
+   */
+  _transformPalettesFromMemory(mmuCallFn){
+    const array = [];
+    for (let p = 0; p < 8; p++) {
+      const rgb15Palette = mmuCallFn.call(this._mmu, p);
+      const rgba32Palette = rgb15Palette.map((i) => LCD.RGB15toRGBA32(i));
+      array.push(rgba32Palette);
+    }
+    return array;
   }
 
   /**
@@ -353,10 +369,14 @@ export default class LCD {
    * @private
    */
   _getOBJPalette(OBJAttr){
-    if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_OBG) === 0){
-      return this._obg0;
+    if (this._IS_COLOUR){
+      return this._objn[OBJAttr & 0x07];
     } else {
-      return this._obg1;
+      if ((OBJAttr & this._mmu.MASK_OBJ_ATTR_OBG) === 0){
+        return this._obg0;
+      } else {
+        return this._obg1;
+      }
     }
   }
 

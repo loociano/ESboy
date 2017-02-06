@@ -617,6 +617,55 @@ describe('LCD', () => {
       lcd.assertTile(0, 0, lcd.SHADES[3]);
     });
 
+    it('should detect color palette', () => {
+      lcd._IS_COLOUR = true;
+      const mmu = lcd.getMMU();
+      mmu.getBgCharCode = (any) =>  0;
+      mmu.readBGData = (any) => new Buffer('0000', 'hex');
+      mmu.readOBJData = (any) => new Buffer('5533', 'hex'); // 0,1,2,3,0,1,2,3
+      mmu.getOBJ = (objNb) => {
+        if (objNb === 0) {
+          return {y: 16, x: 8, chrCode: 0, attr: 0x03/*palette 3*/};
+        } else if (objNb === 1) {
+          return {y: 16, x: 16, chrCode: 0, attr: 0x04/*palette 4*/};
+        } else {
+          return {y: 0, x: 0, chrCode: 0, attr: 0};
+        }
+      };
+      mmu.getBgPaletteNb = () => 0;
+      mmu.getBgPalette = (paletteNb) => { return [[0x1f,0x1f,0x1f], [0x1f,0x1f,0x1f], [0x1f,0x1f,0x1f], [0x1f,0x1f,0x1f]]; };
+      mmu.getObjPalette = (paletteNb) => {
+        if (paletteNb === 3){
+          return [[0x1f,0,0], [0,0x1f,0], [0,0,0x1f], [0,0,0]];
+        } else {
+          return [[0,0,0x1f], [0x1f,0x1f,0], [0,0x1f,0x1f], [0x1f,0,0x1f]];
+        }
+      };
+
+      mmu.areOBJOn = () => false;
+      lcd.drawLine(0);
+
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), [248, 248, 248, 255]); // background, white
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), [248, 248, 248, 255]);
+      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), [248, 248, 248, 255]);
+      assert.deepEqual(Array.from(lcd.getPixelData(3, 0)), [248, 248, 248, 255]);
+
+      mmu.areOBJOn = () => true;
+      lcd.drawLine(0);
+
+      // First obj tile, x=0,y=0
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), [248, 248, 248, 255]); // background, white
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), [0, 248, 0, 255]); // 1 is green
+      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), [0, 0, 248, 255]); // 2 is blue
+      assert.deepEqual(Array.from(lcd.getPixelData(3, 0)), [0, 0, 0, 255]); // 3 is black
+
+      // Second obj tile, x=8,y=0
+      assert.deepEqual(Array.from(lcd.getPixelData(8, 0)), [248, 248, 248, 255]); // background, white
+      assert.deepEqual(Array.from(lcd.getPixelData(9, 0)), [248, 248, 0, 255]);
+      assert.deepEqual(Array.from(lcd.getPixelData(10, 0)), [0, 248, 248, 255]);
+      assert.deepEqual(Array.from(lcd.getPixelData(11, 0)), [248, 0, 248, 255]);
+    });
+
     it('should flip OBJ horizontally', () => {
       const mmu = lcd.getMMU();
       mmu.getBgCharCode = (any) => { return 0; };

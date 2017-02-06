@@ -74,6 +74,14 @@ export default class MMUMock {
     return 0b11100100;
   }
 
+  getBgPalette(){
+    return [[0,0,0], [0,0,0], [0,0,0], [0,0,0]];
+  }
+
+  getObjPalette(){
+    return [[0,0,0], [0,0,0], [0,0,0], [0,0,0]];
+  }
+
   getOBJ() {
     return {y: 0, x: 0, chrCode: 0, attr: 0x00};
   }
