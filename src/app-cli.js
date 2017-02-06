@@ -1,7 +1,7 @@
 import CPU from './cpu';
 import MMU from './mmu';
 import Loader from './loader';
-import lcdMock from '../lib/mock/lcdMock';
+import LCDMock from '../lib/mock/lcdMock';
 import config from './config';
 import Logger from './logger';
 import commandLineArgs from 'command-line-args';
@@ -26,12 +26,12 @@ function init(filename, stop_at=-1){
 
   const loader = new Loader(filename);
   const mmu = new MMU(loader.asUint8Array());
-  const cpu = new CPU(mmu, new lcdMock());
+  const cpu = new CPU(mmu, new LCDMock());
 
   try {
     if (stop_at === -1){
       while(true){
-        cpu.start();
+        cpu.frame();
       }
     } else {
       cpu.runUntil(stop_at);
