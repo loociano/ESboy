@@ -90,6 +90,8 @@ export default class MMU {
     this.ADDR_VBK = 0xff4f;
     this.ADDR_BCPS = 0xff68;
     this.ADDR_BCPD = 0xff69;
+    this.ADDR_OCPS = 0xff6a;
+    this.ADDR_OCPD = 0xff6b;
     this.ADDR_SVBK = 0xff70;
     this.ADDR_IE = 0xffff;
     this.ADDR_MAX = 0xffff;
@@ -247,9 +249,12 @@ export default class MMU {
     this._memory = new Uint8Array(this.ADDR_MAX + 1);
     this._CGB_VRAM_bank1 = new Uint8Array(this.CGB_VRAM_BANK_SIZE);
     this._CGB_WRAM = new Uint8Array(this.CGB_VRAM_SIZE);
-    this._CGBpalettes = new Uint8Array(this.PALETTES_SIZE);
-    this._paletteAddr = 0;
-    this._autoNextPalette = false;
+    this._bgPalettes = new Uint8Array(this.PALETTES_SIZE);
+    this._objPalettes = new Uint8Array(this.PALETTES_SIZE);
+    this._BgPaletteAddr = 0;
+    this._objPaletteAddr = 0;
+    this._autoNextBgPalette = false;
+    this._autoNextObjPalette = false;
     this._bios = this.getBIOS();
     this._inBIOS = true;
     this._isDMA = false;
@@ -271,15 +276,16 @@ export default class MMU {
   }
 
   /**
+   * @param {Uint8Array} palette
    * @param paletteNb 0-7
    * @param paletteData 0-3
    * @returns {Array} 15-bit RGB, 5 bit per channel (0-0x1f)
    * @private
    */
-  _getRGB(paletteNb, paletteData){
+  _getRGB(palette, paletteNb, paletteData){
     const start = paletteNb*8 + paletteData*2;
-    const l = this._CGBpalettes[start];
-    const h = this._CGBpalettes[start+1];
+    const l = palette[start];
+    const h = palette[start+1];
     const rgb = [];
     rgb.push(l & 0x1f);
     rgb.push((l >> 5 & 7) + ((h & 3) << 3));
@@ -363,7 +369,7 @@ export default class MMU {
    */
   _initMemory() {
     this._memory.fill(0); // Buffers are created with random data
-    this._CGBpalettes.fill(0xff); // default is white
+    this._bgPalettes.fill(0xff); // default is white
 
     this._memory[this.ADDR_P1] = 0xff;
     this._memory[0xff05] = 0x00;
@@ -794,6 +800,12 @@ export default class MMU {
       case this.ADDR_BCPD:
         this._handleBCPD(n);
         return;
+      case this.ADDR_OCPS:
+        this._handleOCPS(n);
+        return;
+      case this.ADDR_OCPD:
+        this._handleOCPD(n);
+        return;
     }
 
     this._memory[addr] = n;
@@ -819,12 +831,27 @@ export default class MMU {
    * @private
    */
   _handleBCPD(n){
-    this._CGBpalettes[this._paletteAddr] = n;
-    if (this._autoNextPalette){
-      if (this._paletteAddr < (this.PALETTES_SIZE - 1)){
-        this._paletteAddr++;
+    this._bgPalettes[this._BgPaletteAddr] = n;
+    if (this._autoNextBgPalette){
+      if (this._BgPaletteAddr < (this.PALETTES_SIZE - 1)){
+        this._BgPaletteAddr++;
       } else {
-        this._paletteAddr = 0;
+        this._BgPaletteAddr = 0;
+      }
+    }
+  }
+
+  /**
+   * @param n
+   * @private
+   */
+  _handleOCPD(n){
+    this._objPalettes[this._objPaletteAddr] = n;
+    if (this._autoNextObjPalette){
+      if (this._objPaletteAddr < (this.PALETTES_SIZE - 1)){
+        this._objPaletteAddr++;
+      } else {
+        this._objPaletteAddr = 0;
       }
     }
   }
@@ -837,8 +864,20 @@ export default class MMU {
     const hl = n & 0x01;
     const paletteData = (n >> 1) & 3;
     const paletteNb = (n >> 3) & 7;
-    this._autoNextPalette = (n >> 7) === 1;
-    this._paletteAddr = paletteNb*8 + paletteData*2 + hl;
+    this._autoNextBgPalette = (n >> 7) === 1;
+    this._BgPaletteAddr = paletteNb*8 + paletteData*2 + hl;
+  }
+
+  /**
+   * @param n
+   * @private
+   */
+  _handleOCPS(n){
+    const hl = n & 0x01;
+    const paletteData = (n >> 1) & 3;
+    const paletteNb = (n >> 3) & 7;
+    this._autoNextObjPalette = (n >> 7) === 1;
+    this._objPaletteAddr = paletteNb*8 + paletteData*2 + hl;
   }
 
   /**
@@ -1473,11 +1512,27 @@ export default class MMU {
    * @returns {Array[Array]}
    */
   getBgPalette(paletteNb){
-    const palette = [];
+    return this._getPalette(this._bgPalettes, paletteNb);
+  }
+
+  /**
+   * @param paletteNb
+   */
+  getObjPalette(paletteNb){
+    return this._getPalette(this._objPalettes, paletteNb);
+  }
+
+  /**
+   * @param palette
+   * @param paletteNb
+   * @private
+   */
+  _getPalette(palette, paletteNb){
+    const result = [];
     for(let i = 0; i < 4; i++){
-      palette.push(this._getRGB(paletteNb, i));
+      result.push(this._getRGB(palette, paletteNb, i));
     }
-    return palette;
+    return result;
   }
 
   /**

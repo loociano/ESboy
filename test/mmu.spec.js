@@ -834,6 +834,45 @@ describe('MMU', () => {
       assert.deepEqual(mmu.getBgPalette(7), [[0x1f,0,0], [0,0x1f,0], [0,0,0x1f], [0,0,0]]);
     });
 
+    it('should read/write object palettes', () => {
+      assert.deepEqual(mmu.getObjPalette(0), [[0,0,0], [0,0,0], [0,0,0], [0,0,0]], 'default');
+
+      mmu.writeByteAt(mmu.ADDR_OCPS, 0b10000000); // auto=y, palette 0, palette data 0, L
+      mmu.writeByteAt(mmu.ADDR_OCPD, 0x00);
+
+      for(let i = 0; i < mmu.PALETTES_SIZE; i++){
+        mmu.writeByteAt(mmu.ADDR_OCPD, 0xff);
+      }
+
+      assert.deepEqual(mmu.getObjPalette(0), [[0x1f,0x1f,0x1f], [0x1f,0x1f,0x1f], [0x1f,0x1f,0x1f], [0x1f,0x1f,0x1f]]);
+
+      // last palette, first data, pure red
+      mmu.writeByteAt(mmu.ADDR_OCPS, 0b00111000);
+      mmu.writeByteAt(mmu.ADDR_OCPD, 0x1f);
+      mmu.writeByteAt(mmu.ADDR_OCPS, 0b00111001);
+      mmu.writeByteAt(mmu.ADDR_OCPD, 0);
+
+      // last palette, first data, pure green
+      mmu.writeByteAt(mmu.ADDR_OCPS, 0b00111010);
+      mmu.writeByteAt(mmu.ADDR_OCPD, 0xe0);
+      mmu.writeByteAt(mmu.ADDR_OCPS, 0b00111011);
+      mmu.writeByteAt(mmu.ADDR_OCPD, 0x03);
+
+      // last palette, first data, pure blue
+      mmu.writeByteAt(mmu.ADDR_OCPS, 0b00111100);
+      mmu.writeByteAt(mmu.ADDR_OCPD, 0);
+      mmu.writeByteAt(mmu.ADDR_OCPS, 0b00111101);
+      mmu.writeByteAt(mmu.ADDR_OCPD, 0x7c);
+
+      // last palette, first data, pure black
+      mmu.writeByteAt(mmu.ADDR_OCPS, 0b00111110);
+      mmu.writeByteAt(mmu.ADDR_OCPD, 0);
+      mmu.writeByteAt(mmu.ADDR_OCPS, 0b00111111);
+      mmu.writeByteAt(mmu.ADDR_OCPD, 0);
+
+      assert.deepEqual(mmu.getObjPalette(7), [[0x1f,0,0], [0,0x1f,0], [0,0,0x1f], [0,0,0]]);
+    });
+
     it('should read color palette for a given background tile', () => {
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() & mmu.MASK_BG_CODE_AREA_1);
       mmu.writeByteAt(0x9800, 0xab); // bank 0
