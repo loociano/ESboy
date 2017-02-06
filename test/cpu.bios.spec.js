@@ -104,18 +104,6 @@ describe('BIOS execution', function() {
     assert.equal(cpu.mmu.readByteAt(0x38), 0x3c);
   });
 
-  it('should end up with the right values on registers', () => {
-    assert.equal(cpu.a(), 0x01, 'a');
-    assert.equal(cpu.b(), 0x00, 'b');
-    assert.equal(cpu.c(), 0x13, 'c');
-    assert.equal(cpu.d(), 0x00, 'd');
-    assert.equal(cpu.e(), 0xd8, 'e');
-    assert.equal(cpu.h(), 0x01, 'h');
-    assert.equal(cpu.l(), 0x4d, 'l');
-    assert.equal(cpu.sp(), 0xfffe, 'a');
-    assert.equal(cpu.f(), 0b1011, 'flags');
-  });
-
   it('should paint the Nintendo logo on screen', () => {
     const tile1Line0Data = [
       ...lcd._bgn[0][3],
