@@ -1111,7 +1111,8 @@ export default class CPU {
     this.mmu.setRunningBIOS(false);
     this.setIe(0x00);
     this.mmu.setLy(0x00);
-    this._r.c = 0x13; // there's a bug somewhere that leaves c=0x14
+    this._r.a = 0x11; // GBC a:0x11, DMG a:0x01
+    //this._r.c = 0x13; // there's a bug somewhere that leaves c=0x14
   }
 
   /**

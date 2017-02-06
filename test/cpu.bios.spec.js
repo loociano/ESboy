@@ -30,8 +30,8 @@ describe('BIOS execution', function() {
 
   it('should start with pc, sp and registers at right values', () => {
     assert.equal(cpu.pc(), 0x0100, 'Program Counter after BIOS');
-    assert.equal(cpu.a(), 0x01, 'Accumulator must start as 0x01 for GB');
-    assert.equal(cpu.af(), 0x01b0, 'Register af must start as 0x01bc');
+    assert.equal(cpu.a(), 0x11, 'Accumulator must start as 0x11 for GBC');
+    assert.equal(cpu.af(), 0x11b0, 'Register af must start as 0x01bc');
     assert.equal(cpu.f(), 0b1011, 'Flag register must start as 0b1011');
     assert.equal(cpu.bc(), 0x0013, 'Register bc must start as 0x0013');
     assert.equal(cpu.de(), 0x00d8, 'Register de must start as 0x00d8');
