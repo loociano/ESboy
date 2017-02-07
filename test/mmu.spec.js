@@ -895,6 +895,13 @@ describe('MMU', () => {
       assert.equal(mmu.getBgPaletteNb(0, 0), 1);
       assert.equal(mmu.getBgPaletteNb(31, 31), 2);
 
+      assert.equal(mmu.getBgCharCode(0, 0), 0xab, 'Should not be affected by ADDR_VBK');
+      assert.equal(mmu.getBgCharCode(31, 31), 0xcd, 'Should not be affected by ADDR_VBK');
+
+      mmu.writeByteAt(mmu.ADDR_VBK, 0);
+      assert.equal(mmu.getBgPaletteNb(0, 0), 1, 'Should not be affected by ADDR_VBK');
+      assert.equal(mmu.getBgPaletteNb(31, 31), 2, 'Should not be affected by ADDR_VBK');
+
       mmu.writeByteAt(mmu.ADDR_LCDC, mmu.lcdc() | mmu.MASK_BG_CODE_AREA_2);
 
       assert.equal(mmu.getBgPaletteNb(0, 0), 0); // no palette was set, default: 0

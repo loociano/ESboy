@@ -635,7 +635,7 @@ export default class MMU {
       throw new Error(`Cannot read tile at coord ${gridX}, ${gridY}`);
     }
     const addr = startAddr + gridX + (gridY * this.CHARS_PER_LINE);
-    return this.readByteAt(addr);
+    return this._memory[addr];
   }
 
   /**
