@@ -68,9 +68,9 @@ describe('Interruptions', () => {
     it('should stop executing instructions on HALT mode', function() {
 
       this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
-      this.cpu.execute = () => fail();
       this.cpu.halt();
 
+      this.cpu.frame();
       this.cpu.frame();
 
       assert(!this.cpu.isHalted(), 'VBL interrupt stops HALT mode');
@@ -111,6 +111,28 @@ describe('Interruptions', () => {
       this.cpu.runUntil(0x48/* stat interrupt addr */);
 
       assert.equal(this.cpu.isHalted(), false);
+    });
+
+    it('should exit halt on STAT interrupt and continue where it was, if IME=0', function() {
+      this.cpu.setPC(0x150);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LYC, 2);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_IE, 0b00000010);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_STAT, 0b01000000);
+      assert.equal(this.cpu.pc(), 0x150);
+
+      this.cpu.di();
+      this.cpu.halt();
+
+      while(this.cpu.isHalted()) {
+        this.cpu.cpuCycle();
+      }
+
+      assert.equal(this.cpu.pc(), 0x150);
+
+      this.cpu.cpuCycle(); // cpu exits halts and continues with the next instruction
+
+      assert.equal(this.cpu.pc(), 0x151);
     });
 
   });
@@ -160,13 +182,14 @@ describe('Interruptions', () => {
       this.cpu.di();
       this.cpu.mockInstruction(0xfb/* ei */);
 
-      this.cpu.cpuCycle(1);
+      this.cpu.cpuCycle();
 
       assert.equal(this.cpu.pc(), 0xc001);
 
       this.cpu.mockInstruction(0xc3/* jp */,0x37,0x06);
 
-      this.cpu.frame(); // should run another instruction (JP) before going to vblank routine, as last instruction was EI
+      // should run another instruction (JP) before going to vblank routine, as last instruction was EI
+      this.cpu.runCycles(2);
 
       assert.equal(this.cpu.pc(), 0x40 /* vbl */);
       assert.equal(this.cpu.ime(), 0, 'IME disabled');
@@ -187,6 +210,25 @@ describe('Interruptions', () => {
       assert.equal(this.cpu.ime(), 1);
       assert.equal(this.cpu.If(), 0);
       assert.equal(this.cpu.ie(), 1);
+    });
+
+    it('should exit halt on vertical blank interrupt and continue where it was, if IME=0', function() {
+      this.cpu.setPC(0x150);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_IE, 0b00000001);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
+      assert.equal(this.cpu.pc(), 0x150);
+
+      this.cpu.di();
+      this.cpu.halt();
+
+      this.cpu.frame();
+
+      assert.equal(this.cpu.pc(), 0x150);
+
+      this.cpu.cpuCycle(); // cpu exits halts and continues with the next instruction
+      this.cpu.cpuCycle();
+
+      assert.equal(this.cpu.pc(), 0x151);
     });
   });
 
@@ -247,6 +289,7 @@ describe('Interruptions', () => {
 
       assert.equal(this.cpu.pc(), 0x150);
 
+      this.cpu.ei();
       this.cpu.halt();
 
       for(let m = 0; m < 0x100*4; m++) {
@@ -256,6 +299,29 @@ describe('Interruptions', () => {
       this.cpu.cpuCycle(); // execute opcode
 
       assert.equal(called, 1, 'called when timer exits halt');
+      assert.equal(this.cpu.pc(), this.cpu.ADDR_TIMER_INTERRUPT);
+    });
+
+    it('should exit halt on timer interrupt and continue where it was, if IME=0', function() {
+      this.cpu.setPC(0x150);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_IE, 0b00000100);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TAC, 1); // chose 262,144 Khz (overflow in ~1ms)
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TIMA, 0);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TAC, 0x05); // start timer
+
+      assert.equal(this.cpu.pc(), 0x150);
+
+      this.cpu.di();
+      this.cpu.halt();
+
+      for(let m = 0; m < 0x100*4; m++) {
+        this.cpu.cpuCycle(); // cause time overflow
+      }
+      assert.equal(this.cpu.pc(), 0x150);
+      this.cpu.cpuCycle(); // cpu exits halts and continues with the next instruction
+      this.cpu.cpuCycle();
+
+      assert.equal(this.cpu.pc(), 0x151);
     });
 
   });
@@ -278,6 +344,7 @@ describe('Interruptions', () => {
       this.cpu.setIe(0b00000111); // VBL + LCD + TIMER
       this.cpu._r.pc = 0x150;
       this.cpu.setIf(0b00000111);
+      this.cpu.mustPaint = true;
 
       this.cpu.frame(); // execute until VBL is handled
 

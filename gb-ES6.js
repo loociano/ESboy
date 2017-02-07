@@ -2680,6 +2680,8 @@ var CPU = function () {
     // CPU modes
     this._halt = false;
     this._stop = false;
+
+    this.mustPaint = false;
   }
 
   /**
@@ -3115,16 +3117,12 @@ var CPU = function () {
   }, {
     key: 'frame',
     value: function frame(pc_stop) {
-      while (this._lastInstrWasEI || !this._isVblankInterruptRequested()) {
+      do {
         if (this.isStopped() || pc_stop !== -1 && this._r.pc === pc_stop) return;
         this.cpuCycle(pc_stop);
-      }
+      } while (!this.mustPaint);
 
-      if (!this._lastInstrWasEI) this._resetVBlankInterruptRequest();
-
-      if (this._shouldStartVBlankRoutine()) {
-        this._handleVBlankInterrupt();
-      }
+      this.mustPaint = false;
     }
 
     /**
@@ -3137,7 +3135,9 @@ var CPU = function () {
 
       var m = this._m;
 
-      if (this._shouldHandleLCDInterrupt()) {
+      if (this._shouldStartVBlankRoutine()) {
+        this._handleVBlankInterrupt();
+      } else if (this._shouldHandleLCDInterrupt()) {
         this._handleLYCInterrupt();
       } else if (this._shouldHandleTimerInterrupt()) {
         this._handleTimerInterrupt();
@@ -3145,7 +3145,11 @@ var CPU = function () {
         if (!this.isHalted()) {
           this.execute();
         } else {
-          this._m++;
+          if (this._isAnyInterruptRequestedAndAllowed()) {
+            this._halt = false;
+          } else {
+            this._m++;
+          }
         }
       }
 
@@ -3225,6 +3229,17 @@ var CPU = function () {
     key: '_shouldHandleTimerInterrupt',
     value: function _shouldHandleTimerInterrupt() {
       return this._r.ime === 1 && (this.ie() & this.If() & this.mmu.IF_TIMER_ON) === this.mmu.IF_TIMER_ON;
+    }
+
+    /**
+     * @returns {boolean}
+     * @private
+     */
+
+  }, {
+    key: '_isAnyInterruptRequestedAndAllowed',
+    value: function _isAnyInterruptRequestedAndAllowed() {
+      return (this.ie() & this.If()) !== 0;
     }
 
     /**
@@ -3321,6 +3336,7 @@ var CPU = function () {
         if (this.ly() === this.mmu.LCDC_LINE_VBLANK) {
           this.mmu.setLCDMode(1);
           this._requestVBlankInterrupt();
+          this.mustPaint = true;
         }
       } else {
         this._handleTransitionsBeforeVBL();
@@ -3402,7 +3418,7 @@ var CPU = function () {
   }, {
     key: '_shouldStartVBlankRoutine',
     value: function _shouldStartVBlankRoutine() {
-      if (this._r.ime === 1 && (this.ie() & this.IF_VBLANK_ON) === 1) {
+      if (this._r.ime === 1 && (this.ie() & this.If() & this.IF_VBLANK_ON) === 1) {
         if (this._lastInstrWasEI) {
           this._lastInstrWasEI = false;
           return false; // wait one instruction more
