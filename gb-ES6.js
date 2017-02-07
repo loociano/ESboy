@@ -3145,7 +3145,11 @@ var CPU = function () {
         if (!this.isHalted()) {
           this.execute();
         } else {
-          this._m++;
+          if (this._isAnyInterruptRequestedAndAllowed()) {
+            this._halt = false;
+          } else {
+            this._m++;
+          }
         }
       }
 
@@ -3225,6 +3229,17 @@ var CPU = function () {
     key: '_shouldHandleTimerInterrupt',
     value: function _shouldHandleTimerInterrupt() {
       return this._r.ime === 1 && (this.ie() & this.If() & this.mmu.IF_TIMER_ON) === this.mmu.IF_TIMER_ON;
+    }
+
+    /**
+     * @returns {boolean}
+     * @private
+     */
+
+  }, {
+    key: '_isAnyInterruptRequestedAndAllowed',
+    value: function _isAnyInterruptRequestedAndAllowed() {
+      return (this.ie() & this.If()) !== 0;
     }
 
     /**
