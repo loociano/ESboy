@@ -807,6 +807,13 @@ describe('MMU', () => {
 
       assert.deepEqual(mmu.getBgPalette(0), [[0,0,0], [0,0,0], [0,0,0], [0,0,0]]);
 
+      // palette 1, auto
+      mmu.writeByteAt(mmu.ADDR_BCPS, 0b10001000);
+      mmu.writeByteAt(mmu.ADDR_BCPD, 0b10011110);
+      mmu.writeByteAt(mmu.ADDR_BCPD, 0b01010101);
+
+      assert.deepEqual(mmu.getBgPalette(1)[0], [0b11110,0b01100,0b10101]);
+
       // last palette, first data, pure red
       mmu.writeByteAt(mmu.ADDR_BCPS, 0b00111000);
       mmu.writeByteAt(mmu.ADDR_BCPD, 0x1f);
