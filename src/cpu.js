@@ -570,6 +570,8 @@ export default class CPU {
     // CPU modes
     this._halt = false;
     this._stop = false;
+
+    this.mustPaint = false;
   }
 
   /**
@@ -884,16 +886,13 @@ export default class CPU {
    * Runs cpu during a frame
    */
   frame(pc_stop){
-    while (this._lastInstrWasEI || !this._isVblankInterruptRequested()){
+    do {
       if (this.isStopped() || (pc_stop !== -1 && this._r.pc === pc_stop)) return;
       this.cpuCycle(pc_stop);
     }
+    while (!this.mustPaint);
 
-    if (!this._lastInstrWasEI) this._resetVBlankInterruptRequest();
-
-    if (this._shouldStartVBlankRoutine()){
-      this._handleVBlankInterrupt();
-    }
+    this.mustPaint = false;
   }
 
   /**
@@ -903,7 +902,9 @@ export default class CPU {
 
     const m = this._m;
 
-    if (this._shouldHandleLCDInterrupt()){
+    if (this._shouldStartVBlankRoutine()) {
+      this._handleVBlankInterrupt();
+    } else if (this._shouldHandleLCDInterrupt()){
       this._handleLYCInterrupt();
     } else if (this._shouldHandleTimerInterrupt()){
       this._handleTimerInterrupt();
@@ -1053,6 +1054,7 @@ export default class CPU {
       if (this.ly() === this.mmu.LCDC_LINE_VBLANK) {
         this.mmu.setLCDMode(1);
         this._requestVBlankInterrupt();
+        this.mustPaint = true;
       }
 
     } else {
@@ -1119,7 +1121,7 @@ export default class CPU {
    * @private
    */
   _shouldStartVBlankRoutine(){
-    if (this._r.ime === 1 && (this.ie() & this.IF_VBLANK_ON) === 1){
+    if (this._r.ime === 1 && (this.ie() & this.If() & this.IF_VBLANK_ON) === 1){
       if (this._lastInstrWasEI){
         this._lastInstrWasEI = false;
         return false; // wait one instruction more

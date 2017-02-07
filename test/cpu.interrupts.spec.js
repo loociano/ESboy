@@ -68,9 +68,9 @@ describe('Interruptions', () => {
     it('should stop executing instructions on HALT mode', function() {
 
       this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
-      this.cpu.execute = () => fail();
       this.cpu.halt();
 
+      this.cpu.frame();
       this.cpu.frame();
 
       assert(!this.cpu.isHalted(), 'VBL interrupt stops HALT mode');
@@ -160,13 +160,14 @@ describe('Interruptions', () => {
       this.cpu.di();
       this.cpu.mockInstruction(0xfb/* ei */);
 
-      this.cpu.cpuCycle(1);
+      this.cpu.cpuCycle();
 
       assert.equal(this.cpu.pc(), 0xc001);
 
       this.cpu.mockInstruction(0xc3/* jp */,0x37,0x06);
 
-      this.cpu.frame(); // should run another instruction (JP) before going to vblank routine, as last instruction was EI
+      // should run another instruction (JP) before going to vblank routine, as last instruction was EI
+      this.cpu.runCycles(2);
 
       assert.equal(this.cpu.pc(), 0x40 /* vbl */);
       assert.equal(this.cpu.ime(), 0, 'IME disabled');
@@ -278,6 +279,7 @@ describe('Interruptions', () => {
       this.cpu.setIe(0b00000111); // VBL + LCD + TIMER
       this.cpu._r.pc = 0x150;
       this.cpu.setIf(0b00000111);
+      this.cpu.mustPaint = true;
 
       this.cpu.frame(); // execute until VBL is handled
 

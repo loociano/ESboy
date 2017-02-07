@@ -21,12 +21,11 @@ describe('Dividers', () => {
   });
 
   it('should increase first bit of divider', () => {
-
     mmu.setHWDivider = function(n){
       this._div = (this._div + n) % 0xffff;
       this._memory[this.ADDR_DIV] = Utils.msb(this._div);
       if (this._div >= (1 << 8)){
-        this._memory[mmu.ADDR_IF] = 1; // request vblank interrupt
+        cpu.mustPaint = true;
       }
     };
 
@@ -41,7 +40,7 @@ describe('Dividers', () => {
       this._div = (this._div + n) % 0xffff;
       this._memory[this.ADDR_DIV] = Utils.msb(this._div);
       if (this._div >= (1 << 15)){
-        this._memory[this.ADDR_IF] = 1; // request vblank interrupt
+        cpu.mustPaint = true;
       }
     };
 
