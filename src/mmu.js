@@ -1201,7 +1201,7 @@ export default class MMU {
    * @private
    */
   _biosByteAt(addr){
-    if (addr >= this.ADDR_GAME_START || addr < 0){
+    if (addr >= this._bios.length || addr < 0){
       throw new Error(`Cannot read bios address ${Utils.hexStr(addr)}`);
     }
     return this._bios[addr];
