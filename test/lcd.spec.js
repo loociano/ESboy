@@ -645,25 +645,25 @@ describe('LCD', () => {
       mmu.areOBJOn = () => false;
       lcd.drawLine(0);
 
-      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), [248, 248, 248, 255]); // background, white
-      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), [248, 248, 248, 255]);
-      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), [248, 248, 248, 255]);
-      assert.deepEqual(Array.from(lcd.getPixelData(3, 0)), [248, 248, 248, 255]);
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), [255, 255, 255, 255]); // background, white
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), [255, 255, 255, 255]);
+      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), [255, 255, 255, 255]);
+      assert.deepEqual(Array.from(lcd.getPixelData(3, 0)), [255, 255, 255, 255]);
 
       mmu.areOBJOn = () => true;
       lcd.drawLine(0);
 
       // First obj tile, x=0,y=0
-      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), [248, 248, 248, 255]); // background, white
-      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), [0, 248, 0, 255]); // 1 is green
-      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), [0, 0, 248, 255]); // 2 is blue
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), [255, 255, 255, 255]); // background, white
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), [0, 255, 0, 255]); // 1 is green
+      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), [0, 0, 255, 255]); // 2 is blue
       assert.deepEqual(Array.from(lcd.getPixelData(3, 0)), [0, 0, 0, 255]); // 3 is black
 
       // Second obj tile, x=8,y=0
-      assert.deepEqual(Array.from(lcd.getPixelData(8, 0)), [248, 248, 248, 255]); // background, white
-      assert.deepEqual(Array.from(lcd.getPixelData(9, 0)), [248, 248, 0, 255]);
-      assert.deepEqual(Array.from(lcd.getPixelData(10, 0)), [0, 248, 248, 255]);
-      assert.deepEqual(Array.from(lcd.getPixelData(11, 0)), [248, 0, 248, 255]);
+      assert.deepEqual(Array.from(lcd.getPixelData(8, 0)), [255, 255, 255, 255]); // background, white
+      assert.deepEqual(Array.from(lcd.getPixelData(9, 0)), [255, 255, 0, 255]);
+      assert.deepEqual(Array.from(lcd.getPixelData(10, 0)), [0, 255, 255, 255]);
+      assert.deepEqual(Array.from(lcd.getPixelData(11, 0)), [255, 0, 255, 255]);
     });
 
     it('should flip OBJ horizontally', () => {
@@ -1005,24 +1005,24 @@ describe('LCD', () => {
       lcd.drawLine(0);
 
       for (let x = 0; x < 4; x++) {
-        assert.deepEqual(Array.from(lcd.getPixelData(x, 0)), [248, 0, 0, 255], `x:${x}`); // background, red
+        assert.deepEqual(Array.from(lcd.getPixelData(x, 0)), [255, 0, 0, 255], `x:${x}`); // background, red
       }
       for (let x = 4; x < 8; x++) {
-        assert.deepEqual(Array.from(lcd.getPixelData(x, 0)), [0, 248, 0, 255], `x:${x}`); // background, green
+        assert.deepEqual(Array.from(lcd.getPixelData(x, 0)), [0, 255, 0, 255], `x:${x}`); // background, green
       }
 
       mmu.areOBJOn = () => true;
       lcd.drawLine(0);
 
       // Only OBJ pixels that are on top of red will be painted
-      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), [248, 0, 0, 255], 'obj color 0 is transparent, showing bg red');
-      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), [0, 248, 248, 255], 'obj color 1');
-      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), [248, 0, 248, 255], 'obj color 2');
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), [255, 0, 0, 255], 'obj color 0 is transparent, showing bg red');
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), [0, 255, 255, 255], 'obj color 1');
+      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), [255, 0, 255, 255], 'obj color 2');
       assert.deepEqual(Array.from(lcd.getPixelData(3, 0)), [0, 0, 0, 255], 'obj color 3');
-      assert.deepEqual(Array.from(lcd.getPixelData(4, 0)), [0, 248, 0, 255], 'bg priority, showing bg green');
-      assert.deepEqual(Array.from(lcd.getPixelData(5, 0)), [0, 248, 0, 255]);
-      assert.deepEqual(Array.from(lcd.getPixelData(6, 0)), [0, 248, 0, 255]);
-      assert.deepEqual(Array.from(lcd.getPixelData(7, 0)), [0, 248, 0, 255]);
+      assert.deepEqual(Array.from(lcd.getPixelData(4, 0)), [0, 255, 0, 255], 'bg priority, showing bg green');
+      assert.deepEqual(Array.from(lcd.getPixelData(5, 0)), [0, 255, 0, 255]);
+      assert.deepEqual(Array.from(lcd.getPixelData(6, 0)), [0, 255, 0, 255]);
+      assert.deepEqual(Array.from(lcd.getPixelData(7, 0)), [0, 255, 0, 255]);
     });
 
     it('should display an OBJ with a priority flag only if the BG behind is lightest + SCX and SCX', () => {
@@ -1265,8 +1265,8 @@ describe('LCD', () => {
   describe('CGB palettes', () => {
     it('should convert 15-bit RGB to 32-bit RGBA', () => {
       assert.deepEqual(LCD.RGB15toRGBA32([0, 0, 0]), [0, 0, 0, 255]);
-      assert.deepEqual(LCD.RGB15toRGBA32([0x0f, 0x0f, 0x0f]), [120, 120, 120, 255]);
-      assert.deepEqual(LCD.RGB15toRGBA32([0x1f, 0x1f, 0x1f]), [248, 248, 248, 255]);
+      assert.deepEqual(LCD.RGB15toRGBA32([0x0f, 0x0f, 0x0f]), [123, 123, 123, 255]);
+      assert.deepEqual(LCD.RGB15toRGBA32([0x1f, 0x1f, 0x1f]), [255, 255, 255, 255]);
     });
 
     it('should paint coloured pixels on a line', () => {
@@ -1279,9 +1279,9 @@ describe('LCD', () => {
 
       lcd.drawLine(0);
 
-      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), [248, 0, 0, 255]); // 0 is red
-      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), [0, 248, 0, 255]); // 1 is green
-      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), [0, 0, 248, 255]); // 2 is blue
+      assert.deepEqual(Array.from(lcd.getPixelData(0, 0)), [255, 0, 0, 255]); // 0 is red
+      assert.deepEqual(Array.from(lcd.getPixelData(1, 0)), [0, 255, 0, 255]); // 1 is green
+      assert.deepEqual(Array.from(lcd.getPixelData(2, 0)), [0, 0, 255, 255]); // 2 is blue
       assert.deepEqual(Array.from(lcd.getPixelData(3, 0)), [0, 0, 0, 255]); // 3 is black
     });
   });

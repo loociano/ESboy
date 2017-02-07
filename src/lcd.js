@@ -529,7 +529,7 @@ export default class LCD {
    * @constructor
    */
   static RGB15toRGBA32(rgb15){
-    const rgba24 = rgb15.map( (i) => i*8 );
+    const rgba24 = rgb15.map( (i) => (i*527 + 23) >> 6 ); // approximation
     rgba24.push(255);
     return rgba24;
   }
