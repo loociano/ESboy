@@ -9814,7 +9814,7 @@ var MMU = function () {
         throw new Error('Cannot read tile at coord ' + gridX + ', ' + gridY);
       }
       var addr = startAddr + gridX + gridY * this.CHARS_PER_LINE;
-      return this.readByteAt(addr);
+      return this._memory[addr];
     }
 
     /**
@@ -10511,7 +10511,7 @@ var MMU = function () {
   }, {
     key: '_biosByteAt',
     value: function _biosByteAt(addr) {
-      if (addr >= this.ADDR_GAME_START || addr < 0) {
+      if (addr >= this._bios.length || addr < 0) {
         throw new Error('Cannot read bios address ' + _utils2.default.hexStr(addr));
       }
       return this._bios[addr];
