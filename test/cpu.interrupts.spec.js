@@ -113,6 +113,28 @@ describe('Interruptions', () => {
       assert.equal(this.cpu.isHalted(), false);
     });
 
+    it('should exit halt on STAT interrupt and continue where it was, if IME=0', function() {
+      this.cpu.setPC(0x150);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LYC, 2);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_IE, 0b00000010);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_STAT, 0b01000000);
+      assert.equal(this.cpu.pc(), 0x150);
+
+      this.cpu.di();
+      this.cpu.halt();
+
+      while(this.cpu.isHalted()) {
+        this.cpu.cpuCycle();
+      }
+
+      assert.equal(this.cpu.pc(), 0x150);
+
+      this.cpu.cpuCycle(); // cpu exits halts and continues with the next instruction
+
+      assert.equal(this.cpu.pc(), 0x151);
+    });
+
   });
 
   describe('Vertical Blank Interrupt', () => {
@@ -189,6 +211,25 @@ describe('Interruptions', () => {
       assert.equal(this.cpu.If(), 0);
       assert.equal(this.cpu.ie(), 1);
     });
+
+    it('should exit halt on vertical blank interrupt and continue where it was, if IME=0', function() {
+      this.cpu.setPC(0x150);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_IE, 0b00000001);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
+      assert.equal(this.cpu.pc(), 0x150);
+
+      this.cpu.di();
+      this.cpu.halt();
+
+      this.cpu.frame();
+
+      assert.equal(this.cpu.pc(), 0x150);
+
+      this.cpu.cpuCycle(); // cpu exits halts and continues with the next instruction
+      this.cpu.cpuCycle();
+
+      assert.equal(this.cpu.pc(), 0x151);
+    });
   });
 
   describe('Timer overflow interrupt', () => {
@@ -262,7 +303,6 @@ describe('Interruptions', () => {
     });
 
     it('should exit halt on timer interrupt and continue where it was, if IME=0', function() {
-      let called = 0;
       this.cpu.setPC(0x150);
       this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_IE, 0b00000100);
       this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TAC, 1); // chose 262,144 Khz (overflow in ~1ms)
