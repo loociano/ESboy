@@ -248,6 +248,7 @@ describe('Interruptions', () => {
 
       assert.equal(this.cpu.pc(), 0x150);
 
+      this.cpu.ei();
       this.cpu.halt();
 
       for(let m = 0; m < 0x100*4; m++) {
@@ -257,6 +258,30 @@ describe('Interruptions', () => {
       this.cpu.cpuCycle(); // execute opcode
 
       assert.equal(called, 1, 'called when timer exits halt');
+      assert.equal(this.cpu.pc(), this.cpu.ADDR_TIMER_INTERRUPT);
+    });
+
+    it('should exit halt on timer interrupt and continue where it was, if IME=0', function() {
+      let called = 0;
+      this.cpu.setPC(0x150);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_IE, 0b00000100);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TAC, 1); // chose 262,144 Khz (overflow in ~1ms)
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TIMA, 0);
+      this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_TAC, 0x05); // start timer
+
+      assert.equal(this.cpu.pc(), 0x150);
+
+      this.cpu.di();
+      this.cpu.halt();
+
+      for(let m = 0; m < 0x100*4; m++) {
+        this.cpu.cpuCycle(); // cause time overflow
+      }
+      assert.equal(this.cpu.pc(), 0x150);
+      this.cpu.cpuCycle(); // cpu exits halts and continues with the next instruction
+      this.cpu.cpuCycle();
+
+      assert.equal(this.cpu.pc(), 0x151);
     });
 
   });

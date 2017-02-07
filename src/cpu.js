@@ -912,7 +912,11 @@ export default class CPU {
       if (!this.isHalted()) {
         this.execute();
       } else {
-        this._m++;
+        if (this._isTimerInterruptRequested()){
+          this._halt = false;
+        } else {
+          this._m++;
+        }
       }
     }
 
@@ -975,7 +979,11 @@ export default class CPU {
    * @private
    */
   _shouldHandleTimerInterrupt(){
-    return this._r.ime === 1 && (this.ie() & this.If() & this.mmu.IF_TIMER_ON) === this.mmu.IF_TIMER_ON;
+    return this._r.ime === 1 && this._isTimerInterruptRequested() && (this.ie() & this.mmu.IF_TIMER_ON) === this.mmu.IF_TIMER_ON;
+  }
+
+  _isTimerInterruptRequested(){
+    return (this.If() & this.mmu.IF_TIMER_ON) === this.mmu.IF_TIMER_ON;
   }
 
   /**
