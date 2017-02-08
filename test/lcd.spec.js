@@ -1023,6 +1023,27 @@ describe('LCD', () => {
       assert.deepEqual(Array.from(lcd.getPixelData(5, 0)), [0, 255, 0, 255]);
       assert.deepEqual(Array.from(lcd.getPixelData(6, 0)), [0, 255, 0, 255]);
       assert.deepEqual(Array.from(lcd.getPixelData(7, 0)), [0, 255, 0, 255]);
+
+      // Test now at the end of the line
+      mmu.getOBJ = (n) => { return {y: 16, x: 160, chrCode: 0x00, attr: 0b10000000 /* bg priority */}; };
+      mmu.getBgCharCode = (gridX, gridY) => {
+        if (gridX === 19) return 1;
+        return 0;
+      };
+      mmu.readBGData = (tileNumber) => {
+        if (tileNumber === 1) return new Buffer('fe00', 'hex'); //1,1,1,1,1,1,1,0
+        else return new Buffer('0000', 'hex');
+      };
+      lcd.drawLine(0);
+
+      assert.deepEqual(Array.from(lcd.getPixelData(152, 0)), [0, 255, 0, 255], 'bg green');
+      assert.deepEqual(Array.from(lcd.getPixelData(153, 0)), [0, 255, 0, 255], 'bg green');
+      assert.deepEqual(Array.from(lcd.getPixelData(154, 0)), [0, 255, 0, 255], 'bg green');
+      assert.deepEqual(Array.from(lcd.getPixelData(155, 0)), [0, 255, 0, 255], 'bg green');
+      assert.deepEqual(Array.from(lcd.getPixelData(156, 0)), [0, 255, 0, 255], 'bg green');
+      assert.deepEqual(Array.from(lcd.getPixelData(157, 0)), [0, 255, 0, 255], 'bg green');
+      assert.deepEqual(Array.from(lcd.getPixelData(158, 0)), [0, 255, 0, 255], 'bg green');
+      assert.deepEqual(Array.from(lcd.getPixelData(159, 0)), [0, 0, 0, 255], 'obj color 3');
     });
 
     it('should display an OBJ with a priority flag only if the BG behind is lightest + SCX and SCX', () => {

@@ -58,7 +58,7 @@ export default class LCD {
       Logger.warn(`Cannot draw line ${line}`);
       return;
     }
-    this._bgLineFlags = 0; // will contain 160 bit flags, 1 when bg is first color palette
+    this._bgLineFlags = []; // will contain 160 bit flags, 1 when bg is first color palette
     this._readPalettes();
     this._drawLineBG(line);
     if (this._mmu.isWindowOn()) this._drawLineWindow(line);
@@ -104,7 +104,7 @@ export default class LCD {
       if (isOBJ){
         return; // transparent
       } else if (isBg) {
-        this._bgLineFlags |= (1 << x);
+        this._bgLineFlags[x] = 1;
       }
     }
 
@@ -294,7 +294,7 @@ export default class LCD {
   _isBgPixelFirstPaletteColor(x, y){
     const data = this._getPixelData(x, y);
     if (this._IS_COLOUR){
-      return ((this._bgLineFlags >> x) & 1) === 1;
+      return this._bgLineFlags[x] === 1;
     } else {
       return data[0] === this._bgp[0][0]
         && data[1] === this._bgp[0][1]
