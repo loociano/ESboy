@@ -8389,7 +8389,7 @@ var LCD = function () {
         _logger2.default.warn('Cannot draw line ' + line);
         return;
       }
-      this._bgLineFlags = 0; // will contain 160 bit flags, 1 when bg is first color palette
+      this._bgLineFlags = []; // will contain 160 bit flags, 1 when bg is first color palette
       this._readPalettes();
       this._drawLineBG(line);
       if (this._mmu.isWindowOn()) this._drawLineWindow(line);
@@ -8451,7 +8451,7 @@ var LCD = function () {
         if (isOBJ) {
           return; // transparent
         } else if (isBg) {
-          this._bgLineFlags |= 1 << x;
+          this._bgLineFlags[x] = 1;
         }
       }
 
@@ -8671,7 +8671,7 @@ var LCD = function () {
     value: function _isBgPixelFirstPaletteColor(x, y) {
       var data = this._getPixelData(x, y);
       if (this._IS_COLOUR) {
-        return (this._bgLineFlags >> x & 1) === 1;
+        return this._bgLineFlags[x] === 1;
       } else {
         return data[0] === this._bgp[0][0] && data[1] === this._bgp[0][1] && data[2] === this._bgp[0][2] && data[3] === this._bgp[0][3];
       }
@@ -8977,8 +8977,8 @@ var LCD = function () {
     key: 'RGB15toRGBA32',
     value: function RGB15toRGBA32(rgb15) {
       var rgba24 = rgb15.map(function (i) {
-        return i * 8;
-      });
+        return i * 527 + 23 >> 6;
+      }); // approximation
       rgba24.push(255);
       return rgba24;
     }
