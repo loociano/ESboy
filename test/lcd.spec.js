@@ -1023,6 +1023,21 @@ describe('LCD', () => {
       assert.deepEqual(Array.from(lcd.getPixelData(5, 0)), [0, 255, 0, 255]);
       assert.deepEqual(Array.from(lcd.getPixelData(6, 0)), [0, 255, 0, 255]);
       assert.deepEqual(Array.from(lcd.getPixelData(7, 0)), [0, 255, 0, 255]);
+      assert.deepEqual(Array.from(lcd.getPixelData(8, 0)), [255, 0, 0, 255], 'bg 0');
+      assert.deepEqual(Array.from(lcd.getPixelData(9, 0)), [255, 0, 0, 255], 'bg 0');
+
+      // add the window
+      mmu.getWindowPaletteNb = () => 1;
+      mmu.isWindowOn = () => true;
+      mmu.getWindowCharCode = () => 0;
+      mmu.wy = () => 0;
+      mmu.wx = () => 9; // window starts at x = 2
+
+      lcd.drawLine(0);
+      //bg+win: 000000111...
+
+      assert.deepEqual(Array.from(lcd.getPixelData(4, 0)), [255, 0, 0, 255], 'obj color 0 is transparent, showing window');
+      assert.deepEqual(Array.from(lcd.getPixelData(5, 0)), [0, 255, 255, 255], 'obj color 1');
 
       // Test now at the end of the line
       mmu.getOBJ = (n) => { return {y: 16, x: 160, chrCode: 0x00, attr: 0b10000000 /* bg priority */}; };
@@ -1034,6 +1049,8 @@ describe('LCD', () => {
         if (tileNumber === 1) return new Buffer('fe00', 'hex'); //1,1,1,1,1,1,1,0
         else return new Buffer('0000', 'hex');
       };
+      mmu.isWindowOn = () => false;
+
       lcd.drawLine(0);
 
       assert.deepEqual(Array.from(lcd.getPixelData(152, 0)), [0, 255, 0, 255], 'bg green');

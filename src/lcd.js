@@ -39,6 +39,7 @@ export default class LCD {
     this._objn = null; // will hold array of 8 obj colour palettes
     this._imageData = this._ctx.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
     this._IS_COLOUR = this._mmu.isGameInColor();
+    this._bgLineFlags = []; // will contain 160 bit flags, 1 when bg/win is first color palette
 
     this._clear();
     this._readPalettes();
@@ -58,7 +59,7 @@ export default class LCD {
       Logger.warn(`Cannot draw line ${line}`);
       return;
     }
-    this._bgLineFlags = []; // will contain 160 bit flags, 1 when bg is first color palette
+    this._bgLineFlags = []; // reset each line
     this._readPalettes();
     this._drawLineBG(line);
     if (this._mmu.isWindowOn()) this._drawLineWindow(line);
@@ -91,7 +92,7 @@ export default class LCD {
    * @param {Array} palette
    * @param {boolean} isOBJ
    */
-  drawPixel({x, y, paletteDataNb}, palette=this._bgp, isOBJ, isBg) {
+  drawPixel({x, y, paletteDataNb}, palette=this._bgp, isOBJ) {
 
     if (paletteDataNb < 0 || paletteDataNb > 3){
       Logger.error(`Unrecognized palette data nb ${paletteDataNb}`);
@@ -100,11 +101,14 @@ export default class LCD {
 
     if (x < 0 || y < 0 || x >= this._HW_WIDTH || y >= this._HW_HEIGHT) return;
 
-    if (paletteDataNb === 0){
-      if (isOBJ){
-        return; // transparent
-      } else if (isBg) {
-        this._bgLineFlags[x] = 1;
+    if (isOBJ){
+      if (paletteDataNb === 0) return;
+    } else {
+      // bg or window
+      if (paletteDataNb === 0){
+        this._bgLineFlags[x] = 1; 
+      } else {
+        this._bgLineFlags[x] = 0;
       }
     }
 
@@ -278,7 +282,7 @@ export default class LCD {
           this.drawPixel({x: x, y: line, paletteDataNb: intensityVector[i]}, palette, isOBJ);
         }
       } else {
-        this.drawPixel({x: x, y: line, paletteDataNb: intensityVector[i]}, palette, isOBJ, isBG);
+        this.drawPixel({x: x, y: line, paletteDataNb: intensityVector[i]}, palette, isOBJ);
       }
     }
     return intensityVector;
