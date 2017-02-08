@@ -1274,9 +1274,11 @@ describe('LCD', () => {
 
       assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(lcd.generateLineData(lcd._bgn[0], 0)));
 
+      mmu.getWindowPaletteNb = () => 0;
       mmu.isWindowOn = () => true;
       mmu.wy = () => 0;
       mmu.wx = () => 7;
+
       lcd.drawLine(0);
 
       assert.deepEqual(Array.from(lcd.getLineData(0)), Array.from(lcd.generateLineData(lcd._bgn[0], 1)));

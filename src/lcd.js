@@ -227,7 +227,7 @@ export default class LCD {
       let palette = this._bgp;
 
       if (this._IS_COLOUR){
-        palette = this._bgn[this._mmu.getBgPaletteNb(gridX, gridY)];
+        palette = this._bgn[this._mmu.getWindowPaletteNb(gridX, gridY)];
       }
 
       this._drawTileLine({

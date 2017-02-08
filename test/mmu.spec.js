@@ -908,6 +908,16 @@ describe('MMU', () => {
       assert.equal(mmu.getBgPaletteNb(31, 31), 0);
     });
 
+    it('should read window palette number', () => {
+      mmu.writeByteAt(mmu.ADDR_LCDC, mmu.MASK_WINDOW_CODE_AREA_1); // window area at 0x9c00
+      mmu.writeByteAt(0x9c00, 0xab); // bank 0
+      mmu.writeByteAt(mmu.ADDR_VBK, 1);
+      mmu.writeByteAt(0x9c00, 0x03/*palette 3*/); // bank 1
+
+      assert.equal(mmu.getWindowCharCode(0, 0), 0xab, 'Block 0');
+      assert.equal(mmu.getWindowPaletteNb(0, 0), 3);
+    });
+
   });
 
 });

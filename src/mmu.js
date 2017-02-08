@@ -1605,4 +1605,13 @@ export default class MMU {
     const addr = this._getBgDisplayDataStartAddr() + gridX + (gridY * this.CHARS_PER_LINE);
     return (this._CGB_VRAM_bank1[addr - this.ADDR_VRAM_START] & 0x07);
   }
+
+  /**
+   * @param gridX
+   * @param gridY
+   */
+  getWindowPaletteNb(gridX, gridY){
+    const addr = this._getWindowCodeAreaStartAddr() + gridX + (gridY * this.CHARS_PER_LINE);
+    return (this._CGB_VRAM_bank1[addr - this.ADDR_VRAM_START] & 0x07);
+  }
 }
