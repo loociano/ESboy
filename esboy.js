@@ -3164,6 +3164,28 @@ var CPU = function () {
     }
 
     /**
+     * Sets adjustments before game starts.
+     * @private
+     */
+
+  }, {
+    key: '_bootstrap',
+    value: function _bootstrap() {
+      this.setIe(0x00);
+      this.mmu.setLy(0x00);
+      this._r.a = 0x11; // GBC a:0x11, DMG a:0x01
+      this._r.b = 0;
+      this._r.c = 0x13;
+      this._r.d = 0;
+      this._r.e = 0xd8;
+      this._r.h = 1;
+      this._r.l = 0x4d;
+      this._r.pc = 0x100;
+      this._r.ime = 1;
+      this._r.sp = 0xfffe;
+    }
+
+    /**
      * @returns {boolean} true if timer is on
      * @private
      */
@@ -3390,28 +3412,6 @@ var CPU = function () {
     key: '_isLCDOn',
     value: function _isLCDOn() {
       return (this.lcdc() & 0x80) === 0x80;
-    }
-
-    /**
-     * Sets adjustments before game starts.
-     * @private
-     */
-
-  }, {
-    key: '_bootstrap',
-    value: function _afterBIOS() {
-      this.setIe(0x00);
-      this.mmu.setLy(0x00);
-      this._r.a = 0x11; // GBC a:0x11, DMG a:0x01
-      this._r.b = 0;
-      this._r.c = 19;
-      this._r.d = 0;
-      this._r.e = 216;
-      this._r.h = 1;
-      this._r.l = 77;
-      this._r.pc = 0x100;
-      this._r.ime = 1;
-      this._r.sp = 0xfffe;
     }
 
     /**
@@ -9026,24 +9026,8 @@ var Logger = function () {
      * @param param
      */
     value: function state(cpu, fn, paramLength, param) {
-      if (_config2.default.DEBUG && Logger._logBIOS(cpu)) {
+      if (_config2.default.DEBUG) {
         console.info('[' + _utils2.default.hex4(cpu.pc() - paramLength - 1) + '] ' + _utils2.default.str20(fn.name + ' ' + _utils2.default.hexStr(param)) + ' 0b' + cpu.Z() + cpu.N() + cpu.H() + cpu.C() + '  a:' + _utils2.default.hex2(cpu.a()) + ' bc:' + _utils2.default.hex4(cpu.bc()) + ' de:' + _utils2.default.hex4(cpu.de()) + ' hl:' + _utils2.default.hex4(cpu.hl()) + ' sp:' + _utils2.default.hex4(cpu.sp()) + ' pc:' + _utils2.default.hex4(cpu.pc()) + ' if:' + _utils2.default.hex2(cpu.If()) + ' ie:' + _utils2.default.hex2(cpu.ie()) + ' ly:' + _utils2.default.hex2(cpu.mmu.ly()) + ' lcdc:' + _utils2.default.hex2(cpu.lcdc()) + ' stat:' + _utils2.default.hex2(cpu.stat()));
-      }
-    }
-
-    /**
-     * @param cpu
-     * @returns {boolean} true if should log instructions during start-up
-     * @private
-     */
-
-  }, {
-    key: '_logBIOS',
-    value: function _logBIOS(cpu) {
-      if (!cpu.mmu.isRunningBIOS()) {
-        return true;
-      } else {
-        return _config2.default.LOG_BIOS;
       }
     }
   }, {
@@ -9346,6 +9330,12 @@ var MMU = function () {
     this.MBC3_RAM_SIZE = this.MBC1_RAM_SIZE;
     this.MBC3_CSRAM_ON = this.MBC1_CSRAM_ON;
 
+    // MBC5
+    this.MBC5_RAM_BANK_SIZE = this.MBC1_RAM_BANK_SIZE;
+    this.MBC5_CSRAM_ON = this.MBC1_CSRAM_ON;
+    this.MBC5_RAM_BANKS = 16;
+    this.MBC5_RAM_SIZE = this.MBC5_RAM_BANK_SIZE * this.MBC5_RAM_BANKS;
+
     this.PALETTES_SIZE = 64;
 
     // Variables
@@ -9369,6 +9359,7 @@ var MMU = function () {
     this._hasMBC3RAM = false;
     this._canAccessMBC1RAM = false;
     this._canAccessMBC3RAM = false;
+    this._canAccessMBC5RAM = false;
     this._selectedROMBankNb = 1; // default is bank 1
     this._selectedUpperROMBankNb = 0; // used only if rom > 512 KB
     this._isUpperROMBankSelected = true; // false if RAM
@@ -9431,7 +9422,7 @@ var MMU = function () {
   }, {
     key: 'flushExtRamToStorage',
     value: function flushExtRamToStorage() {
-      if (this._hasMBC1RAM || this._hasMBC3RAM) this._storage.write(this.getGameTitle(), this._extRAM);
+      if (this._hasMBC1RAM || this._hasMBC3RAM || this._hasMBC5RAM) this._storage.write(this.getGameTitle(), this._extRAM);
     }
 
     /**
@@ -9446,7 +9437,8 @@ var MMU = function () {
       this._hasMBC1RAM = type === 2 || type === 3;
       this._hasMBC3 = type === 0x11 || type === 0x12 || type === 0x13;
       this._hasMBC3RAM = type === 0x12 || type === 0x13;
-      this._hasMBC5 = type === this._ROM_MBC5 || type === this._ROM_MBC5_RAM || type === this._ROM_MBC5_RAM_BATT || type === this._ROM_MBC5_RUMBLE || type === this._ROM_MBC5_RUMBLE_SRAM || type === this._ROM_MBC5_RUMBLE_SRAM_BATT;
+      this._hasMBC5RAM = type === this._ROM_MBC5_RAM || type === this._ROM_MBC5_RAM_BATT;
+      this._hasMBC5 = this._hasMBC5RAM || type === this._ROM_MBC5 || type === this._ROM_MBC5_RUMBLE || type === this._ROM_MBC5_RUMBLE_SRAM || type === this._ROM_MBC5_RUMBLE_SRAM_BATT;
       this._initExternalRAM();
     }
 
@@ -9457,16 +9449,20 @@ var MMU = function () {
   }, {
     key: '_initExternalRAM',
     value: function _initExternalRAM() {
-      if (this._hasMBC1RAM || this._hasMBC3RAM) {
+      if (this._hasMBC1RAM || this._hasMBC3RAM || this._hasMBC5RAM) {
         if (this._storage != null) {
-          this._storage.setExpectedGameSize(this.MBC1_RAM_SIZE);
+          var size = this.MBC1_RAM_SIZE; // same as mbc3
+          if (this._hasMBC5RAM) size = this.MBC5_RAM_SIZE;
+          this._storage.setExpectedGameSize(size);
         }
 
         var savedRAM = this.getSavedRAM();
         if (savedRAM != null) {
           this._extRAM = savedRAM;
         } else {
-          this._extRAM = new Uint8Array(this.MBC1_RAM_SIZE); // Same as MBC3
+          var _size = this.MBC1_RAM_SIZE; // same as mbc3
+          if (this._hasMBC5RAM) _size = this.MBC5_RAM_SIZE;
+          this._extRAM = new Uint8Array(_size);
         }
       }
     }
@@ -9582,6 +9578,9 @@ var MMU = function () {
         if (this._hasMBC3) {
           return this._readMBC3RAM(addr);
         }
+        if (this._hasMBC5) {
+          return this._readMBC5RAM(addr);
+        }
       }
 
       if (addr <= this.ADDR_ROM_MAX) {
@@ -9620,6 +9619,22 @@ var MMU = function () {
         return 0xff;
       } else {
         return this._extRAM[this._getMBC3RAMAddr(addr)];
+      }
+    }
+
+    /**
+     * @param addr
+     * @returns {number}
+     * @private
+     */
+
+  }, {
+    key: '_readMBC5RAM',
+    value: function _readMBC5RAM(addr) {
+      if (!this._hasMBC5RAM || !this._canAccessMBC5RAM) {
+        return 0xff;
+      } else {
+        return this._extRAM[this._getMBC5RAMAddr(addr)];
       }
     }
 
@@ -9896,8 +9911,14 @@ var MMU = function () {
   }, {
     key: '_writeMBC5Register',
     value: function _writeMBC5Register(addr, n) {
+      if (this._isMBC5RAMGAddr(addr) && this._hasMBC5RAM) {
+        this._canAccessMBC5RAM = n === this.MBC5_CSRAM_ON;
+      }
       if (this._isMBC5ROMB0Addr(addr)) {
         this._selectROMBank(n);
+      }
+      if (this._isMBC5RAMBAddr(addr) && this._hasMBC5RAM) {
+        this._selectMBC5RAMBank(n);
       }
     }
 
@@ -10008,6 +10029,8 @@ var MMU = function () {
           this._writeMBC1RAM(addr, n);
         } else if (this._hasMBC3) {
           this._writeMBC3RAM(addr, n);
+        } else if (this._hasMBC5RAM) {
+          this._writeMBC5RAM(addr, n);
         }
       }
     }
@@ -10107,6 +10130,20 @@ var MMU = function () {
     }
 
     /**
+     * @param addr
+     * @param n
+     * @private
+     */
+
+  }, {
+    key: '_writeMBC5RAM',
+    value: function _writeMBC5RAM(addr, n) {
+      if (this._hasMBC5RAM && this._canAccessMBC5RAM) {
+        this._extRAM[this._getMBC5RAMAddr(addr)] = n;
+      }
+    }
+
+    /**
      * Handles write to STAT register
      * @param {number} n byte
      * @private
@@ -10135,6 +10172,11 @@ var MMU = function () {
   }, {
     key: '_getMBC3RAMAddr',
     value: function _getMBC3RAMAddr(addr) {
+      return this._getMBC1RAMAddr(addr);
+    }
+  }, {
+    key: '_getMBC5RAMAddr',
+    value: function _getMBC5RAMAddr(addr) {
       return this._getMBC1RAMAddr(addr);
     }
 
@@ -10209,6 +10251,11 @@ var MMU = function () {
     value: function _isMBC3Register0Addr(addr) {
       return this._isMBC1Register0Addr(addr);
     }
+  }, {
+    key: '_isMBC5RAMGAddr',
+    value: function _isMBC5RAMGAddr(addr) {
+      return this._isMBC1Register0Addr(addr);
+    }
 
     /**
      * @param addr
@@ -10246,6 +10293,11 @@ var MMU = function () {
   }, {
     key: '_isMBC3Register2Addr',
     value: function _isMBC3Register2Addr(addr) {
+      return this._isMBC1Register2Addr(addr);
+    }
+  }, {
+    key: '_isMBC5RAMBAddr',
+    value: function _isMBC5RAMBAddr(addr) {
       return this._isMBC1Register2Addr(addr);
     }
 
@@ -10303,6 +10355,18 @@ var MMU = function () {
     key: '_selectRAMBank',
     value: function _selectRAMBank(bankNb) {
       this._selectedRAMBankNb = bankNb % this.MBC1_RAM_BANKS;
+    }
+
+    /**
+     * Selects a RAM bank
+     * @param {number} bankNb [0,15]
+     * @private
+     */
+
+  }, {
+    key: '_selectMBC5RAMBank',
+    value: function _selectMBC5RAMBank(bankNb) {
+      this._selectedRAMBankNb = bankNb % this.MBC5_RAM_BANKS;
     }
 
     /**
@@ -10571,6 +10635,8 @@ var MMU = function () {
         case this._ROM_MBC3_RAM:
         case this._ROM_MBC3_RAM_BATT:
         case this._ROM_MBC5:
+        case this._ROM_MBC5_RAM:
+        case this._ROM_MBC5_RAM_BATT:
           return true;
         default:
           _logger2.default.warn('Cartridge type ' + _utils2.default.hex2(type) + ' unknown');
