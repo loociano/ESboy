@@ -1,7 +1,6 @@
 const config = {
   DEBUG: false,
-  TEST: false,
-  LOG_BIOS: false
+  TEST: false
 };
 
 export default config;

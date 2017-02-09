@@ -19,7 +19,6 @@ describe('Interruptions', () => {
      * @param {number} pc
      */
     this.cpu.setPC = function(pc){
-      this.mmu.setRunningBIOS(false);
       this._r.pc = pc;
     };
     /**
@@ -66,7 +65,7 @@ describe('Interruptions', () => {
   describe('HALT', () => {
 
     it('should stop executing instructions on HALT mode', function() {
-
+      this.cpu.setIe(0x01);
       this.cpu.mmu.writeByteAt(this.cpu.mmu.ADDR_LCDC, 0b10000000); // LCD on
       this.cpu.halt();
 
@@ -175,7 +174,6 @@ describe('Interruptions', () => {
     });
   
     it('should handle vertical blanking interrupt', function() {
-      this.cpu.mmu.setRunningBIOS(false);
       this.cpu._r.pc = 0xc000;
       this.cpu.setIf(0b00001); // Request vblank
       this.cpu.setIe(0b00001); // Allow vblank
@@ -337,7 +335,6 @@ describe('Interruptions', () => {
       rom32KB[0x51/* timer */] = 0xd9;
 
       const mmu = new MMU(rom32KB);
-      mmu.setRunningBIOS(false);
 
       this.cpu = new CPU(mmu, new LCDMock());
 

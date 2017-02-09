@@ -572,6 +572,8 @@ export default class CPU {
     this._stop = false;
 
     this.mustPaint = false;
+
+    this._bootstrap();
   }
 
   /**
@@ -927,10 +929,25 @@ export default class CPU {
     this._updateDivider(this._m - m);
     this._handleLCD();
     this._handleDMA();
+  }
 
-    if (this.mmu.isRunningBIOS() && this._r.pc === this.mmu.ADDR_GAME_START){
-      this._afterBIOS();
-    }
+  /**
+   * Sets adjustments before game starts.
+   * @private
+   */
+  _bootstrap(){
+    this.setIe(0x00);
+    this.mmu.setLy(0x00);
+    this._r.a = 0x11; // GBC a:0x11, DMG a:0x01
+    this._r.b = 0;
+    this._r.c = 0x13;
+    this._r.d = 0;
+    this._r.e = 0xd8;
+    this._r.h = 1;
+    this._r.l = 0x4d;
+    this._r.pc = 0x100;
+    this._r.ime = 1;
+    this._r.sp = 0xfffe;
   }
 
   /**
@@ -1118,18 +1135,6 @@ export default class CPU {
   }
 
   /**
-   * Sets adjustments before game starts.
-   * @private
-   */
-  _afterBIOS(){
-    this.mmu.setRunningBIOS(false);
-    this.setIe(0x00);
-    this.mmu.setLy(0x00);
-    this._r.a = 0x11; // GBC a:0x11, DMG a:0x01
-    //this._r.c = 0x13; // there's a bug somewhere that leaves c=0x14
-  }
-
-  /**
    * @returns {boolean}
    * @private
    */
@@ -1158,11 +1163,8 @@ export default class CPU {
     this._halt = false;
     this.setIf(this.If() & this.IF_VBLANK_OFF);
 
-    // BIOS does not have an vblank routine to execute
-    if (!this.mmu.isRunningBIOS()) {
-      this.di();
-      this._rst_40();
-    }
+    this.di();
+    this._rst_40();
   }
 
   paint(){

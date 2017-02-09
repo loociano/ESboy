@@ -9,14 +9,12 @@ import commandLineArgs from 'command-line-args';
 const optionDefinitions = [
   { name: 'input-rom', alias: 'i', type: String },
   { name: 'debug', alias: 'D', type: Boolean },
-  { name: 'log-bios', type: Boolean },
   { name: 'stop-at', type: Number }
 ];
 
 const options = commandLineArgs(optionDefinitions);
 
 config.DEBUG = options.debug;
-config.LOG_BIOS = options['log-bios'];
 
 function init(filename, stop_at=-1){
 

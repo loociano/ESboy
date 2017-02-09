@@ -2083,8 +2083,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 var config = {
   DEBUG: false,
-  TEST: false,
-  LOG_BIOS: false
+  TEST: false
 };
 
 exports.default = config;
@@ -2682,6 +2681,8 @@ var CPU = function () {
     this._stop = false;
 
     this.mustPaint = false;
+
+    this._bootstrap();
   }
 
   /**
@@ -3160,10 +3161,6 @@ var CPU = function () {
       this._updateDivider(this._m - m);
       this._handleLCD();
       this._handleDMA();
-
-      if (this.mmu.isRunningBIOS() && this._r.pc === this.mmu.ADDR_GAME_START) {
-        this._afterBIOS();
-      }
     }
 
     /**
@@ -3401,13 +3398,20 @@ var CPU = function () {
      */
 
   }, {
-    key: '_afterBIOS',
+    key: '_bootstrap',
     value: function _afterBIOS() {
-      this.mmu.setRunningBIOS(false);
       this.setIe(0x00);
       this.mmu.setLy(0x00);
       this._r.a = 0x11; // GBC a:0x11, DMG a:0x01
-      //this._r.c = 0x13; // there's a bug somewhere that leaves c=0x14
+      this._r.b = 0;
+      this._r.c = 19;
+      this._r.d = 0;
+      this._r.e = 216;
+      this._r.h = 1;
+      this._r.l = 77;
+      this._r.pc = 0x100;
+      this._r.ime = 1;
+      this._r.sp = 0xfffe;
     }
 
     /**
@@ -3446,11 +3450,8 @@ var CPU = function () {
       this._halt = false;
       this.setIf(this.If() & this.IF_VBLANK_OFF);
 
-      // BIOS does not have an vblank routine to execute
-      if (!this.mmu.isRunningBIOS()) {
-        this.di();
-        this._rst_40();
-      }
+      this.di();
+      this._rst_40();
     }
   }, {
     key: 'paint',
@@ -9360,8 +9361,6 @@ var MMU = function () {
     this._objPaletteAddr = 0;
     this._autoNextBgPalette = false;
     this._autoNextObjPalette = false;
-    this._bios = this.getBIOS();
-    this._inBIOS = true;
     this._isDMA = false;
     this._buttons = 0x0f; // Buttons unpressed, on HIGH
     this._div = 0x0000; // Internal divider, register DIV is msb
@@ -9400,26 +9399,6 @@ var MMU = function () {
       rgb.push((l >> 5 & 7) + ((h & 3) << 3));
       rgb.push(h >> 2 & 0x1f);
       return rgb;
-    }
-
-    /**
-     * @returns {boolean} true if running BIOS
-     */
-
-  }, {
-    key: 'isRunningBIOS',
-    value: function isRunningBIOS() {
-      return this._inBIOS;
-    }
-
-    /**
-     * @param {boolean} inBIOS
-     */
-
-  }, {
-    key: 'setRunningBIOS',
-    value: function setRunningBIOS(inBIOS) {
-      this._inBIOS = inBIOS;
     }
   }, {
     key: 'setDMA',
@@ -9503,11 +9482,15 @@ var MMU = function () {
       this._bgPalettes.fill(0xff); // default is white
 
       this._memory[this.ADDR_P1] = 0xff;
+      this._memory[0xff04] = 0x00;
       this._memory[0xff05] = 0x00;
       this._memory[0xff06] = 0x00;
       this._memory[0xff07] = 0x00;
       this._memory[0xff10] = 0x80;
-      this._memory[0xff14] = 0xbf;
+      this._memory[0xff11] = 0x80;
+      this._memory[0xff12] = 0xf3;
+      this._memory[0xff13] = 0xc1;
+      this._memory[0xff14] = 0x87;
       this._memory[0xff16] = 0x3f;
       this._memory[0xff17] = 0x00;
       this._memory[0xff19] = 0xbf;
@@ -9519,21 +9502,22 @@ var MMU = function () {
       this._memory[0xff21] = 0x00;
       this._memory[0xff22] = 0x00;
       this._memory[0xff23] = 0xbf;
+      this._memory[0xff24] = 0x77;
+      this._memory[0xff25] = 0xf3;
+      this._memory[0xff26] = 0x80;
+      this._memory[0xff40] = 0x91;
+      this._memory[0xff41] = 0x80;
+      this._memory[0xff44] = 0x00;
+      this._memory[0xff47] = 0xfc;
+      this._memory[0xff4f] = 0xfe;
+      this._memory[0xff50] = 0x01;
       this._memory[this.ADDR_VBK] = 0xfe;
       this._memory[this.ADDR_SVBK] = 0xf8;
-
+      this._memory[0xfffa] = 0x39;
+      this._memory[0xfffb] = 0x01;
+      this._memory[0xfffc] = 0x2e;
       this._memory[this.ADDR_IF] = 0x00;
       this._memory[this.ADDR_IE] = 0x01;
-    }
-
-    /**
-     * @returns {Uint8Array} BIOS
-     */
-
-  }, {
-    key: 'getBIOS',
-    value: function getBIOS() {
-      return new Uint8Array([0x31, 0xfe, 0xff, 0xaf, 0x21, 0xff, 0x9f, 0x32, 0xcb, 0x7c, 0x20, 0xfb, 0x21, 0x26, 0xff, 0x0e, 0x11, 0x3e, 0x80, 0x32, 0xe2, 0x0c, 0x3e, 0xf3, 0xe2, 0x32, 0x3e, 0x77, 0x77, 0x3e, 0xfc, 0xe0, 0x47, 0x11, 0x04, 0x01, 0x21, 0x10, 0x80, 0x1a, 0xcd, 0x95, 0x00, 0xcd, 0x96, 0x00, 0x13, 0x7b, 0xfe, 0x34, 0x20, 0xf3, 0x11, 0xd8, 0x00, 0x06, 0x08, 0x1a, 0x13, 0x22, 0x23, 0x05, 0x20, 0xf9, 0x3e, 0x19, 0xea, 0x10, 0x99, 0x21, 0x2f, 0x99, 0x0e, 0x0c, 0x3d, 0x28, 0x08, 0x32, 0x0d, 0x20, 0xf9, 0x2e, 0x0f, 0x18, 0xf3, 0x67, 0x3e, 0x64, 0x57, 0xe0, 0x42, 0x3e, 0x91, 0xe0, 0x40, 0x04, 0x1e, 0x02, 0x0e, 0x0c, 0xf0, 0x44, 0xfe, 0x90, 0x20, 0xfa, 0x0d, 0x20, 0xf7, 0x1d, 0x20, 0xf2, 0x0e, 0x13, 0x24, 0x7c, 0x1e, 0x83, 0xfe, 0x62, 0x28, 0x06, 0x1e, 0xc1, 0xfe, 0x64, 0x20, 0x06, 0x7b, 0xe2, 0x0c, 0x3e, 0x87, 0xe2, 0xf0, 0x42, 0x90, 0xe0, 0x42, 0x15, 0x20, 0xd2, 0x05, 0x20, 0x4f, 0x16, 0x20, 0x18, 0xcb, 0x4f, 0x06, 0x04, 0xc5, 0xcb, 0x11, 0x17, 0xc1, 0xcb, 0x11, 0x17, 0x05, 0x20, 0xf5, 0x22, 0x23, 0x22, 0x23, 0xc9, 0xce, 0xed, 0x66, 0x66, 0xcc, 0x0d, 0x00, 0x0b, 0x03, 0x73, 0x00, 0x83, 0x00, 0x0c, 0x00, 0x0d, 0x00, 0x08, 0x11, 0x1f, 0x88, 0x89, 0x00, 0x0e, 0xdc, 0xcc, 0x6e, 0xe6, 0xdd, 0xdd, 0xd9, 0x99, 0xbb, 0xbb, 0x67, 0x63, 0x6e, 0x0e, 0xec, 0xcc, 0xdd, 0xdc, 0x99, 0x9f, 0xbb, 0xb9, 0x33, 0x3e, 0x3c, 0x42, 0xb9, 0xa5, 0xb9, 0xa5, 0x42, 0x3c, 0x21, 0x04, 0x01, 0x11, 0xa8, 0x00, 0x1a, 0x13, 0xbe, 0x20, 0xfe, 0x23, 0x7d, 0xfe, 0x34, 0x20, 0xf5, 0x06, 0x19, 0x78, 0x86, 0x23, 0x05, 0x20, 0xfb, 0x86, 0x20, 0xfe, 0x3e, 0x01, 0xe0, 0x50]);
     }
 
     /**
@@ -9601,9 +9585,6 @@ var MMU = function () {
       }
 
       if (addr <= this.ADDR_ROM_MAX) {
-        if (addr < this.ADDR_GAME_START && this._inBIOS) {
-          return this._biosByteAt(addr);
-        }
         return this._rom[addr];
       }
 
@@ -9664,16 +9645,6 @@ var MMU = function () {
     value: function writeBuffer(buffer, addr_start) {
       if (!addr_start) throw new Error('Must indicate start address');
       this._memory.set(buffer, addr_start);
-    }
-
-    /**
-     * @returns {Uint8Array}
-     */
-
-  }, {
-    key: 'readBIOSBuffer',
-    value: function readBIOSBuffer() {
-      return this._bios.slice(0, this.ADDR_GAME_START);
     }
 
     /**
@@ -10520,21 +10491,6 @@ var MMU = function () {
     key: '_If',
     value: function _If() {
       return this._memory[this.ADDR_IF];
-    }
-
-    /**
-     * @param {number} addr
-     * @returns {number} byte value
-     * @private
-     */
-
-  }, {
-    key: '_biosByteAt',
-    value: function _biosByteAt(addr) {
-      if (addr >= this._bios.length || addr < 0) {
-        throw new Error('Cannot read bios address ' + _utils2.default.hexStr(addr));
-      }
-      return this._bios[addr];
     }
 
     /**

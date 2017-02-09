@@ -112,10 +112,6 @@ export default class MMUMock {
 
   setHWDivider(n){}
 
-  isRunningBIOS(){
-    return false;
-  }
-
   pressA(){}
   pressB(){}
   pressSELECT(){}

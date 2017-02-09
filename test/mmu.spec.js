@@ -32,7 +32,6 @@ describe('MMU', () => {
 
       // Starting values at addresses
       assert.equal(mmu.readByteAt(0xff10), 0x80);
-      assert.equal(mmu.readByteAt(0xff14), 0xbf);
       assert.equal(mmu.readByteAt(0xff16), 0x3f);
       assert.equal(mmu.readByteAt(0xff17), 0x00);
       assert.equal(mmu.readByteAt(0xff19), 0xbf);
@@ -74,23 +73,10 @@ describe('MMU', () => {
       rom32KB[0x7fff] = 2;
 
       mmu = new MMU(rom32KB);
-      mmu.setRunningBIOS(false);
 
       assert.equal(mmu.readByteAt(0), 1);
       assert.equal(mmu.readByteAt(0x4000), 1);
       assert.equal(mmu.readByteAt(0x7fff), 2);
-    });
-  });
-
-  describe('BIOS', () => {
-    it('should load the BIOS in memory', () => {
-      assert.deepEqual(mmu.readBIOSBuffer(), mmu.getBIOS(), 'BIOS is in memory');
-    });
-    it('should read BIOS', () => {
-      assert.equal(mmu.readByteAt(0x0000), 0x31, 'first BIOS byte');
-      assert.equal(mmu.readByteAt(0x00ff), 0x50, 'last BIOS byte');
-      assert.equal(mmu.readByteAt(0x0100), 0x00, 'first GAME byte');
-      assert.equal(mmu.readByteAt(0x0101), 0xc3, 'second GAME byte');
     });
   });
 
