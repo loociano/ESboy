@@ -1,0 +1,157 @@
+@font-face {
+    font-family: 'icon';
+    src: url('../fonts/icomoon.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'lionel';
+    src: url('../fonts/lionel.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+* {
+    margin: 0;
+}
+
+body {
+    background: #fefefe;
+    font-family: 'lionel';
+}
+
+.icon {
+    font-family: 'icon';
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+}
+
+.folder::before {
+    content: "\e930";
+}
+
+canvas {
+    width: 480px;
+    height: 432px;
+    image-rendering: pixelated;
+    background-color: #fbfbfb;
+    border: 1px solid #ddd;
+    padding: 0;
+    margin: auto;
+    display: block;
+    box-shadow: 1px 1px 3px #eee;
+}
+
+.dropdownmenu {
+    background-color: #30A6E6;
+    position: absolute;
+    width: 100%;
+    box-shadow: 0 0px 5px #666;
+}
+
+.dropdownmenu ul, .dropdownmenu li {
+    margin: 0;
+    padding: 0;
+}
+
+.dropdownmenu ul {
+    list-style: none;
+}
+
+.dropdownmenu li {
+    float: left;
+    position: relative;
+    width:auto;
+}
+
+.dropdownmenu a {
+    background: #30A6E6;
+    color: #FFFFFF;
+    display: block;
+    font-size: 18px;
+    padding: 10px 25px;
+    text-align: center;
+    text-decoration: none;
+    transition: all .25s ease;
+}
+
+.dropdownmenu li:hover a {
+    background-color: #2184ba;
+}
+
+.dropdownmenu li:hover a.title {
+    background-color: #30A6E6;
+}
+
+#screen {
+    padding-top: 50px;
+}
+
+.fileUpload {
+    position: relative;
+    overflow: hidden;
+    color: white;
+    background-color: rgb(85, 106, 33);
+    font-size: 1.25rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    display: inline-block;
+    padding: 0.625rem 1.25rem;
+}
+
+.fileUpload:hover {
+    background-color: rgb(124, 146, 37);
+}
+
+.fileUpload input.upload {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0;
+    filter: alpha(opacity=0);
+}
+
+footer {
+    font-size: 8px;
+    color: #777;
+    text-align: center;
+    margin: auto;
+    padding: 10px;
+    display: block;
+    width: 500px;
+}
+
+.paypal {
+    display: inline-block;
+}
+
+#controls {
+    font-size: 15px;
+    margin: 10px 0;
+}
+
+#controls kbd {
+    margin-left: 4px;
+}
+
+kbd {
+    display: inline-block;
+    margin: 0;
+    padding: .2em .6em;
+    font-size: 11px;
+    line-height: 1.4;
+    color: #242729;
+    text-shadow: 0 1px 0 #FFF;
+    background-color: #e1e3e5;
+    border: 1px solid #adb3b9;
+    border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(12,13,14,0.2), 0 0 0 2px #FFF inset;
+    white-space: nowrap;
+}

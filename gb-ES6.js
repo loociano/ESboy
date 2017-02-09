@@ -11141,7 +11141,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 // Cache DOM references
 var $cartridge = document.getElementById('cartridge');
 var $body = document.querySelector('body');
-var $ctx = document.getElementById('screen').getContext('2d');
+var $ctx = document.querySelector('canvas').getContext('2d');
 var $title = document.querySelector('title');
 var $games = document.querySelectorAll('#games > li');
 

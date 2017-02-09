@@ -7,146 +7,48 @@
     <meta name="keywords" content="gameboy,gb,emulator,retro,consoles,handheld">
     <meta name="author" content="Luc Rubio">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css"/>
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
   </head>
-  <style>
-    @import url('https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz');
-    @import url('https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css');
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Yanone Kaffeesatz', sans-serif;
-      margin: 10px;
-    }
-
-    canvas {
-      position: absolute;
-      width: 480px;
-      height: 432px;
-      image-rendering: pixelated;
-      box-shadow: 1px 1px 2px #ccc;
-    }
-
-    #menu {
-      position: absolute;
-      left: 500px;
-    }
-
-    .fileUpload {
-      position: relative;
-      overflow: hidden;
-      color: white;
-      background-color: rgb(85, 106, 33);
-      font-size: 1.25rem;
-      font-weight: 700;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      cursor: pointer;
-      display: inline-block;
-      padding: 0.625rem 1.25rem;
-    }
-
-    .fileUpload:hover {
-      background-color: rgb(124, 146, 37);
-    }
-
-    .fileUpload input.upload {
-      position: absolute;
-      top: 0;
-      right: 0;
-      margin: 0;
-      padding: 0;
-      font-size: 20px;
-      cursor: pointer;
-      opacity: 0;
-      filter: alpha(opacity=0);
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-      font-size: 1.2em;
-    }
-
-    #games li {
-      cursor: pointer;
-      padding-left: 1.3em;
-    }
-
-    #games li:hover {
-      color: rgb(85, 106, 33);
-    }
-
-    #games li:before {
-      content: "\f016";
-      font-family: FontAwesome;
-      display: inline-block;
-      margin-left: -1.3em;
-      width: 1.3em;
-    }
-
-    #controls {
-      margin-top: 100px;
-    }
-
-    #controls kbd {
-      margin-left: 4px;
-    }
-
-    kbd {
-      display: inline-block;
-      margin: 0;
-      padding: .2em .6em;
-      font-size: 11px;
-      line-height: 1.4;
-      color: #242729;
-      text-shadow: 0 1px 0 #FFF;
-      background-color: #e1e3e5;
-      border: 1px solid #adb3b9;
-      border-radius: 3px;
-      box-shadow: 0 1px 0 rgba(12,13,14,0.2), 0 0 0 2px #FFF inset;
-      white-space: nowrap;
-    }
-
-  </style>
 
   <body>
-    <canvas id="screen" width="160" height="144"></canvas>
-    <div id="menu">
+    <nav class="dropdownmenu">
+      <ul>
+        <li><a class="title">ESboy</a></li>
+        <li class="fileUpload">
+          <a href="#"><i class="icon folder"></i> LOAD GAME</a>
+          <input id="cartridge" type="file" class="upload" />
+        </li>
+        <!--<li><a href="#"><i class="fa fa-info-circle" aria-hidden="true"></i>About</a></li>-->
+      </ul>
+    </nav>
 
-      <div class="fileUpload">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17" viewBox="0 0 20 17">
-          <path fill="white" d="M10 0l-5.2 4.9h3.3v5.1h3.8v-5.1h3.3l-5.2-4.9zm9.3 11.5l-3.2-2.1h-2l3.4 2.6h-3.5c-.1 0-.2.1-.2.1l-.8 2.3h-6l-.8-2.2c-.1-.1-.1-.2-.2-.2h-3.6l3.4-2.6h-2l-3.2 2.1c-.4.3-.7 1-.6 1.5l.6 3.1c.1.5.7.9 1.2.9h16.3c.6 0 1.1-.4 1.3-.9l.6-3.1c.1-.5-.2-1.2-.7-1.5z">
-          </path>
-        </svg>
-        <span>Load game...</span>
-        <input id="cartridge" type="file" class="upload" />
+    <div id="screen">
+      <canvas width="160" height="144"></canvas>
+    </div>
+
+    <footer>
+      <div id="controls">
+        <span><kbd>&#8592;</kbd><kbd>&#8593;</kbd><kbd>&#8594;</kbd><kbd>&#8595;</kbd>
+          &nbsp;&nbsp;&nbsp; A<kbd>X</kbd>
+          &nbsp;&nbsp;&nbsp; B<kbd>Z</kbd>
+          &nbsp;&nbsp;&nbsp; START<kbd>Enter</kbd>
+          &nbsp;&nbsp;&nbsp; SELECT<kbd>Ctrl</kbd></span>
       </div>
 
-      <h2>Or try a test rom</h2>
-      <ul id="games">
-        <li>CPU instructions tests</li>
-        <li>fonts</li>
-        <li>galaxy</li>
-        <li>colorbar</li>
-        <li>rand</li>
-      </ul>
+      <a class="github-button" href="https://github.com/loociano/ESboy" data-count-href="/loociano/ESboy/stargazers" data-count-api="/repos/loociano/ESboy#stargazers_count" data-count-aria-label="# stargazers on GitHub" aria-label="Star loociano/ESboy on GitHub">Star</a>
 
-      <ul id="controls">
-        <li>D-pad <kbd>&#8592;</kbd><kbd>&#8593;</kbd><kbd>&#8594;</kbd><kbd>&#8595;</kbd></li>
-        <li>A <kbd>X</kbd></li>
-        <li>B <kbd>Z</kbd></li>
-        <li>Start <kbd>Enter</kbd></li>
-        <li>Select <kbd>Ctrl</kbd></li>
-      </ul>
+      <form class="paypal" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+        <input type="hidden" name="cmd" value="_s-xclick">
+        <input type="hidden" name="hosted_button_id" value="UBZKBVWZRVTBJ">
+        <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+        <img alt="Donate to this project with PayPal" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+      </form>
 
-    </div>
+    </footer>
+
   </body>
-
   <script src="gb-ES6.js"></script>
-
   <script>
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
               (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

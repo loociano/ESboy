@@ -8,7 +8,7 @@ import BrowserStorage from './browserStorage';
 // Cache DOM references
 const $cartridge = document.getElementById('cartridge');
 const $body = document.querySelector('body');
-const $ctx = document.getElementById('screen').getContext('2d');
+const $ctx = document.querySelector('canvas').getContext('2d');
 const $title = document.querySelector('title');
 const $games = document.querySelectorAll('#games > li');
 
