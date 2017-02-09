@@ -8365,6 +8365,7 @@ var LCD = function () {
     this._objn = null; // will hold array of 8 obj colour palettes
     this._imageData = this._ctx.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
     this._IS_COLOUR = this._mmu.isGameInColor();
+    this._bgLineFlags = []; // will contain 160 bit flags, 1 when bg/win is first color palette
 
     this._clear();
     this._readPalettes();
@@ -8389,7 +8390,7 @@ var LCD = function () {
         _logger2.default.warn('Cannot draw line ' + line);
         return;
       }
-      this._bgLineFlags = []; // will contain 160 bit flags, 1 when bg is first color palette
+      this._bgLineFlags = []; // reset each line
       this._readPalettes();
       this._drawLineBG(line);
       if (this._mmu.isWindowOn()) this._drawLineWindow(line);
@@ -8437,7 +8438,6 @@ var LCD = function () {
           paletteDataNb = _ref.paletteDataNb;
       var palette = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._bgp;
       var isOBJ = arguments[2];
-      var isBg = arguments[3];
 
 
       if (paletteDataNb < 0 || paletteDataNb > 3) {
@@ -8447,11 +8447,14 @@ var LCD = function () {
 
       if (x < 0 || y < 0 || x >= this._HW_WIDTH || y >= this._HW_HEIGHT) return;
 
-      if (paletteDataNb === 0) {
-        if (isOBJ) {
-          return; // transparent
-        } else if (isBg) {
+      if (isOBJ) {
+        if (paletteDataNb === 0) return;
+      } else {
+        // bg or window
+        if (paletteDataNb === 0) {
           this._bgLineFlags[x] = 1;
+        } else {
+          this._bgLineFlags[x] = 0;
         }
       }
 
@@ -8589,7 +8592,7 @@ var LCD = function () {
         var palette = this._bgp;
 
         if (this._IS_COLOUR) {
-          palette = this._bgn[this._mmu.getBgPaletteNb(gridX, gridY)];
+          palette = this._bgn[this._mmu.getWindowPaletteNb(gridX, gridY)];
         }
 
         this._drawTileLine({
@@ -8652,7 +8655,7 @@ var LCD = function () {
             this.drawPixel({ x: x, y: line, paletteDataNb: intensityVector[i] }, palette, isOBJ);
           }
         } else {
-          this.drawPixel({ x: x, y: line, paletteDataNb: intensityVector[i] }, palette, isOBJ, isBG);
+          this.drawPixel({ x: x, y: line, paletteDataNb: intensityVector[i] }, palette, isOBJ);
         }
       }
       return intensityVector;
@@ -9134,6 +9137,7 @@ var MMU = function () {
     this.ADDR_COMPLEMENT_CHECK = 0x14d;
 
     this.ADDR_MBC1_REG1_START = 0x2000;
+    this.ADDR_MBC5_ROMB1_START = 0x3000;
     this.ADDR_ROM_BANK_START = 0x4000;
     this.ADDR_MBC1_REG2_START = 0x4000;
     this.ADDR_MBC1_REG3_START = 0x6000;
@@ -9340,7 +9344,6 @@ var MMU = function () {
     this.MBC1_CSRAM_ON = 0x0a;
 
     // MBC3
-    this.MBC3_ROM_BANK_SIZE = this.MBC1_ROM_BANK_SIZE;
     this.MBC3_RAM_BANK_SIZE = this.MBC1_RAM_BANK_SIZE;
     this.MBC3_MAX_ROM_BANK_NB = 0x7f; // 0..127
     this.MBC3_RAM_BANKS = this.MBC1_RAM_BANKS;
@@ -9469,6 +9472,7 @@ var MMU = function () {
       this._hasMBC1RAM = type === 2 || type === 3;
       this._hasMBC3 = type === 0x11 || type === 0x12 || type === 0x13;
       this._hasMBC3RAM = type === 0x12 || type === 0x13;
+      this._hasMBC5 = type === this._ROM_MBC5 || type === this._ROM_MBC5_RAM || type === this._ROM_MBC5_RAM_BATT || type === this._ROM_MBC5_RUMBLE || type === this._ROM_MBC5_RUMBLE_SRAM || type === this._ROM_MBC5_RUMBLE_SRAM_BATT;
       this._initExternalRAM();
     }
 
@@ -9589,7 +9593,7 @@ var MMU = function () {
           return this._CGB_WRAM[this._getCGBWRAMAddr(addr, WRAMBank)];
         }
       }
-      if ((this._hasMBC1 || this._hasMBC3) && this._isProgramSwitchAddr(addr)) {
+      if ((this._hasMBC1 || this._hasMBC3 || this._hasMBC5) && this._isProgramSwitchAddr(addr)) {
         return this._rom[this._getMBC1ROMAddr(addr)];
       }
       if (this._isExtRAMAddr(addr)) {
@@ -9918,6 +9922,20 @@ var MMU = function () {
     }
 
     /**
+     * @param addr
+     * @param n
+     * @private
+     */
+
+  }, {
+    key: '_writeMBC5Register',
+    value: function _writeMBC5Register(addr, n) {
+      if (this._isMBC5ROMB0Addr(addr)) {
+        this._selectROMBank(n);
+      }
+    }
+
+    /**
      * Writes a byte n into address
      * @param {number} 16 bit address
      * @param {number} byte
@@ -9935,6 +9953,8 @@ var MMU = function () {
           this._writeMBC1Register(addr, n);
         } else if (this._hasMBC3) {
           this._writeMBC3Register(addr, n);
+        } else if (this._hasMBC5) {
+          this._writeMBC5Register(addr, n);
         } else {
           _logger2.default.warn('Cannot write memory address ' + _utils2.default.hexStr(addr));
         }
@@ -10239,6 +10259,11 @@ var MMU = function () {
     key: '_isMBC3Register1Addr',
     value: function _isMBC3Register1Addr(addr) {
       return this._isMBC1Register1Addr(addr);
+    }
+  }, {
+    key: '_isMBC5ROMB0Addr',
+    value: function _isMBC5ROMB0Addr(addr) {
+      return addr >= this.ADDR_MBC1_REG1_START && addr < this.ADDR_MBC5_ROMB1_START;
     }
 
     /**
@@ -10594,6 +10619,7 @@ var MMU = function () {
         case this._ROM_MBC3:
         case this._ROM_MBC3_RAM:
         case this._ROM_MBC3_RAM_BATT:
+        case this._ROM_MBC5:
           return true;
         default:
           _logger2.default.warn('Cartridge type ' + _utils2.default.hex2(type) + ' unknown');
@@ -10991,10 +11017,8 @@ var MMU = function () {
   }, {
     key: 'getNbOfROMBanks',
     value: function getNbOfROMBanks() {
-      if (this._hasMBC1) {
+      if (this._hasMBC1 || this._hasMBC3 || this._hasMBC5) {
         return this._rom.length / this.MBC1_ROM_BANK_SIZE;
-      } else if (this._hasMBC3) {
-        return this._rom.length / this.MBC3_ROM_BANK_SIZE;
       }
       return 0;
     }
@@ -11063,6 +11087,18 @@ var MMU = function () {
     key: 'getBgPaletteNb',
     value: function getBgPaletteNb(gridX, gridY) {
       var addr = this._getBgDisplayDataStartAddr() + gridX + gridY * this.CHARS_PER_LINE;
+      return this._CGB_VRAM_bank1[addr - this.ADDR_VRAM_START] & 0x07;
+    }
+
+    /**
+     * @param gridX
+     * @param gridY
+     */
+
+  }, {
+    key: 'getWindowPaletteNb',
+    value: function getWindowPaletteNb(gridX, gridY) {
+      var addr = this._getWindowCodeAreaStartAddr() + gridX + gridY * this.CHARS_PER_LINE;
       return this._CGB_VRAM_bank1[addr - this.ADDR_VRAM_START] & 0x07;
     }
   }]);
