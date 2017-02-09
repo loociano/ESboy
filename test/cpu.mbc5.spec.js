@@ -193,4 +193,121 @@ describe('Memory Bank Controller 5 MBC5', () => {
       });
     });
   });
+  describe('MBC5 with RAM', () => {
+    beforeEach( () => {
+      rom64KB[mmu.ADDR_CARTRIDGE_TYPE] = mmu._ROM_MBC5_RAM;
+
+      mmu = new MMU(rom64KB, storage); // reload
+      cpu.mmu = mmu;
+      mmu.flushExtRamToStorage();
+
+      extRAM = storage.read('');
+      extRAM[0] = 1;
+      extRAM[mmu.MBC5_RAM_BANK_SIZE * 1] = 2;
+      extRAM[mmu.MBC5_RAM_BANK_SIZE * 2] = 3;
+      extRAM[mmu.MBC5_RAM_BANK_SIZE * 3] = 4;
+      extRAM[mmu.MBC5_RAM_BANK_SIZE * 15] = 16;
+    });
+
+    it('should not read/write if the RAM gate is not opened', () => {
+      assert.equal(mmu.getSelectedRAMBankNb(), 0);
+      assert.equal(mmu.readByteAt(mmu.ADDR_EXT_RAM_START), 0xff, 'RAM unavailable');
+
+      cpu.openRAMGate();
+
+      assert.equal(mmu.readByteAt(mmu.ADDR_EXT_RAM_START), extRAM[0], 'read RAM');
+
+      cpu.closeRAMGate();
+
+      assert.equal(mmu.readByteAt(mmu.ADDR_EXT_RAM_START), 0xff, 'RAM unavailable');
+    });
+
+    it('should read from 0-15 RAM banks writing the bank anywhere from 0x4000 to 0x5fff', () => {
+      assert.equal(mmu.getSelectedRAMBankNb(), 0, 'Default');
+
+      cpu.openRAMGate();
+
+      cpu.selectRAMBank(1);
+
+      assert.equal(mmu.getSelectedRAMBankNb(), 1);
+      assert.equal(mmu.readByteAt(mmu.ADDR_EXT_RAM_START), extRAM[mmu.MBC5_RAM_BANK_SIZE]);
+
+      cpu.selectRAMBank(2);
+
+      assert.equal(mmu.getSelectedRAMBankNb(), 2);
+      assert.equal(mmu.readByteAt(mmu.ADDR_EXT_RAM_START), extRAM[mmu.MBC5_RAM_BANK_SIZE * 2]);
+
+      cpu.selectRAMBank(3);
+
+      assert.equal(mmu.getSelectedRAMBankNb(), 3);
+      assert.equal(mmu.readByteAt(mmu.ADDR_EXT_RAM_START), extRAM[mmu.MBC5_RAM_BANK_SIZE * 3]);
+
+      cpu.selectRAMBank(15);
+
+      assert.equal(mmu.getSelectedRAMBankNb(), 15);
+      assert.equal(mmu.readByteAt(mmu.ADDR_EXT_RAM_START), extRAM[mmu.MBC5_RAM_BANK_SIZE * 15]);
+
+      cpu.selectRAMBank(16);
+
+      assert.equal(mmu.getSelectedRAMBankNb(), 0);
+      assert.equal(mmu.readByteAt(mmu.ADDR_EXT_RAM_START), extRAM[0]);
+
+      cpu.closeRAMGate();
+      assert.equal(mmu.readByteAt(mmu.ADDR_EXT_RAM_START), 0xff);
+
+      // Select bank with a different address
+      cpu.ld_hl_nn(0x5fff);
+      cpu.ld_a_n(1);
+      cpu.ld_0xhl_a();
+      cpu.openRAMGate();
+
+      assert.equal(mmu.getSelectedRAMBankNb(), 1);
+      assert.equal(mmu.readByteAt(mmu.ADDR_EXT_RAM_START), extRAM[mmu.MBC5_RAM_BANK_SIZE]);
+    });
+
+    it('should write in external RAM', () => {
+      cpu.selectRAMBank(1);
+
+      cpu.write(0xa000, 0x01);
+
+      assert.equal(extRAM[mmu.MBC5_RAM_BANK_SIZE], 0x02, 'no change');
+
+      cpu.openRAMGate();
+
+      cpu.write(0xa000, 0x01);
+
+      assert.equal(extRAM[mmu.MBC5_RAM_BANK_SIZE], 0x01);
+
+      cpu.write(0xa001, 0x02);
+
+      assert.equal(extRAM[mmu.MBC5_RAM_BANK_SIZE], 0x01);
+      assert.equal(extRAM[mmu.MBC5_RAM_BANK_SIZE + 1], 0x02);
+
+      cpu.selectRAMBank(2);
+      cpu.write(0xa000, 0x03);
+
+      assert.equal(extRAM[mmu.MBC5_RAM_BANK_SIZE * 2], 0x03);
+      assert.equal(extRAM[mmu.MBC5_RAM_BANK_SIZE * 2 + 1], 0);
+
+      cpu.closeRAMGate();
+      cpu.write(0xa000, 0x04);
+
+      assert.equal(extRAM[mmu.MBC5_RAM_BANK_SIZE * 2], 0x03, 'no change');
+    });
+
+    it('should persist the external RAM', () => {
+      cpu.openRAMGate();
+      cpu.write(0xa000, 0xaa);
+
+      let savedRAM = mmu.getSavedRAM();
+      assert.equal(savedRAM[0], 0xaa);
+
+      mmu = new MMU(rom64KB, storage); // reload
+      cpu.mmu = mmu;
+
+      cpu.openRAMGate();
+
+      assert.equal(mmu.readByteAt(mmu.ADDR_EXT_RAM_START), 0xaa, 'should keep the ext RAM value thanks to storage');
+    });
+  });
 });

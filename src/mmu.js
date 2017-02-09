@@ -240,6 +240,12 @@ export default class MMU {
     this.MBC3_RAM_SIZE = this.MBC1_RAM_SIZE;
     this.MBC3_CSRAM_ON = this.MBC1_CSRAM_ON;
 
+    // MBC5
+    this.MBC5_RAM_BANK_SIZE = this.MBC1_RAM_BANK_SIZE;
+    this.MBC5_CSRAM_ON = this.MBC1_CSRAM_ON;
+    this.MBC5_RAM_BANKS = 16;
+    this.MBC5_RAM_SIZE = this.MBC5_RAM_BANK_SIZE * this.MBC5_RAM_BANKS;
+
     this.PALETTES_SIZE = 64;
 
     // Variables
@@ -263,6 +269,7 @@ export default class MMU {
     this._hasMBC3RAM = false;
     this._canAccessMBC1RAM = false;
     this._canAccessMBC3RAM = false;
+    this._canAccessMBC5RAM = false;
     this._selectedROMBankNb = 1; // default is bank 1
     this._selectedUpperROMBankNb = 0; // used only if rom > 512 KB
     this._isUpperROMBankSelected = true; // false if RAM
@@ -314,7 +321,7 @@ export default class MMU {
    * hence, should only be performed when the user stops playing.
    */
   flushExtRamToStorage(){
-    if (this._hasMBC1RAM || this._hasMBC3RAM)
+    if (this._hasMBC1RAM || this._hasMBC3RAM || this._hasMBC5RAM)
       this._storage.write(this.getGameTitle(), this._extRAM);
   }
 
@@ -327,9 +334,9 @@ export default class MMU {
     this._hasMBC1RAM = (type === 2 || type === 3);
     this._hasMBC3 = (type === 0x11 || type === 0x12 || type === 0x13);
     this._hasMBC3RAM = (type === 0x12 || type === 0x13);
-    this._hasMBC5 = (type === this._ROM_MBC5
-      || type === this._ROM_MBC5_RAM
-      || type === this._ROM_MBC5_RAM_BATT
+    this._hasMBC5RAM = (type === this._ROM_MBC5_RAM || type === this._ROM_MBC5_RAM_BATT);
+    this._hasMBC5 = (this._hasMBC5RAM
+      || type === this._ROM_MBC5
       || type === this._ROM_MBC5_RUMBLE
       || type === this._ROM_MBC5_RUMBLE_SRAM
       || type === this._ROM_MBC5_RUMBLE_SRAM_BATT);
@@ -340,16 +347,20 @@ export default class MMU {
    * @private
    */
   _initExternalRAM(){
-    if (this._hasMBC1RAM || this._hasMBC3RAM){
+    if (this._hasMBC1RAM || this._hasMBC3RAM || this._hasMBC5RAM){
       if (this._storage != null) {
-        this._storage.setExpectedGameSize(this.MBC1_RAM_SIZE);
+        let size = this.MBC1_RAM_SIZE; // same as mbc3
+        if (this._hasMBC5RAM) size = this.MBC5_RAM_SIZE;
+        this._storage.setExpectedGameSize(size);
       }
 
       const savedRAM = this.getSavedRAM();
       if (savedRAM != null){
         this._extRAM = savedRAM;
       } else {
-        this._extRAM = new Uint8Array(this.MBC1_RAM_SIZE); // Same as MBC3
+        let size = this.MBC1_RAM_SIZE; // same as mbc3
+        if (this._hasMBC5RAM) size = this.MBC5_RAM_SIZE;
+        this._extRAM = new Uint8Array(size);
       }
     }
   }
@@ -458,6 +469,9 @@ export default class MMU {
       if (this._hasMBC3) {
         return this._readMBC3RAM(addr);
       }
+      if (this._hasMBC5) {
+        return this._readMBC5RAM(addr);
+      }
     }
 
     if (addr <= this.ADDR_ROM_MAX){
@@ -490,6 +504,19 @@ export default class MMU {
       return 0xff;
     } else {
       return this._extRAM[this._getMBC3RAMAddr(addr)];
+    }
+  }
+
+  /**
+   * @param addr
+   * @returns {number}
+   * @private
+   */
+  _readMBC5RAM(addr){
+    if (!this._hasMBC5RAM || !this._canAccessMBC5RAM) {
+      return 0xff;
+    } else {
+      return this._extRAM[this._getMBC5RAMAddr(addr)];
     }
   }
 
@@ -714,8 +741,14 @@ export default class MMU {
    * @private
    */
   _writeMBC5Register(addr, n){
+    if (this._isMBC5RAMGAddr(addr) && this._hasMBC5RAM){
+      this._canAccessMBC5RAM = (n === this.MBC5_CSRAM_ON);
+    }
     if (this._isMBC5ROMB0Addr(addr)){
       this._selectROMBank(n);
+    }
+    if (this._isMBC5RAMBAddr(addr) && this._hasMBC5RAM){
+      this._selectMBC5RAMBank(n);
     }
   }
 
@@ -823,6 +856,8 @@ export default class MMU {
         this._writeMBC1RAM(addr, n);
       } else if (this._hasMBC3){
         this._writeMBC3RAM(addr, n);
+      } else if (this._hasMBC5RAM){
+        this._writeMBC5RAM(addr, n);
       }
     }
   }
@@ -904,6 +939,17 @@ export default class MMU {
   }
 
   /**
+   * @param addr
+   * @param n
+   * @private
+   */
+  _writeMBC5RAM(addr, n){
+    if (this._hasMBC5RAM && this._canAccessMBC5RAM){
+      this._extRAM[this._getMBC5RAMAddr(addr)] = n;
+    }
+  }
+
+  /**
    * Handles write to STAT register
    * @param {number} n byte
    * @private
@@ -925,6 +971,10 @@ export default class MMU {
   }
 
   _getMBC3RAMAddr(addr){
+    return this._getMBC1RAMAddr(addr);
+  }
+
+  _getMBC5RAMAddr(addr){
     return this._getMBC1RAMAddr(addr);
   }
 
@@ -984,6 +1034,10 @@ export default class MMU {
     return this._isMBC1Register0Addr(addr);
   }
 
+  _isMBC5RAMGAddr(addr){
+    return this._isMBC1Register0Addr(addr);
+  }
+
   /**
    * @param addr
    * @returns {boolean}
@@ -1011,6 +1065,10 @@ export default class MMU {
   }
 
   _isMBC3Register2Addr(addr){
+    return this._isMBC1Register2Addr(addr);
+  }
+
+  _isMBC5RAMBAddr(addr){
     return this._isMBC1Register2Addr(addr);
   }
 
@@ -1055,6 +1113,15 @@ export default class MMU {
    */
   _selectRAMBank(bankNb){
     this._selectedRAMBankNb = bankNb % this.MBC1_RAM_BANKS;
+  }
+
+  /**
+   * Selects a RAM bank
+   * @param {number} bankNb [0,15]
+   * @private
+   */
+  _selectMBC5RAMBank(bankNb){
+    this._selectedRAMBankNb = bankNb % this.MBC5_RAM_BANKS;
   }
 
   /**
@@ -1244,6 +1311,8 @@ export default class MMU {
       case this._ROM_MBC3_RAM:
       case this._ROM_MBC3_RAM_BATT:
       case this._ROM_MBC5:
+      case this._ROM_MBC5_RAM:
+      case this._ROM_MBC5_RAM_BATT:
         return true;
       default:
         Logger.warn(`Cartridge type ${Utils.hex2(type)} unknown`);
