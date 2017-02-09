@@ -8119,12 +8119,7 @@ var GameRequester = function () {
     _classCallCheck(this, GameRequester);
 
     this._games = {
-      'load-game': 'roms/load-game.gb',
-      'CPU instructions tests': 'roms/blargg/cpu_instrs/cpu_instrs.gb',
-      'fonts': 'roms/gbdk/fonts.gb',
-      'galaxy': 'roms/gbdk/galaxy.gb',
-      'rand': 'roms/gbdk/rand.gb',
-      'colorbar': 'roms/gbdk/colorbar.gb'
+      'load-game': 'roms/load-game.gb'
     };
   }
 
@@ -11143,7 +11138,6 @@ var $cartridge = document.getElementById('cartridge');
 var $body = document.querySelector('body');
 var $ctx = document.querySelector('canvas').getContext('2d');
 var $title = document.querySelector('title');
-var $games = document.querySelectorAll('#games > li');
 
 // Constants
 var MAX_FPS = 60;
@@ -11234,37 +11228,6 @@ function saveGame() {
 }
 
 function attachListeners() {
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
-
-  try {
-    var _loop = function _loop() {
-      var $game = _step.value;
-
-      $game.addEventListener('click', function (evt) {
-        gameRequester.request($game.innerText, init);
-      });
-    };
-
-    for (var _iterator = $games[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      _loop();
-    }
-  } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
-      }
-    } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
-      }
-    }
-  }
-
   $cartridge.addEventListener('change', handleFileSelect, false);
   $cartridge.addEventListener('click', function (evt) {
     this.value = null; // reset chosen file

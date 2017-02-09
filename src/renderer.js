@@ -10,7 +10,6 @@ const $cartridge = document.getElementById('cartridge');
 const $body = document.querySelector('body');
 const $ctx = document.querySelector('canvas').getContext('2d');
 const $title = document.querySelector('title');
-const $games = document.querySelectorAll('#games > li');
 
 // Constants
 const MAX_FPS = 60;
@@ -100,12 +99,6 @@ function saveGame(){
 }
 
 function attachListeners() {
-  for (let $game of $games) {
-    $game.addEventListener('click', function (evt) {
-      gameRequester.request($game.innerText, init);
-    });
-  }
-
   $cartridge.addEventListener('change', handleFileSelect, false);
   $cartridge.addEventListener('click', function(evt){
     this.value = null; // reset chosen file
