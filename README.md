@@ -1,4 +1,4 @@
-# ESboy – GAME BOY&trade; emulator [![Build Status](https://travis-ci.org/loociano/gb-ES6.svg?branch=master)](https://travis-ci.org/loociano/gb-ES6)
+# ESboy – GAME BOY&trade; emulator [![Build Status](https://travis-ci.org/loociano/ESboy.svg?branch=master)](https://travis-ci.org/loociano/gb-ES6)
 
 ![Pokemon Blue running on Chrome](https://raw.githubusercontent.com/loociano/gb-ES6/master/screenshots/2017-01-28%2021_17_03-gb-ES6.png)
 
@@ -48,11 +48,11 @@ Open `index.html`.
 
 `npm run cli -- -i <rom file> --debug`
 
-### License
+## License
 
 GNU GPLv3 License.
 
-### References
+## References
 
 * [Game Boy Programming Manual](http://www.romhacking.net/documents/544/)
 * [Gameboy LR35902 opcodes](http://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html)
