@@ -1,6 +1,6 @@
 # ESboy – GAME BOY&trade; emulator [![Build Status](https://travis-ci.org/loociano/ESboy.svg?branch=master)](https://travis-ci.org/loociano/gb-ES6)
 
-![Pokemon Blue running on Chrome](https://raw.githubusercontent.com/loociano/gb-ES6/master/screenshots/2017-01-28%2021_17_03-gb-ES6.png)
+![Pokemon Blue running on Chrome](https://github.com/loociano/ESboy/blob/master/screenshots/2017-02-09%2020_06_20-ESboy.png?raw=true)
 
 GAME BOY&trade; running in your browser. [Compatibility List](https://docs.google.com/spreadsheets/d/1CgXEuxLsH0WPpqzlgMZeTv59cBfNzp4G4MW6Z1QpTD0)
 
