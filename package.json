@@ -1,12 +1,12 @@
 {
-  "name": "gb-ES6",
+  "name": "esboy",
   "version": "0.0.1",
-  "description": "Game Boy emulator in EcmaScript 6",
+  "description": "ESboy - Game Boy emulator in EcmaScript 6",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "build": "browserify src/renderer.js -o gb-ES6.js -t [ babelify --presets [ es2015 ] ]",
+    "build": "browserify src/renderer.js -o esboy.js -t [ babelify --presets [ es2015 ] ]",
     "build-test": "babel src test -d lib",
     "test": "mocha --compilers js:babel-register",
     "cli": "npm run build-test && node ./lib/app-cli.js"

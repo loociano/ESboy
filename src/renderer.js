@@ -92,7 +92,7 @@ function frame(){
 }
 
 function updateTitle(speed){
-  $title.innerText = `gb-ES6 ${speed}%`;
+  $title.innerText = `ESboy ${speed}%`;
 }
 
 function saveGame(){
