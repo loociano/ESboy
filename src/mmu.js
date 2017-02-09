@@ -27,6 +27,7 @@ export default class MMU {
     this.ADDR_COMPLEMENT_CHECK = 0x14d;
 
     this.ADDR_MBC1_REG1_START = 0x2000;
+    this.ADDR_MBC5_ROMB1_START = 0x3000;
     this.ADDR_ROM_BANK_START = 0x4000;
     this.ADDR_MBC1_REG2_START = 0x4000;
     this.ADDR_MBC1_REG3_START = 0x6000;
@@ -233,7 +234,6 @@ export default class MMU {
     this.MBC1_CSRAM_ON = 0x0a;
 
     // MBC3
-    this.MBC3_ROM_BANK_SIZE = this.MBC1_ROM_BANK_SIZE;
     this.MBC3_RAM_BANK_SIZE = this.MBC1_RAM_BANK_SIZE;
     this.MBC3_MAX_ROM_BANK_NB = 0x7f; // 0..127
     this.MBC3_RAM_BANKS = this.MBC1_RAM_BANKS;
@@ -343,6 +343,12 @@ export default class MMU {
     this._hasMBC1RAM = (type === 2 || type === 3);
     this._hasMBC3 = (type === 0x11 || type === 0x12 || type === 0x13);
     this._hasMBC3RAM = (type === 0x12 || type === 0x13);
+    this._hasMBC5 = (type === this._ROM_MBC5
+      || type === this._ROM_MBC5_RAM
+      || type === this._ROM_MBC5_RAM_BATT
+      || type === this._ROM_MBC5_RUMBLE
+      || type === this._ROM_MBC5_RUMBLE_SRAM
+      || type === this._ROM_MBC5_RUMBLE_SRAM_BATT);
     this._initExternalRAM();
   }
 
@@ -450,7 +456,7 @@ export default class MMU {
         return this._CGB_WRAM[this._getCGBWRAMAddr(addr, WRAMBank)];
       }
     }
-    if ( (this._hasMBC1 || this._hasMBC3) && this._isProgramSwitchAddr(addr)){
+    if ( (this._hasMBC1 || this._hasMBC3 || this._hasMBC5) && this._isProgramSwitchAddr(addr)){
       return this._rom[this._getMBC1ROMAddr(addr)];
     }
     if (this._isExtRAMAddr(addr)){
@@ -721,6 +727,17 @@ export default class MMU {
   }
 
   /**
+   * @param addr
+   * @param n
+   * @private
+   */
+  _writeMBC5Register(addr, n){
+    if (this._isMBC5ROMB0Addr(addr)){
+      this._selectROMBank(n);
+    }
+  }
+
+  /**
    * Writes a byte n into address
    * @param {number} 16 bit address
    * @param {number} byte
@@ -733,8 +750,10 @@ export default class MMU {
     if (addr <= this.ADDR_ROM_MAX){
       if (this._hasMBC1) {
         this._writeMBC1Register(addr, n);
-      } else if (this._hasMBC3){
+      } else if (this._hasMBC3) {
         this._writeMBC3Register(addr, n);
+      } else if (this._hasMBC5) {
+        this._writeMBC5Register(addr, n);
       } else {
         Logger.warn(`Cannot write memory address ${Utils.hexStr(addr)}`);
       }
@@ -996,6 +1015,10 @@ export default class MMU {
     return this._isMBC1Register1Addr(addr);
   }
 
+  _isMBC5ROMB0Addr(addr){
+    return addr >= this.ADDR_MBC1_REG1_START && addr < this.ADDR_MBC5_ROMB1_START;
+  }
+
   /**
    * @param addr
    * @returns {boolean}
@@ -1250,6 +1273,7 @@ export default class MMU {
       case this._ROM_MBC3:
       case this._ROM_MBC3_RAM:
       case this._ROM_MBC3_RAM_BATT:
+      case this._ROM_MBC5:
         return true;
       default:
         Logger.warn(`Cartridge type ${Utils.hex2(type)} unknown`);
@@ -1548,10 +1572,8 @@ export default class MMU {
    * @returns {number} number of banks (integer)
    */
   getNbOfROMBanks(){
-    if(this._hasMBC1){
+    if(this._hasMBC1 || this._hasMBC3 || this._hasMBC5){
       return this._rom.length / this.MBC1_ROM_BANK_SIZE;
-    } else if (this._hasMBC3){
-      return this._rom.length / this.MBC3_ROM_BANK_SIZE;
     }
     return 0;
   }
