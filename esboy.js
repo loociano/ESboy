@@ -9263,6 +9263,7 @@ var MMU = function () {
 
     // Values
     this.IS_GB_COLOR = 0x80;
+    this.IS_GBC_ONLY = 0xc0;
 
     // Cartridge types
     this._ROM_ONLY = 0;
@@ -10604,7 +10605,8 @@ var MMU = function () {
   }, {
     key: 'isGameInColor',
     value: function isGameInColor() {
-      return this._rom[this.ADDR_IS_GB_COLOR] === this.IS_GB_COLOR;
+      var isColor = this._rom[this.ADDR_IS_GB_COLOR];
+      return isColor === this.IS_GB_COLOR || isColor === this.IS_GBC_ONLY;
     }
 
     /**
