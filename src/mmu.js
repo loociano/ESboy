@@ -173,6 +173,7 @@ export default class MMU {
 
     // Values
     this.IS_GB_COLOR = 0x80;
+    this.IS_GBC_ONLY = 0xc0;
 
     // Cartridge types
     this._ROM_ONLY = 0;
@@ -1286,7 +1287,8 @@ export default class MMU {
    * @return {boolean} true if game is in color
    */
   isGameInColor() {
-    return this._rom[this.ADDR_IS_GB_COLOR] === this.IS_GB_COLOR;
+    const isColor = this._rom[this.ADDR_IS_GB_COLOR];
+    return  isColor === this.IS_GB_COLOR || isColor === this.IS_GBC_ONLY;
   }
 
   /**
