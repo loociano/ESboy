@@ -1003,6 +1003,8 @@ export default class CPU {
    * @private
    */
   _handleTimerInterrupt(){
+    this._m += 5; // handle interrupt
+    if (this.isHalted()) this._m += 1;
     this._halt = false;
     this.setIf(this.If() & this.mmu.IF_TIMER_OFF);
     this.di();
@@ -1022,6 +1024,8 @@ export default class CPU {
    * @private
    */
   _handleLYCInterrupt(){
+    this._m += 5; // handle interrupt
+    if (this.isHalted()) this._m += 1;
     this._halt = false;
     this.setIf(this.If() & this.mmu.IF_STAT_OFF);
     this.di();
@@ -1152,6 +1156,8 @@ export default class CPU {
    */
   _handleVBlankInterrupt(){
 
+    this._m += 5; // handle interrupt
+    if (this.isHalted()) this._m += 1;
     this._halt = false;
     this.setIf(this.If() & this.IF_VBLANK_OFF);
 
