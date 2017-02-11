@@ -273,19 +273,26 @@ export default class LCD {
       if (isBG) {
         x %= this._OUT_WIDTH;
       }
-      if(isOBJ) {
-        if (this._hasBgPriority(OBJAttr)){
-          if (this._isBgPixelFirstPaletteColor(x, line)){
-            this.drawPixel({x: x, y: line, paletteDataNb: intensityVector[i]}, palette, isOBJ);
-          }
-        } else {
-          this.drawPixel({x: x, y: line, paletteDataNb: intensityVector[i]}, palette, isOBJ);
-        }
-      } else {
+      if(this._shouldDrawPixel(OBJAttr, x, line)) {
         this.drawPixel({x: x, y: line, paletteDataNb: intensityVector[i]}, palette, isOBJ);
       }
     }
-    return intensityVector;
+  }
+
+  /**
+   * @param OBJAttr
+   * @param x
+   * @param line
+   * @returns {boolean}
+   * @private
+   */
+  _shouldDrawPixel(OBJAttr, x, line){
+    const isOBJ = OBJAttr !== undefined;
+    return !isOBJ || (isOBJ && (
+        !this._hasBgPriority(OBJAttr)
+        || (this._hasBgPriority(OBJAttr)
+            && this._isBgPixelFirstPaletteColor(x, line)))
+        );
   }
 
   /**
