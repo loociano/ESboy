@@ -9371,6 +9371,7 @@ var MMU = function () {
     this._selectedRAMBankNb = 0;
 
     this._r = {
+      ie: 1,
       ly: 0,
       stat: 0x80,
       if: 0
@@ -9522,7 +9523,6 @@ var MMU = function () {
       this._memory[0xfffa] = 0x39;
       this._memory[0xfffb] = 0x01;
       this._memory[0xfffc] = 0x2e;
-      this._memory[this.ADDR_IE] = 0x01;
     }
 
     /**
@@ -9541,6 +9541,8 @@ var MMU = function () {
       switch (addr) {
         case this.ADDR_LY:
           return this._r.ly;
+        case this.ADDR_IE:
+          return this._r.ie;
         case this.ADDR_DMA:
         case this.ADDR_SB:
           throw new Error('Unsupported register ' + _utils2.default.hex4(addr));
@@ -9946,47 +9948,17 @@ var MMU = function () {
         _logger2.default.warn('Cannot set memory address ' + _utils2.default.hexStr(addr));
         return;
       }
-      if (addr <= this.ADDR_ROM_MAX) {
-        if (this._hasMBC1) {
-          this._writeMBC1Register(addr, n);
-        } else if (this._hasMBC3) {
-          this._writeMBC3Register(addr, n);
-        } else if (this._hasMBC5) {
-          this._writeMBC5Register(addr, n);
-        } else {
-          _logger2.default.warn('Cannot write memory address ' + _utils2.default.hexStr(addr));
-        }
-        return;
-      }
-
       if (n < 0 || n > 0xff) {
         throw new Error('Cannot write value ' + n + ' in memory');
       }
-      if (this._isOAMAddr(addr)) {
-        if (!this._canAccessOAM()) {
-          _logger2.default.info('Cannot write OAM now');
-          return;
-        }
-      }
-      if (this._isVRAMAddr(addr)) {
-        if (!this._canAccessVRAM()) {
-          _logger2.default.info('Cannot write on VRAM now');
-          return;
-        }
-        if (this.readByteAt(this.ADDR_VBK) === 0xff) {
-          this._CGB_VRAM_bank1[addr - this.ADDR_VRAM_START] = n;
-          return;
-        }
-      }
-      if (this._isUpperWRAMAddr(addr)) {
-        var WRAMBank = this.readByteAt(this.ADDR_SVBK) & this.SVBK_MASK_BANK;
-        if (WRAMBank > 1) {
-          this._CGB_WRAM[this._getCGBWRAMAddr(addr, WRAMBank)] = n;
-          return;
-        }
-      }
 
       switch (addr) {
+        case this.ADDR_IE:
+          this._r.ie = n;
+          return;
+        case this.ADDR_IF:
+          this._r.if = n;
+          return;
         case this.ADDR_LY:
           this.setLy(n);
           return;
@@ -10027,9 +9999,43 @@ var MMU = function () {
         case this.ADDR_OCPD:
           this._handleOCPD(n);
           return;
-        case this.ADDR_IF:
-          this._r.if = n;
+      }
+
+      if (addr <= this.ADDR_ROM_MAX) {
+        if (this._hasMBC1) {
+          this._writeMBC1Register(addr, n);
+        } else if (this._hasMBC3) {
+          this._writeMBC3Register(addr, n);
+        } else if (this._hasMBC5) {
+          this._writeMBC5Register(addr, n);
+        } else {
+          _logger2.default.warn('Cannot write memory address ' + _utils2.default.hexStr(addr));
+        }
+        return;
+      }
+
+      if (this._isOAMAddr(addr)) {
+        if (!this._canAccessOAM()) {
+          _logger2.default.info('Cannot write OAM now');
           return;
+        }
+      }
+      if (this._isVRAMAddr(addr)) {
+        if (!this._canAccessVRAM()) {
+          _logger2.default.info('Cannot write on VRAM now');
+          return;
+        }
+        if (this.readByteAt(this.ADDR_VBK) === 0xff) {
+          this._CGB_VRAM_bank1[addr - this.ADDR_VRAM_START] = n;
+          return;
+        }
+      }
+      if (this._isUpperWRAMAddr(addr)) {
+        var WRAMBank = this.readByteAt(this.ADDR_SVBK) & this.SVBK_MASK_BANK;
+        if (WRAMBank > 1) {
+          this._CGB_WRAM[this._getCGBWRAMAddr(addr, WRAMBank)] = n;
+          return;
+        }
       }
 
       this._memory[addr] = n;
