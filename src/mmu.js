@@ -278,10 +278,12 @@ export default class MMU {
 
     this._r = {
       ie: 1,
+      if: 0,
       lcdc: 0x91,
       ly: 0,
       stat: 0x80,
-      if: 0
+      tac: 0,
+      tima: 0
     };
 
     this.isCartridgeSupported();
@@ -383,9 +385,7 @@ export default class MMU {
 
     this._memory[this.ADDR_P1] = 0xff;
     this._memory[0xff04] = 0x00;
-    this._memory[0xff05] = 0x00;
     this._memory[0xff06] = 0x00;
-    this._memory[0xff07] = 0x00;
     this._memory[0xff10] = 0x80;
     this._memory[0xff11] = 0x80;
     this._memory[0xff12] = 0xf3;
@@ -433,18 +433,19 @@ export default class MMU {
         return this._r.ie;
       case this.ADDR_LCDC:
         return this._r.lcdc;
+      case this.ADDR_TAC:
+        return this._r.tac;
+      case this.ADDR_TIMA:
+        return this._r.tima;
       case this.ADDR_DMA:
       case this.ADDR_SB:
         throw new Error(`Unsupported register ${Utils.hex4(addr)}`);
-
       case this.ADDR_KEY1:
         Logger.info(`Unsupported register ${Utils.hex4(addr)}`);
         return 0xff;
-
       case this.ADDR_SC:
         Logger.info(`Unsupported register ${Utils.hex4(addr)}`);
         break;
-
       case this.ADDR_P1:
         if ((this._memory[addr] & this.MASK_P14) === 0){
           return (this._memory[addr] & this.MASK_P10_P13 | this._buttons);
@@ -787,6 +788,11 @@ export default class MMU {
       case this.ADDR_LY:
         this.setLy(n);
         return;
+      case this.ADDR_TAC:
+        this._r.tac = (n & 0x07); // bit 3-7 unused
+        return;
+      case this.ADDR_TIMA:
+        this._r.tima = n;
       case this.ADDR_P1:
         n = (this._memory[addr] & this.MASK_P1_RW) | n;
         break;
@@ -809,9 +815,6 @@ export default class MMU {
       case this.ADDR_DIV:
         this.setHWDivider(0);
         return;
-      case this.ADDR_TAC:
-        n &= 0x07; // bit 3-7 unused
-        break;
       case this.ADDR_BCPS:
         this._handleBCPS(n);
         return;
@@ -1553,11 +1556,12 @@ export default class MMU {
     if (objNb < 0 || objNb > this.MAX_OBJ-1) throw new Error('OBJ number out of range');
 
     const addr = this.ADDR_OAM_START + (objNb * this.BYTES_PER_OBJ);
+    // OAM can be read directly from memory, no need to call readByteAt()
     return {
-      y: this.readByteAt(addr),
-      x: this.readByteAt(addr + 1),
-      chrCode: this.readByteAt(addr + 2),
-      attr: this.readByteAt(addr + 3)
+      y: this._memory[addr],
+      x: this._memory[addr + 1],
+      chrCode: this._memory[addr + 2],
+      attr: this._memory[addr + 3]
     }
   }
 
