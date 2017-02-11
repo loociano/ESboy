@@ -8292,6 +8292,7 @@ var InputHandler = function () {
 exports.default = InputHandler;
 
 },{}],11:[function(require,module,exports){
+(function (Buffer){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -8352,7 +8353,9 @@ var LCD = function () {
     this._imageData = this._ctx.createImageData(this._HW_WIDTH, this._HW_HEIGHT);
     this._IS_COLOUR = this._mmu.isGameInColor();
     this._bgLineFlags = []; // will contain 160 bit flags, 1 when bg/win is first color palette
+    this._intensityCache = [];
 
+    this._populateIntensityCache();
     this._clear();
     this._readPalettes();
 
@@ -8360,6 +8363,16 @@ var LCD = function () {
   }
 
   _createClass(LCD, [{
+    key: '_populateIntensityCache',
+    value: function _populateIntensityCache() {
+      for (var v = 0; v < 0x10000; v++) {
+        var _b = new Buffer(2);
+        _b[0] = v >> 8;
+        _b[1] = v & 0xff;
+        this._intensityCache.push(LCD.tileToIntensityVector(_b));
+      }
+    }
+  }, {
     key: 'getImageData',
     value: function getImageData() {
       return this._imageData;
@@ -8899,7 +8912,7 @@ var LCD = function () {
       } else {
         tileLineData = this._mmu.readBGData(tileNumber, tileLine);
       }
-      return LCD.tileToIntensityVector(tileLineData);
+      return this._intensityCache[(tileLineData[0] << 8) + tileLineData[1]];
     }
 
     /**
@@ -8978,7 +8991,8 @@ var LCD = function () {
 
 exports.default = LCD;
 
-},{"./logger":12,"./utils":15}],12:[function(require,module,exports){
+}).call(this,require("buffer").Buffer)
+},{"./logger":12,"./utils":15,"buffer":3}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
