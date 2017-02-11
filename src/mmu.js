@@ -278,6 +278,7 @@ export default class MMU {
 
     this._r = {
       ie: 1,
+      lcdc: 0x91,
       ly: 0,
       stat: 0x80,
       if: 0
@@ -404,7 +405,6 @@ export default class MMU {
     this._memory[0xff24] = 0x77;
     this._memory[0xff25] = 0xf3;
     this._memory[0xff26] = 0x80;
-    this._memory[0xff40] = 0x91;
     this._memory[0xff44] = 0x00;
     this._memory[0xff47] = 0xfc;
     this._memory[0xff4f] = 0xfe;
@@ -431,6 +431,8 @@ export default class MMU {
         return this._r.ly;
       case this.ADDR_IE:
         return this._r.ie;
+      case this.ADDR_LCDC:
+        return this._r.lcdc;
       case this.ADDR_DMA:
       case this.ADDR_SB:
         throw new Error(`Unsupported register ${Utils.hex4(addr)}`);
@@ -562,7 +564,7 @@ export default class MMU {
       throw new Error(`Invalid tile line ${tile_line}`);
     }
 
-    if ((this.lcdc() & this.LCDC_BG) === 0){
+    if ((this._r.lcdc & this.LCDC_BG) === 0){
       return this._genEmptyCharLineBuffer();
     }
 
@@ -583,7 +585,7 @@ export default class MMU {
       throw new Error(`Invalid tile line ${tile_line}`);
     }
 
-    if ((this.lcdc() & this.MASK_OBJ_ON) === 0){
+    if ((this._r.lcdc & this.MASK_OBJ_ON) === 0){
       return this._genEmptyCharLineBuffer();
     }
 
@@ -607,7 +609,7 @@ export default class MMU {
     if (tile_number < 0 || tile_number > 0xff)
       throw new Error(`BG ${tile_number} out of range`);
 
-    if ((this.lcdc() & this.MASK_BG_CHAR_DATA) === 0){
+    if ((this._r.lcdc & this.MASK_BG_CHAR_DATA) === 0){
       let start = this.BG_CHAR_DATA_8000;
       if (tile_number < 0x80) {
         start = this.BG_CHAR_DATA_9000;
@@ -667,7 +669,7 @@ export default class MMU {
    * @private
    */
   _getBgDisplayDataStartAddr(){
-    if((this.lcdc() & this.MASK_BG_CODE_AREA_2) === 0){
+    if((this._r.lcdc & this.MASK_BG_CODE_AREA_2) === 0){
       return this.ADDR_DISPLAY_DATA_1;
     } else {
       return this.ADDR_DISPLAY_DATA_2;
@@ -679,7 +681,7 @@ export default class MMU {
    * @private
    */
   _getWindowCodeAreaStartAddr(){
-    if((this.lcdc() & this.MASK_WINDOW_CODE_AREA_1) === this.MASK_WINDOW_CODE_AREA_1){
+    if((this._r.lcdc & this.MASK_WINDOW_CODE_AREA_1) === this.MASK_WINDOW_CODE_AREA_1){
       return this.ADDR_DISPLAY_DATA_2;
     } else {
       return this.ADDR_DISPLAY_DATA_1;
@@ -690,14 +692,14 @@ export default class MMU {
    * @returns {boolean} true if OBJ are enabled
    */
   areOBJOn(){
-    return (this.lcdc() & this.MASK_OBJ_ON) === this.MASK_OBJ_ON;
+    return (this._r.lcdc & this.MASK_OBJ_ON) === this.MASK_OBJ_ON;
   }
 
   /**
    * @returns {boolean} true if OBJ are double (8x16 pixels), false if 8x8 pixels.
    */
   areOBJDouble(){
-    return (this.lcdc() & this.MASK_OBJ_8x16_ON) === this.MASK_OBJ_8x16_ON;
+    return (this._r.lcdc & this.MASK_OBJ_8x16_ON) === this.MASK_OBJ_8x16_ON;
   }
 
   /**
@@ -799,8 +801,8 @@ export default class MMU {
         this._handleStatWrite(n);
         return;
       case this.ADDR_LCDC:
-        this._handle_lcdc(n);
-        break;
+        this._updateLCDC(n);
+        return;
       case this.ADDR_DMA:
         this._handleDMA(n);
         break;
@@ -1253,19 +1255,20 @@ export default class MMU {
    * @param n
    * @private
    */
-  _handle_lcdc(n){
+  _updateLCDC(n){
     switch(n & this.LCDC_ON){
       case 0:
-        this._handle_lcd_off();
+        this._handleLCDOff();
         break;
     }
+    this._r.lcdc = n;
   }
 
   /**
    * Handles actions when LCD turns off
    * @private
    */
-  _handle_lcd_off(){
+  _handleLCDOff(){
     this.setLy(0x00);
     this.setLCDMode(0);
   }
@@ -1404,7 +1407,7 @@ export default class MMU {
    * @returns {number}
    */
   lcdc(){
-    return this.readByteAt(this.ADDR_LCDC);
+    return this._r.lcdc;
   }
 
   /**
@@ -1650,7 +1653,7 @@ export default class MMU {
    * @returns {boolean} true if Window should be displayed
    */
   isWindowOn(){
-    return (this.lcdc() & this.MASK_WINDOW_ON) === this.MASK_WINDOW_ON;
+    return (this._r.lcdc & this.MASK_WINDOW_ON) === this.MASK_WINDOW_ON;
   }
 
   /**
