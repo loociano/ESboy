@@ -571,7 +571,7 @@ export default class CPU {
     this._halt = false;
     this._stop = false;
 
-    this.mustPaint = false;
+    this._mustPaint = false;
 
     this._bootstrap();
   }
@@ -884,9 +884,9 @@ export default class CPU {
       if (this.isStopped() || (pc_stop !== -1 && this._r.pc === pc_stop)) return;
       this.cpuCycle(pc_stop);
     }
-    while (!this.mustPaint);
+    while (!this._mustPaint);
 
-    this.mustPaint = false;
+    this._mustPaint = false;
   }
 
   /**
@@ -1075,7 +1075,7 @@ export default class CPU {
       if (this.ly() === this.mmu.LCDC_LINE_VBLANK) {
         this.mmu.setLCDMode(1);
         this._requestVBlankInterrupt();
-        this.mustPaint = true;
+        this._mustPaint = true;
       }
 
     } else {
