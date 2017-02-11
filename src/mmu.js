@@ -276,6 +276,12 @@ export default class MMU {
     this._isUpperROMBankSelected = true; // false if RAM
     this._selectedRAMBankNb = 0;
 
+    this._r = {
+      ly: 0,
+      stat: 0x80,
+      if: 0
+    };
+
     this.isCartridgeSupported();
     this._initMemory();
     this._initMemoryBankController();
@@ -398,7 +404,6 @@ export default class MMU {
     this._memory[0xff25] = 0xf3;
     this._memory[0xff26] = 0x80;
     this._memory[0xff40] = 0x91;
-    this._memory[0xff41] = 0x80;
     this._memory[0xff44] = 0x00;
     this._memory[0xff47] = 0xfc;
     this._memory[0xff4f] = 0xfe;
@@ -408,7 +413,6 @@ export default class MMU {
     this._memory[0xfffa] = 0x39;
     this._memory[0xfffb] = 0x01;
     this._memory[0xfffc] = 0x2e;
-    this._memory[this.ADDR_IF] = 0x00;
     this._memory[this.ADDR_IE] = 0x01;
   }
 
@@ -423,6 +427,8 @@ export default class MMU {
     }
 
     switch(addr){
+      case this.ADDR_LY:
+        return this._r.ly;
       case this.ADDR_DMA:
       case this.ADDR_SB:
         throw new Error(`Unsupported register ${Utils.hex4(addr)}`);
@@ -804,6 +810,9 @@ export default class MMU {
     }
 
     switch(addr){
+      case this.ADDR_LY:
+        this.setLy(n);
+        return;
       case this.ADDR_P1:
         n = (this._memory[addr] & this.MASK_P1_RW) | n;
         break;
@@ -814,9 +823,9 @@ export default class MMU {
         n |= 0xf8; // Bits 3-7 always set
         break;
       case this.ADDR_STAT:
-        n |= 0x80; // Bit 7 is always set
+        this._r.stat = n | 0x80;
         this._handleStatWrite(n);
-        break;
+        return;
       case this.ADDR_LCDC:
         this._handle_lcdc(n);
         break;
@@ -841,13 +850,15 @@ export default class MMU {
       case this.ADDR_OCPD:
         this._handleOCPD(n);
         return;
+      case this.ADDR_IF:
+        this._r.if = n;
+        return;
     }
 
     this._memory[addr] = n;
 
     // Post-write
     switch(addr){
-      case this.ADDR_LY:
       case this.ADDR_LYC:
         this._updateStatLyc();
         break;
@@ -1003,13 +1014,13 @@ export default class MMU {
    * @private
    */
   _updateStatLyc(){
-    if (this.ly() === this.lyc()){
-      this.writeByteAt(this.ADDR_STAT, this.stat() | this.MASK_STAT_LYC_ON);
-      if ((this.stat() & this.MASK_STAT_LYC_INTERRUPT) === this.MASK_STAT_LYC_INTERRUPT) {
-        this._setIf(this._If() | this.IF_STAT_ON);
+    if (this._r.ly === this.lyc()){
+      this._r.stat |=  this.MASK_STAT_LYC_ON;
+      if ((this._r.stat & this.MASK_STAT_LYC_INTERRUPT) === this.MASK_STAT_LYC_INTERRUPT) {
+        this._r.if |= this.IF_STAT_ON;
       }
     } else {
-      this.writeByteAt(this.ADDR_STAT, this.stat() & this.MASK_STAT_LYC_OFF);
+      this._r.stat &= this.MASK_STAT_LYC_OFF;
     }
   }
 
@@ -1217,7 +1228,7 @@ export default class MMU {
    * @returns {number} LCD Mode: [0,3]
    */
   getLCDMode(){
-    return this.stat() & this.MASK_STAT_MODE;
+    return this._r.stat & this.MASK_STAT_MODE;
   }
 
   /**
@@ -1226,8 +1237,8 @@ export default class MMU {
    */
   setLCDMode(mode){
     if (mode > 3 || mode < 0) return;
-    this._memory[this.ADDR_STAT] &= 0xfc;
-    this._memory[this.ADDR_STAT] += mode;
+    this._r.stat &= 0xfc;
+    this._r.stat += mode;
   };
 
   /**
@@ -1250,22 +1261,6 @@ export default class MMU {
   _handle_lcd_off(){
     this.setLy(0x00);
     this.setLCDMode(0);
-  }
-
-  /**
-   * Sets value on interrupt request register
-   * @param value
-   */
-  _setIf(value){
-    this._memory[this.ADDR_IF] = value;
-  }
-
-  /**
-   * @returns {number} IF register
-   * @private
-   */
-  _If(){
-    return this._memory[this.ADDR_IF];
   }
 
   /**
@@ -1410,7 +1405,7 @@ export default class MMU {
    * @returns {number}
    */
   stat(){
-    return this.readByteAt(this.ADDR_STAT);
+    return this._r.stat;
   }
 
   /**
@@ -1418,7 +1413,7 @@ export default class MMU {
    * @returns {number}
    */
   ly(){
-    return this.readByteAt(this.ADDR_LY);
+    return this._r.ly;
   }
 
   /**
@@ -1426,14 +1421,15 @@ export default class MMU {
    * @param {number} line
    */
   setLy(line){
-    this.writeByteAt(this.ADDR_LY, line);
+    this._r.ly = line;
+    this._updateStatLyc();
   }
 
   /**
    * Increments register LY by 1. Resets after 153.
    */
   incrementLy(){
-    let ly = this.ly();
+    let ly = this._r.ly;
     if (ly >= this.NUM_LINES){
       ly = 0;
     } else {
@@ -1453,7 +1449,7 @@ export default class MMU {
    * @returns {boolean} true if LY === LYC
    */
   lyEqualsLyc(){
-    return ((this.stat() & this.MASK_STAT_LYC_ON) >> 2) === 1;
+    return ((this._r.stat & this.MASK_STAT_LYC_ON) >> 2) === 1;
   }
 
   /**
@@ -1469,6 +1465,10 @@ export default class MMU {
    */
   p1(){
     return this.readByteAt(this.ADDR_P1);
+  }
+
+  If(){
+    return this._r.if;
   }
 
   pressRight(){

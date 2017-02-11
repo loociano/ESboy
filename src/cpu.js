@@ -791,7 +791,7 @@ export default class CPU {
    * @returns {number}
    */
   If(){
-    return this.mmu.readByteAt(this.mmu.ADDR_IF);
+    return this.mmu.If();
   }
 
   /**
@@ -807,14 +807,6 @@ export default class CPU {
    */
   lcdc(){
     return this.mmu.lcdc();
-  }
-
-  /**
-   * LCD Status Flag
-   * @returns {number}
-   */
-  stat(){
-    return this.mmu.stat();
   }
 
   scy(){

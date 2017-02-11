@@ -1909,7 +1909,14 @@ function isnan (val) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"base64-js":1,"ieee754":4,"isarray":5}],4:[function(require,module,exports){
+},{"base64-js":1,"ieee754":5,"isarray":4}],4:[function(require,module,exports){
+var toString = {}.toString;
+
+module.exports = Array.isArray || function (arr) {
+  return toString.call(arr) == '[object Array]';
+};
+
+},{}],5:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -1994,13 +2001,6 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 
   buffer[offset + i - d] |= s * 128
 }
-
-},{}],5:[function(require,module,exports){
-var toString = {}.toString;
-
-module.exports = Array.isArray || function (arr) {
-  return toString.call(arr) == '[object Array]';
-};
 
 },{}],6:[function(require,module,exports){
 'use strict';
@@ -2861,7 +2861,7 @@ var CPU = function () {
   }, {
     key: 'peek_stack',
     value: function peek_stack() {
-      var offset = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+      var offset = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
 
       return this.mmu.readByteAt(this.sp() + offset);
     }
@@ -2990,7 +2990,7 @@ var CPU = function () {
   }, {
     key: 'If',
     value: function If() {
-      return this.mmu.readByteAt(this.mmu.ADDR_IF);
+      return this.mmu.If();
     }
 
     /**
@@ -3012,17 +3012,6 @@ var CPU = function () {
     key: 'lcdc',
     value: function lcdc() {
       return this.mmu.lcdc();
-    }
-
-    /**
-     * LCD Status Flag
-     * @returns {number}
-     */
-
-  }, {
-    key: 'stat',
-    value: function stat() {
-      return this.mmu.stat();
     }
   }, {
     key: 'scy',
@@ -3514,9 +3503,10 @@ var CPU = function () {
         opcode = (opcode << 8) + this._nextOpcode();
       }
 
-      var _getInstruction2 = this._getInstruction(opcode),
-          fn = _getInstruction2.fn,
-          paramBytes = _getInstruction2.paramBytes;
+      var _getInstruction2 = this._getInstruction(opcode);
+
+      var fn = _getInstruction2.fn;
+      var paramBytes = _getInstruction2.paramBytes;
 
       var param = this._getInstrParams(paramBytes);
 
@@ -6193,7 +6183,7 @@ var CPU = function () {
   }, {
     key: '_rl_r',
     value: function _rl_r(setter, getter) {
-      var carried = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.C();
+      var carried = arguments.length <= 2 || arguments[2] === undefined ? this.C() : arguments[2];
 
 
       var value = getter.call(this);
@@ -6312,7 +6302,7 @@ var CPU = function () {
   }, {
     key: '_rr_r',
     value: function _rr_r(setter, getter) {
-      var carried = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.C();
+      var carried = arguments.length <= 2 || arguments[2] === undefined ? this.C() : arguments[2];
 
 
       var value = getter.call(this);
@@ -6338,7 +6328,7 @@ var CPU = function () {
   }, {
     key: 'rl_0xhl',
     value: function rl_0xhl() {
-      var carried = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.C();
+      var carried = arguments.length <= 0 || arguments[0] === undefined ? this.C() : arguments[0];
 
       this._rl_r(this._ld_0xhl_n, this._0xhl, carried);
       if (this.$hl() === 0) {
@@ -6353,7 +6343,7 @@ var CPU = function () {
   }, {
     key: 'rr_0xhl',
     value: function rr_0xhl() {
-      var carried = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.C();
+      var carried = arguments.length <= 0 || arguments[0] === undefined ? this.C() : arguments[0];
 
       this._rr_r(this._ld_0xhl_n, this._0xhl, carried);
     }
@@ -6565,7 +6555,7 @@ var CPU = function () {
   }, {
     key: '_sub_n',
     value: function _sub_n(value) {
-      var carry = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+      var carry = arguments.length <= 1 || arguments[1] === undefined ? 0 : arguments[1];
 
 
       this._setN(1);
@@ -6804,7 +6794,7 @@ var CPU = function () {
   }, {
     key: '_add_r',
     value: function _add_r(value) {
-      var carry = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+      var carry = arguments.length <= 1 || arguments[1] === undefined ? 0 : arguments[1];
 
 
       this._setN(0);
@@ -8429,10 +8419,10 @@ var LCD = function () {
   }, {
     key: 'drawPixel',
     value: function drawPixel(_ref) {
-      var x = _ref.x,
-          y = _ref.y,
-          paletteDataNb = _ref.paletteDataNb;
-      var palette = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._bgp;
+      var x = _ref.x;
+      var y = _ref.y;
+      var paletteDataNb = _ref.paletteDataNb;
+      var palette = arguments.length <= 1 || arguments[1] === undefined ? this._bgp : arguments[1];
       var isOBJ = arguments[2];
 
 
@@ -8623,11 +8613,11 @@ var LCD = function () {
   }, {
     key: '_drawTileLine',
     value: function _drawTileLine(_ref2, line, isBG) {
-      var tileNumber = _ref2.tileNumber,
-          tileLine = _ref2.tileLine,
-          startX = _ref2.startX,
-          OBJAttr = _ref2.OBJAttr;
-      var palette = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : this._bgp;
+      var tileNumber = _ref2.tileNumber;
+      var tileLine = _ref2.tileLine;
+      var startX = _ref2.startX;
+      var OBJAttr = _ref2.OBJAttr;
+      var palette = arguments.length <= 3 || arguments[3] === undefined ? this._bgp : arguments[3];
 
 
       var isOBJ = OBJAttr !== undefined;
@@ -9027,7 +9017,7 @@ var Logger = function () {
      */
     value: function state(cpu, fn, paramLength, param) {
       if (_config2.default.DEBUG) {
-        console.info('[' + _utils2.default.hex4(cpu.pc() - paramLength - 1) + '] ' + _utils2.default.str20(fn.name + ' ' + _utils2.default.hexStr(param)) + ' 0b' + cpu.Z() + cpu.N() + cpu.H() + cpu.C() + '  a:' + _utils2.default.hex2(cpu.a()) + ' bc:' + _utils2.default.hex4(cpu.bc()) + ' de:' + _utils2.default.hex4(cpu.de()) + ' hl:' + _utils2.default.hex4(cpu.hl()) + ' sp:' + _utils2.default.hex4(cpu.sp()) + ' pc:' + _utils2.default.hex4(cpu.pc()) + ' if:' + _utils2.default.hex2(cpu.If()) + ' ie:' + _utils2.default.hex2(cpu.ie()) + ' ly:' + _utils2.default.hex2(cpu.mmu.ly()) + ' lcdc:' + _utils2.default.hex2(cpu.lcdc()) + ' stat:' + _utils2.default.hex2(cpu.stat()));
+        console.info('[' + _utils2.default.hex4(cpu.pc() - paramLength - 1) + '] ' + _utils2.default.str20(fn.name + ' ' + _utils2.default.hexStr(param)) + ' 0b' + cpu.Z() + cpu.N() + cpu.H() + cpu.C() + '  a:' + _utils2.default.hex2(cpu.a()) + ' bc:' + _utils2.default.hex4(cpu.bc()) + ' de:' + _utils2.default.hex4(cpu.de()) + ' hl:' + _utils2.default.hex4(cpu.hl()) + ' sp:' + _utils2.default.hex4(cpu.sp()) + ' pc:' + _utils2.default.hex4(cpu.pc()) + ' if:' + _utils2.default.hex2(cpu.If()) + ' ie:' + _utils2.default.hex2(cpu.ie()) + ' ly:' + _utils2.default.hex2(cpu.mmu.ly()) + ' lcdc:' + _utils2.default.hex2(cpu.lcdc()) + ' stat:' + _utils2.default.hex2(cpu.mmu.stat()));
       }
     }
   }, {
@@ -9366,6 +9356,12 @@ var MMU = function () {
     this._isUpperROMBankSelected = true; // false if RAM
     this._selectedRAMBankNb = 0;
 
+    this._r = {
+      ly: 0,
+      stat: 0x80,
+      if: 0
+    };
+
     this.isCartridgeSupported();
     this._initMemory();
     this._initMemoryBankController();
@@ -9503,7 +9499,6 @@ var MMU = function () {
       this._memory[0xff25] = 0xf3;
       this._memory[0xff26] = 0x80;
       this._memory[0xff40] = 0x91;
-      this._memory[0xff41] = 0x80;
       this._memory[0xff44] = 0x00;
       this._memory[0xff47] = 0xfc;
       this._memory[0xff4f] = 0xfe;
@@ -9513,7 +9508,6 @@ var MMU = function () {
       this._memory[0xfffa] = 0x39;
       this._memory[0xfffb] = 0x01;
       this._memory[0xfffc] = 0x2e;
-      this._memory[this.ADDR_IF] = 0x00;
       this._memory[this.ADDR_IE] = 0x01;
     }
 
@@ -9531,6 +9525,8 @@ var MMU = function () {
       }
 
       switch (addr) {
+        case this.ADDR_LY:
+          return this._r.ly;
         case this.ADDR_DMA:
         case this.ADDR_SB:
           throw new Error('Unsupported register ' + _utils2.default.hex4(addr));
@@ -9674,7 +9670,7 @@ var MMU = function () {
   }, {
     key: 'readBGData',
     value: function readBGData(tile_number) {
-      var tile_line = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+      var tile_line = arguments.length <= 1 || arguments[1] === undefined ? 0 : arguments[1];
 
       if (tile_number < 0 || tile_number > 0xff) {
         throw new Error('Cannot read tile ' + tile_number);
@@ -9977,6 +9973,9 @@ var MMU = function () {
       }
 
       switch (addr) {
+        case this.ADDR_LY:
+          this.setLy(n);
+          return;
         case this.ADDR_P1:
           n = this._memory[addr] & this.MASK_P1_RW | n;
           break;
@@ -9987,9 +9986,9 @@ var MMU = function () {
           n |= 0xf8; // Bits 3-7 always set
           break;
         case this.ADDR_STAT:
-          n |= 0x80; // Bit 7 is always set
+          this._r.stat = n | 0x80;
           this._handleStatWrite(n);
-          break;
+          return;
         case this.ADDR_LCDC:
           this._handle_lcdc(n);
           break;
@@ -10014,13 +10013,15 @@ var MMU = function () {
         case this.ADDR_OCPD:
           this._handleOCPD(n);
           return;
+        case this.ADDR_IF:
+          this._r.if = n;
+          return;
       }
 
       this._memory[addr] = n;
 
       // Post-write
       switch (addr) {
-        case this.ADDR_LY:
         case this.ADDR_LYC:
           this._updateStatLyc();
           break;
@@ -10214,13 +10215,13 @@ var MMU = function () {
   }, {
     key: '_updateStatLyc',
     value: function _updateStatLyc() {
-      if (this.ly() === this.lyc()) {
-        this.writeByteAt(this.ADDR_STAT, this.stat() | this.MASK_STAT_LYC_ON);
-        if ((this.stat() & this.MASK_STAT_LYC_INTERRUPT) === this.MASK_STAT_LYC_INTERRUPT) {
-          this._setIf(this._If() | this.IF_STAT_ON);
+      if (this._r.ly === this.lyc()) {
+        this._r.stat |= this.MASK_STAT_LYC_ON;
+        if ((this._r.stat & this.MASK_STAT_LYC_INTERRUPT) === this.MASK_STAT_LYC_INTERRUPT) {
+          this._r.if |= this.IF_STAT_ON;
         }
       } else {
-        this.writeByteAt(this.ADDR_STAT, this.stat() & this.MASK_STAT_LYC_OFF);
+        this._r.stat &= this.MASK_STAT_LYC_OFF;
       }
     }
 
@@ -10492,7 +10493,7 @@ var MMU = function () {
   }, {
     key: 'getLCDMode',
     value: function getLCDMode() {
-      return this.stat() & this.MASK_STAT_MODE;
+      return this._r.stat & this.MASK_STAT_MODE;
     }
 
     /**
@@ -10504,8 +10505,8 @@ var MMU = function () {
     key: 'setLCDMode',
     value: function setLCDMode(mode) {
       if (mode > 3 || mode < 0) return;
-      this._memory[this.ADDR_STAT] &= 0xfc;
-      this._memory[this.ADDR_STAT] += mode;
+      this._r.stat &= 0xfc;
+      this._r.stat += mode;
     }
   }, {
     key: '_handle_lcdc',
@@ -10534,28 +10535,6 @@ var MMU = function () {
     value: function _handle_lcd_off() {
       this.setLy(0x00);
       this.setLCDMode(0);
-    }
-
-    /**
-     * Sets value on interrupt request register
-     * @param value
-     */
-
-  }, {
-    key: '_setIf',
-    value: function _setIf(value) {
-      this._memory[this.ADDR_IF] = value;
-    }
-
-    /**
-     * @returns {number} IF register
-     * @private
-     */
-
-  }, {
-    key: '_If',
-    value: function _If() {
-      return this._memory[this.ADDR_IF];
     }
 
     /**
@@ -10769,7 +10748,7 @@ var MMU = function () {
   }, {
     key: 'stat',
     value: function stat() {
-      return this.readByteAt(this.ADDR_STAT);
+      return this._r.stat;
     }
 
     /**
@@ -10780,7 +10759,7 @@ var MMU = function () {
   }, {
     key: 'ly',
     value: function ly() {
-      return this.readByteAt(this.ADDR_LY);
+      return this._r.ly;
     }
 
     /**
@@ -10791,7 +10770,8 @@ var MMU = function () {
   }, {
     key: 'setLy',
     value: function setLy(line) {
-      this.writeByteAt(this.ADDR_LY, line);
+      this._r.ly = line;
+      this._updateStatLyc();
     }
 
     /**
@@ -10801,7 +10781,7 @@ var MMU = function () {
   }, {
     key: 'incrementLy',
     value: function incrementLy() {
-      var ly = this.ly();
+      var ly = this._r.ly;
       if (ly >= this.NUM_LINES) {
         ly = 0;
       } else {
@@ -10827,7 +10807,7 @@ var MMU = function () {
   }, {
     key: 'lyEqualsLyc',
     value: function lyEqualsLyc() {
-      return (this.stat() & this.MASK_STAT_LYC_ON) >> 2 === 1;
+      return (this._r.stat & this.MASK_STAT_LYC_ON) >> 2 === 1;
     }
 
     /**
@@ -10849,6 +10829,11 @@ var MMU = function () {
     key: 'p1',
     value: function p1() {
       return this.readByteAt(this.ADDR_P1);
+    }
+  }, {
+    key: 'If',
+    value: function If() {
+      return this._r.if;
     }
   }, {
     key: 'pressRight',
@@ -11380,7 +11365,7 @@ var Utils = function () {
   }, {
     key: 'toFsStamp',
     value: function toFsStamp() {
-      var date = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new Date();
+      var date = arguments.length <= 0 || arguments[0] === undefined ? new Date() : arguments[0];
 
       return date.toISOString().replace(/\.|:/g, '-');
     }

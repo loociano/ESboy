@@ -30,6 +30,10 @@ export default class MMUMock {
 
   getCartridgeType(){}
 
+  If(){
+    return this._memory[this.ADDR_IF];
+  }
+
   scx(){
     return 0;
   }

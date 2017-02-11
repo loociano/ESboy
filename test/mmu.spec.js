@@ -17,9 +17,6 @@ describe('MMU', () => {
   beforeEach( () => {
     const loader = new Loader('./roms/blargg/cpu_instrs/cpu_instrs.gb');
     mmu = new MMU(loader.asUint8Array(), new StorageMock());
-    mmu.If = function(){
-      return this.readByteAt(mmu.ADDR_IF);
-    };
   });
 
   describe('Initialization', () => {
