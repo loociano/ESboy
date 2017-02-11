@@ -2680,7 +2680,7 @@ var CPU = function () {
     this._halt = false;
     this._stop = false;
 
-    this.mustPaint = false;
+    this._mustPaint = false;
 
     this._bootstrap();
   }
@@ -3110,9 +3110,9 @@ var CPU = function () {
       do {
         if (this.isStopped() || pc_stop !== -1 && this._r.pc === pc_stop) return;
         this.cpuCycle(pc_stop);
-      } while (!this.mustPaint);
+      } while (!this._mustPaint);
 
-      this.mustPaint = false;
+      this._mustPaint = false;
     }
 
     /**
@@ -3344,7 +3344,7 @@ var CPU = function () {
         if (this.ly() === this.mmu.LCDC_LINE_VBLANK) {
           this.mmu.setLCDMode(1);
           this._requestVBlankInterrupt();
-          this.mustPaint = true;
+          this._mustPaint = true;
         }
       } else {
         this._handleTransitionsBeforeVBL();
@@ -8292,7 +8292,6 @@ var InputHandler = function () {
 exports.default = InputHandler;
 
 },{}],11:[function(require,module,exports){
-(function (Buffer){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -8355,24 +8354,12 @@ var LCD = function () {
     this._bgLineFlags = []; // will contain 160 bit flags, 1 when bg/win is first color palette
     this._intensityCache = [];
 
-    this._populateIntensityCache();
     this._clear();
     this._readPalettes();
-
     this.paint();
   }
 
   _createClass(LCD, [{
-    key: '_populateIntensityCache',
-    value: function _populateIntensityCache() {
-      for (var v = 0; v < 0x10000; v++) {
-        var _b = new Buffer(2);
-        _b[0] = v >> 8;
-        _b[1] = v & 0xff;
-        this._intensityCache.push(LCD.tileToIntensityVector(_b));
-      }
-    }
-  }, {
     key: 'getImageData',
     value: function getImageData() {
       return this._imageData;
@@ -8645,19 +8632,25 @@ var LCD = function () {
         if (isBG) {
           x %= this._OUT_WIDTH;
         }
-        if (isOBJ) {
-          if (this._hasBgPriority(OBJAttr)) {
-            if (this._isBgPixelFirstPaletteColor(x, line)) {
-              this.drawPixel({ x: x, y: line, paletteDataNb: intensityVector[i] }, palette, isOBJ);
-            }
-          } else {
-            this.drawPixel({ x: x, y: line, paletteDataNb: intensityVector[i] }, palette, isOBJ);
-          }
-        } else {
+        if (this._shouldDrawPixel(OBJAttr, x, line)) {
           this.drawPixel({ x: x, y: line, paletteDataNb: intensityVector[i] }, palette, isOBJ);
         }
       }
-      return intensityVector;
+    }
+
+    /**
+     * @param OBJAttr
+     * @param x
+     * @param line
+     * @returns {boolean}
+     * @private
+     */
+
+  }, {
+    key: '_shouldDrawPixel',
+    value: function _shouldDrawPixel(OBJAttr, x, line) {
+      var isOBJ = OBJAttr !== undefined;
+      return !isOBJ || isOBJ && (!this._hasBgPriority(OBJAttr) || this._hasBgPriority(OBJAttr) && this._isBgPixelFirstPaletteColor(x, line));
     }
 
     /**
@@ -8906,13 +8899,20 @@ var LCD = function () {
   }, {
     key: '_getIntensityVector',
     value: function _getIntensityVector(tileNumber, tileLine, isOBJ) {
-      var tileLineData = void 0;
+      var tileLineBuffer = void 0;
       if (isOBJ) {
-        tileLineData = this._mmu.readOBJData(tileNumber, tileLine);
+        tileLineBuffer = this._mmu.readOBJData(tileNumber, tileLine);
       } else {
-        tileLineData = this._mmu.readBGData(tileNumber, tileLine);
+        tileLineBuffer = this._mmu.readBGData(tileNumber, tileLine);
       }
-      return this._intensityCache[(tileLineData[0] << 8) + tileLineData[1]];
+
+      var tileLineInt = (tileLineBuffer[0] << 8) + tileLineBuffer[1];
+      var vector = this._intensityCache[tileLineInt];
+      if (vector === undefined) {
+        vector = LCD.tileToIntensityVector(tileLineBuffer);
+        this._intensityCache[tileLineInt] = vector;
+      }
+      return vector;
     }
 
     /**
@@ -8923,17 +8923,17 @@ var LCD = function () {
      * 0x00ff -> [2,2,2,2,2,2,2,2]
      * 0xffff -> [3,3,3,3,3,3,3,3]
      *
-     * @param {Buffer} tileLineData (2 bytes)
+     * @param {Buffer} tileLineBuffer (2 bytes)
      * @returns {Array} intensity vector
      */
 
   }], [{
     key: 'tileToIntensityVector',
-    value: function tileToIntensityVector(tileLineData) {
+    value: function tileToIntensityVector(tileLineBuffer) {
       var array = [];
 
-      var msb = _utils2.default.toBin8(tileLineData[0]);
-      var lsb = _utils2.default.toBin8(tileLineData[1]);
+      var msb = _utils2.default.toBin8(tileLineBuffer[0]);
+      var lsb = _utils2.default.toBin8(tileLineBuffer[1]);
 
       for (var b = 0; b < 8; b++) {
         array.push((parseInt(lsb[b], 2) << 1) + parseInt(msb[b], 2));
@@ -8991,8 +8991,7 @@ var LCD = function () {
 
 exports.default = LCD;
 
-}).call(this,require("buffer").Buffer)
-},{"./logger":12,"./utils":15,"buffer":3}],12:[function(require,module,exports){
+},{"./logger":12,"./utils":15}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -9372,9 +9371,12 @@ var MMU = function () {
 
     this._r = {
       ie: 1,
+      if: 0,
+      lcdc: 0x91,
       ly: 0,
       stat: 0x80,
-      if: 0
+      tac: 0,
+      tima: 0
     };
 
     this.isCartridgeSupported();
@@ -9491,9 +9493,7 @@ var MMU = function () {
 
       this._memory[this.ADDR_P1] = 0xff;
       this._memory[0xff04] = 0x00;
-      this._memory[0xff05] = 0x00;
       this._memory[0xff06] = 0x00;
-      this._memory[0xff07] = 0x00;
       this._memory[0xff10] = 0x80;
       this._memory[0xff11] = 0x80;
       this._memory[0xff12] = 0xf3;
@@ -9513,7 +9513,6 @@ var MMU = function () {
       this._memory[0xff24] = 0x77;
       this._memory[0xff25] = 0xf3;
       this._memory[0xff26] = 0x80;
-      this._memory[0xff40] = 0x91;
       this._memory[0xff44] = 0x00;
       this._memory[0xff47] = 0xfc;
       this._memory[0xff4f] = 0xfe;
@@ -9543,18 +9542,21 @@ var MMU = function () {
           return this._r.ly;
         case this.ADDR_IE:
           return this._r.ie;
+        case this.ADDR_LCDC:
+          return this._r.lcdc;
+        case this.ADDR_TAC:
+          return this._r.tac;
+        case this.ADDR_TIMA:
+          return this._r.tima;
         case this.ADDR_DMA:
         case this.ADDR_SB:
           throw new Error('Unsupported register ' + _utils2.default.hex4(addr));
-
         case this.ADDR_KEY1:
           _logger2.default.info('Unsupported register ' + _utils2.default.hex4(addr));
           return 0xff;
-
         case this.ADDR_SC:
           _logger2.default.info('Unsupported register ' + _utils2.default.hex4(addr));
           break;
-
         case this.ADDR_P1:
           if ((this._memory[addr] & this.MASK_P14) === 0) {
             return this._memory[addr] & this.MASK_P10_P13 | this._buttons;
@@ -9695,7 +9697,7 @@ var MMU = function () {
         throw new Error('Invalid tile line ' + tile_line);
       }
 
-      if ((this.lcdc() & this.LCDC_BG) === 0) {
+      if ((this._r.lcdc & this.LCDC_BG) === 0) {
         return this._genEmptyCharLineBuffer();
       }
 
@@ -9719,7 +9721,7 @@ var MMU = function () {
         throw new Error('Invalid tile line ' + tile_line);
       }
 
-      if ((this.lcdc() & this.MASK_OBJ_ON) === 0) {
+      if ((this._r.lcdc & this.MASK_OBJ_ON) === 0) {
         return this._genEmptyCharLineBuffer();
       }
 
@@ -9748,7 +9750,7 @@ var MMU = function () {
     value: function getBgCharDataStartAddr(tile_number) {
       if (tile_number < 0 || tile_number > 0xff) throw new Error('BG ' + tile_number + ' out of range');
 
-      if ((this.lcdc() & this.MASK_BG_CHAR_DATA) === 0) {
+      if ((this._r.lcdc & this.MASK_BG_CHAR_DATA) === 0) {
         var start = this.BG_CHAR_DATA_8000;
         if (tile_number < 0x80) {
           start = this.BG_CHAR_DATA_9000;
@@ -9823,7 +9825,7 @@ var MMU = function () {
   }, {
     key: '_getBgDisplayDataStartAddr',
     value: function _getBgDisplayDataStartAddr() {
-      if ((this.lcdc() & this.MASK_BG_CODE_AREA_2) === 0) {
+      if ((this._r.lcdc & this.MASK_BG_CODE_AREA_2) === 0) {
         return this.ADDR_DISPLAY_DATA_1;
       } else {
         return this.ADDR_DISPLAY_DATA_2;
@@ -9838,7 +9840,7 @@ var MMU = function () {
   }, {
     key: '_getWindowCodeAreaStartAddr',
     value: function _getWindowCodeAreaStartAddr() {
-      if ((this.lcdc() & this.MASK_WINDOW_CODE_AREA_1) === this.MASK_WINDOW_CODE_AREA_1) {
+      if ((this._r.lcdc & this.MASK_WINDOW_CODE_AREA_1) === this.MASK_WINDOW_CODE_AREA_1) {
         return this.ADDR_DISPLAY_DATA_2;
       } else {
         return this.ADDR_DISPLAY_DATA_1;
@@ -9852,7 +9854,7 @@ var MMU = function () {
   }, {
     key: 'areOBJOn',
     value: function areOBJOn() {
-      return (this.lcdc() & this.MASK_OBJ_ON) === this.MASK_OBJ_ON;
+      return (this._r.lcdc & this.MASK_OBJ_ON) === this.MASK_OBJ_ON;
     }
 
     /**
@@ -9862,7 +9864,7 @@ var MMU = function () {
   }, {
     key: 'areOBJDouble',
     value: function areOBJDouble() {
-      return (this.lcdc() & this.MASK_OBJ_8x16_ON) === this.MASK_OBJ_8x16_ON;
+      return (this._r.lcdc & this.MASK_OBJ_8x16_ON) === this.MASK_OBJ_8x16_ON;
     }
 
     /**
@@ -9962,6 +9964,11 @@ var MMU = function () {
         case this.ADDR_LY:
           this.setLy(n);
           return;
+        case this.ADDR_TAC:
+          this._r.tac = n & 0x07; // bit 3-7 unused
+          return;
+        case this.ADDR_TIMA:
+          this._r.tima = n;
         case this.ADDR_P1:
           n = this._memory[addr] & this.MASK_P1_RW | n;
           break;
@@ -9976,17 +9983,14 @@ var MMU = function () {
           this._handleStatWrite(n);
           return;
         case this.ADDR_LCDC:
-          this._handle_lcdc(n);
-          break;
+          this._updateLCDC(n);
+          return;
         case this.ADDR_DMA:
           this._handleDMA(n);
           break;
         case this.ADDR_DIV:
           this.setHWDivider(0);
           return;
-        case this.ADDR_TAC:
-          n &= 0x07; // bit 3-7 unused
-          break;
         case this.ADDR_BCPS:
           this._handleBCPS(n);
           return;
@@ -10529,7 +10533,7 @@ var MMU = function () {
       this._r.stat += mode;
     }
   }, {
-    key: '_handle_lcdc',
+    key: '_updateLCDC',
 
 
     /**
@@ -10537,12 +10541,13 @@ var MMU = function () {
      * @param n
      * @private
      */
-    value: function _handle_lcdc(n) {
+    value: function _updateLCDC(n) {
       switch (n & this.LCDC_ON) {
         case 0:
-          this._handle_lcd_off();
+          this._handleLCDOff();
           break;
       }
+      this._r.lcdc = n;
     }
 
     /**
@@ -10551,8 +10556,8 @@ var MMU = function () {
      */
 
   }, {
-    key: '_handle_lcd_off',
-    value: function _handle_lcd_off() {
+    key: '_handleLCDOff',
+    value: function _handleLCDOff() {
       this.setLy(0x00);
       this.setLCDMode(0);
     }
@@ -10757,7 +10762,7 @@ var MMU = function () {
   }, {
     key: 'lcdc',
     value: function lcdc() {
-      return this.readByteAt(this.ADDR_LCDC);
+      return this._r.lcdc;
     }
 
     /**
@@ -10947,11 +10952,12 @@ var MMU = function () {
       if (objNb < 0 || objNb > this.MAX_OBJ - 1) throw new Error('OBJ number out of range');
 
       var addr = this.ADDR_OAM_START + objNb * this.BYTES_PER_OBJ;
+      // OAM can be read directly from memory, no need to call readByteAt()
       return {
-        y: this.readByteAt(addr),
-        x: this.readByteAt(addr + 1),
-        chrCode: this.readByteAt(addr + 2),
-        attr: this.readByteAt(addr + 3)
+        y: this._memory[addr],
+        x: this._memory[addr + 1],
+        chrCode: this._memory[addr + 2],
+        attr: this._memory[addr + 3]
       };
     }
 
@@ -11079,7 +11085,7 @@ var MMU = function () {
   }, {
     key: 'isWindowOn',
     value: function isWindowOn() {
-      return (this.lcdc() & this.MASK_WINDOW_ON) === this.MASK_WINDOW_ON;
+      return (this._r.lcdc & this.MASK_WINDOW_ON) === this.MASK_WINDOW_ON;
     }
 
     /**
