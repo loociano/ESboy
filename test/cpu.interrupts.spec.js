@@ -290,11 +290,11 @@ describe('Interruptions', () => {
       this.cpu.ei();
       this.cpu.halt();
 
-      for(let m = 0; m < 0x100*4; m++) {
+      do{
         this.cpu.cpuCycle(); // cause time overflow
-      }
-      this.cpu.cpuCycle(); // cpu exits halts and enters the timer routine
-      this.cpu.cpuCycle(); // execute opcode
+      } while(this.cpu.isHalted());
+
+      this.cpu.cpuCycle();
 
       assert.equal(called, 1, 'called when timer exits halt');
       assert.equal(this.cpu.pc(), this.cpu.ADDR_TIMER_INTERRUPT);
@@ -312,12 +312,13 @@ describe('Interruptions', () => {
       this.cpu.di();
       this.cpu.halt();
 
-      for(let m = 0; m < 0x100*4; m++) {
+      do {
         this.cpu.cpuCycle(); // cause time overflow
-      }
+      } while (this.cpu.isHalted());
+
       assert.equal(this.cpu.pc(), 0x150);
+
       this.cpu.cpuCycle(); // cpu exits halts and continues with the next instruction
-      this.cpu.cpuCycle();
 
       assert.equal(this.cpu.pc(), 0x151);
     });
