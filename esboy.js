@@ -3257,6 +3257,8 @@ var CPU = function () {
   }, {
     key: '_handleTimerInterrupt',
     value: function _handleTimerInterrupt() {
+      this._m += 5; // handle interrupt
+      if (this.isHalted()) this._m += 1;
       this._halt = false;
       this.setIf(this.If() & this.mmu.IF_TIMER_OFF);
       this.di();
@@ -3282,6 +3284,8 @@ var CPU = function () {
   }, {
     key: '_handleLYCInterrupt',
     value: function _handleLYCInterrupt() {
+      this._m += 5; // handle interrupt
+      if (this.isHalted()) this._m += 1;
       this._halt = false;
       this.setIf(this.If() & this.mmu.IF_STAT_OFF);
       this.di();
@@ -3436,6 +3440,8 @@ var CPU = function () {
     key: '_handleVBlankInterrupt',
     value: function _handleVBlankInterrupt() {
 
+      this._m += 5; // handle interrupt
+      if (this.isHalted()) this._m += 1;
       this._halt = false;
       this.setIf(this.If() & this.IF_VBLANK_OFF);
 
@@ -11232,26 +11238,9 @@ function init(arrayBuffer) {
  * Main loop
  */
 function frame() {
-  try {
-    window.requestAnimationFrame(frame);
-    now = Date.now();
-    delta = now - then;
-
-    if (delta > INTERVAL) {
-      // fps limitation logic, Kindly borrowed from Rishabh
-      // http://codetheory.in/controlling-the-frame-rate-with-requestanimationframe
-      then = now - delta % INTERVAL;
-      if (++frames > MAX_FPS) {
-        updateTitle(Math.floor(frames * 1000 / (new Date() - ref) / 60 * 100));
-        frames = 0;
-        ref = new Date();
-      }
-      cpu.frame();
-      cpu.paint();
-    }
-  } catch (e) {
-    console.error(e.stack);
-  }
+  window.requestAnimationFrame(frame);
+  cpu.frame();
+  cpu.paint();
 }
 
 function updateTitle(speed) {
