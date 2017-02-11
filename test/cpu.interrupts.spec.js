@@ -341,7 +341,7 @@ describe('Interruptions', () => {
       this.cpu.setIe(0b00000111); // VBL + LCD + TIMER
       this.cpu._r.pc = 0x150;
       this.cpu.setIf(0b00000111);
-      this.cpu.mustPaint = true;
+      this.cpu._mustPaint = true;
 
       this.cpu.frame(); // execute until VBL is handled
 

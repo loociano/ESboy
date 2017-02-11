@@ -25,7 +25,7 @@ describe('Dividers', () => {
       this._div = (this._div + n) % 0xffff;
       this._memory[this.ADDR_DIV] = Utils.msb(this._div);
       if (this._div >= (1 << 8)){
-        cpu.mustPaint = true;
+        cpu._mustPaint = true;
       }
     };
 
@@ -40,7 +40,7 @@ describe('Dividers', () => {
       this._div = (this._div + n) % 0xffff;
       this._memory[this.ADDR_DIV] = Utils.msb(this._div);
       if (this._div >= (1 << 15)){
-        cpu.mustPaint = true;
+        cpu._mustPaint = true;
       }
     };
 
