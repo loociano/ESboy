@@ -42,20 +42,9 @@ export default class LCD {
     this._bgLineFlags = []; // will contain 160 bit flags, 1 when bg/win is first color palette
     this._intensityCache = [];
 
-    this._populateIntensityCache();
     this._clear();
     this._readPalettes();
-
     this.paint();
-  }
-
-  _populateIntensityCache(){
-    for(let v = 0; v < 0x10000; v++){
-      const _b = new Buffer(2);
-      _b[0] = v >> 8;
-      _b[1] = v & 0xff;
-      this._intensityCache.push(LCD.tileToIntensityVector(_b));
-    }
   }
 
   getImageData(){
@@ -484,13 +473,20 @@ export default class LCD {
    * @private
    */
   _getIntensityVector(tileNumber, tileLine, isOBJ){
-    let tileLineData;
+    let tileLineBuffer;
     if (isOBJ) {
-      tileLineData = this._mmu.readOBJData(tileNumber, tileLine);
+      tileLineBuffer = this._mmu.readOBJData(tileNumber, tileLine);
     } else {
-      tileLineData = this._mmu.readBGData(tileNumber, tileLine);
+      tileLineBuffer = this._mmu.readBGData(tileNumber, tileLine);
     }
-    return this._intensityCache[(tileLineData[0] << 8) + tileLineData[1]];
+
+    const tileLineInt = (tileLineBuffer[0] << 8) + tileLineBuffer[1];
+    let vector = this._intensityCache[tileLineInt];
+    if (vector === undefined){
+      vector = LCD.tileToIntensityVector(tileLineBuffer);
+      this._intensityCache[tileLineInt] = vector;
+    }
+    return vector;
   }
 
   /**
@@ -501,14 +497,14 @@ export default class LCD {
    * 0x00ff -> [2,2,2,2,2,2,2,2]
    * 0xffff -> [3,3,3,3,3,3,3,3]
    *
-   * @param {Buffer} tileLineData (2 bytes)
+   * @param {Buffer} tileLineBuffer (2 bytes)
    * @returns {Array} intensity vector
    */
-  static tileToIntensityVector(tileLineData){
+  static tileToIntensityVector(tileLineBuffer){
     const array = [];
 
-    const msb = Utils.toBin8(tileLineData[0]);
-    const lsb = Utils.toBin8(tileLineData[1]);
+    const msb = Utils.toBin8(tileLineBuffer[0]);
+    const lsb = Utils.toBin8(tileLineBuffer[1]);
 
     for(let b = 0; b < 8; b++){
       array.push( (parseInt(lsb[b], 2) << 1) + parseInt(msb[b], 2));
