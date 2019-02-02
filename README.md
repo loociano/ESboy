@@ -1,4 +1,4 @@
-# ESboy – GAME BOY&trade; emulator [![Build Status](https://travis-ci.org/loociano/ESboy.svg?branch=master)](https://travis-ci.org/loociano/gb-ES6)
+# ESboy – GAME BOY&trade; emulator [![Build Status](https://travis-ci.org/loociano/ESboy.svg?branch=master)](https://travis-ci.org/loociano/ESboy)
 
 ![Tetris DX running on Chrome](https://github.com/loociano/ESboy/blob/master/screenshots/2017-02-09%2020_06_20-ESboy.png?raw=true)
 
